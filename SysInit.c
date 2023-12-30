@@ -1,10 +1,9 @@
-
+#include "FrameWork.h"
 
 //int gMapperEnable = 0;
 //int GameSaveBmp( int width, int height, char *palette, char *pixels );
 //int gSysMapperEnable = 0;
 
-#include "FrameWork.h"
 
 char *gGamePath = "game/";
 void MouseMgrResetSpeed();
@@ -14,14 +13,47 @@ int SysOpenDataFiles();
 void SysLoadConfiguration( int MapperFlag, int argc, char **argv );
 void SysUnloadConfiguration( int SaveFlag );
 xFile_t *SysMapperInit();
-
 int gSysMasterDataFile;
 int gSysCritterDataFile;
-
 int gCfgInit = 0;
-
 Config_t gConfiguration;
 char gCfgPath[ 264 ];
+
+
+/*******************************************************/
+
+void SysDbl2Str( char *str, double dbl )
+{
+    char stmp[ 20 ];
+
+    sprintf( stmp, "%f", dbl );
+    IfcMsgOut( stmp );
+}
+
+
+int SysSaveBmp( int width, int height, char *pix, char *pal )
+{
+    MsgLine_t Line;
+
+    if( InpSaveBMP( width, height, pix, pal ) ){
+        Line.Id = 8;
+        if( MessageGetMsg( &gMessage, &Line ) == 1 ) IfcMsgOut( Line.Text );
+        return -1;
+    } else {
+        Line.Id = 3;
+        if( MessageGetMsg( &gMessage, &Line ) == 1 ) IfcMsgOut( Line.Text );
+        return 0;
+    }
+}
+
+void SysGlobVarFree()
+{
+    gGValCount = 0;
+    if( gGVals ){
+        Free( gGVals );
+        gGVals = NULL;
+    }
+}
 
 void SysHelpDialog()
 {
@@ -57,31 +89,6 @@ void SysHelpDialog()
     if( IsEnabled ) CycleColorStart();
     GmouseIsoEnter();
     if( v9 ) MapUnk34();
-}
-
-
-
-int SysSetMemMng()
-{
-    CfgSetMemMng( Malloc, Realloc, Free );
-//    SetMemMng2(MallocCb1, ReallocCb1, FreeCb1);
-    return 0;
-}
-
-
-int GameSaveBmp( int width, int height, char *palette, char *pixels )
-{
-    MsgLine_t Line;
-
-    if( InpSaveBMP( width, height, pixels, palette ) ){
-        Line.Id = 8;
-        if( MessageGetMsg( &gMessage, &Line ) == 1 ) IfcMsgOut( Line.Text );
-        return -1;
-    } else {
-        Line.Id = 3;
-        if( MessageGetMsg( &gMessage, &Line ) == 1 ) IfcMsgOut( Line.Text );
-        return 0;
-    }
 }
 
 void SysQuitDlg()
@@ -298,9 +305,26 @@ void SysUnloadConfiguration( int SaveFlag )
     gCfgInit = 0;    
 }
 
+void SysError( const char *str, int a2 )
+{
+/*
+    int v5; // edx MAPDST
+    int v6; // ecx
+    int v7; // edx MAPDST
+    int v8; // ecx
+    char stmp[264]; // [esp+0h] [ebp-108h] BYREF
 
-
-
+    eprintf("\n");
+    eprintf(str, v5, a2, v7);
+    WinDestruct();
+    printf("\n\n\n\n\n   ");
+    printf(str, v5, a2, v6);
+    printf("\n\n\n\n\n");
+    sprintf(stmp, str, v7, a2, v8);
+    WinMsgError(stmp);
+*/
+    exit(1);
+}
 
 /***************************************************************************************************/
 

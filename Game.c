@@ -1,6 +1,5 @@
 #include "FrameWork.h"
 
-int GameSaveBmp( int width, int height, char *palette, char *pixels );
 int gMapperEnable = 0;
 int gSysMapperEnable = 0;
 int gGameIface = 0;
@@ -10,7 +9,7 @@ int GameSysInit( char *ProgName, int flag1, int Font, int Flags, int argc, char 
     char stmp[260]; 
     char *lang; 
 
-    if( SysSetMemMng() == -1 ) return -1;
+    if( GmemSetup() == -1 ) return -1;
     SysLoadConfiguration( flag1, argc, argv );
     gMapperEnable = ( flag1 == 1 );
     if( SysOpenDataBase() == -1 ){ SysUnloadConfiguration( 0 ); return -1; }
@@ -35,7 +34,7 @@ int GameSysInit( char *ProgName, int flag1, int Font, int Flags, int argc, char 
     FontMgrInit();
     FontSetup( &gFontInit );
     FontSet( Font );
-    InpScrShotInit( 390, GameSaveBmp );
+    InpScrShotInit( 390, SysSaveBmp );
     InpPauseInit( -1, 0 );
     TileUpdateDisable();
     RandomInit();

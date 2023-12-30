@@ -116,5 +116,11 @@
 #include "Ng.h"
 #include "ScpGame.h"
 #include "Gr.h"
+#include "Gmem.h"
+#include "SysInit.h"
+
+
+
+
 
 
