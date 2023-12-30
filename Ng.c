@@ -1,38 +1,12 @@
 #include "FrameWork.h"
 
-#define NG_WALLPAPER 	6, 174, 0, 0, 0
-#define NG_IMG_BT1A 	6, 122, 0, 0, 0
-#define NG_IMG_BT1B 	6, 123, 0, 0, 0
-
-#define NG_IMG_BT2A 	6, 124, 0, 0, 0
-#define NG_IMG_BT2B 	6, 125, 0, 0, 0
-
-#define NG_IMG_BT3A 	6, 8, 0, 0, 0
-#define NG_IMG_BT3B 	6, 9, 0, 0, 0
-#define NG_IMG_BT4A 	6, 8, 0, 0, 0
-#define NG_IMG_BT4B 	6, 9, 0, 0, 0
-#define NG_IMG_BT5A 	6, 8, 0, 0, 0
-#define NG_IMG_BT5B 	6, 9, 0, 0, 0
-#define NG_IMG_BT6A 	6, 8, 0, 0, 0
-#define NG_IMG_BT6B 	6, 9, 0, 0, 0
-#define NG_DUDE_PREMADES 3
-#define NG_CAPCOLOR	gPalColorCubeRGB[0][31][0]
-
 char *ObjGetName( Obj_t * );
-
-typedef struct 
-{
-    char path[20];
-    int ImgId;
-    char label[20];
-} Premade_t;
 
 Premade_t gPremadeCharacter[ 3 ] = {
     { "premade/combat",   0x0C9, "VID 208-197-88-125" },
     { "premade/stealth",  0x0CA, "VID 208-206-49-229" },
     { "premade/diplomat", 0x0CB, "VID 208-206-49-227" },
 };
-
 
 #define NG_FEAT_A( s, x, y, y_ofs, wdt, Id )	\
     y += y_ofs;\
@@ -48,7 +22,6 @@ Premade_t gPremadeCharacter[ 3 ] = {
     gFont.Print( gNgSurface + wdt * y - w + x, str, w, wdt, NG_CAPCOLOR );\
     sprintf( str, fmt, ##args );\
     gFont.Print( gNgSurface + wdt * y + x, str, gFont.LineWidth( str ), wdt, NG_CAPCOLOR );
-
 
 char *gNgImg[12];
 
@@ -74,8 +47,8 @@ int  gNgBt5 = -1;
 CachePool_t *gNgObj9 = NULL;
 CachePool_t *gNgObj10= NULL;
 
-int  gNgDudeSel = 0;
-int  gNgDudePremadesCount = NG_DUDE_PREMADES;
+int gNgDudeSel = 0;
+int gNgDudePremadesCount = NG_DUDE_PREMADES;
 
 int NgNewGame()
 {
@@ -88,7 +61,7 @@ int NgNewGame()
     if( NgCharMenuCreate() != 1 ) return 0;    
     if( MseIsCursorClear() ) MseDrawCursor();
     PalLoadFromFile( "color.pal" );
-//    FadeStep( &gPalBase );
+    FadeStep( &gPalBase );
     if( !v1 ){
         do{
             if( gMenuEscape ) break;
@@ -178,7 +151,7 @@ int NgNewGame()
     	    }
 	} while ( !b );
     }
-//    FadeStep( gFadePaletteC );
+    FadeStep( gFadePaletteC );
     NgClose();
     if( !c ) MseCursorRedraw();    
     return a;

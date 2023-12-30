@@ -140,16 +140,16 @@ int ExportSetVar( char *Name, short Type, char *Str )
     return 0;
 }
 
-int ExportGetVarArg( Intp_t *intp, char *Name, short *pFlags, char *pStr )
+int ExportGetVarArg( Intp_t *intp, char *Name, short *pFlags, int *pArg )
 {
     Export_t *exp;
     
     if( !(exp = ExportSearchVar( Name )) ) return 1;
     *pFlags = exp->Flags;
     if( TYPE_STRING( exp->Flags ) )
-        *pStr = IntpDbgStr( intp, exp->ValStr, pFlags );
+        *pArg = IntpDbgStr( intp, exp->ValStr, *pFlags );
     else
-        *pStr = exp->ValInt;
+        *pArg = exp->ValInt;
     return 0;
 }
 
@@ -210,7 +210,7 @@ Intp_t *ExportGetProcedure( char *ProcName, char **pStr, short *IntCtx )
     return exp->Itp;
 }
 
-int ExportSetProcedure( Intp_t *itp, char *ProcName, char *a3, short Type )
+int ExportSetProcedure( Intp_t *itp, char *ProcName, void *Procedure, short Type )
 {
     Export_t *exp1, *exp2;
     
@@ -221,7 +221,7 @@ int ExportSetProcedure( Intp_t *itp, char *ProcName, char *a3, short Type )
         strncpy( exp2->Name, ProcName, 31 );
     }
     exp1->Flags = Type;
-    exp1->ValStr = a3;
+    exp1->ValStr = Procedure;
     exp1->Itp = itp;
     return 0;
 }

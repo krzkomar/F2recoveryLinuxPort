@@ -49,3 +49,10 @@ int abs32( int );
 
 extern char *gGamePath;
 
+char **FileListMake( char *path, int *pCnt );
+void FileListFree( char **FileList );
+
+void SysQuitDlg();
+
+
+

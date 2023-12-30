@@ -58,19 +58,21 @@ char *gProtoUnk101[7];
 char *gProtoUnk103[7];
 char *gProtoUnk104[19];
 
+int ProtoUnk08( unsigned int Pid, char *a2, int *a3 );
+
 /**************************************************************************/
 
-int ProtoUnk10( char *path, unsigned int Pid )
+void ProtoUnk10( char *path, unsigned int Pid )
 {
     strcpy( path, gProtoDataFilePath );
     strcpy( path + strlen( path ), gProtoFilePath );
-    if( Pid == -1 ) return -1;
+    if( Pid == -1 ) return;
     strcpy( path + strlen( path ), ArtGetCatDirName( ARTT( Pid ) ) );
 }
 
 int ProtoUnk09( unsigned int Pid, char *fname )
 {
-    int v4, v5, c, tmp;
+    int c, tmp;
     xFile_t *fh;
     char stmp[ 260 ];
 
@@ -105,9 +107,9 @@ int ProtoUnk08( unsigned int Pid, char *a2, int *a3 )
     strcpy( stmp2, gProtoDataFilePath );
     strcpy( stmp2 + strlen( stmp2 ), gProtoFilePath );
     if( Pid != -1 ) strcpy( stmp2 + strlen( stmp2 ), ArtGetCatDirName( Pid >> 24 ) );
-    strcpy( &stmp2 + strlen( stmp2 ), "/" );
-    strcpy( &stmp2 + strlen( stmp2 ), ArtGetCatDirName( Pid >> 24 ) );
-    strcpy( &stmp2 + strlen( stmp2 ), ".lst" );
+    strcpy( stmp2 + strlen( stmp2 ), "/" );
+    strcpy( stmp2 + strlen( stmp2 ), ArtGetCatDirName( Pid >> 24 ) );
+    strcpy( stmp2 + strlen( stmp2 ), ".lst" );
     if( !(fh = dbOpen( stmp2, "rt" ) ) ) return -2;
     strcpy( stmp3, a2 );
     StrUpr( stmp3 );
@@ -115,7 +117,7 @@ int ProtoUnk08( unsigned int Pid, char *a2, int *a3 )
     *a3 = 0;
     while( dbgets( stmp1, 260, fh ) ){
         if( stmp1[0] != '\n' || stmp1[1] != '\0' ) ++*a3;
-        for( i = -1; c = stmp1[ ++i ]; ){
+        for( i = -1; (c = stmp1[ ++i ]); ){
             if( c == '\n' ) stmp1[i--] = '\0';
         }
         StrUpr( stmp1 );
@@ -246,19 +248,15 @@ int ProtoInitItem( Proto_t *proto, int Pid )
 
 int ProtoUnk02( Proto_t *proto, ProtoType_e Type )
 {
-    Proto_t *p_AttackMode;
     int i;
 
     switch( Type ){
         case TYPE_ITEM:
-            p_AttackMode = &proto->AttackMode;
-            proto->Critt.BaseStat[0] = 0;
-            for( i = 0; i < 8; i++)
-            {
+            proto->Critt.BaseStat[ 0 ] = 0;
+            for( i = 0; i < 8; i++ ){
                 proto->Critt.BaseStat[ 8 + i ] = 0;
                 proto->Critt.BaseStat[ 1 + i ] = 0;
             }
-            while ( proto != p_AttackMode );
             proto->Critt.BaseStat[16] = -1;
             proto->Critt.BaseStat[17] = -1;
             proto->Critt.BaseStat[15] = -1;
@@ -358,38 +356,36 @@ void ProtoDudeEffectReset( Obj_t *dude )
     memset( &dude->Critter, 0, sizeof(ObjCritter_t) );
 }
 
-int ProtoLoadCritterCondition( int *Critter, xFile_t *fh)
+int ProtoLoadCritterCondition( ObjCritterCond_t *Critter, xFile_t *fh)
 {
     int tmp;
     
-    if( dbgetBei( fh, &Critter[ 3 ] ) == -1 ) return -1; // 58 00 Reaction to player (?)
-    if( dbgetBei( fh, &Critter[ 0 ] ) == -1 ) return -1; // 5C 04 Current mp (?)
-    if( dbgetBei( fh, &Critter[ 1 ] ) == -1 ) return -1; // 60 08 Combat result
-    if( dbgetBei( fh, &Critter[ 2 ] ) == -1 ) return -1; // 64 0C Damage last turn
-    if( dbgetBei( fh, &Critter[ 4 ] ) == -1 ) return -1; // 68 10 AI packed number
-    if( dbgetBei( fh, &Critter[ 5 ] ) == -1 ) return -1; // 6C 14 Group ID
+    if( dbgetBei( fh, &Critter->DmgLastTurn ) == -1 ) return -1; // 58 00 Reaction to player (?)
+    if( dbgetBei( fh, &Critter->Reaction ) == -1 ) return -1; // 5C 04 Current mp (?)
+    if( dbgetBei( fh, &Critter->CurrentAP ) == -1 ) return -1; // 60 08 Combat result
+    if( dbgetBei( fh, &Critter->CombatResult ) == -1 ) return -1; // 64 0C Damage last turn
+    if( dbgetBei( fh, &Critter->AIpackNb ) == -1 ) return -1; // 68 10 AI packed number
+    if( dbgetBei( fh, &Critter->GroupId ) == -1 ) return -1; // 6C 14 Group ID
     if( dbgetBei( fh, &tmp ) == -1 ) return -1; // 70 18 Who hit me
-    Critter[ 6 ] = tmp;
+    Critter->WhoHitMe = tmp;
     return 0;
 }
 
-int ProtoSaveCritterCondition( Obj_t *dude, xFile_t *fh )
+int ProtoSaveCritterCondition( ObjCritterCond_t *dude, xFile_t *fh )
 {
-    if( dbputBei(fh, dude->PosY) == -1 || 
-	dbputBei(fh, dude->TimeEv) == -1 || 
-	dbputBei(fh, dude->GridId) == -1 || 
-	dbputBei(fh, dude->PosX) == -1 || 
-	dbputBei(fh, dude->Sx) == -1 || 
-	dbputBei(fh, dude->Sy) == -1 || 
-	dbputBei(fh, dude->FrameNo) == -1 ) return -1;    
+    if( dbputBei( fh, dude->DmgLastTurn ) == -1 ) return -1;    
+    if( dbputBei( fh, dude->Reaction ) == -1 ) return -1;     
+    if( dbputBei( fh, dude->CurrentAP ) == -1 ) return -1;    
+    if( dbputBei( fh, dude->CombatResult ) == -1 ) return -1;    
+    if( dbputBei( fh, dude->AIpackNb ) == -1 ) return -1;    
+    if( dbputBei( fh, dude->GroupId ) == -1 ) return -1;    
+    if( dbputBei( fh, dude->WhoHitMe ) == -1 ) return -1;
     return 0;
 }
 
 int ProtoLoadObj( Obj_t *dude, xFile_t *fh )
 {
     int tmp;
-    int err; int v13; int *v17; int *v18; int v23;
-    unsigned int Pid;
     Proto_t *proto;
 
     /*
@@ -402,7 +398,7 @@ int ProtoLoadObj( Obj_t *dude, xFile_t *fh )
     if( dbgetBei( fh, &dude->Container.Box.Capacity ) == -1 ) return -1; // 4C
     // 50 ?? 'Unknown 10' pointer ???!!
     if( dbgetBei( fh, &tmp ) == -1 ) return -1;
-    dude->Container.Box.Box = tmp;
+    dude->Container.Box.Box = NULL; // tmp
     
     if( OBJTYPE( dude->Pid ) == TYPE_CRIT ){
         if( dbgetBei( fh, &dude->Critter.i04 ) == -1 ) return -1;	 // 54 Unk11
@@ -502,10 +498,12 @@ int ProtoSaveA( xFile_t *fh, Obj_t *dude, int a3 )
 
 int ProtoSaveDude( Obj_t *dude, xFile_t *fh )
 {
-    unsigned int Pid;
     Proto_t *proto;
 
-    if( dbputBei( fh, dude->Container.Box.Cnt ) == -1 || dbputBei( fh, dude->Container.Box.Capacity ) == -1 || dbputBei( fh, dude->Container.Box.Box ) == -1 ) return -1;
+    if( dbputBei( fh, dude->Container.Box.Cnt ) == -1 ) return -1;
+    if( dbputBei( fh, dude->Container.Box.Capacity ) == -1 ) return -1;
+    if( dbputBei( fh, dude->Container.Box.Box ? -1:0 ) == -1 ) return -1;
+
     if( OBJTYPE( dude->Pid ) == TYPE_CRIT ){
         if( dbputBei( fh, dude->Critter.i04 ) == -1 || 
     	    ProtoSaveCritterCondition( &dude->Critter.State, fh) || 
@@ -549,12 +547,10 @@ int ProtoSaveDude( Obj_t *dude, xFile_t *fh )
 
 int ProtoEffectApply( Obj_t *dude )
 {
-    ObjCritter_t *p_Critter;
     unsigned int Pid;
     Proto_t *proto;
 
     if( !gProtoUnk02 ) return -1;
-    p_Critter = &dude->Critter;
     dude->Critter.Box.Cnt = 0;
     dude->Critter.Box.Capacity = 0;
     dude->Critter.Box.Box = NULL;
@@ -798,8 +794,6 @@ int ProtoDuplicate( unsigned int Pid1, unsigned int Pid2 )
 
 int ProtoTestFlg( Proto_t *proto, int flg )
 {
-    unsigned int type;
-
     if( flg == -1 ) return 1;
     if( OBJTYPE( proto->Pid ) ){
         if( OBJTYPE( proto->Pid ) != TYPE_SCEN ) return 0;
@@ -813,7 +807,6 @@ int ProtoTestFlg( Proto_t *proto, int flg )
 int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
 {
     int err;
-    void *p;
     Proto_t *proto;
 
     err = 1;
@@ -902,6 +895,7 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
             }
         default: return 1;
     }
+    return err;
 }
 
 int ProtoInit()
@@ -1151,8 +1145,6 @@ int ProtoLoadScenery( int *Data, int Type, xFile_t *fh )
 int ProtoLoadPrototype( Proto_t *Pt, xFile_t *fh)
 {
     char c;
-    int Type;
-    int tmp2;
     int tmp1;
 
     /* *.PRO header */
@@ -1174,7 +1166,7 @@ int ProtoLoadPrototype( Proto_t *Pt, xFile_t *fh)
     	    if( dbgetBei( fh, &Pt->Critt.BaseStat[22]) == -1 ) return -1;  // 30 Cost
     	    // ??Art ID ?
     	    if( dbgetb( fh, (char *)&Pt->Critt.BaseStat[23]) == -1 ) return -1; // sound ?
-            if( ProtoLoadItems( Pt->Critt.BaseStat, Pt->Critt.ScrId, fh) ) return -1; 
+            if( ProtoLoadItems( (void *)Pt->Critt.BaseStat, Pt->Critt.ScrId, fh) ) return -1; 
             return 0;    	    
         case TYPE_CRIT:
             if ( dbgetBei(fh, &Pt->LtRad) == -1 || dbgetBei(fh, &Pt->LtInt) == -1 || dbgetBei(fh, &Pt->Flags) == -1 || dbgetBei(fh, &Pt->FlgExt) == -1 || dbgetBei(fh, &Pt->AttackMode) == -1 || dbgetBei(fh, &Pt->i09) == -1 || dbgetBei(fh, &Pt->AiPacketNum) == -1 || dbgetBei(fh, &Pt->i11) == -1 )
@@ -1398,8 +1390,10 @@ int ProtoLoadCritterFile( unsigned int Pid, Proto_t **Pt )
     len = strlen( fname ) + 1;
     fname[ len - 1 ] = '/';
     if( ProtoGetFName( Pid, &fname[ len ] ) == -1 ) return -1;
+DD
+printf("==>'%s'\n", fname);
     if( !(fh = dbOpen(fname, "rb")) ){ eprintf("\nError: Can't fopen proto! '%s'\n", fname); *Pt = 0; return -1; }
-    if( ProtoAlloc( OBJTYPE( Pid ), Pt ) == -1 ){ dbClose(fh); return -1; }
+    if( ProtoAlloc( OBJTYPE( Pid ), (void **)Pt ) == -1 ){ dbClose(fh); return -1; }
     err = 0;
     if( ProtoLoadPrototype( *Pt, fh ) ) err =-1;
     dbClose( fh );

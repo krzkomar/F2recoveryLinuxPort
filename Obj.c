@@ -193,8 +193,7 @@ int ObjLoadFile( xFile_t *fh )
     Scpt_t *scr;
     ObjList_t *Obj;
     ObjCritter_t *p;
-    int CntTotal;
-    int FixMapInv; int pint; int i; int j; int result, k;
+    int CntTotal, FixMapInv,pint,i, j, k;
 
     if( !fh ) return -1;
     FixMapInv = 0;
@@ -654,12 +653,13 @@ int ObjCopy( Obj_t **pObj, int Pid )
 
 int ObjUnk13( ObjStack_t *stk, Obj_t *item )
 {
+/*
     int i;
     ObjStack_t *Ptr;
     ObjStack_t *NewStack;
 
     if( !item ) return -1;    
-    if( &Ptr == -4 ) return -1;    
+    if( (Ptr + 4) == 0 ) return -1;    
 
     if( !(NewStack = Malloc( sizeof( ObjStack_t ) )) ) return -1;    
     NewStack->Quantity = 0;
@@ -689,7 +689,7 @@ int ObjUnk13( ObjStack_t *stk, Obj_t *item )
     stk->obj->Container.Box.Box = NULL;
     for( i = 0; i < item->Critter.Box.Cnt; i++ ){
         if( ItemAdd( stk->obj, Ptr, item->Critter.Box.Box[ i ].Quantity ) == -1 ){
-            if( &Ptr != -4 && NewStack ){ Free( NewStack ); NewStack = NULL; }
+            if( &Ptr != (void *)-4 && NewStack ){ Free( NewStack ); NewStack = NULL; }
             return -1;
         }
         if( ObjUnk13( Ptr, item->Critter.Box.Box[ i ].obj ) == -1 ){
@@ -697,6 +697,8 @@ int ObjUnk13( ObjStack_t *stk, Obj_t *item )
 	    return -1;
         }
     }
+*/
+return -1;
     return 0;
 }
 
@@ -1776,7 +1778,7 @@ void ObjRenderSemiTr( char *ImgDat, int Width, int Height, int SrcPitch, char *s
     unsigned char *pDst, col, mask;
     unsigned int i, n, pal;
 
-    pDst = &surf[ Xpos + DstPitch * Ypos ];
+    pDst = (unsigned char *)&surf[ Xpos + DstPitch * Ypos ];
     DstPitch -= Width;
     for( ;--Height != -1; pDst += DstPitch, ImgDat += SrcPitch - Width ){
         for( i = 0; i < Width; i++, ImgDat++, pDst++ ){
@@ -3030,9 +3032,9 @@ void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
     v49 = v11;
     v12 = obj->Orientation;
     v51 = v11 + Area1.bm - Area1.tp;
-    ObjData = ArtGetObjData(Data, obj->FrameNo, v12);
+    ObjData = (unsigned char *)ArtGetObjData(Data, obj->FrameNo, v12);
     img = ObjData;
-    surface = &gObjIsoSurface[ gObjIsoPitch * obj->Sy + obj->Sx ];
+    surface = (unsigned char *)&gObjIsoSurface[ gObjIsoPitch * obj->Sy + obj->Sx ];
     pitch = gObjIsoPitch - Width;
     v52 = obj->OutlineColor & 0x40000000;
     v15 = obj->OutlineColor & 0xFFFFFF;
@@ -3291,55 +3293,30 @@ void ObjGetArtFileId( int *Id )
 
 int ObjArtSort( int *Art1, int *Art2 )
 {
-    int v2;
-    int v3;
-    int v4;
-    int v5;
-    int v7;
-    int v8;
-    int v9;
-    int v10;
-    int v11;
-    int v12;
+    int a,b,c,d;
 
-    v2 = *Art1;
-    v3 = *Art2;
-    v4 = gObjUnk37[(v2 & 0xF000000) >> 24];
-    v5 = gObjUnk37[(v3 & 0xF000000) >> 24];
-    if( v4 > v5 ) return 1;
-    if ( v4 < v5 ) return -1;
-    v7 = v3 & 0xFFF;
-    v8 = v2 & 0xFFF;
-    if ( v8 > v7 ) return 1;
-    if ( v8 < v7 ) return -1;
-    v9 = (v2 & 0xF000) >> 12;
-    v10 = (v3 & 0xF000) >> 12;
-    if ( v9 > v10 ) return 1;
-    if ( v9 < v10 ) return -1;
-    v11 = (v2 & 0xFF0000) >> 16;
-    v12 = (v3 & 0xFF0000) >> 16;
-    if ( v11 > v12 ) return 1;
-    if ( v11 >= v12 ) return 0;
+    c = *Art1;
+    d = *Art2;
+
+    a = gObjUnk37[(c & 0xF000000) >> 24];
+    b = gObjUnk37[(d & 0xF000000) >> 24];
+    if( a > b ) return 1;
+    if( a < b ) return -1;
+
+    a = d & 0xFFF;
+    b = c & 0xFFF;
+    if( b > a ) return 1;
+    if( b < a ) return -1;
+
+    a = (c & 0xF000) >> 12;
+    b = (d & 0xF000) >> 12;
+    if( a > b ) return 1;
+    if( a < b ) return -1;
+
+    a = (c & 0xFF0000) >> 16;
+    b = (d & 0xFF0000) >> 16;
+    if( a > b ) return 1;
+    if( a >= b ) return 0;
     return -1;
 }
-
-/*
-// inny plik .....
-
-void Unk6012( char *ImgDat, int Width, int Height, int SrcPitch, char *surf, int Xpos, int Ypos, int DstPitch, int Flags, char *Color, char *ColorMap )
-{
-    char *pDst;
-    int i;
-
-    pDst = &surf[ Xpos + DstPitch * Ypos ];
-    DstPitch -= Width;
-    while( --Height != -1 ){
-        for( i = 0; i < Width; i++, ImgDat++, pDst++ ){
-            if( *ImgDat ) *pDst = gPalShades[ ( unsigned int )Color[ 256 * ColorMap[ ( unsigned int )*ImgDat ] + *pDst ]][ (Flags >> 9) & 0xff ];
-        }
-        pDst += DstPitch;
-        ImgDat += SrcPitch - Width;
-    }
-}
-*/
 

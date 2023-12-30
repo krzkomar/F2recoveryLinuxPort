@@ -44,6 +44,7 @@ int DbgUnk02( int a1, char *a2 )
     }
     return result;
 */
+return 0;
 }
 
 int DbgUnk03( int a1, char *a2 )
@@ -68,6 +69,7 @@ int DbgUnk03( int a1, char *a2 )
     while ( v3 != v6 );
     return result;
 */
+return 0;
 }
 
 int DbgUnk05( int a1, char *a2 )
@@ -116,6 +118,7 @@ int DbgUnk05( int a1, char *a2 )
     }
     return result;
 */
+return 0;
 }
 
 void DbgStompErr3( int a1, char *a2 )
@@ -203,6 +206,7 @@ int DbgUnk07( int result, int a2, int a3 )
     }
     return result;
 */
+return 0;
 }
 
 

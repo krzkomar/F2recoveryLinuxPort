@@ -33,10 +33,11 @@
 #include "Mouse.h"
 #include "Inp.h"
 #include "Recorder.h"
+#include "IntLib.h"
 #include "Regions.h"
 #include "Region.h"
 #include "Window.h"
-#include "Window1.h"
+
 #include "Msg.h"
 #include "Heap.h"
 #include "Cache.h"
@@ -47,6 +48,7 @@
 #include "FontMgr.h"
 #include "OptionMenu.h"
 #include "Sound.h"
+#include "Obj.h"
 #include "Critter.h"
 #include "Gmouse.h"
 #include "GSound.h"
@@ -65,9 +67,9 @@
 #include "CharEditor.h"
 #include "DlgBox.h"
 #include "Fade.h"
-#include "IntLib.h"
+
 #include "Script.h"
-#include "Obj.h"
+
 #include "LoadSaveGame.h"
 #include "Combat.h"
 #include "Ai.h"
@@ -98,6 +100,7 @@
 #include "Elevator.h"
 #include "WordMap.h"
 #include "ScrInter.h"
+#include "Window1.h"
 #include "ScpCmd.h"
 #include "TextBox.h"
 #include "ScpIfc.h"
@@ -110,5 +113,8 @@
 #include "Mov.h"
 #include "Sdf.h"
 #include "Main.h"
+#include "Ng.h"
+#include "ScpGame.h"
+#include "Gr.h"
 
 

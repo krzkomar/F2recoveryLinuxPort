@@ -102,6 +102,7 @@ int gIfcIndBoxWin = -1;
 int gIfcCurrentHP = 0;
 int gIfcStateHP = COUNTER_RED;
 int gIfcCurrentAC = 0;
+int gIfcTimeout = 0;
 
 /**************************************/
 

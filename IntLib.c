@@ -3,9 +3,9 @@
 
 IntpTask_t gIntpList[ 256 ];
 
-int (**gIntpTasks)(Intp_t *);
+int (**gIntpTasks)(Intp_t *) = {0};
 
-int gIntpTaskListCnt;
+int gIntpTaskListCnt = 0;
 
 Intp_t *gIntpCurScript;
 IntpList_t *gIntpQe;
@@ -36,7 +36,7 @@ void IntpTaskAdd( int (*Cb)( Intp_t *) )
         }
         gIntpTaskListCnt++;
     }
-    gIntpTasks[ i ] = Cb;
+    restore[ i ] = Cb;
     gIntpTasks = restore;
 }
 
@@ -81,9 +81,9 @@ void IntpNull1()
     /* EMPTY */
 }
 
-int IntpMseHandler()
+char *IntpMseHandler( char *s)
 {
-    return gSciMseHandler();
+    return gSciMseHandler( s );
 }
 
 int IntpNull2()
@@ -153,7 +153,7 @@ short IntpReadBew( char *Base, int Offset )
     return tmp;
 }
 
-int IntpReadBei( char *Base, int Offset )
+int IntpReadBei( void *Base, int Offset )
 {
     return BSWAP32( *((int *)((char *)Base + Offset )) );
 }
@@ -376,8 +376,8 @@ Intp_t *IntpLoad( const char *fname )
     intp->StackB = dbg_calloc( 1, INTP_STACK_SIZE );
     intp->IntpData = buff;
     intp->ProcTable = (void *)buff + 42; // 42 - fixed size of ScpInit
-    intp->StringBase = intp->ProcTable + 24 * IntpReadBei( (void *)intp->ProcTable, 0 ) + 4;
-    intp->Floats = intp->StringBase + IntpReadBei( (void *)intp->StringBase, 0 ) + 4;
+    intp->StringBase = (char *)(intp->ProcTable + 24 * IntpReadBei( (void *)intp->ProcTable, 0 ) + 4);
+    intp->Floats = (IntpOp_t *)(intp->StringBase + IntpReadBei( (void *)intp->StringBase, 0 ) + 4);
     return intp;    
 }
 
@@ -534,6 +534,6 @@ void IntpGetOpcodeI( Intp_t *a1 )
     InstrPtr = a1->InstrPtr;
     a1->InstrPtr = InstrPtr + 4;
     IntpReadBei(a1->IntpData, InstrPtr);
-    ScpA_Nop();
+    ScpA_Nop( a1 );
 }
 

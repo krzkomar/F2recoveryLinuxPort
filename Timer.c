@@ -1,3 +1,4 @@
+#include <sys/time.h>
 #include "FrameWork.h"
 
 unsigned int gTimerTime;

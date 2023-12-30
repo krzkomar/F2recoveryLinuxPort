@@ -53,7 +53,7 @@ int MainMenuCreate()
     mline.Id = MAIN_MENU_TXT_COPYRIGHT;
     if( MessageGetMsg( &gMessage, &mline ) == 1 ) WinDrawText( gMainMenuWin, mline.Text, 0, 15, 460, MAIN_MENU_COLOR | 0x6000000 );
     FontSet( MAIN_MENU_FONT );
-    GameVersion( GameVersionStr );
+    MainGameVersion( GameVersionStr );
     color = MAIN_MENU_COLOR | 0x6000000;
     WinDrawText( gMainMenuWin, GameVersionStr, 0, 615 - gFont.LineWidth( GameVersionStr ), 460, color );
     if( (gImgButtUp = ArtGetBitmap( ArtMakeId( MAIN_MENU_ART_BUTTUP ), 0, 0, &gMainMenuButtonUpImg ) ) == 0 ){ MainMenuDestroy(); return -1; }

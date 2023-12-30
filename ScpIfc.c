@@ -15,38 +15,39 @@
 #define ARG_TYPE( Type, TypeEnum, ErrStr )	if( ( Type & 0xF7FF) != TypeEnum ) IntpError( ErrStr );
 
 Sound_t *gScpIfcSounds[ 32 ];
-int gScpIfcUnk08;
+
+Pal8_t gScpIfcUnk02[ 256 ];
+
+int gScpIfcUnk01;
 int gScpIfcUnk07;
+
+Intp_t *gScpIfcUnk08;
+
+int gScpIfcUnk05;
+char gScpIfcUnk03[ 100 ];
+char gScpIfcUnk04[ 100 ];
 
 /*************************************************/
 
-void ScpIfc_FillWin3x3( Intp_t *scr ) // 806A
+void ScpIfc_FillWin3x3( Intp_t *scr )
 {
-    unsigned short Type;
-    int Arg;
-//    char *s;
-//    char *v13;
-//    void *p;
-//    RECT *v16;
-//    int v15, v18, v19;
+    short Type;
+    int Arg,SrcH,SrcW;
+    char *s, *data;
 
-//    v19 = v18 = 0;
-    GET_ARGi( scr, Arg, Type )
-    ARG_TYPE( Type, SCR_STRING, "Invalid type given to fillwin3x3" )
-    IntpGetArg( scr, TYPEH( Type ), Arg );
-//    s = IntpMseHandler();
-//    p = FillWin5( &v16, &v15 );
-//    if( !p ) IntpError( "cannot load 3x3 file '%s'", s );    
-//    FillRect( v15, v16, Type );
-//    FillWin1( &p->SrcType, v19, FillWin4(), v18, FillWin3(), FillWin2() );
-//    dbg_free( p );
+    GET_ARGi( scr, Arg, Type );
+    ARG_TYPE( Type, SCR_STRING, "Invalid type given to fillwin3x3" );
+    s = IntpMseHandler( IntpGetArg( scr, TYPEH( Type ), Arg ) );    
+    if( !(data = DataFileGetArt( s, &SrcW, &SrcH ) ) ) IntpError("cannot load 3x3 file '%s'", s );
+    WinFillRect( scr->i34 );
+    WinBlit( data, SrcW, SrcH, WinFill4(), WinGetCurrentWidth(), WinGetCurrentHeight() );
+    dbg_free( data );
 }
 
 void ScpIfc_MessageFormat( Intp_t *scr ) // 8073
 {
     unsigned short Type3, Type4, Type1, Type2, Type5, Type6;
     int Arg1, Arg2, Arg3, Arg4, Arg5, Arg6;
-    char *s;
 
     GET_ARGi( scr, Arg1, Type1 );
     GET_ARGi( scr, Arg2, Type2 );
@@ -61,8 +62,7 @@ void ScpIfc_MessageFormat( Intp_t *scr ) // 8073
     ARG_TYPE( Type4, SCR_INT, "Invalid arg 3 given to format\n" );
     ARG_TYPE( Type5, SCR_INT, "Invalid arg 2 given to format\n" );
     ARG_TYPE( Type6, SCR_STRING, "Invalid arg 1 given to format\n" );
-    s = IntpGetArg(scr, TYPEH( Type6 ), Arg6 );
-//    if( !FormatMsg( s, Arg5, Arg3, Arg4, Arg2, Arg1) ) IntpError( "Error formatting message\n" );
+    if( !WinFormatMsg( IntpGetArg( scr, TYPEH( Type6 ), Arg6 ), Arg5, Arg3, Arg4, Arg2, Arg1) ) IntpError( "Error formatting message\n" );
 }
 
 void ScpIfc_Print( Intp_t *scr ) // 8072
@@ -70,7 +70,7 @@ void ScpIfc_Print( Intp_t *scr ) // 8072
     unsigned short Type;
     int Arg;
 
-//    FillRect( Idx, vars0, vars0_4 );
+    WinFillRect( scr->i34 );
     GET_ARGi( scr, Arg, Type );
     Type &= ~0x0800;
     switch( Type ){
@@ -83,51 +83,51 @@ void ScpIfc_Print( Intp_t *scr ) // 8072
 void ScpIfc_SelectFileList( Intp_t *scr ) // 809F
 {
     unsigned short Type1, Type2;
-    int Arg1, Arg2;
-    char *str1, str2;
+    int Arg1, Arg2, selected, Cnt;
+    char *title, *mask, **list;
 
     scr->Flags |= 0x20;
 
-    GET_ARGi( scr, Arg1, Type1 );
+    GET_ARGi( scr, Arg1, Type1 ); // string mask
     ARG_TYPE( Type1, SCR_STRING, "Error, invalid arg 2 given to selectfilelist" );
-    str2 = IntpGetArg( scr, TYPEH( Type1 ), Arg1 );
+    mask = IntpGetArg( scr, TYPEH( Type1 ), Arg1 );
 
-    GET_ARGi( scr, Arg2, Type2 );
+    GET_ARGi( scr, Arg2, Type2 ); // string title
     ARG_TYPE( Type2, SCR_STRING, "Error, invalid arg 1 given to selectfilelist" );
-    str1 = IntpGetArg( scr, TYPEH( Type2 ), Arg2 );
-/*
-    v11 = IntpMseHandler();
-    v13 = Unk6015( v11, v12 );
-    if( v13 && v19 ){
-        v18 = gPalColorCubeRGB[31][31][31] | 0x10000;
-        Map1 = LoadMap1( str1, v13, 0, v19, 320 - gFont.LineWidth( str1 ) / 2 - 10, 200, v18 );
-        if( Map1 == -1 ){
+    title = IntpGetArg( scr, TYPEH( Type2 ), Arg2 );
+
+    list = FileListMake( IntpMseHandler( mask ), &Cnt );
+    if( list && Cnt ){
+        selected = TextBoxFileSelect( title, list, Cnt, NULL, 320 - gFont.LineWidth( title ) / 2 - 10, 200, gPalColorCubeRGB[31][31][31] | 0x10000 );
+        if( selected == -1 ){
             IntpPushiA( scr, 0 );
             IntpPushwA( scr, SCR_INT );
         } else {
-            IntpPushiA( scr, IntpDbgStr(scr, v13[Map1], v19 ) );
+            IntpPushiA( scr, IntpDbgStr(scr, list[ selected ], Cnt ) );
             IntpPushwA( scr, SCR_FSTRING );
         }        
-        FileList(v13);
+        FileListFree( list );
     } else {
         IntpPushiA( scr, 0 );
         IntpPushwA( scr, SCR_INT );
     }
     scr->Flags &= ~0x20;
-*/
 }
 
 void ScpIfc_TokenizeString( Intp_t *scr ) // 80A0
 {
-/*
+    short Type1, Type2, Type3;
+    int v25, Arg1, Arg2, Arg3, v29, i;
+    char *s, *v13, *v14, *p, *v17, *errcall, *xx;
+    
     xx = 0;
     v25 = 0;
-    errcall = v4;
+    errcall = NULL;
 
     GET_ARGi( scr, Arg1, Type1 );
     ARG_TYPE( Type1, SCR_INT, "Error, invalid arg 3 to tokenize." );
 
-    v29 = v5;
+    v29 = Arg1;
     GET_ARGi( scr, Arg2, Type2 );
 
     switch( Type2 & ~0x800 ){
@@ -139,57 +139,35 @@ void ScpIfc_TokenizeString( Intp_t *scr ) // 80A0
     GET_ARGi( scr, Arg3, Type3 );
     ARG_TYPE( Type3, SCR_STRING, "Error, invalid arg 1 to tokenize." );
 
-    s = IntpGetArg(scr, TYPEH( Type3 ), Arg3 );
+    s = IntpGetArg( scr, TYPEH( Type3 ), Arg3 );
     if( !xx ){
-        if( *s != v29 ){
-            do{
-                if( !*s ) break;
-                v21 = *++s;
-                ++xx;
-            } while ( v21 != v29 );
-        }
+        for( i = 0;*s != v29 && *s; s++, i++ );
         if( s ){
-            p = dbg_calloc(1, (xx + 1), 248);
-            strncpy( p, s, xx );
-            IntpPushiA( scr, IntpDbgStr( scr, p, xx ) );
+            p = calloc(1, (i + 1) );
+            strncpy( p, s, i );
+            IntpPushiA( scr, IntpDbgStr( scr, p, i ) );
 	    IntpPushwA( scr, SCR_FSTRING );
 	    if( p ) dbg_free( p );
 	    return;
         }
-        goto LABEL_32;
+    } else {
+	if( (v13 = strstr( s, xx )) ){	
+    	    for( v14 = v13 + strlen( xx ); *v14 != v29 && *v14; v14++ );
+	    if( *v14 == v29 ){	    
+    		for( v17 = v14 + 1; *v17 != v29 && *v17; v17++, v25++ );
+		p = calloc( 1, v25 + 1 );
+		strncpy( p, v14 + 1, v25 );
+		IntpPushiA( scr, IntpDbgStr( scr, p, v25 ) );
+		IntpPushwA( scr, SCR_FSTRING );
+		if( errcall ) dbg_free( p );
+		return;    
+	    }
+	}
     }
-    v13 = strstr_(s, xx);
-    if( !v13 ) goto LABEL_32;
-    v14 = &v13[strlen(xx)];
-    if( v29 != *v14 ){
-        do{
-            if( !*v14 ) break;
-            v15 = *++v14;
-        } while ( v15 != v29 );
-    }
-    if( *v14 != v29 ){
-LABEL_32:
-        IntpPushiA( scr, 0 );
-	IntpPushwA( scr, SCR_INT );
-	if( errcall ) dbg_free( errcall );
-	return;
-    }
-    v16 = v14 + 1;
-    v17 = v16;
-    if( *v16 != v29 ){
-        do{
-            if( !*v17 ) break;
-            v18 = *++v17;
-            ++v25;
-        } while ( v18 != v29 );
-    }
-    p = dbg_calloc( 1, v25 + 1, 230 );
-    strncpy( p, v16, v25 );
-    IntpPushiA( scr, IntpDbgStr( scr, p, v25 ) );
-    IntpPushwA( scr, SCR_FSTRING );
-    if( errcall ) dbg_free( p );
+    IntpPushiA( scr, 0 );
+    IntpPushwA( scr, SCR_INT );
+    if( errcall ) dbg_free( errcall );
     return;
-*/
 }
 
 void ScpIfc_PrintRect( Intp_t *scr ) // 8074
@@ -197,40 +175,39 @@ void ScpIfc_PrintRect( Intp_t *scr ) // 8074
     unsigned short Type1, Type2, Type3;
     int Arg1, Arg2, Arg3;
     float Arg3f;
-//    char *s;
+    char *s, stmp[80];
 
-//    FillRect(*stmp, *&stmp[4], *&stmp[8]);
+    WinFillRect( scr->i34 );
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
 
-    if( (Type1 & 0xF7FF) != SCR_INT || Arg1 > 2 ) IntpError("Invalid arg 3 given to printrect, expecting int");
-    if( (Type2 & 0xF7FF) != SCR_INT ) IntpError("Invalid arg 2 given to printrect, expecting int");
-//    if( (Type3 & 0xF700) >= SCR_FLOAT ){
-//        if( (Type3 & 0xF700) > SCR_FLOAT ){
-//            if( (Type3 & 0xF700) == SCR_INT ) sprintf( &stmp[12], "%d", Arg3 );
-//        } else {
-//    	    s = &stmp[12];
-//    	    sprintf( &stmp[12], "%.5f", Arg3f );
-//        }
-//    } else {
-//	if( Type2 == SCR_STRING ) s = IntpGetArg( scr, t1[1], Arg2 );
-//    }
-//    if( !PrintRect(s, t3, Arg1) ) IntpError("Error in printrect");
+    if( (Type1 & 0xF7FF) != SCR_INT || Arg1 > 2 ) IntpError( "Invalid arg 3 given to printrect, expecting int" );
+    ARG_TYPE( Type2, SCR_INT, "Invalid arg 2 given to printrect, expecting int" );
+    if( (Type3 & 0xF7FF) >= SCR_FLOAT ){
+        if( (Type3 & 0xF7FF) > SCR_FLOAT ){
+            if( (Type3 & 0xF7FF) == SCR_INT ) sprintf( stmp, "%d", Arg3 );
+        } else {
+    	    s = stmp;
+    	    sprintf( stmp, "%.5f", Arg3f );
+        }
+    } else {
+	if( Type2 == SCR_STRING ) s = IntpGetArg( scr, TYPEH( Type2 ), Arg2 );
+    }
+    if( !WinPrintRect( s, Arg2, Arg1 ) ) IntpError( "Error in printrect" );
 }
 
 void ScpIfc_Select( Intp_t *scr )
 {
     unsigned short Type;
-    int Arg;
+    int Arg, win;
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to select" );
-//    x = IntpGetArg(scr, TYPEH( Type ), Arg );
-//    v7 = WinSelect( x );
-//    if( v7 == -1 ) IntpError("Error selecing window %s\n", IntpGetArg( v6, TYPEH( Type ), Arg ) );
-//    v6->i34 = v7;
-//    IntpSetErrHandler( IntpErrHandlerCb );
+    win = WinSelect( IntpGetArg(scr, TYPEH( Type ), Arg ) );
+    if( win == -1 ) IntpError("Error selecing window %s\n", IntpGetArg( scr, TYPEH( Type ), Arg ) );
+    scr->i34 = win;
+    IntpSetErrHandler( WinError );
 }
 
 void ScpIfc_Display( Intp_t *scr )
@@ -240,10 +217,8 @@ void ScpIfc_Display( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to display" );
-    IntpGetArg(scr, TYPEH(Type), Arg);
-//    FillRect(v10, v11, v12);
-//    IntpMseHandler();
-//    WinUnk10();
+    WinFillRect( scr->i34 );
+    WinUnk10( IntpMseHandler( IntpGetArg(scr, TYPEH(Type), Arg ) ) );
 }
 
 void ScpIfc_DisplayRaw( Intp_t *scr )
@@ -252,104 +227,92 @@ void ScpIfc_DisplayRaw( Intp_t *scr )
     int Arg;
 
     GET_ARGi( scr, Arg, Type )
-    ARG_TYPE( Type, SCR_STRING, "Invalid type given to displayraw" );
-    IntpGetArg(scr, TYPEH( Type ), Arg);
-//    FillRect(v10, v11, v12);
-//    IntpMseHandler();
-//    WinUnk13();
+    ARG_TYPE( Type, SCR_STRING, "Invalid type given to displayraw" );    
+    WinFillRect( scr->i34 );    
+    WinUnk13( IntpMseHandler( IntpGetArg( scr, TYPEH( Type ), Arg ) ) );
 }
 
-void ScpIfcPal( unsigned char *eax0, Pal8_t *a2, float a3, int a4 )
+void ScpIfcPal( Pal8_t *Pal, Pal8_t *PalStop, float fsteps , int Update )
 {
-/*
-    v13 = eax0;
-    Palette = a2;
+    int v3,j,i,a1,v15,steps;
+    Pal8_t tmpal[ 256 ];
+
     a1 = TimerGetSysTime();
-    v4 = a1;
-    v5 = 0;
-    v17 = lround(a3);
-    v16 = 0;
-    if( (v6 & 0x7FFFFFFF) != 0 ){
-        while( v5 < v17 ){
-            if( v16 ){
-                v7 = Palette;
-                v8 = v13;
-                for( i = 0; i < 768; i++ ){
-                    v10 = v5 * (*v8 - v7->r) / v17;
-                    v7++;
-                    LOBYTE(v10) = *v8++ - v10;
-                    v12[ i ] = v10;
+    v3 = a1;    
+    steps = (int)lround( fsteps );
+    v15 = 0;
+    if( (Update & 0x7FFFFFFF) ){
+        for( j = 0; j < steps; ){
+            if( v15 ){
+                for( i = 0; i < 256; i++ ){
+                    tmpal[ i ].r = Pal[ i ].r - j * (Pal[ i ].r - PalStop[ i ].r) / steps;
+                    tmpal[ i ].g = Pal[ i ].g - j * (Pal[ i ].g - PalStop[ i ].g) / steps;
+                    tmpal[ i ].b = Pal[ i ].b - j * (Pal[ i ].b - PalStop[ i ].b) / steps;
                 }
-                PalSetColors(v12);
-                v4 = a1;
-                v5 += v16;
+                PalSetColors( tmpal );
+                v3 = a1;
+                j += v15;
             }
-            if( a4 ) InpWinUpdate();
-            v16 = TimerGetSysTime() - v4;
+            if( Update ) InpWinUpdate();
+            a1 = TimerGetSysTime();
+            v15 = a1 - v3;
         }
     }
-    PalSetColors( Palette );
-*/
+    PalSetColors( PalStop );
 }
 
-void ScpIfcPalA( unsigned char *a1, Pal8_t *a2, float a3 )
+void ScpIfcPalA( Pal8_t *a1, Pal8_t *a2, float a3 )
 {
     ScpIfcPal( a1, a2, a3, 1 );
 }
 
 int ScpIfcUnk01()
 {
-//    return gScpIfcUnk01;
+    return gScpIfcUnk01;
 }
 
 void ScpIfcUnk02( float a1 )
 {
-/*
-    Pal8_t *v2; // edx
-    int v3; // ecx
+    int c;
 
-    MseIsCursorClear();
+    c = MseIsCursorClear();
     MseCursorRedraw();
-    ScpIfcPal( PalGetCurrent(), v2, a1, 1);
-    if( !v3 ) MseDrawCursor();
-*/
+    ScpIfcPal( PalGetCurrent(), gScpIfcUnk02, a1, 1);
+    if( !c ) MseDrawCursor();
 }
 
 void ScpIfcUnk03( float a1 )
 {
-//    ScpIfcPal( &gScpIfcUnk02, &gPalBase, a1, 1 );
+    ScpIfcPal( gScpIfcUnk02, gPalBase, a1, 1 );
 }
 
 void ScpIfcUnk04( float a1 )
 {
-/*
-    Pal8_t *v2; // edx
-    int v3; // ecx
+    int c;
 
-    MseIsCursorClear();
+    c = MseIsCursorClear();
     MseCursorRedraw();
-    ScpIfcPal( PalGetCurrent(), v2, a1, 0);
-    if( !v3 ) MseDrawCursor();
-*/
+    ScpIfcPal( PalGetCurrent(), gScpIfcUnk02, a1, 0 );
+    if( !c ) MseDrawCursor();
 }
 
 void ScpIfcUnk05( float a1 )
 {
-//    ScpIfcPal(&gScpIfcUnk02, &gPalBase, a1, 0);
+    ScpIfcPal( gScpIfcUnk02, gPalBase, a1, 0 );
 }
 
 void ScpIfc_FadeIn( Intp_t *scr )
 {
     unsigned short Type;
-    int Arg, cc;
+    int Arg;
     float Argf;
 
     GET_ARGf( scr, Arg, Argf, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid type given to fadein\n" );
     scr->Flags |= 0x20;
-//    PalSetColors( &gScpIfcUnk02 );
-//    ScpIfcPal( &gScpIfcUnk02, v7, Argf, 1 );
-//    gScpIfcUnk01 = 1;
+    PalSetColors( gScpIfcUnk02 );
+    ScpIfcPal( gScpIfcUnk02, gPalBase, Argf, 1 );
+    gScpIfcUnk01 = 1;
     scr->Flags &= ~0x20;
 }
 
@@ -364,15 +327,15 @@ void ScpIfc_FadeOut( Intp_t *scr )
     scr->Flags |= 0x20;
     cc = MseIsCursorClear();
     MseCursorRedraw();
-//    ScpIfcPal( PalGetCurrent(), v9, Argf, 1 );
+    ScpIfcPal( PalGetCurrent(), gScpIfcUnk02, Argf, 1 );
     if( !cc ) MseDrawCursor();
-//    gScpIfcUnk01 = 0;
+    gScpIfcUnk01 = 0;
     scr->Flags = scr->Flags & ~0x20;
 }
 
 int ScpIfcUnk06()
 {
-//    if( Unk6002() <= 0 ) return Unk6003();
+    if( DialogGetSayModeLvl() <= 0 ) return WinPlay();
     return 1;
 }
 
@@ -382,7 +345,7 @@ void ScpIfc_SettingMovieFlag( Intp_t *scr )
     int Arg;
 
     GET_ARGi( scr, Arg, Type )
-//    if( !SetMovieFlags( Arg ) ) IntpError( "Error setting movie flags\n" );
+    if( !WinSetMovieFlags( Arg ) ) IntpError( "Error setting movie flags\n" );
 }
 
 void ScpIfc_PlayMovie1( Intp_t *scr )
@@ -392,13 +355,12 @@ void ScpIfc_PlayMovie1( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid arg given to playmovie" );
-//    strcpy( gScpIfcUnk03, IntpGetArg( scr, TYPEH( Type ), Arg ) );
-//    if( !strchr( gScpIfcUnk03, '.' ) ) strcpy( &gScpIfcUnk03 + strlen( gScpIfcUnk03 ), ".mve" );
-//    FillRect( v14, v15, v16 );
+    strcpy( gScpIfcUnk03, IntpGetArg( scr, TYPEH( Type ), Arg ) );
+    if( !strchr( gScpIfcUnk03, '.' ) ) strcpy( gScpIfcUnk03 + strlen( gScpIfcUnk03 ), ".mve" );
+    WinFillRect( scr->i34 );
     scr->Flags |= 0x10;
     scr->Func = ScpIfcUnk06;
-    IntpMseHandler();
-//    if( !PlayMovie1() ) IntpError( "Error playing movie" );
+    if( !WinPlayStart( IntpMseHandler( gScpIfcUnk03 ) ) ) IntpError( "Error playing movie" );
 }
 
 void ScpIfc_PlayMovie( Intp_t *scr )
@@ -412,34 +374,34 @@ void ScpIfc_PlayMovie( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 )
     GET_ARGi( scr, Arg5, Type5 )
     ARG_TYPE( Type5, SCR_STRING, "Invalid arg given to playmovie" );
-//    strcpy( gScpIfcUnk04, IntpGetArg(scr, TYPEH(Type5), Arg5) );
-//    if( !strchr( gScpIfcUnk04, '.') ) strcpy( gScpIfcUnk04 + strlen( gScpIfcUnk04 ), ".mve" );
-//    FillRect( Arg2, Arg1, Arg4 );
+    strcpy( gScpIfcUnk04, IntpGetArg( scr, TYPEH( Type5 ), Arg5 ) );
+    if( !strchr( gScpIfcUnk04, '.') ) strcpy( gScpIfcUnk04 + strlen( gScpIfcUnk04 ), ".mve" );
+    WinFillRect( scr->i34 );
     scr->Func = ScpIfcUnk06;
-    scr->Flags |= 0x10;
-    IntpMseHandler();
-//    if( !PlayMovie(v24, v25, Arg3, v23) ) IntpError( "Error playing movie" );
+    scr->Flags |= 0x10;    
+    if( !WinPlayAt( IntpMseHandler( gScpIfcUnk04 ), Arg4, Arg3, Arg2, Arg1 ) ) IntpError( "Error playing movie" );
 }
 
 void ScpIfc_MovieStat( Intp_t *scr )
 {
-//    Unk6001();
-//    LOBYTE(scr->Flags) |= 0x40u;
+    WinPlayAbort();
+    scr->Flags |= 0x40;
 }
 
 void ScpIfc_DeleteRegion( Intp_t *scr )
 {
     unsigned short Type;
     int Arg;
+    char *s;
 
     GET_ARGi( scr, Arg, Type )
     if( (Type & 0xF7FF) == SCR_INT && Arg != -1 ) IntpError( "Invalid type given to deleteregion" );
-//    FillRect(v12, v13, v14);
-//    if( Arg == -1 )
-//        s = NULL;
-//    else
-//        s = IntpGetArg( scr, TYPEH( Type ), Arg );
-//    DeleteRegion( s );
+    WinFillRect( scr->i34 );
+    if( Arg == -1 )
+        s = NULL;
+    else
+        s = IntpGetArg( scr, TYPEH( Type ), Arg );
+    WinDeleteRegion( s );
 }
 
 void ScpIfc_ActivateRegion( Intp_t *scr )
@@ -449,8 +411,7 @@ void ScpIfc_ActivateRegion( Intp_t *scr )
 
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
-    IntpGetArg( scr, TYPEH( Type2 ), Arg2 );
-//    ActivateRegion( v11, Arg1 );
+    WinActivateRegion( IntpGetArg( scr, TYPEH( Type2 ), Arg2 ), Arg1 );
 }
 
 void ScpIfc_CheckRegion( Intp_t *scr )
@@ -460,52 +421,48 @@ void ScpIfc_CheckRegion( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid arg 1 given to checkregion();\n" );
-    IntpGetArg(scr, TYPEH( Type ), Arg );
-//    IntpPushiA( scr, ChkRegion() );
+    IntpPushiA( scr, WinCheckRegion( IntpGetArg( scr, TYPEH( Type ), Arg ) ) );
     IntpPushwA( scr, SCR_INT );
 }
 
 void ScpIfc_SetRegion( Intp_t *scr )
 {
-    unsigned short Type;
-    int Arg;
+    unsigned short Type, t1, t2;
+    int Arg, a1, a2;
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid number of elements given to region" );
     if ( Arg < 2 ) IntpError( "addregion call without enough points!" );
-/*
-    FillRect( v29, v30, v31 );
-    WinUnk106( Arg >> 1 );
-    while( Arg >= 2 ){
+
+    WinFillRect( scr->i34 );
+    WinUnk106( Arg / 2 );
+    for( ;Arg >= 2; Arg -= 2 ){
 	GET_ARGi( scr, a1, t1 )
-        if( (t1 & 0xF7FF) != SCR_INT ) IntpError("Invalid y value given to region");
+        ARG_TYPE( t1, SCR_INT, "Invalid y value given to region" );
 	GET_ARGi( scr, a2, t2 )
-        if( (t2 & 0xF7FF) != SCR_INT ) IntpError("Invalid x value given to region");
-        v19 = (a1 * GetScreenHight() + 479) / 480;
-        DisplResW = GetDisplResW();
-        Arg -= 2;
-        sub_4BAB68((v21 * DisplResW + 639) / 640, v19, 1);
+        ARG_TYPE( t2, SCR_INT, "Invalid x value given to region" );
+        WinUnk193((a2 * WinGetScreenWidth() + 639) / 640, (a1 * WinGetScreenHeight() + 479) / 480, 1);
     }
     if( Arg ){
         t1 = IntpPopwA( scr );
         a1 = IntpPopiA( scr );
-        if( t1 == SCR_FSTRING ) IntpStringDeRef(scr, SCR_FSTRING, a1);
+        if( t1 == SCR_FSTRING ) IntpStringDeRef( scr, SCR_FSTRING, a1 );
         if( (t1 & 0xF7FF) != SCR_STRING && t1 == SCR_INT ){
             if( a1 ) IntpError( "Invalid name given to region" );
         }
-        SetRegionA( IntpGetArg( scr, TYPEH( t1 ), a1 ) );
-        SetRegionB();
+        WinSetRegionA( IntpGetArg( scr, TYPEH( t1 ), a1 ) );
+        WinSetRegion();
     } else {
         IntpError( "Unnamed regions not allowed\n" );
-        SetRegionB();
+        WinSetRegion();
     }
-*/
 }
 
 void ScpIfc_SetRegionProc( Intp_t *scr )
 {
     unsigned short Type1, Type2, Type3, Type4, Type5;
     int Arg1, Arg2, Arg3, Arg4, Arg5;
+    char *name;
 
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
@@ -517,27 +474,27 @@ void ScpIfc_SetRegionProc( Intp_t *scr )
     ARG_TYPE( Type3, SCR_INT, "Invalid procedure 2 name given to addregionproc" );
     ARG_TYPE( Type4, SCR_INT, "Invalid procedure 1 name given to addregionproc" );
     ARG_TYPE( Type5, SCR_STRING, "Invalid name given to addregionproc" );
-//    x = IntpGetArg(scr, TYPEH(hDC), Arg5);
-//    FillRect( Arg1, Arg2, Arg5 );
-//    if( !WindowRegionSetProcedure(x, scr, v12, Arg4, Type2, v11) ) IntpError( "Error setting procedures to region %s\n", x );
+    name = IntpGetArg( scr, TYPEH( Type5 ), Arg5 );
+    WinFillRect( scr->i34 );
+    if( !WinRegionSetProcedure( name, scr, Arg4, Arg3, Arg2, Arg1 ) ) IntpError( "Error setting procedures to region %s\n", name );
 }
 
 void ScpIfc_SetRightButtonProc( Intp_t *scr )
 {
     unsigned short Type1, Type2, Type3;
     int Arg1, Arg2, Arg3;
+    char *name;
 
-    GET_ARGi( scr, Arg1, Type1 )
-    GET_ARGi( scr, Arg2, Type2 )
-    GET_ARGi( scr, Arg3, Type3 )
+    GET_ARGi( scr, Arg1, Type1 ) // 
+    GET_ARGi( scr, Arg2, Type2 ) // 
+    GET_ARGi( scr, Arg3, Type3 ) // 
 
     ARG_TYPE( Type1, SCR_INT, "Invalid procedure 2 name given to addregionrightproc" );
     ARG_TYPE( Type2, SCR_INT, "Invalid procedure 1 name given to addregionrightproc" );
     ARG_TYPE( Type3, SCR_STRING, "Invalid name given to addregionrightproc" );
-//    x = IntpGetArg( scr, TYPEH( Type3 ), Arg3 );
-//    FillRect( Arg3, Arg1, Arg2 );
-//    if( !WindowRightButtonSetProcedure(x, v11, v12, Arg2) ) IntpError("Error setting right button procedures to region %s\n", x);
-
+    WinFillRect( scr->i34 );
+    name = IntpGetArg( scr, TYPEH( Type3 ), Arg3 );
+    if( !WinRightButtonSetProcedure( name, scr, Arg2, Arg1 ) ) IntpError("Error setting right button procedures to region %s\n", name );
 }
 
 void ScpIfc_CreateWindow( Intp_t *scr )
@@ -545,19 +502,20 @@ void ScpIfc_CreateWindow( Intp_t *scr )
     unsigned short Type1, Type2, Type3, Type4, Type5;
     int Arg1, Arg2, Arg3, Arg4, Arg5;
 
-    GET_ARGi( scr, Arg1, Type1 )
-    GET_ARGi( scr, Arg2, Type2 )
-    GET_ARGi( scr, Arg3, Type3 )
-    GET_ARGi( scr, Arg4, Type4 )
-    GET_ARGi( scr, Arg5, Type5 )
+    GET_ARGi( scr, Arg1, Type1 ) // int h
+    GET_ARGi( scr, Arg2, Type2 ) // int w
+    GET_ARGi( scr, Arg3, Type3 ) // int y
+    GET_ARGi( scr, Arg4, Type4 ) // int x
+    GET_ARGi( scr, Arg5, Type5 ) // name
 
-//    s = IntpGetArg(scr, TYPEH( Type5 ), Idx);
-//    GetDisplResW();
-//    DisplResW = GetDisplResW();
-//    v25 = (Arg2 * DisplResW + 639) / v24;
-//    v26 = (Arg3 * GetScreenHight() + 479) / 0x1E0u;
-//    ScreenHight = GetScreenHight();
-//    if( WinCreate( s, v25, v26, (v28 * ScreenHight + 479) / v29, gPalColorCubeRGB[0][0][0], 0) == -1 ) IntpError("Couldn't create window.");
+    if( WinCreate( 
+	IntpGetArg( scr, TYPEH( Type5 ), Arg5 ), 
+	(Arg4 * WinGetScreenWidth() + 639) / 640, 
+	(Arg3 * WinGetScreenHeight() + 479) / 480, 
+	(Arg2 * WinGetScreenWidth() + 639) / 640, 
+	(Arg1 * WinGetScreenHeight() + 479) / 480,
+	gPalColorCubeRGB[0][0][0], 0 ) == -1 
+    ) IntpError("Couldn't create window.");
 }
 
 void ScpIfc_ResizeWindow( Intp_t *scr )
@@ -565,19 +523,19 @@ void ScpIfc_ResizeWindow( Intp_t *scr )
     unsigned short Type1, Type2, Type3, Type4, Type5;
     int Arg1, Arg2, Arg3, Arg4, Arg5;
 
-    GET_ARGi( scr, Arg1, Type1 )
-    GET_ARGi( scr, Arg2, Type2 )
-    GET_ARGi( scr, Arg3, Type3 )
-    GET_ARGi( scr, Arg4, Type4 )
-    GET_ARGi( scr, Arg5, Type5 )
+    GET_ARGi( scr, Arg1, Type1 ) // int h
+    GET_ARGi( scr, Arg2, Type2 ) // int w
+    GET_ARGi( scr, Arg3, Type3 ) // int y
+    GET_ARGi( scr, Arg4, Type4 ) // int x
+    GET_ARGi( scr, Arg5, Type5 ) // name
 
-//    s = IntpGetArg(scr, TYPEH( Type5 ), Arg5);
-//    GetDisplResW();
-//    DisplResW = GetDisplResW();
-//    v25 = (Arg2 * DisplResW + 639) / v24;
-//    v26 = (Arg3 * GetScreenHight() + 479) / 480u;
-//    ScreenHight = GetScreenHight();
-//    if( WinRes( s, v25, v26, (v28 * ScreenHight + 479) / v29) == -1 ) IntpError("Couldn't resize window.");
+    if( WinRes( 
+	IntpGetArg( scr, TYPEH( Type5 ), Arg5 ), 
+	(Arg4 * WinGetScreenWidth() + 639) / 640, 
+	(Arg3 * WinGetScreenHeight() + 479) / 480, 
+	(Arg2 * WinGetScreenWidth() + 639) / 640, 
+	(Arg1 * WinGetScreenHeight() + 479) / 480 ) == -1 
+    ) IntpError("Couldn't resize window.");
 }
 
 void ScpIfc_ScaleWindow( Intp_t *scr )
@@ -585,40 +543,41 @@ void ScpIfc_ScaleWindow( Intp_t *scr )
     unsigned short Type1, Type2, Type3, Type4, Type5;
     int Arg1, Arg2, Arg3, Arg4, Arg5;
 
-    GET_ARGi( scr, Arg1, Type1 )
-    GET_ARGi( scr, Arg2, Type2 )
-    GET_ARGi( scr, Arg3, Type3 )
-    GET_ARGi( scr, Arg4, Type4 )
-    GET_ARGi( scr, Arg5, Type5 )
+    GET_ARGi( scr, Arg1, Type1 ) // int h
+    GET_ARGi( scr, Arg2, Type2 ) // int w
+    GET_ARGi( scr, Arg3, Type3 ) // int y
+    GET_ARGi( scr, Arg4, Type4 ) // int x
+    GET_ARGi( scr, Arg5, Type5 ) // name
 
-//    s = IntpGetArg(scr, TYPEH( Type5 ), Arg5 );
-//    GetDisplResW();
-//    DisplResW = GetDisplResW();
-//    v25 = (Arg2 * DisplResW + 639) / v24;
-//    v26 = (Arg3 * GetScreenHight() + 479) / 480;
-//    ScreenHight = GetScreenHight();
-//    if( ScaleWin( s, v25, v26, (v28 * ScreenHight + 479) / v29) == -1 ) IntpError( "Couldn't scale window." );
+    if( WinScale( 
+	IntpGetArg( scr, TYPEH( Type5 ), Arg5 ), 
+	(Arg4 * WinGetScreenWidth() + 639) / 640, 
+	(Arg3 * WinGetScreenHeight() + 479) / 480, 
+	(Arg2 * WinGetScreenWidth() + 639) / 640, 
+	(Arg1 * WinGetScreenHeight() + 479) / 480) == -1 
+    ) IntpError( "Couldn't scale window." );
 }
 
 void ScpIfc_DeleteWindow( Intp_t *scr )
 {
     unsigned short Type;
     int Arg;
+    char *s;
 
     GET_ARGi( scr, Arg, Type )
-//    x = IntpGetArg( scr, Type, Arg );
-//    if( !DelWin(x) ) IntpError( "Error deleting window %s\n", x );
-//    scr->i34 = DelWin1();
+    s = IntpGetArg( scr, Type, Arg );
+    if( !WinDelete( s ) ) IntpError( "Error deleting window %s\n", s );
+    scr->i34 = WinRemove();
 }
 
 void ScpIfc_SayStart( Intp_t *scr )
 {
     scr->Flags |= 0x20;
-//    gScpIfcUnk05 = 0;
-//    if( SayStart( scr ) ){
-//        scr->Flags &= ~0x20;
-//        IntpError("Error starting dialog.");
-//    }
+    gScpIfcUnk05 = 0;
+    if( DialogStart( scr ) ){
+        scr->Flags &= ~0x20;
+        IntpError("Error starting dialog.");
+    }
     scr->Flags &= ~0x20;
 }
 
@@ -629,11 +588,11 @@ void ScpIfc_StartDialog( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     scr->Flags |= 0x20;
-//    gScpIfcUnk05 = Arg;
-//    if( SayStart( scr ) ){
-//        scr->Flags &= ~0x20;
-//        IntpError( "Error starting dialog." );
-//    }
+    gScpIfcUnk05 = Arg;
+    if( DialogStart( scr ) ){
+        scr->Flags &= ~0x20;
+        IntpError( "Error starting dialog." );
+    }
     scr->Flags &= ~0x20;
 }
 
@@ -645,8 +604,8 @@ void ScpIfc_SetTitle( Intp_t *scr )
 
     x = NULL;
     GET_ARGi( scr, Arg, Type )
-    if( Type & ~0x800 == SCR_STRING ) x = IntpGetArg(scr, TYPEH(Type), Arg);
-//    if( SetTitle( x ) ) IntpError("Error setting title.");
+    if( (Type & 0xF7FF) == SCR_STRING ) x = IntpGetArg( scr, TYPEH( Type ), Arg );
+    if( DialogSetTitle( x ) ) IntpError( "Error setting title." );
 }
 
 void ScpIfc_SayGotoReply( Intp_t *scr )
@@ -657,8 +616,8 @@ void ScpIfc_SayGotoReply( Intp_t *scr )
 
     x = NULL;
     GET_ARGi( scr, Arg, Type )
-    if( Type & ~0x800 == SCR_STRING ) x = IntpGetArg(scr, TYPEH(Type), Arg);
-//    if( SayGotoReply(x) ) IntpError("Error during goto, couldn't find reply target %s\n", x);
+    if( (Type & 0xF7FF) == SCR_STRING ) x = IntpGetArg( scr, TYPEH( Type ), Arg );
+    if( DialogGotoReply( x ) ) IntpError( "Error during goto, couldn't find reply target %s\n", x );
 }
 
 void ScpIfc_SayOption( Intp_t *scr )
@@ -674,23 +633,23 @@ void ScpIfc_SayOption( Intp_t *scr )
         x = IntpGetArg( scr, TYPEH( Type2 ), Arg2 );
     else
         x = 0;
-/*
+
     if( (Type1 & ~0x800) == SCR_STRING ){
-        k = IntpGetArg(scr, TYPEH(Type1), Arg1);
-        if( SetOption(x, k) ){
-LABEL_10:
+        k = IntpGetArg( scr, TYPEH( Type1 ), Arg1 );
+        if( DialogSetOptionStr( x, k ) ){
             scr->Flags &= ~0x20;
-            IntpError("Error setting option.");
+            IntpError( "Error setting option." );
         }
     } else {
         if( (Type1 & ~0x800) != SCR_INT ){
-            IntpError("Invalid arg 2 to sayOption");
-            goto LABEL_15;
+            IntpError( "Invalid arg 2 to sayOption" );
+        } else {
+    	    if( DialogSetOptionInt( x, Arg1 ) ){
+        	scr->Flags &= ~0x20;
+        	IntpError( "Error setting option." );
+    	    }
         }
-        if( SetOption1(x, Arg1) ) goto LABEL_10;
     }
-LABEL_15:
-*/
     scr->Flags &= ~0x20;
 }
 
@@ -712,56 +671,52 @@ void ScpIfc_SayReply( Intp_t *scr )
         k = IntpGetArg(scr, TYPEH(Type1), Arg1);
     else
         k = 0;
-//    if( SayReply( s, k ) ){
-//        scr->Flags &= ~0x20;
-//        IntpError( "Error setting option." );
-//    }
+    if( DialogReply( s, k ) ){
+        scr->Flags &= ~0x20;
+        IntpError( "Error setting option." );
+    }
     scr->Flags &= ~0x20;
 }
 
 int ScpIfcUnk08( Intp_t *scr )
 {
-//    LOBYTE(scr->Flags) |= 0x40u;
-//    return Unk6002() != -1;
+    scr->Flags |= 0x40;
+    return DialogGetSayModeLvl() != -1;
 }
 
 void ScpIfc_SayEnd( Intp_t *scr )
 {
-/*
     int err;
 
     scr->Flags |= 0x20;
-    err = SayEnd( gScpIfcUnk05 );
+    err = DialogEnd( gScpIfcUnk05 );
     scr->Flags = scr->Flags & ~0x20;
     if( err == -2 ){
         scr->Func = ScpIfcUnk08;
         scr->Flags |= 0x10;
     }
-*/
 }
 
 void ScpIfc_unk09( Intp_t *scr )
 {
-/*
-    IntpPushiA( scr, sub_431184() );
+    IntpPushiA( scr, DialogUnk32() );
     IntpPushwA( scr, SCR_INT );
-*/
 }
 
 void ScpIfc_SayQuit( Intp_t *scr )
 {
-//    if( SayQuit() ) IntpError( "Error quitting option." );
+    if( DialogQuit() ) IntpError( "Error quitting option." );
 }
 
-int ScpIfcUnk09()
+int ScpIfcGetTimeOut()
 {
-//    return gScpIfcUnk06;
+    return gIfcTimeout;
 }
 
-int ScpIfcUnk07( int result )
+int ScpIfcSetTimeOut( int time )
 {
-//    gScpIfcUnk06 = result;
-//    return result;
+    gIfcTimeout = time;
+    return time;
 }
 
 void ScpIfc_SayMsgTimeout( Intp_t *scr )
@@ -770,30 +725,33 @@ void ScpIfc_SayMsgTimeout( Intp_t *scr )
     int Arg;
 
     GET_ARGi( scr, Arg, Type )
-    ARG_TYPE( Type, 0x4000, "sayMsgTimeout:  invalid var type passed.");
-//    gScpIfcUnk06 = Arg;
+    ARG_TYPE( Type, 0x4000, "sayMsgTimeout:  invalid var type passed." );
+    gIfcTimeout	= Arg;
 }
 
 void ScpIfc_SayMessage( Intp_t *scr )
 {
     unsigned short Type1, Type2;
     int Arg1, Arg2;
-    char *s;
+    char *title, *msg;
 
     scr->Flags |= 0x20;
-    GET_ARGi( scr, Arg1, Type1 )
-    GET_ARGi( scr, Arg2, Type2 )
-    if( (Type2 & ~0x08FF) == SCR_STRING )
-        s = IntpGetArg(scr, TYPEH(Type2), Arg2);
+    GET_ARGi( scr, Arg1, Type1 ) // message_text    
+    GET_ARGi( scr, Arg2, Type2 ) // message title
+    if( (Type2 & 0xF7FF) == SCR_STRING )
+        title = IntpGetArg( scr, TYPEH(Type2), Arg2 );
     else
-        s = NULL;
+        title = NULL;
 
-    if( (Type1 & 0xF7FF) == SCR_STRING ) IntpGetArg( scr, TYPEH( Type1 ), Arg1 );
+    if( (Type1 & 0xF7FF) == SCR_STRING )
+        msg = IntpGetArg( scr, TYPEH(Type1), Arg1 );
+    else
+        msg = NULL;
 
-//    if( SayMsg( s, gScpIfcUnk06 ) ){
-//        scr->Flags &= ~0x20;
-//        IntpError( "Error setting option." );
-//    }
+    if( DialogMsg( title, msg, gIfcTimeout ) ){
+        scr->Flags &= ~0x20;
+        IntpError( "Error setting option." );
+    }
     scr->Flags &= ~0x20;
 }
 
@@ -804,9 +762,11 @@ void ScpIfc_GotoXY( Intp_t *scr )
 
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
-    if( (Type1 & 0xF7FF) != SCR_INT || (Type2 & 0xF7FF) != SCR_INT ) IntpError( "Invalid operand given to gotoxy" );
-//    FillRect(Type2, Type1, v16);
-//    GotoXY(Arg2, Arg1);
+    ARG_TYPE( Type1, SCR_INT, "Invalid operand given to gotoxy" );
+    ARG_TYPE( Type2, SCR_INT, "Invalid operand given to gotoxy" );
+
+    WinFillRect( scr->i34 );
+    WinMoveXY( Arg2, Arg1 );
 }
 
 void ScpIfc_AddButtonFlag( Intp_t *scr )
@@ -818,7 +778,7 @@ void ScpIfc_AddButtonFlag( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )    
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 2 given to addbuttonflag" );
     ARG_TYPE( Type2, SCR_STRING, "Invalid arg 1 given to addbuttonflag" );
-//    if( !AddButtonFlag( IntpGetArg( scr, TYPEH( Type2 ), Arg2 ), Arg1 ) ) IntpError( "Error setting flag on button %s", IntpGetArg( scr, TYPEH( Type2 ), Arg2 ) );
+    if( !WinAddButtonFlag( IntpGetArg( scr, TYPEH( Type2 ), Arg2 ), Arg1 ) ) IntpError( "Error setting flag on button %s", IntpGetArg( scr, TYPEH( Type2 ), Arg2 ) );
 }
 
 void ScpIfc_AddRegionFlag( Intp_t *scr )
@@ -829,8 +789,8 @@ void ScpIfc_AddRegionFlag( Intp_t *scr )
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )        
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 2 given to addregionflag" );
-    ARG_TYPE( Type2, 36865, "Invalid arg 1 given to addregionflag" );
-//    if( !AddRegionFlag( IntpGetArg( scr, TYPEH( Type2 ), Arg2), Arg1 ) ) IntpError("Error setting flag on region %s", IntpGetArg( scr, TYPEH( Type2 ), Arg2 ) );
+    ARG_TYPE( Type2, SCR_STRING, "Invalid arg 1 given to addregionflag" );
+    if( !WinAddRegionFlag( IntpGetArg( scr, TYPEH( Type2 ), Arg2), Arg1 ) ) IntpError("Error setting flag on region %s", IntpGetArg( scr, TYPEH( Type2 ), Arg2 ) );
 }
 
 void ScpIfc_AddButton( Intp_t *scr )
@@ -848,36 +808,36 @@ void ScpIfc_AddButton( Intp_t *scr )
     ARG_TYPE( Type4, SCR_INT, "Invalid x given to addbutton" );
     GET_ARGi( scr, Arg5, Type5 )    
     ARG_TYPE( Type5, SCR_STRING, "Invalid name given to addbutton" );
-/*
-    FillRect(Arg4, v32, Arg5);
-    ScreenHight = GetScreenHight();
-    y = (v27 * ScreenHight + 479) / 0x1E0u;
-    GetDisplResW();
-    x = (Arg3 * GetScreenHight() + 479) / 0x1E0u;
-    GetDisplResW();
-    WindowAddButton( IntpGetArg(scr, Type5, Arg5), x, y, 0);
-*/
+
+    WinFillRect( scr->i34 );
+    Arg1 = (Arg1 * WinGetScreenHeight() + 479) / 480;
+    Arg2 = (Arg2 * WinGetScreenWidth() + 639) / 640;
+    Arg3 = (Arg3 * WinGetScreenHeight() + 479) / 480;
+    Arg4 = (Arg4 * WinGetScreenWidth() + 639) / 640;
+    WinNewButton( IntpGetArg( scr, Type5, Arg5 ), Arg4, Arg3, Arg2, Arg1, 0 );
 }
 
-void ScpIfc_AddButtonTextString( Intp_t *scr )
+void ScpIfc_AddButtonText( Intp_t *scr )
 {
     unsigned short Type1, Type2;
     int Arg1, Arg2;
+    char *name;
 
     GET_ARGi( scr, Arg1, Type1 )    
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Arg1, SCR_STRING, "Invalid text string given to addbuttontext" );
     ARG_TYPE( Arg2, SCR_STRING, "Invalid name given to addbuttontext" );
-//    FillRect( Arg1, Arg2, v20);
-//    IntpGetArg( scr, Type1, Arg1 );
-//    if( !sub_4BA34C( IntpGetArg( scr, Type2, Arg2 ) ) ) IntpError( "Error setting text to button %s\n", IntpGetArg( scr, Type2, Arg2 ) );
+    WinFillRect( scr->i34 );
+    name = IntpGetArg( scr, Type1, Arg2 );
+    if( !WinAddButtonText( name, IntpGetArg( scr, Type2, Arg1 ) ) ) IntpError( "Error setting text to button %s\n", name );
 }
 
-void ScpIfc_AddButtonText( Intp_t *scr )
+void ScpIfc_AddButtonGFX( Intp_t *scr )
 {
     unsigned short Type1, Type2, Type3, Type4;
     int Arg1, Arg2, Arg3, Arg4;
-    int r,x;
+    int r;
+    char *name;
 
     GET_ARGi( scr, Arg1, Type1 )    
     GET_ARGi( scr, Arg2, Type2 )
@@ -903,23 +863,22 @@ vv:
         IntpError( "Invalid filename given to addbuttongfx" );
     }
     ARG_TYPE( Type4, SCR_STRING, "Invalid name given to addbuttontext" );
-
-    x = IntpGetArg( scr, TYPEH( Type4 ), Arg4 );
-    IntpGetArg( scr, TYPEH( Type3 ), Arg3 );
-//    v26 = IntpMseHandler();
-    IntpGetArg( scr, TYPEH( Type2 ), Arg2 );
-//    v22 = IntpMseHandler();
-    IntpGetArg( scr, TYPEH( Type1 ), Arg1 );
-//    v24 = IntpMseHandler();
-//    FillRect(v26, Arg4, Arg2);
-//    if( !WindowAddButtonText(x, v25, v24, v22) ) IntpError("Error setting graphics to button %s\n", x);
+    name = IntpGetArg( scr, TYPEH( Type4 ), Arg4 );    
+    WinFillRect( scr->i34 );
+    if( !WinAddButtonGFX( 
+	    name, 
+	    IntpMseHandler( IntpGetArg( scr, TYPEH( Type3 ), Arg3 ) ), 
+	    IntpMseHandler( IntpGetArg( scr, TYPEH( Type2 ), Arg2 ) ), 
+	    IntpMseHandler( IntpGetArg( scr, TYPEH( Type1 ), Arg1 ) )
+	) 
+    ) IntpError( "Error setting graphics to button %s\n", name );
 }
 
 void ScpIfc_AddButtonProc( Intp_t *scr )
 {
     unsigned short Type1, Type2, Type3, Type4, Type5;
     int Arg1, Arg2, Arg3, Arg4, Arg5;
-    char *n;
+    char *name;
 
     GET_ARGi( scr, Arg1, Type1 )    
     GET_ARGi( scr, Arg2, Type2 )
@@ -932,16 +891,16 @@ void ScpIfc_AddButtonProc( Intp_t *scr )
     ARG_TYPE( Type3, SCR_INT, "Invalid procedure 2 name given to addbuttonproc" );
     ARG_TYPE( Type4, SCR_INT, "Invalid procedure 1 name given to addbuttonproc" );
     ARG_TYPE( Type5, SCR_STRING, "Invalid name given to addbuttonproc" );
-    n = IntpGetArg( scr, TYPEH( Type5 ), Arg5 );
-//    FillRect( Arg1, Arg2, Arg5 );
-//    if( !sub_4BA11C(n, scr, v12, Arg4, Type2, v11) ) IntpError( "Error setting procedures to button %s\n", Arg );
+    WinFillRect( scr->i34 );
+    name = IntpGetArg( scr, TYPEH( Type5 ), Arg5 );
+    if( !WinAddButtonProc( name, scr, Arg4, Arg3, Arg2, Arg1) ) IntpError( "Error setting procedures to button %s\n", name );
 }
 
 void ScpIfc_AddButtonRightProc( Intp_t *scr )
 {
     unsigned short Type1,Type2,Type3;
     int Arg1,Arg2,Arg3;
-    char *n;
+    char *name;
 
     GET_ARGi( scr, Arg1, Type1 )    
     GET_ARGi( scr, Arg2, Type2 )
@@ -949,15 +908,15 @@ void ScpIfc_AddButtonRightProc( Intp_t *scr )
     ARG_TYPE( Type1, SCR_INT, "Invalid procedure 2 name given to addbuttonrightproc" );
     ARG_TYPE( Type2, SCR_INT, "Invalid procedure 1 name given to addbuttonrightproc" );
     ARG_TYPE( Type3, SCR_STRING, "Invalid name given to addbuttonrightproc" );
-    n = IntpGetArg( scr, TYPEH( Type3 ), Arg3 );
-//    FillRect(Arg3, Arg1, Type2);
-//    if( !AddButtRt( n, v11, v12, Arg2) ) IntpError( "Error setting right button procedures to button %s\n", n );
+    WinFillRect( scr->i34 );
+    name = IntpGetArg( scr, TYPEH( Type3 ), Arg3 );
+    if( !WinAddButtonRightProc( name, scr, Arg2, Arg1 ) ) IntpError( "Error setting right button procedures to button %s\n", name );
 }
 
 void ScpIfc_ShowWin( Intp_t *scr )
 {
-//    FillRect(scr->i34);
-//    if( VidTab01[gScrIdx].i00 != -1 ) WinUpdate(VidTab01[gScrIdx].i00);
+    WinFillRect( scr->i34 );
+    if( gWinList[ gWinCurrent ].WinId != -1 ) WinUpdate( gWinList[ gWinCurrent ].WinId );
 }
 
 void ScpIfc_DeleteButton( Intp_t *scr )
@@ -969,12 +928,12 @@ void ScpIfc_DeleteButton( Intp_t *scr )
     GET_ARGi( scr, Arg1, Type1 )
     if( (Type1 & 0xF7FF) == SCR_INT && Arg1 != -1 ) IntpError( "Invalid type given to delete button" );
 
-//    FillRect( scr->i34 );
+    WinFillRect( scr->i34 );
     if( (Type1 & ~0x800) == SCR_INT ) {
-//        if( WindowDeleteButton( 0 ) ) return;
+        if( WinDeleteButton( 0 ) ) return;
     } else {
         n = IntpGetArg( scr, TYPEH( Type1 ), Arg1 );
-//        if( WindowDeleteButton( n ) ) return;
+        if( WinDeleteButton( n ) ) return;
     }
     IntpError( "Error deleting button" );
 }
@@ -982,68 +941,66 @@ void ScpIfc_DeleteButton( Intp_t *scr )
 void ScpIfc_FillWin( Intp_t *scr )
 {
     unsigned short Type1, Type2, Type3;
-    int Arg1, Arg2, Arg3;
+    float Bcolor, Gcolor, Rcolor;
 
-    GET_ARGi( scr, Arg1, Type1 )
-    GET_ARGi( scr, Arg2, Type2 )        
-    GET_ARGi( scr, Arg3, Type3 )    
+    GET_ARGi( scr, Bcolor, Type1 )
+    GET_ARGi( scr, Gcolor, Type2 )        
+    GET_ARGi( scr, Rcolor, Type3 )    
     if( (Type3 & 0xF7FF) != SCR_FLOAT ){
         if( (Type3 & 0xF7FF) == SCR_INT ){
-            if( Arg3 == 1 ){
-                Arg3 = 0x3F800000;
-            } else if( Arg3 ){
+            if( Rcolor == 1 ){
+                Rcolor = 1.0;
+            } else if( Rcolor ){
                 IntpError( "Invalid red value given to fillwin" );
             }
         }
     }
     if( (Type2 & 0xF7FF) != SCR_FLOAT && (Type2 & 0xF7FF) == SCR_INT ){
-        if( Arg2 == 1 ){
-            Arg2 = 0x3F800000;
-        } else if( Arg2 ){
+        if( Gcolor == 1 ){
+            Gcolor = 1.0;
+        } else if( Gcolor ){
             IntpError( "Invalid green value given to fillwin" );
         }
     }
     if( (Type1 & 0xF7FF) != SCR_FLOAT && (Type1 & 0xF7FF) == SCR_INT ){
-        if( Arg1 == 1 ){
-            Arg1 = 0x3F800000;
-        } else if( Arg1 ){
+        if( Bcolor == 1 ){
+            Bcolor = 1.0;
+        } else if( Bcolor ){
             IntpError( "Invalid blue value given to fillwin" );
         }
     }
-//    FillRect( scr->i34 );
-//    FillWin( v18, Arg3, Arg2, Arg1 );
+    WinFillRect( scr->i34 );
+    WinFill( Rcolor, Gcolor, Bcolor );
 }
 
 void ScpIfc_FillRect( Intp_t *scr )
 {
     unsigned short Type1,Type2,Type3,Type4,Type5,Type6,Type7;
-    int Arg1,Arg2,Arg3,Arg4,Arg5,Arg6,Arg7;
+    int Xpos, Width, Height, Ypos, tmp;
+    float Gcolor, Rcolor, Bcolor;
 
-    Intp_t *locscr;
-    int Bcolor;
-
-    GET_ARGi( scr, Arg1, Type1 )    
-    GET_ARGi( scr, Arg2, Type2 )    
-    GET_ARGi( scr, Arg3, Type3 )    
-    GET_ARGi( scr, Arg4, Type4 )    
-    GET_ARGi( scr, Arg5, Type5 )    
-    GET_ARGi( scr, Arg6, Type6 )    
-    GET_ARGi( scr, Arg7, Type7 )    
+    GET_ARGf( scr, tmp, Bcolor, Type1 )    
+    GET_ARGf( scr, tmp, Gcolor, Type2 )    
+    GET_ARGf( scr, tmp, Rcolor, Type3 )    
+    GET_ARGi( scr, Height, Type4 )    
+    GET_ARGi( scr, Width,  Type5 )    
+    GET_ARGi( scr, Ypos,   Type6 )    
+    GET_ARGi( scr, Xpos,   Type7 )    
 
     if( (Type3 & 0xF7FF) != SCR_FLOAT ){
         if( (Type3 & 0xF7FF) == SCR_INT ){
-            if ( Arg3 == 1 ){
-                Arg3 = 0x3F800000;
-            } else if ( Arg3 ){
+            if ( Rcolor == 1 ){
+                Rcolor = 1.0;
+            } else if ( Rcolor ){
                 IntpError("Invalid red value given to fillrect");
             }
         }
     }
     if( (Type2 & 0xF7FF) != SCR_FLOAT ){
         if( (Type2 & 0xF7FF) == SCR_INT ){
-            if ( Arg2 == 1 ){
-                Arg2 = 0x3F800000;
-            } else if( Arg2 ){
+            if ( Gcolor == 1 ){
+                Gcolor = 1.0;
+            } else if( Gcolor ){
                 IntpError( "Invalid green value given to fillrect" );
             }
         }
@@ -1051,7 +1008,7 @@ void ScpIfc_FillRect( Intp_t *scr )
     if( (Type1 & 0xF7FF) != SCR_FLOAT ){
         if( (Type1 & 0xF7FF) == SCR_INT ){
             if ( Bcolor == 1 ) {
-                Bcolor = 0x3F800000;
+                Bcolor = 1.0;
             } else if( Bcolor ) {
                 IntpError( "Invalid blue value given to fillrect" );
             }
@@ -1061,8 +1018,8 @@ void ScpIfc_FillRect( Intp_t *scr )
     ARG_TYPE( Type6, SCR_INT, "Invalid arg 2 given to fillrect" );
     ARG_TYPE( Type5, SCR_INT, "Invalid arg 3 given to fillrect" );
     ARG_TYPE( Type4, SCR_INT, "Invalid arg 4 given to fillrect" );
-//    FillRect( locscr->i34 );
-//    Int_FillRect( Arg4, Arg6, Arg3, Arg2, Bcolor );
+    WinFillRect( scr->i34 );
+    WinFillArea( Xpos, Ypos, Width, Height, Rcolor, Gcolor, Bcolor );
 }
 
 void ScpIfc_MouseRedraw( Intp_t *scr )
@@ -1086,8 +1043,7 @@ void ScpIfc_MouseShape( Intp_t *scr )
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 3 given to mouseshape" );
     ARG_TYPE( Type2, SCR_INT, "Invalid arg 2 given to mouseshape" );
     ARG_TYPE( Type3, SCR_STRING, "Invalid filename given to mouseshape" );
-    IntpGetArg( scr, TYPEH( Type3 ), Arg3 );
-//    if( !MouseMgrUnk02( Arg2, Arg1 ) ) IntpError( "Error loading mouse shape." );
+    if( !MouseMgrLoadMou( IntpGetArg( scr, TYPEH( Type3 ), Arg3 ), Arg2, Arg1 ) ) IntpError( "Error loading mouse shape." );
 }
 
 void ScpIfc_SetGlobalMouseFunc( Intp_t *scr )
@@ -1104,10 +1060,8 @@ void ScpIfc_DisplayGFX( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )    
     GET_ARGi( scr, Arg3, Type3 )    
     GET_ARGi( scr, Arg4, Type4 )    
-    GET_ARGi( scr, Arg5, Type5 )    
-    IntpGetArg( scr, Type5, Arg5 );
-    IntpMseHandler();
-//    WinDisplayGFX( Arg3, Arg1 );
+    GET_ARGi( scr, Arg5, Type5 )        
+    WinDisplayGFX( IntpMseHandler( IntpGetArg( scr, Type5, Arg5 ) ), Arg4, Arg3, Arg2, Arg1 );
 }
 
 void ScpIfc_LoadPaletteTable( Intp_t *scr )
@@ -1206,7 +1160,7 @@ void ScpIfc_RefreshMouse( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to refreshmouse" );
-//    if( !RefreshMouse() ){ if( Arg ) SciUnk11( scr, Arg ); }
+    if( !WinMouseRfsh() ){ if( Arg ) SciUnk11( scr, Arg ); }
 }
 
 void ScpIfc_SetFont( Intp_t *scr )
@@ -1216,7 +1170,7 @@ void ScpIfc_SetFont( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     if( (Type & 0xF7FF) != SCR_INT ) IntpError("Invalid arg 1 given to setfont");
-//    if( !SetFont( Arg ) ) IntpError( "Error setting font" );
+    if( !WinSetFont( Arg ) ) IntpError( "Error setting font" );
 }
 
 void ScpIfc_SetTextFlags( Intp_t *scr )
@@ -1226,7 +1180,7 @@ void ScpIfc_SetTextFlags( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to setflags" );
-//    if( !SetTextFlags( Arg ) ) IntpError( "Error setting text flags" );
+    if( !WinSetTextFlags( Arg ) ) IntpError( "Error setting text flags" );
 }
 
 void ScpIfc_SetTextColor( Intp_t *scr )
@@ -1238,11 +1192,11 @@ void ScpIfc_SetTextColor( Intp_t *scr )
     GET_ARGf( scr, Arg1, Arg1f, Type1 )
     GET_ARGf( scr, Arg2, Arg2f, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
-    if( SCRTYPE( Type3 ) == SCR_INT && Arg3f != 0.0 || 
-	SCRTYPE( Type2 ) == SCR_INT && Arg2f != 0.0 || 
-	SCRTYPE( Type1 ) == SCR_INT && Arg1f != 0.0 
+    if( (( SCRTYPE( Type3 ) == SCR_INT ) && ( Arg3f != 0.0 )) || 
+	(( SCRTYPE( Type2 ) == SCR_INT ) && ( Arg2f != 0.0 )) || 
+	(( SCRTYPE( Type1 ) == SCR_INT ) && ( Arg1f != 0.0 ))
 	) IntpError("Invalid type given to settextcolor" );
-//    if( !SetTextColor(Arg3f, Arg2f, Arg1f) ) IntpError("Error setting text color");
+    if( !WinSetTextColor(Arg3f, Arg2f, Arg1f) ) IntpError("Error setting text color");
 }
 
 void ScpIfc_SayOptionColor( Intp_t *scr )
@@ -1254,11 +1208,11 @@ void ScpIfc_SayOptionColor( Intp_t *scr )
     GET_ARGf( scr, Arg1, Arg1f, Type1 )
     GET_ARGf( scr, Arg2, Arg2f, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
-    if( SCRTYPE( Type3 ) == SCR_INT && Arg3f != 0.0 || 
-	SCRTYPE( Type2 ) == SCR_INT && Arg2f != 0.0 || 
-	SCRTYPE( Type1 ) == SCR_INT && Arg1f != 0.0 
+    if( ( ( SCRTYPE( Type3 ) == SCR_INT ) && ( Arg3f != 0.0 ) ) || 
+	( ( SCRTYPE( Type2 ) == SCR_INT ) && ( Arg2f != 0.0 ) )  || 
+	( ( SCRTYPE( Type1 ) == SCR_INT ) && ( Arg1f != 0.0 ) )
 	) IntpError( "Invalid type given to sayoptioncolor" );
-//    if( SetOptionColor( Arg3f, Arg2f, Arg1f ) ) IntpError( "Error setting option color" );
+    if( DialogSetOptionColor( Arg3f, Arg2f, Arg1f ) ) IntpError( "Error setting option color" );
 }
 
 void ScpIfc_SayReplytColor( Intp_t *scr )
@@ -1270,11 +1224,11 @@ void ScpIfc_SayReplytColor( Intp_t *scr )
     GET_ARGf( scr, Arg1, Arg1f, Type1 )
     GET_ARGf( scr, Arg2, Arg2f, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
-    if( SCRTYPE( Type3 ) == SCR_INT && Arg3f != 0.0 || 
-	SCRTYPE( Type2 ) == SCR_INT && Arg2f != 0.0 || 
-	SCRTYPE( Type1 ) == SCR_INT && Arg1f != 0.0 
+    if( ( ( SCRTYPE( Type3 ) == SCR_INT ) && ( Arg3f != 0.0 ) ) || 
+	( ( SCRTYPE( Type2 ) == SCR_INT ) && ( Arg2f != 0.0 ) ) || 
+	( ( SCRTYPE( Type1 ) == SCR_INT ) && ( Arg1f != 0.0 ) ) 
 	) IntpError( "Invalid type given to sayreplycolor" );
-//    if( SetRepplyColor(Arg3f, Arg2f, Arg1f) ) IntpError("Error setting reply color");
+    if( DialogSetReplyColor( Arg3f, Arg2f, Arg1f ) ) IntpError("Error setting reply color");
 }
 
 void ScpIfc_SetTextHighlightColor( Intp_t *scr )
@@ -1286,11 +1240,11 @@ void ScpIfc_SetTextHighlightColor( Intp_t *scr )
     GET_ARGf( scr, Arg1, Arg1f, Type1 )
     GET_ARGf( scr, Arg2, Arg2f, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
-    if( SCRTYPE( Type3 ) == SCR_INT && Arg3f != 0.0 || 
-	SCRTYPE( Type2 ) == SCR_INT && Arg2f != 0.0 || 
-	SCRTYPE( Type1 ) == SCR_INT && Arg1f != 0.0 
-	) IntpError( "Invalid type given to sethighlightcolor" );
-//    if( !SetTextHlColor( Arg3f, Arg2f, Arg1f ) ) IntpError( "Error setting text highlight color" );
+    if( ( ( SCRTYPE( Type3 ) == SCR_INT ) && ( Arg3f != 0.0 ) ) || 
+	( ( SCRTYPE( Type2 ) == SCR_INT ) && ( Arg2f != 0.0 ) ) || 
+	( ( SCRTYPE( Type1 ) == SCR_INT ) && ( Arg1f != 0.0 ) )
+      ) IntpError( "Invalid type given to sethighlightcolor" );
+    if( !WinSetTextColorHL( Arg3f, Arg2f, Arg1f ) ) IntpError( "Error setting text highlight color" );
 }
 
 void ScpIfc_SayReplyWindow( Intp_t *scr )
@@ -1305,13 +1259,12 @@ void ScpIfc_SayReplyWindow( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 )
     GET_ARGi( scr, Arg5, Type5 )    
     s = NULL;
-    if( SCRTYPE( Type1 ) == SCR_STRING ){
-        IntpGetArg( scr, TYPEH(Type1), Arg1 );
-        s = strdup( IntpMseHandler() );
+    if( SCRTYPE( Type1 ) == SCR_STRING ){        
+        s = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH(Type1), Arg1 ) ) );
     } else if( SCRTYPE( Type1 ) != SCR_INT || Arg1 ){
         IntpError( "Invalid arg 5 given to sayreplywindow" );
     }
-//    if ( SetReplyWindow( Arg5, Arg4, Arg2, Arg3, s ) ) IntpError( "Error setting reply window" );
+    if( DialogReplyWin( Arg5, Arg4, Arg2, Arg3, s ) ) IntpError( "Error setting reply window" );
 }
 
 void ScpIfc_SayReplyFlags( Intp_t *scr )
@@ -1321,7 +1274,7 @@ void ScpIfc_SayReplyFlags( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to sayreplyflags" );
-//    if( !SetOptionFlags( Arg ) ) IntpError( "Error setting reply flags" );
+    if( !DialogSetOptionFlags( Arg ) ) IntpError( "Error setting reply flags" );
 }
 
 void ScpIfc_SayOptionFlags( Intp_t *scr )
@@ -1331,7 +1284,7 @@ void ScpIfc_SayOptionFlags( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to sayoptionflags" );
-//    if( !SetOptionFlags( Arg ) ) IntpError( "Error setting option flags" );
+    if( !DialogSetOptionFlags( Arg ) ) IntpError( "Error setting option flags" );
 }
 
 void ScpIfc_SayOptionWindow( Intp_t *scr )
@@ -1346,13 +1299,12 @@ void ScpIfc_SayOptionWindow( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 )
     GET_ARGi( scr, Arg5, Type5 )
     s = NULL;
-    if( SCRTYPE( Type1 ) == SCR_STRING ){
-        IntpGetArg( scr, TYPEH(Type1), Arg1 );
-        s = strdup( IntpMseHandler() );
+    if( SCRTYPE( Type1 ) == SCR_STRING ){        
+        s = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH(Type1), Arg1 ) ) );
     } else if( Type5 != SCR_INT || Arg1 ){
         IntpError( "Invalid arg 5 given to sayoptionwindow" );
     }
-//    if( SayOptWin( Arg5, Arg4, Arg2, Arg3, s ) ) IntpError( "Error setting option window" );
+    if( DialogOptWin( Arg5, Arg4, Arg2, Arg3, s ) ) IntpError( "Error setting option window" );
 }
 
 void ScpIfc_SayBorder( Intp_t *scr )
@@ -1364,7 +1316,7 @@ void ScpIfc_SayBorder( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 2 given to sayborder" );
     ARG_TYPE( Type2, SCR_INT, "Invalid arg 1 given to sayborder" );
-//    if( SayBorder( Arg2, Arg1 ) ) IntpError( "Error setting dialog border" );
+    if( DialogBorder( Arg2, Arg1 ) ) IntpError( "Error setting dialog border" );
 }
 
 void ScpIfc_SayScrollUp( Intp_t *scr )
@@ -1390,11 +1342,11 @@ void ScpIfc_SayScrollUp( Intp_t *scr )
     if( SCRTYPE( Type2 ) == SCR_INT && Arg2 ) IntpError( "Invalid arg 3 given to sayscrollup" );
     if( SCRTYPE( Type3 ) == SCR_INT && Arg3 ) IntpError( "Invalid arg 2 given to sayscrollup" );
     if( SCRTYPE( Type4 ) == SCR_INT && Arg4 ) IntpError( "Invalid arg 1 given to sayscrollup" );
-    if( SCRTYPE( Type4 ) == SCR_STRING ){ IntpGetArg(scr, TYPEH(Type4), Arg4); s1 = strdup( IntpMseHandler() ); }
-    if( SCRTYPE( Type3 ) == SCR_STRING ){ IntpGetArg(scr, TYPEH(Type3), Arg3); s2 = strdup( IntpMseHandler() ); }
-    if( SCRTYPE( Type2 ) == SCR_STRING ){ IntpGetArg(scr, TYPEH(Type2), Arg2); s3 = strdup( IntpMseHandler() ); }
-    if( SCRTYPE( Type1 ) == SCR_STRING ){ IntpGetArg(scr, TYPEH(Type1), Arg1); s4 = strdup( IntpMseHandler() ); }
-//    if( DlgScrollUp( Arg6, Arg5, s1, s2, s3, s4, Arg1 ) ) IntpError( "Error setting scroll up" );
+        if( SCRTYPE( Type4 ) == SCR_STRING ){ s1 = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH( Type4 ), Arg4 ) ) ); }
+    if( SCRTYPE( Type3 ) == SCR_STRING ){ s2 = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH( Type3 ), Arg3 ) ) ); }
+    if( SCRTYPE( Type2 ) == SCR_STRING ){ s3 = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH( Type2 ), Arg2 ) ) ); }
+    if( SCRTYPE( Type1 ) == SCR_STRING ){ s4 = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH( Type1 ), Arg1 ) ) ); }
+    if( DialogScrollUp( Arg6, Arg5, s1, s2, s3, s4, Arg1 ) ) IntpError( "Error setting scroll up" );
 }
 
 void ScpIfc_SayScrollDn( Intp_t *scr )
@@ -1413,7 +1365,7 @@ void ScpIfc_SayScrollDn( Intp_t *scr )
     GET_ARGi( scr, Arg6, Type6 )
 
     if( SCRTYPE( Type1 ) == SCR_INT ){
-        if( Arg1 != -1 && Arg1 ) IntpError("Invalid arg 4 given to sayscrolldn");
+        if( Arg1 != -1 && Arg1 ) IntpError( "Invalid arg 4 given to sayscrolldn" );
         if( Arg1 == -1 ) Arg1 = 1;
     } else {
         if( (Type1 & 0xF7FF) != SCR_STRING ) IntpError( "Invalid arg 4 given to sayscrolldn" );
@@ -1421,11 +1373,11 @@ void ScpIfc_SayScrollDn( Intp_t *scr )
     if( SCRTYPE( Type2 ) == SCR_INT && Arg2 ) IntpError( "Invalid arg 3 given to sayscrolldown" );
     if( SCRTYPE( Type3 ) == SCR_INT && Arg3 ) IntpError( "Invalid arg 2 given to sayscrolldown" );
     if( SCRTYPE( Type4 ) == SCR_INT && Arg4 ) IntpError( "Invalid arg 1 given to sayscrolldown" );
-    if( SCRTYPE( Type4 ) == SCR_STRING ){ IntpGetArg( scr, TYPEH( Type4 ), Arg4 ); s1 = strdup( IntpMseHandler() ); }
-    if( SCRTYPE( Type3 ) == SCR_STRING ){ IntpGetArg( scr, TYPEH( Type3 ), Arg3 ); s2 = strdup( IntpMseHandler() ); }
-    if( SCRTYPE( Type2 ) == SCR_STRING ){ IntpGetArg( scr, TYPEH( Type2 ), Arg2 ); s3 = strdup( IntpMseHandler() ); }
-    if( SCRTYPE( Type1 ) == SCR_STRING ){ IntpGetArg( scr, TYPEH( Type1 ), Arg1 ); s4 = strdup( IntpMseHandler() ); }
-//    if( DlgScrollDn( Arg6, Arg5, s1, s2, s3, s4, Arg1 ) )  IntpError("Error setting scroll down");
+    if( SCRTYPE( Type4 ) == SCR_STRING ){ s1 = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH( Type4 ), Arg4 ) ) ); }
+    if( SCRTYPE( Type3 ) == SCR_STRING ){ s2 = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH( Type3 ), Arg3 ) ) ); }
+    if( SCRTYPE( Type2 ) == SCR_STRING ){ s3 = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH( Type2 ), Arg2 ) ) ); }
+    if( SCRTYPE( Type1 ) == SCR_STRING ){ s4 = strdup( IntpMseHandler( IntpGetArg( scr, TYPEH( Type1 ), Arg1 ) ) ); }
+    if( DialogScrollDn( Arg6, Arg5, s1, s2, s3, s4, Arg1 ) )  IntpError("Error setting scroll down");
 }
 
 void ScpIfc_SaySetSpacing( Intp_t *scr )
@@ -1435,12 +1387,12 @@ void ScpIfc_SaySetSpacing( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to saysetspacing" );
-//    if( SetOptSpacing( Arg ) ) IntpError( "Error setting option spacing" );
+    if( DialogSetOptSpacing( Arg ) ) IntpError( "Error setting option spacing" );
 }
 
 void ScpIfc_Restart( Intp_t *scr )
 {
-//    if ( RestartOpt() ) IntpError( "Error restarting option" );
+    if( DialogRestartOpt() ) IntpError( "Error restarting option" );
 }
 
 void ScpIfcSoundCb( int *p, int a2 )
@@ -1460,7 +1412,7 @@ int ScpIfcSoundDelete( int Idx )
     return 1;
 }
 
-int ScpIfcDeleteSounds()
+void ScpIfcDeleteSounds()
 {
     int i;
 
@@ -1487,7 +1439,7 @@ unsigned int ScpIfcSounPlay( short Flags, char *fname )
     for( i = 0; i < 32 && gScpIfcSounds[ i ]; i++ );
     if( i == 32 ) return -1;    
     if( !(snd = gScpIfcSounds[ i ] = SoundCreate( a, b )) ) return -1;
-    SoundSetCallback( snd, ScpIfcSoundCb, &gScpIfcSounds[ i ] );
+    SoundSetCallback( snd, (void *)ScpIfcSoundCb, &gScpIfcSounds[ i ] );
     if( Flags & 0x0001 ) SoundRepeat( gScpIfcSounds[ i ], 0xFFFF );
     if( Flags & 0x1000 ) SoundSetChannel( gScpIfcSounds[ i ], 2 );
     if( Flags & 0x2000 ) SoundSetChannel( gScpIfcSounds[ i ], 3 );
@@ -1568,9 +1520,8 @@ void ScpIfc_SoundPlay( Intp_t *scr )
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 2 given to soundplay" );
-    ARG_TYPE( Type2, SCR_STRING,  "Invalid arg 1 given to soundplay" );
-    IntpGetArg( scr, TYPEH( Type2 ), Arg2 );
-    IntpPushiA( scr, ScpIfcSounPlay( Arg1, IntpMseHandler() ) );
+    ARG_TYPE( Type2, SCR_STRING,  "Invalid arg 1 given to soundplay" );    
+    IntpPushiA( scr, ScpIfcSounPlay( Arg1, IntpMseHandler( IntpGetArg( scr, TYPEH( Type2 ), Arg2 ) ) ) );
     IntpPushwA( scr, SCR_INT );
 }
 
@@ -1601,7 +1552,7 @@ void ScpIfc_SoundStop( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to soundstop" );
-    ScpIfcSoundPause(Arg);
+    ScpIfcSoundPause( Arg );
 }
 
 void ScpIfc_SoundRewind( Intp_t *scr )
@@ -1632,11 +1583,11 @@ void ScpIfc_SetOneOptPause( Intp_t *scr )
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "SetOneOptPause: invalid arg passed (non-integer)." );
     if( Arg ){
-//        if( (SetOneOptPause1() & 8) == 0 ) return;
-//    } else if( (SetOneOptPause1() & 8) != 0 ){
-//        return;
+        if( !( DialogGetOneOptPause() & 0x08 ) ) return;
+    } else if( DialogGetOneOptPause() & 0x08 ){
+        return;
     }
-//    SetOneOptPause2(8);
+    DialogSetOneOptPause( 0x08 );
 }
 
 int ScpIfcNevsUpdate()
@@ -1647,27 +1598,25 @@ int ScpIfcNevsUpdate()
 
 int ScpUnk02( unsigned int a1 )
 {
-    unsigned int v2;
-
     if( a1 > 0xFF ) return 0;
     if( gScpIfcUnk08 ){
-//        if( gScpIfcUnk07 ) SciUnk11(gScpIfcUnk08, gScpIfcUnk07);
+        if( gScpIfcUnk07 ) SciUnk11(gScpIfcUnk08, gScpIfcUnk07);
         return 1;
     }
     if( !gIntpList[ a1 ].scr ) return 0;
-//    if( gIntpList[ a1 ].i02 ) SciUnk11( gIntpList[ a1 ].scr, gIntpList[ a1 ].i02 );
+    if( gIntpList[ a1 ].i02 ) SciUnk11( gIntpList[ a1 ].scr, gIntpList[ a1 ].i02 );
     return 1;
 }
 
 void ScpIfcInit()
 {
-//    ScpFillWin3x3( ScpUnk02 );
+    WinDlgInsertExec( ScpUnk02 );
     SciAddOpcode( 0x806A, ScpIfc_FillWin3x3 );
     SciAddOpcode( 0x808C, ScpIfc_DeleteButton );
     SciAddOpcode( 0x8086, ScpIfc_AddButton );
     SciAddOpcode( 0x8088, ScpIfc_AddButtonFlag );
-    SciAddOpcode( 0x8087, ScpIfc_AddButtonTextString );
-    SciAddOpcode( 0x8089, ScpIfc_AddButtonText );
+    SciAddOpcode( 0x8087, ScpIfc_AddButtonText );
+    SciAddOpcode( 0x8089, ScpIfc_AddButtonGFX );
     SciAddOpcode( 0x808A, ScpIfc_AddButtonProc );
     SciAddOpcode( 0x808B, ScpIfc_AddButtonRightProc );
     SciAddOpcode( 0x8067, ScpIfc_ShowWin );

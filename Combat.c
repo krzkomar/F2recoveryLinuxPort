@@ -270,7 +270,7 @@ int CombatUnk04( Obj_t *a1, Obj_t *a2, Obj_t *a3, Obj_t *a4 )
     return CombatUnk03( a1, a4, 2, a2, NULL, a3 );
 }
 
-int CombatUnk05()
+Obj_t *CombatUnk05()
 {
     if( IN_COMBAT ) return gCombat06;
     return 0;
@@ -736,7 +736,7 @@ void CombatProcess()
         obj = gCombatCritters[ i ];
         if( obj == gObjDude ) continue;
         if( gObjDude->Critter.State.GroupId == obj->Critter.State.GroupId ){
-    	    if( !(obj->Critter.State.WhoHitMe) || (obj->Critter.State.GroupId != obj->Critter.State.WhoHitMe->Critter.State.GroupId ) ) continue;
+//    	    if( !(obj->Critter.State.WhoHitMe) || (obj->Critter.State.GroupId != obj->Critter.State.WhoHitMe->Critter.State.GroupId ) ) continue;
         }
         if( !AiUnk51( gCombatCritters[ i ] ) ){
 	    msg.Id = 103; // 'Combat cannot end with nearby hostile creatures.'
@@ -748,7 +748,7 @@ void CombatProcess()
         obj = gCombatCritters[ i ];
         if( obj == gObjDude ) continue;
         if( gObjDude->Critter.State.GroupId == obj->Critter.State.GroupId ){        
-    	    if( !(obj->Critter.State.WhoHitMe) || ( obj->Critter.State.GroupId != obj->Critter.State.WhoHitMe->Critter.State.GroupId ) ) continue;
+//    	    if( !(obj->Critter.State.WhoHitMe) || ( obj->Critter.State.GroupId != obj->Critter.State.WhoHitMe->Critter.State.GroupId ) ) continue;
         }
     	if( AiUnk52( obj ) ){
             msg.Id = 103; // 'Combat cannot end with nearby hostile creatures.'
@@ -900,7 +900,7 @@ int CombatUnk34()
     for( i = 0; i < gCombat04; i++ ){
         if( gObjDude->Critter.State.GroupId != gCombatCritters[ i ]->Critter.State.GroupId ) break;
         if( gCombatCritters[ i ]->Critter.State.WhoHitMe ){
-            if( gObjDude->Critter.State.GroupId == gCombatCritters[ i ]->Critter.State.WhoHitMe->Critter.State.GroupId ) break;
+//            if( gObjDude->Critter.State.GroupId == gCombatCritters[ i ]->Critter.State.WhoHitMe->Critter.State.GroupId ) break;
         }
     }
     return i == gCombat04;

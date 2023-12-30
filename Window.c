@@ -892,7 +892,7 @@ Widget_t *WinLookup( int WgtId, Window_t **win )
     return 0;        
 }
 
-int WinDialogRun( int arg )
+int WinDialogRun( int key )
 {
     int j, i;
     WinDlg_t *p;
@@ -901,15 +901,15 @@ int WinDialogRun( int arg )
     for( j = gWinWindowsCount - 1; j >= 1; j-- ){
         if( (p = gWinWindows[ j ]->Dialog) ){
             for( i = 0; i < p->Cnt; i++ ){
-                if( arg == p->i11[ i*36 ] ){
-//                    arg = TextBoxUnk02( p, i );
+                if( key == p->box[ i ].key ){
+                    key = TextBoxRun( p, i );
                     break;
                 }
             }
         }
-        if( gWinWindows[ j ]->Flags & 0x10 ) break;
+	if( gWinWindows[ j ]->Flags & 0x10 ) break;
     }
-    return arg;
+    return key;
 }
 
 
@@ -1035,18 +1035,9 @@ Image_t *WinLoadImage( const char *fname )
 
 void WinSetTitle( const char *Title )
 {
-    if( !Title ) return;
-    
-printf( "<dummy> Set title: \"%s\"\n", Title );
-gWinTitle = 1;
-
-//    if ( gWinTitle == -1 && (gWinTitle = CreateMutexA(0, 1, Title), GetLastError()) ){
-//        gWinInit = 1;
-//        return;
-//    }
-//    strncpy( gWinTiltleString, Title, 256 );
-//    gTitleUnk01 = 0;
-//    if( gWinMain ) SetWindowTextA(gWinMain, gWinTiltleString);    
+    if( !Title ) return;    
+    printf( "<dummy> Set title: \"%s\"\n", Title );
+    gWinTitle = 1;
 }
 
 void  WinSetBlitter( int WinId, void (*Blitter)(void *, int, int, int, void *, int))
@@ -1572,7 +1563,7 @@ int WinImageGetWinId( int ImageId )
     return -1;
 }
 
-int WinImageUnk04()
+int WinGetPointed()
 {
     return gWinPointedWg1;
 }

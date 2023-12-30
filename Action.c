@@ -236,7 +236,7 @@ LABEL_47:
     	    }
         }
     }
-    if( obj3 & 0x80 ) return AnimSetFinish( obj1, (void *)a2, (void *)ActionUnk34, -1 ); // !!! scalar to pointer 
+//    if( obj3 & 0x80 ) return AnimSetFinish( obj1, (void *)a2, (void *)ActionUnk34, -1 ); // !!! scalar to pointer 
     return result;
 }
 
@@ -1200,7 +1200,7 @@ int ActionSndACb( Obj_t *Critter, Obj_t *Target )
     return -1;
 }
 
-void ActionSndBCb( int a1 )
+void ActionSndBCb( Obj_t *a1 )
 {
     ScptUnk115( a1 );
 }
@@ -1274,9 +1274,9 @@ int ActionUnk04( int Min, int Max, Obj_t *obj, int *a4, int a5 )
 
 int ActionUnk03( Obj_t *a1, Obj_t *a2 )
 {
-    int GroupId;
+//    int GroupId;
     ObjCritterCond_t *p_State;
-    Obj_t *WhoHitMe;
+    int WhoHitMe;
 
     if( OBJTYPE( a2->ImgId ) != TYPE_CRIT ) return 0;
     if( a1 == a2 ) return 0;
@@ -1284,12 +1284,12 @@ int ActionUnk03( Obj_t *a1, Obj_t *a2 )
     if( ActionFindPath( a1, a2 ) ) return 0;
     if( !ScptUnk108( a2->ScrId, 24 ) ) return 0;
     if( !IN_COMBAT ) return 1;
-    GroupId = a2->Critter.State.GroupId;
+//    GroupId = a2->Critter.State.GroupId;
     p_State = &a2->Critter.State;
-    if( GroupId == a1->Critter.State.GroupId && a1 == p_State->WhoHitMe ) return 0;
-    WhoHitMe = p_State->WhoHitMe;
-    if( !WhoHitMe ) return 1;
-    return WhoHitMe->Critter.State.GroupId != a1->Critter.State.GroupId;    
+//    if( GroupId == a1->Critter.State.GroupId && a1 == p_State->WhoHitMe ) return 0;
+    if( !(WhoHitMe = p_State->WhoHitMe) ) return 1;
+//    return WhoHitMe->Critter.State.GroupId != a1->Critter.State.GroupId;    
+return 0;
 }
 
 int ActionUnk02( Obj_t *a1, Obj_t *a2 )

@@ -1,5 +1,7 @@
 #include "FrameWork.h"
 
+extern int gDlgUnk45;
+
 CachePool_t *gInvQaDlgImgObj[ 8 ];
 CachePool_t *gInvUnk20[12];
 int gInvUnk63[10];
@@ -42,9 +44,6 @@ Inv01_t gInvArt[ 5 ] = {
     { 0x50, 0x000, 0x072, 0x219, 0x178 },
     { 0x50, 0x000, 0x06F, 0x1E0, 0x0B4 },
     { 0x50, 0x122, 0x131, 0x103, 0x0A2 },
-
-//    { 0x8C, 0x050, 0x131, 0x103, 0x0A2 },
-//    { 0x8C, 0x050 } 
 };
 int gInvUnk83 = 0;
 int gInvUpArrow = -1;
@@ -93,7 +92,6 @@ int gInvMenuIconWeapon[3] = {
     INV_ACT_CANCEL
 };
 
-int gInvUnk80 = 0;
 int gInvBarterDiscount = 0;
 
 int gInvUnk12[ 7 ] = { 35, 9, 17, 18, 19, 20, 23 };
@@ -151,8 +149,9 @@ void InvMenu()
     int tmp,i, menu,sel;
     Obj_t *armor;
     MsgLine_t MsgLine;
+    VidRect_t Area;
 
-//    if( (gCombatStatus & 1) && Unk1004() != gInvSelectedDude ) return;
+    if( IN_COMBAT && CombatUnk05() != gInvSelectedDude ) return;
     if( InvInit() == -1 ) return;
     if( (gCombatStatus & 1) && gInvSelectedDude == gObjDude ){ // access inventory in combat
         tmp = INV_AP_ACCESS_COST - 2 * PerkLvl( gInvSelectedDude, 48 ); // AP cost for acccess to inventory
@@ -160,7 +159,7 @@ void InvMenu()
             MsgLine.Id = 19; // 'You don't have enough action points to use inventory'
             if( MessageGetMsg( &gInvMsg, &MsgLine ) == 1 ) IfcMsgOut( MsgLine.Text );
             for( i = 0; i < 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
-//            if( gInvUnk02 ) GameIfaceDisable();
+            if( gInvUnk02 ) GameIfaceDisable( 0 );
             InvMsgClose();
             gInvArt[0].Xpos = 0;
             return;
@@ -170,13 +169,13 @@ void InvMenu()
                 gObjDude->Critter.State.CurrentAP = 0;
             else
                 gObjDude->Critter.State.CurrentAP -= tmp; // spent AP
-//            IfaceUnk12(gObjDude->Critter.State.CurrentAP, gCombatMovePts);
+            IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
         }
     }
 
     armor = InvGetArmorObj( gInvSelectedDude );
     menu = InvMenuCreate( 0 );
-//    Unk9024( gInvSelectedDude );
+    AnimClear( gInvSelectedDude );
     InvStatsUpdate();
     InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 0 );
     InvSetInfoMode( 0 );
@@ -197,13 +196,11 @@ void InvMenu()
             	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 0);
         	break;        
     	    case 329:
-DD
         	gInvUnk04[ gInvUnk05 ] = gInvUnk04[ gInvUnk05 ] - gInvUnk08;
         	if( gInvUnk04[ gInvUnk05 ] < 0 ) gInvUnk04[ gInvUnk05 ] = 0;
         	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 0);
         	break;
     	    case 335:
-DD
         	gInvUnk04[ gInvUnk05 ] = gInvBackPack->Box.Cnt - gInvUnk08;
         	if( gInvUnk04[ gInvUnk05 ] < 0 ) gInvUnk04[ gInvUnk05 ] = 0;
         	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 0 );
@@ -214,7 +211,6 @@ DD
         	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 0 );
         	break;
     	    case 337:
-DD
         	gInvUnk04[ gInvUnk05 ] = gInvUnk08 + gInvUnk04[ gInvUnk05 ];
         	if( gInvUnk04[ gInvUnk05 ] + gInvUnk08 >= gInvBackPack->Box.Cnt ){
             	    tmp = gInvBackPack->Box.Cnt - gInvUnk08;
@@ -224,8 +220,7 @@ DD
         	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 0 );
         	break;                
     	    case 2500: // click on portrait
-DD
-//    		InvUnk46( 2500, 0 ); 
+    		InvUnk46( 2500, 0 ); 
 		break;    	
 	    case 1000 ... 1008: // left mouse button pressed
     		if( !( MseGetButtons() & MSE_LBUTT ) ) break;
@@ -248,20 +243,20 @@ DD
     		break;
 	}
     }
-     gInvSelectedDude = gInvParty[0];
+    gInvSelectedDude = gInvParty[0];
     InvSetBodyImg();
     if( gInvSelectedDude == gObjDude ){
-//        ObjUnk20(g, gInvBodyImgId, v23);
-//        TileUpdateArea(v23, g->Elevation);
+        ObjSetShape( gInvSelectedDude, gInvBodyImgId, &Area );
+        TileUpdateArea( &Area, gInvSelectedDude->Elevation );
     }
     // armor changed ?
     if( (gInvSelectedDude == gObjDude) && (armor != InvGetArmorObj( gInvSelectedDude )) ) IfaceResetAC( 1 );
     InvMenuClose( menu ) ;
-    for( i = 0; i != 5; i++ ) ArtClose( gInvMseCursor[i].Obj );
-//    if( gInvUnk02 ) GameIfaceDisable();
+    for( i = 0; i != 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
+    if( gInvUnk02 ) GameIfaceDisable( 0 );
     InvMsgClose();
     gInvArt[ 0 ].Xpos = 0;
-//    if( g == gObjDude ) IfaceHandSlotUpdate( 0, -1, -1 );
+    if( gInvSelectedDude == gObjDude ) IfaceHandSlotUpdate( 0, -1, -1 );
 }
 
 int InvMenuCreate( unsigned int idx )
@@ -295,7 +290,7 @@ int InvMenuCreate( unsigned int idx )
         gInvUnk15 = 560;
         gInvUnk16 = 470;
         ScrCopy( WinGetSurface( gInvUnk18 ) + 80, 480, 180, gVidMainGeo.rt - gVidMainGeo.lt + 1, WinGetSurface( gInvWin ), 480 );
-//        gInvInfoCb = sub_445448;
+        gInvInfoCb = GdialogReply;
     }
     if( (idx != 3) && (idx != 2) ){
         for( i = 0; i < gInvUnk08; i++ ){ // mouse regions for items
@@ -440,9 +435,9 @@ int InvMenuCreate( unsigned int idx )
     	    }
 	}
     } else {	
-        if( idx == 2 && !gInvUnk80 ){
-    	    if( (img1 = ArtGetBitmap( ArtMakeId( 6, 436, 0, 0, gInvUnk80 ), 0, 0, &gInvUnk20[ 8 ] ) ) ){
-    		if( (img2 = ArtGetBitmap( ArtMakeId( 6, 437, 0, 0, gInvUnk80 ), 0, 0, &gInvUnk20[ 9 ] )) ){
+        if( idx == 2 && !gSkillUnk80 ){
+    	    if( (img1 = ArtGetBitmap( ArtMakeId( 6, 436, 0, 0, gSkillUnk80 ), 0, 0, &gInvUnk20[ 8 ] ) ) ){
+    		if( (img2 = ArtGetBitmap( ArtMakeId( 6, 437, 0, 0, gSkillUnk80 ), 0, 0, &gInvUnk20[ 9 ] )) ){
     		    if( (bt = WinCreateButton( gInvWin, 432, 204, 39, 41, -1, -1, 'A', -1, img1, img2, NULL, 0 )) != -1 ){
     			WinSetClickSound( bt, GSoundPlayPushBt, GSoundPlayReleaseBt );
     		    }
@@ -476,80 +471,64 @@ int InvMenuCreate( unsigned int idx )
     return k;
 }
 
-void InvMenuClose( int a1 )
+void InvMenuClose( int eax0 )
 {
-//    Obj_t *v2; // eax
-//    char v3; // dl
-//    Obj_t *v4; // ebx
-//    Obj_t *v5; // eax
-//    Obj_t *v6; // edx
-//    Obj_t *v7; // eax
-//    Obj_t *v8; // edx
-    int v9; // esi
-//    CachePool_t *v10; // eax
-//    int result; // eax
-//    Obj_t *v12; // ebp
-//    int v13; // edi
-//    int v14; // esi
-//    int v15[15]; // [esp+0h] [ebp-FCh] BYREF
-//    int v16; // [esp+3Ch] [ebp-C0h]
-//    Obj_t *dude[30]; // [esp+40h] [ebp-BCh]
-//    int v18[10]; // [esp+B8h] [ebp-44h] BYREF
-//    int i05; // [esp+E0h] [ebp-1Ch]
+    Scpt01_t v16;
+    Combat_t a1;
+    Obj_t *v11, *v14;
+    int v9,v12,v13,GroupId;
 
     gInvSelectedDude = gInvParty[0];
     if( gInvLHandObj ){
-        gInvLHandObj->Flags |= 0x1000000;
-        if( gInvLHandObj == gInvRHandObj ) gInvRHandObj->Flags |= 0x2000000 | 0x1000000;
+        gInvLHandObj->Flags = gInvLHandObj->Flags | 0x01000000;
+        if( gInvLHandObj == gInvRHandObj ) gInvRHandObj->Flags |= 0x02000000;
         ItemAdd( gInvSelectedDude, gInvLHandObj, 1 );
     }
     if( gInvRHandObj && gInvRHandObj != gInvLHandObj ){
-        gInvRHandObj->Flags |= 0x2000000;
+        gInvRHandObj->Flags |= 0x02000000;
         ItemAdd( gInvSelectedDude, gInvRHandObj, 1 );
     }
     if( gInvArmorObj ){
-        gInvArmorObj->Flags |= 0x4000000;
-        ItemAdd( gInvSelectedDude, gInvArmorObj, 1 );
+        gInvArmorObj->Flags |= 0x04000000;
+        ItemAdd( gInvSelectedDude, gInvArmorObj, 1);
     }
-    gInvRHandObj = NULL;
-    gInvArmorObj = NULL;
-    gInvLHandObj = NULL;
-    for( v9 = 0; v9 < 12; v9++ ) ArtClose( gInvUnk20[ v9++ ] );
-    if( a1 ) MapUnk34();
-    WinClose( gInvWin );
+    v9 = 0;
+    gInvRHandObj = 0;
+    gInvArmorObj = 0;
+    gInvLHandObj = 0;
+    do{
+        ArtClose( gInvUnk20[v9++ ] );
+    } while ( v9 != 12 );
+    if( eax0 ) MapUnk34();
+    WinClose(gInvWin);
     GmouseSetIsoMode();
-    if( !gInvUnk83 ) return 0;
-/*
-//        sub_422EC4(v15, gObjDude, 4, 0, 3);
-//        v15[5] = 256;
-//        v15[9] = gObjDude->GridId;
-    sub_423C10(v15, 0, 1, 0);
-    v12 = 0;
-    i05 = gObjDude->Effect.i05;
-    result = v16;        
-    for( v13 = v14 = 0; v13 < v16; v13++, v14++ ){
-        result = dude[v14];
-        if ( result != gObjDude && i05 != *(result + 80) ){
-            result = FeatDice( result, 1, 0, 0 );
-            if( result >= 2 ){
-                result = CritterUnk45( dude[v14], gObjDude );
-                if( !v12 ) v12 = dude[v14];
-            }
+    if( gInvUnk83 ){
+        CombatSetUp(&a1, gObjDude, 0, 4, 3);
+        a1.DudeInjuries = 256;
+        a1.TileNo = gObjDude->GridId;
+        CombatExplosion( &a1, 0, 0, 1 );
+        GroupId = gObjDude->Critter.State.GroupId;        
+        v11 = 0;
+        v13 = 0;
+        for( v12 = 0; v12 < a1.Count; v12++, v13++ ){
+            v14 = a1.obj[v13];
+            if( v14 != gObjDude && GroupId != v14->Critter.State.GroupId && FeatDice(v14, 1, 0, 0) >= 2 ){
+                CritterUnk45(a1.obj[v13], gObjDude);
+                if( !v11 ) v11 = a1.obj[v13];
+            }                
         }            
-    }
-        
-    if( v12 ){
-        if( (gCombatStatus & 1) == 0 ){
-            v18[0] = v12;
-            v18[1] = gObjDude;
-            memset(&v18[2], 0, 16);
-            v18[7] = 0;
-            v18[6] = 0x7FFFFFFF;
-            result = ScptUnk121(v18);
+        if( v11 ){
+            if( !IN_COMBAT ){
+                v16.obj = v11;
+                v16.crit = gObjDude;
+                memset(v16.i03, 0, sizeof(v16.i03));
+                v16.i08 = 0;
+                v16.i07 = 0x7FFFFFFF;
+                ScptUnk121(&v16);
+            }
         }
+        gInvUnk83 = 0;
     }
-    gInvUnk83 = 0;
-*/    
 }
 
 void InvBpUpdate( int BpOffset, int Picked, int mode )
@@ -799,8 +778,8 @@ int InvInit()
     ArtFrmHdr_t *Img;
 
     if( InvMsgOpen() == -1 ) return -1;    
-//    gInvUnk02 = GameIfaceStat();
-//    if( gInvUnk02 ) GameIfaceEnable();
+    gInvUnk02 = GameIfaceStat();
+    if( gInvUnk02 ) GameIfaceEnable();
     GmouseUnk03();
     GmouseLoadCursor( 1 );
     for( i = 0; i < 5; i++ ){
@@ -813,7 +792,7 @@ int InvInit()
     }
     if( i < 5 ){
         for( j = 0; j < i; j++ ) ArtClose( gInvMseCursor[ j ].Obj );
-//        if( gInvUnk02 ) GameIfaceDisable();
+        if( gInvUnk02 ) GameIfaceDisable( 0 );
         MessageClose( &gInvMsg );
         return -1;
     }
@@ -821,7 +800,6 @@ int InvInit()
     gInvFocusRegionId = -1;
     return 0;
 }
-
 
 void InvSetInfoMode( int a1 )
 {
@@ -839,7 +817,6 @@ void InvSetInfoMode( int a1 )
 	InvEnterRegionCb( -1, gInvFocusRegionId );
     }
 }
-
 
 static void InvEnterRegionCb( int nu, int RegionNb )
 {
@@ -1061,7 +1038,6 @@ xx2:
             }
         }
     } else if( MseCursorCenterInArea( 256, 37, 316, 137 ) && gInvUnk05 ){ // Body slot
-DD
         InvPickUpBoxQuantity( gInvParty[ gInvUnk05 - 1 ], PickedObj, Idx, PickedPtr, avail );
     }
 
@@ -1177,7 +1153,6 @@ int InvMenuBackPack( Obj_t *a1 )
     int WinId;
     int sel;
     int v13;
-//    int ap;
     int i;
 
     if( InvInit() == -1 ) return -1;
@@ -1224,7 +1199,7 @@ int InvMenuBackPack( Obj_t *a1 )
         	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 1 );
         	continue;
     	    case 2500:
-//        	InvUnk46( sel, 1 );
+        	InvUnk46( sel, 1 );
         	continue;
     	    default:
         	if( MseGetButtons() & 0x02 ){
@@ -1240,13 +1215,12 @@ int InvMenuBackPack( Obj_t *a1 )
             	if( v13 >= gInvBackPack->Box.Cnt ){
                     sel = -1;
             	} else {
-                    if( gCombatStatus & 1 ){
-//                	if( gObjDude->Critter.State.CurrentAP >= 2 && ActionuNk23(gObjDude, a1, (int)gInvBackPack->Box.Box[v13].obj) != -1 ){
-//                            ap = gObjDude->Critter.State.CurrentAP;
-//                            if( ap < 2 )
+                    if( IN_COMBAT ){
+//                	if( gObjDude->Critter.State.CurrentAP >= 2 && ActionUnk23(gObjDude, a1, (int)gInvBackPack->Box.Box[v13].obj) != -1 ){
+//                            if( gObjDude->Critter.State.CurrentAP < 2 )
 //                            	gObjDude->Critter.State.CurrentAP = 0;
 //                            else
-//                            	gObjDude->Critter.State.CurrentAP = ap - 2;
+//                            	gObjDude->Critter.State.CurrentAP -= 2;
 //                            IfaceUnk12( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
 //                    	}
             	    } else {
@@ -1258,7 +1232,7 @@ int InvMenuBackPack( Obj_t *a1 )
     }
     InvMenuClose( WinId );
     for( i = 0; i < 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
-//    if( gInvUnk02 ) GameIfaceDisable();
+    if( gInvUnk02 ) GameIfaceDisable( 0 );
     gInvArt[0].Xpos = 0;
     return InvMsgClose();
 }
@@ -1494,174 +1468,105 @@ Obj_t *InvSearchObjByType( Obj_t *a1, int ItemType, int *InvPosition )
 Obj_t *InvSearchObjByPid( Obj_t *Critter, int ObjPid )
 {
     int i;
-    Obj_t *obj;
 
     if( ObjPid == Critter->TimeEv ) return Critter;
     for( i = 0; i < Critter->Critter.Box.Cnt; i++ ){
         if( ObjPid == Critter->Critter.Box.Box[ i ].obj->TimeEv ) return Critter->Critter.Box.Box[ i ].obj;
         if( ItemGetObjType( Critter->Critter.Box.Box[ i ].obj ) != PR_ITEM_CONTAINER ) continue;
-        if( ( Critter = InvSearchObjByPid( obj, ObjPid ) ) ) return Critter;
+        if( ( Critter = InvSearchObjByPid( Critter, ObjPid ) ) ) return Critter;
     }    
     return NULL;
 }
 
 Obj_t *InvUnk27( Obj_t *a1, int a2 )
 {
-//    p_Feat = &a1->Feat;
-//    if ( a2 >= 0 && a2 < p_Feat->Critter.Box.Cnt )
-//        return p_Feat->Critter.Box.Box[a2].obj;
-//    else
-//        return 0;
+    if( a2 < 0 || a2 >= a1->Critter.Box.Cnt ) return 0;
+    return a1->Critter.Box.Box[ a2 ].obj;        
 }
 
-int InvUnk28( Obj_t *a1, Obj_t *a2, int a3)
+int InvUnk28( Obj_t *a1, Obj_t *a2, int a3 )
 {
-    return InvUnk29(a1, a2, 1, a3);
+    return InvUnk29( a1, a2, a3, 1 );
 }
 
 int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
 {
-/*
-    Obj_t *ArmorObj; // eax
-    Obj_t *v8; // ecx
-    __int16 v9; // dx
-    int v10; // edx
-    __int16 v11; // bx
-    __int16 v12; // cx
-    int Id; // eax
-    int result; // eax
-    Obj_t *RHandObj; // eax
-    int Pid; // edx
-    int LtInt; // ebx
-    int LtRad; // edx
-    int v19; // edx
-    int v20; // ebx
-    int v21; // ecx
-    char *v22; // eax
-    int v23; // ebx
-    int v24; // [esp-4h] [ebp-2Ch]
-    VidRect_t v25; // [esp+0h] [ebp-28h] BYREF
-    Proto_t *proto; // [esp+10h] [ebp-18h] BYREF
-    int v27; // [esp+14h] [ebp-14h]
-    int v28; // [esp+18h] [ebp-10h]
+    VidRect_t Area;
+    Proto_t *proto;
+    Obj_t *RHandObj;
+    Obj_t *ArmorObj;
+    int LtInt;
+    int LtRad;
+    int LightRadius;
+    int LightIntensity;
+    int tmp;
+    int SelectedHand;
 
-    v27 = a4;
-    if ( a3 && !MapUnk21() )
-        UNK_A04(2);
-    if ( ItemGetObjType((Obj_t *)a2) )
-    {
-        if ( (Obj_t *)a1 == gObjDude )
-            v28 = IfaceGetSelectedHand();
-        else
-            v28 = 1;
-        v24 = *(_DWORD *)(a1 + 28) + 1;
-        Item58((Obj_t *)a2);
-        v11 = Item45((Obj_t *)a2, v10);
-        Id = ArtMakeId(1, *(_WORD *)(a1 + 32) & 0xFFF, v11, v12, v24);
-        if ( !ArtFileExist(Id) )
-        {
-            eprintf(aInvenWieldFail);
-            return -1;
+    if( a4 && !MapUnk21() ) AnimStart( 2 );
+    if( ItemGetObjType(a2) ){
+        SelectedHand = ( a1 == gObjDude ) ? IfaceGetSelectedHand() : 1;        
+        if( !ArtFileExist( ArtMakeId( 1, a1->ImgId & 0xFFF, Item45( a2, 2 ), Item58( a2 ), a1->Orientation + 1 ) ) ){ 
+    	    eprintf( "\ninven_wield failed!  ERROR ERROR ERROR!" ); 
+    	    return -1; 
+    	}
+        if( a3 ){
+            RHandObj = InvGetRHandObj( a1 );
+            a2->Flags |= 0x02000000;
+        } else {
+            RHandObj = InvGetLHandObj( a1 );
+            a2->Flags |= 0x01000000;
         }
-        if ( v27 )
-        {
-            RHandObj = InvGetRHandObj((Obj_t *)a1);
-            *(_BYTE *)(a2 + 39) |= 2u;
-        }
-        else
-        {
-            RHandObj = InvGetLHandObj((Obj_t *)a1);
-            *(_BYTE *)(a2 + 39) |= 1u;
-        }
-        if ( RHandObj )
-        {
-            Pid = RHandObj->Pid;
-            HIBYTE(RHandObj->Flags) &= 0xFCu;
-            if ( Pid == 205 )
-            {
-                if ( (Obj_t *)a1 == gObjDude )
-                {
+        if( RHandObj ){
+            RHandObj->Flags &= 0xFCFFFFFF;
+            if( RHandObj->Pid == PID_LIGHTEDFLARE ){
+                if( a1 == gObjDude ){
                     LtInt = 0x10000;
                     LtRad = 4;
-                }
-                else
-                {
-                    result = ProtoGetObj(*(_DWORD *)(a1 + 100), &proto);
-                    if ( result == -1 )
-                        return result;
+                } else {
+                    if( ProtoGetObj( a1->Pid, &proto ) == -1 ) return -1;
                     LtInt = proto->LtInt;
                     LtRad = proto->LtRad;
                 }
-                ObjSetLight((Obj_t *)a1, LtRad, LtInt, &v25);
+                ObjSetLight( a1, LtRad, LtInt, &Area );
             }
         }
-        if ( *(_DWORD *)(a2 + 100) == 205 )
-        {
-            v19 = *(_DWORD *)(a2 + 108);
-            if ( v19 < *(_DWORD *)(a1 + 108) )
-                v19 = *(_DWORD *)(a1 + 108);
-            v20 = *(_DWORD *)(a2 + 112);
-            if ( v20 < *(_DWORD *)(a1 + 112) )
-                v20 = *(_DWORD *)(a1 + 112);
-            ObjSetLight((Obj_t *)a1, v19, v20, &v25);
-            TileUpdateArea(&v25, gCurrentMapLvl);
+        if( a2->Pid == PID_LIGHTEDFLARE ){
+            LightRadius = a2->LightRadius;
+            if( LightRadius < a1->LightRadius ) LightRadius = a1->LightRadius;
+            LightIntensity = a2->LightIntensity;
+            if( LightIntensity < a1->LightIntensity ) LightIntensity = a1->LightIntensity;
+            ObjSetLight( a1, LightRadius, LightIntensity, &Area );
+            TileUpdateArea( &Area, gCurrentMapLvl );
         }
-        if ( ItemGetObjType((Obj_t *)a2) == 3 )
-            LOWORD(v21) = Item58((Obj_t *)a2);
-        else
-            LOWORD(v21) = 0;
-        if ( v28 == v27 )
-        {
-            if ( (*(_DWORD *)(a1 + 32) & 0xF000) >> 12 && a3 && !MapUnk21() )
-            {
-                v22 = GSoundProtoFname6(a1, 39, 0);
-                sub_41541C((int *)a1, v22, 0);
-                sub_4149D0(a1, 0);
+        tmp = ( ItemGetObjType(a2) == 3 ) ? Item58( a2 ) : 0;
+        if( SelectedHand == a3 ){
+            if( (a1->ImgId & 0xF000) >> 12 && a4 && !MapUnk21() ){
+                AnimUnk66( a1, GSoundProtoFname6( a1, 39, 0 ), 0 );
+                AnimUnk48( a1, 39, 0 );
             }
-            if ( !a3 || MapUnk21() )
-            {
-                v23 = ArtMakeId(1, *(_DWORD *)(a1 + 32) & 0xFFF, 0, v21, *(_DWORD *)(a1 + 28) + 1);
-                Unk9025((Obj_t *)a1, *(_DWORD *)(a1 + 28), v23);
+            if( !a4 || MapUnk21() ){
+                AnimUnk24( a1, a1->Orientation, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, tmp, a1->Orientation + 1 ) );
+            } else if( tmp ){
+                AnimUnk63( a1, tmp, -1 );
+            } else {
+                AnimUnk62( a1, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, 0, a1->Orientation + 1 ), -1 );
             }
-            else if ( v21 )
-            {
-                sub_415238(a1, v21, -1);
+        }
+    } else {
+        ArmorObj = InvGetArmorObj(a1);
+        if( ArmorObj ) ArmorObj->Flags &= ~0x4000000;
+        a2->Flags |= 0x04000000;
+        tmp = ( FeatGetVal( a1, FEAT_GENDER ) == 1 ) ? Item81( a2 ) : Item80( a2 );
+        if( a1 == gObjDude ){
+            if( !MapUnk21() ){
+                AnimUnk62( a1, ArtMakeId(1, tmp, 0, (a1->ImgId & 0xF000) >> 12, a1->Orientation + 1), 0 );
             }
-            else
-            {
-                ArtMakeId(1, *(_DWORD *)(a1 + 32) & 0xFFF, 0, 0, *(_DWORD *)(a1 + 28) + 1);
-                sub_41518C(a1);
-            }
+        } else {
+            InvUpdateStatistics( a1, ArmorObj, a2 );
         }
     }
-    else
-    {
-        ArmorObj = InvGetArmorObj((Obj_t *)a1);
-        if ( ArmorObj )
-            HIBYTE(ArmorObj->Flags) &= ~4u;
-        *(_BYTE *)(a2 + 39) |= 4u;
-        if ( FeatGetVal((Obj_t *)a1, 34) == 1 )
-            Item81((Obj_t *)a2);
-        else
-            Item80((Obj_t *)a2);
-        if ( (Obj_t *)a1 == gObjDude )
-        {
-            if ( !MapUnk21() )
-            {
-                ArtMakeId(1, v9, 0, (*(_DWORD *)(a1 + 32) & 0xF000) >> 12, *(_DWORD *)(a1 + 28) + 1);
-                sub_41518C(a1);
-            }
-        }
-        else
-        {
-            InvUpdateStatistics((Obj_t *)a1, v8, (Obj_t *)a2);
-        }
-    }
-    if ( !a3 || MapUnk21() )
-        return 0;
-    else
-        return UNK_A06();
-*/
+    if( !a4 || MapUnk21() ) return 0;
+    return AnimBegin();
 }
 
 int InvUnk31( Obj_t *a1, int a2 )
@@ -1669,40 +1574,25 @@ int InvUnk31( Obj_t *a1, int a2 )
     return InvUnk30(a1, a2, 1);
 }
 
-int InvUnk30( Obj_t *a1, int a2, int a3 )
+int InvUnk30( Obj_t *a1, int Lhand, int a3 )
 {
-/*
-    Obj_t *RHandObj; // eax
-    int v5; // edx
-    int v6; // ecx
-    int v7; // edx
-    char *v8; // eax
-    __int16 v9; // cx
-    int Id; // ebx
+    Obj_t *HandObj;
+    int hand;
 
-    if( a1 == gObjDude ) IfaceGetSelectedHand();
-    if ( a2 )
-        RHandObj = InvGetRHandObj(a1);
-    else
-        RHandObj = InvGetLHandObj(a1);
-    if ( RHandObj )
-        HIBYTE(RHandObj->Flags) &= 0xFCu;
-    if ( v6 == v5 && (a1->ImgId & 0xF000) >> 12 )
-    {
-        if ( a3 && !MapUnk21() )
-        {
-            UNK_A04(2);
-            v8 = GSoundProtoFname6((int)a1, v7, 0);
-            sub_41541C(&a1->TimeEv, v8, 0);
-            sub_4149D0((int)a1, 0);
-            ArtMakeId(1, a1->ImgId & 0xFFF, 0, v9, a1->Orientation + 1);
-            sub_41518C((int)a1);
-            return UNK_A06();
+    hand = 1;
+    if( a1 == gObjDude ) hand = IfaceGetSelectedHand();
+    HandObj = ( Lhand ) ? InvGetRHandObj( a1 ) : InvGetLHandObj( a1 );
+    if( HandObj ) HandObj->Flags &= ~0x03000000;
+    if( hand == Lhand && (a1->ImgId & 0xF000) >> 12 ){
+        if( a3 && !MapUnk21() ){
+            AnimStart( 2 );
+            AnimUnk66( a1, GSoundProtoFname6( a1, 39, 0 ), 0 );
+            AnimUnk48( a1, 39, 0 );
+            AnimUnk62( a1, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, 0, a1->Orientation + 1 ), -1 );
+            return AnimBegin();
         }
-        Id = ArtMakeId(1, a1->ImgId & 0xFFF, 0, 0, a1->Orientation + 1);
-        Unk9025(a1, a1->Orientation, Id);
+        AnimUnk24( a1, a1->Orientation, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, 0, a1->Orientation + 1 ) );
     }
-*/
     return 0;
 }
 
@@ -1989,26 +1879,25 @@ void InvActionMenu( int sel, int mode )
                 if( Available > 0 ){
                     if( Available == 1 ){
                         ItemSetMoney( Item, 1 );
-//                	UseUnk05( BoxObj, Item);
+                	UseUnk05( BoxObj, Item);
                     } else {
                         if( !ItemUseItem( BoxObj, Item, Available - 1 ) ){
                     	    if( !InvPickItem( sel, &obj, &BoxObj, &HandObj ) ){
                         	ItemAdd( BoxObj, Item, Available - 1 );
                     	    } else {
                     		ItemSetMoney( obj, Available );
-//                	    	UseUnk05( BoxObj, obj );
+                	    	UseUnk05( BoxObj, obj );
                     	    }
                         }
                     }
             	    break;
                 }
             } else {
-DD
-//                if( Item->Pid == PID_DYNAMITE || Item->Pid == PID_PLASTICEXPLOSIVES ){ gInvUnk83 = 1; UseUnk05( BoxObj, Item ); break; }
-//                if( Available <= 1 ){ UseUnk05( BoxObj, Item ); break; }
+                if( Item->Pid == PID_DYNAMITE || Item->Pid == PID_PLASTICEXPLOSIVES ){ gInvUnk83 = 1; UseUnk05( BoxObj, Item ); break; }
+                if( Available <= 1 ){ UseUnk05( BoxObj, Item ); break; }
                 Available = InvPopUpDlg( 4, Item, Available );
                 for( tmp = 0; tmp < Available; tmp++ ){
-//                    if( InvPickItem( sel, &Item, &BoxObj, &HandObj ) ) UseUnk05( BoxObj, Item );
+                    if( InvPickItem( sel, &Item, &BoxObj, &HandObj ) ) UseUnk05( BoxObj, Item );
                 }
             }
             break;
@@ -2021,7 +1910,7 @@ DD
         case INV_ACT_USE:
             switch( ObjType ){
                 case PR_ITEM_CONTAINER:
-//                    InvUnk45( sel, mode );
+                    InvUnk45( sel, mode );
                     break;
                 case PR_ITEM_DRUG:
                     if( ItemUnk07( gInvParty[0], Item ) == 1 ){
@@ -2029,21 +1918,21 @@ DD
                             *HandObj = NULL;
                         else
                             ItemUseItem( BoxObj, Item, 1 );
-//                        ObjUnk14( Item, gObjDude->GridId, gObjDude->Elevation, 0 );
-//                        UseUnk06( &Item->TimeEv );
+                        ObjUnk14( Item, gObjDude->GridId, gObjDude->Elevation, 0 );
+                        UseUnk06( Item );
                     }
                     IfaceRenderHP( 1 );
                     break;
                 case PR_ITEM_WEAPON: case PR_ITEM_MISC:
                     if( !HandObj ) ItemUseItem( BoxObj, Item, 1 );
-//                    if( ObjOpenable( Item ) )
-//                        tmp = UseUnk13( v20, Item );
-//                    else
-//                        tmp = UseUnk17( gInvParty[0], gInvParty[0], Item );
+                    if( ObjOpenable( Item ) )
+                        tmp = UseUnk13( gInvParty[0], Item );
+                    else
+                        tmp = UseUseHealSkill( gInvParty[0], gInvParty[0], Item );
                     if( tmp == 1 ){
                         if( HandObj ) *HandObj = NULL;
-//                        ObjUnk14( Item, gObjDude->GridId, gObjDude->Elevation, 0 );
-//                        UseUnk06( &Item->TimeEv );
+                        ObjUnk14( Item, gObjDude->GridId, gObjDude->Elevation, 0 );
+                        UseUnk06( Item );
                     } else if( !HandObj ){
             		ItemAdd( BoxObj, Item, 1 );
         		break;
@@ -2073,76 +1962,19 @@ DD
 
 int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
 {
-
-    int v3; // edi
-    ArtFrm_t *img; // eax
-    int v5; // edx
-    Obj_t *LHandObj; // eax
-    Obj_t *RHandObj; // eax
-    Obj_t *ArmorObj; // eax
-    int num; // ebx MAPDST
-    int ii; // eax
-    int _i; // esi
-    char Obj; // cl
-    int id; // eax MAPDST
-    char *bmp1; // esi
-    char *bmp2; // eax
-    int bt; // eax MAPDST
-    char *bmp3; // esi
-    char *bmp4; // eax
-    int v25; // eax
-    Obj_t **v26; // edx
-    int v27; // ebx
-    int sel; // esi MAPDST
-    int v30; // ecx
-    int v31; // edx
-    int v32; // ecx
-    int v33; // edx
-    Obj_t *BackPackWeight; // eax
-    int v35; // edx
-    int v36; // ecx
-    int v37; // esi
-    Obj_t *v38; // eax
-    Obj_t *v39; // eax
-    int v40; // edx
-    int v41; // eax
-    int v42; // ecx
-    int v43; // esi
-    Obj_t *v44; // eax
-    int v45; // eax
-    int v46; // ebx
-    int i; // esi
-    CachePool_t *v48; // eax
-    Obj_t *v49; // edx
-    Obj_t *v50; // eax
-    Obj_t *v51; // eax
-    int v52; // esi
-    signed int Total; // eax
-    int j; // esi
-    CachePool_t *v55; // eax
-    char stmp[200]; // [esp+0h] [ebp-150h] BYREF
-    int atmp[4]; // [esp+C8h] [ebp-88h]
-    MsgLine_t msg; // [esp+D8h] [ebp-78h] BYREF
-    CachePool_t *ImgObj2[4]; // [esp+E8h] [ebp-68h] BYREF
-    Obj_t *NewItem; // [esp+F8h] [ebp-58h] BYREF
-    Obj_t **ObjTable; // [esp+FCh] [ebp-54h] BYREF
-    unsigned int Id; // [esp+100h] [ebp-50h] BYREF
-    int v64; // [esp+104h] [ebp-4Ch]
-    CachePool_t *ImgObj1; // [esp+108h] [ebp-48h] BYREF
-    int k; // [esp+108h] [ebp-48h] FORCED
-    ScptCache_t *pScript; // [esp+10Ch] [ebp-44h] BYREF
-    ScptCache_t *v68; // [esp+110h] [ebp-40h] BYREF
-    Obj_t *item; // [esp+114h] [ebp-3Ch]
-    Obj_t *v70; // [esp+118h] [ebp-38h]
-    Obj_t *dude2; // [esp+11Ch] [ebp-34h]
-    int v72; // [esp+120h] [ebp-30h]
-    int v73; // [esp+124h] [ebp-2Ch]
-    int v76; // [esp+130h] [ebp-20h]
-    int v78; // [esp+138h] [ebp-18h]
-
+    MsgLine_t msg;
+    CachePool_t *ImgObj2[4], *ImgObj1;
+    ScptCache_t *pScript;
+    Scpt_t *v68;
+    ArtFrmHdr_t *img;
+    Obj_t *LHandObj,*RHandObj,*ArmorObj,*v38,*v44,*NewItem,**ObjTable,*item,*v70,*dude2;
+    char *bmp1,*bmp2,*bmp3,*bmp4,stmp[200];
+    int v3,v5,num,ii,_i,bt,v25,v27,sel,BackPackWeight,v35,v37,v39,v40,v41,v43,v45,i,j,atmp[4],Id,v64,k,v72,v73,v76,v78;
 
     Id = -1;
-    item = v70 = dude2 = NewItem = v76 = v78 = v73 = 0;
+    item = v70 = dude2 = 0;
+    NewItem = 0;
+    v76 = v78 = v73 = 0;
     v3 = 10;
     atmp[ 0 ] = gInvUnk100[ 0 ];
     atmp[ 1 ] = gInvUnk100[ 1 ];
@@ -2163,13 +1995,13 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
 	    if( v5 > 1 )  return 0;
 	}
     }
-/*
-    if( gInvUnk80 && UseGetScriptId( Obj2, &Id ) != -1 ){
+
+    if( gSkillUnk80 && UseGetScriptId( Obj2, &Id ) != -1 ){
 	ScptUnk138( Id, Critter, 0 );
-	ScptExecScriptProc( Id );
+	ScptExecScriptProc( Id, 4 );
 	if( ScptPtr(Id, (Scpt_t **)&pScript) == -1 || pScript->Script[0].i18 ) return 0;
     }
-*/
+
     if( InvInit() == -1 ) return 0;
     gInvUnk62 = &Obj2->Container;
     gInvUnk40 = 0;
@@ -2178,7 +2010,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     if( ObjCreate( &NewItem, 0, 467) == -1 ) return 0;
     Item16( Obj2, NewItem );
 
-    if( gInvUnk80 ){
+    if( gSkillUnk80 ){
         LHandObj = InvGetLHandObj( Obj2 );
         item = LHandObj;
         if( LHandObj ) ItemUseItem( Obj2, LHandObj, 1 );
@@ -2191,7 +2023,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     }
 
     v64 = InvMenuCreate( 2 );
-    if( !gInvUnk80 && OBJTYPE( Obj2->ImgId ) == TYPE_CRIT ){
+    if( !gSkillUnk80 && OBJTYPE( Obj2->ImgId ) == TYPE_CRIT ){
 	num = ObjGetObjList( Obj2->GridId, Obj2->Elevation, 1, &ObjTable );
 	ii = k = 0;
 	_i = num;
@@ -2233,112 +2065,90 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
 	}
     }
 
-    InvUnk03( gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, 2 );
+    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
     v27 = 2;
-    InvBpUpdate( gInvUnk04[gInvUnk05], -1, 2 );
+    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
     InvBodyUpdate( Obj2->ImgId, 2 );
     InvSetInfoMode( 0 );
     v72 = v73 - 1;
-
     do{
         if( gMenuEscape || v76 ) break;
         sel = InpUpdate();
-        if( sel == 17 || sel == 24 || sel == 324 ) SysQuitDlg();
-        if( gMenuEscape ) break;        
-        if( sel < 336 ){
-            if( sel < 328 ){
-                if( sel != 65 ) continue;
-                if( gInvUnk80 ) continue;
-                FeatGetVal( Critter, 12 );
-                ItemGetBackPackWeight( Critter );
-                BackPackWeight = ItemGetBackPackWeight( Obj2 );
-            	if( BackPackWeight <= v35 ){
-                    Item15( Obj2, Critter );
-                    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, v36 );
-                    v27 = 2;
-                    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
+        if( gMenuEscape ) break;
+        switch( sel ){
+    	    case 17: case 24: case 324: 
+    		SysQuitDlg();
+    		continue;
+    	    case 'A':
+        	if( gSkillUnk80 ) continue;
+            	v35 = FeatGetVal( Critter, 12 );
+            	v35 -= ItemGetBackPackWeight( Critter );
+            	BackPackWeight = ItemGetBackPackWeight( Obj2 );
+        	if( BackPackWeight <= v35 ){
+            	    Item15( Obj2, Critter );
+            	    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
+            	    v27 = 2;
+            	    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
+        	} else {
+            	    v27 = 31;
+            	    msg.Id = 31;// 'Sorry, you cannot carry that much.'
+            	    if( MessageGetMsg(&gInvMsg, &msg) == 1 ) {
+                	v27 = 0;
+                	DlgBox( msg.Text, 0, 0, 169, 117, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 0 );
+        	    }
+        	}            	    
+        	continue;
+    	    case 328:
+        	v27 = gInvUnk04[ gInvUnk05 ];
+        	if( gInvUnk04[ gInvUnk05 ] <= 0 ) continue;
+            	gInvUnk04[ gInvUnk05 ]--;
+            	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
+            	v27 = 2;
+        	continue;
+    	    case 337:
+    	    case 329:
+    		if( !v73 )continue;
+            	if( sel == 329 ){
+            	    k = ( k ) ? (k - 1) : v72;
+            	} else if( k == v72 ) {
+            	    k = 0;
             	} else {
-                    v27 = 31;
-                    msg.Id = 31;// 'Sorry, you cannot carry that much.'
-                    if( MessageGetMsg(&gInvMsg, &msg) == 1 ) {
-                        v27 = 0;
-//                        DlgBox( msg.Text, 0, 0, 169, 117, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 0 );
-                    }
-            	}            	    
-                continue;                
-            } else {
-                if( sel == 328 ){
-                    v27 = gInvUnk04[ gInvUnk05 ];
-                    if( gInvUnk04[ gInvUnk05 ] > 0 ){
-                        gInvUnk04[ gInvUnk05 ]--;
-                        InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
-                        v27 = 2;
-                    }
-                    continue;
-                }
-                if( sel == 329 ){
-LABEL_81:
-            	    if( v73 ){
-                        if( sel == 329 ){
-                            k = ( k ) ? (k - 1) : v72;
-                        } else if( k == v72 ) {
-                            k = 0;
-                        } else {
-                            k++;
-                        }
-                        Obj2 = ObjTable[ k ];
-                        gInvUnk62 = &Obj2->Container;
-                        gInvUnk39[ 0 ] = Obj2;
-                        gInvUnk40 = 0;
-                        gInvUnk63[ 0 ] = 0;
-                        InvUnk03( 0, -1, &Obj2->Container.Box, 2 );
-                        v27 = 2;
-                        InvBpUpdate( gInvUnk04[gInvUnk05], -1, 2 );
-                        InvBodyUpdate( Obj2->ImgId, 2 );
-                    }
-                    continue;
-                }
-            }
-        } else {
-            if( sel <= 336 ){
-                v27 = gInvUnk04[gInvUnk05] + gInvUnk08;
-                if( v27 < gInvBackPack->Box.Cnt ){
-                    v27 = 2;
-                    gInvUnk04[ gInvUnk05 ]++;
-                    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
-                }
-                continue;
-            }
-            if( sel < 397 ){
-                if( sel == 337 ) goto LABEL_81;
-            } else {
-                if( sel == 397 ){
-                    if( gInvUnk63[gInvUnk40] > 0 ){
-                        v27 = gInvUnk62;
-                        gInvUnk63[ gInvUnk40 ]--;
-                        InvUnk03( gInvUnk63[ gInvUnk40 ], -1, gInvUnk62, 2 );
-                        WinUpdate( gInvWin );
-                    }
-                    continue;
-                }
-                if( sel >= 401 ){
-                    if( sel == 401 ){
-                        v27 = gInvUnk62;
-                        if( gInvUnk08 + gInvUnk63[gInvUnk40] < gInvUnk62->Box.Cnt ){
-                            gInvUnk63[ gInvUnk40 ]++;
-                            InvUnk03( gInvUnk63[ gInvUnk40 ], -1, v27, 2 );
-                            WinUpdate( gInvWin );
-                        }
-                        continue;
-                    }
-                    if( sel >= 2500 && sel <= 2501 ){
-                        InvUnk46( sel, 2 );
-                        continue;
-                    }
-                }
-            }
+            	    k++;
+            	}
+            	Obj2 = ObjTable[ k ];
+            	gInvUnk62 = &Obj2->Container;
+            	gInvUnk39[ 0 ] = Obj2;
+            	gInvUnk40 = 0;
+            	gInvUnk63[ 0 ] = 0;
+        	InvUnk03( 0, -1, &Obj2->Container.Box, 2 );
+            	v27 = 2;
+            	InvBpUpdate( gInvUnk04[gInvUnk05], -1, 2 );
+            	InvBodyUpdate( Obj2->ImgId, 2 );
+        	continue;        
+    	    case 336:
+        	v27 = gInvUnk04[gInvUnk05] + gInvUnk08;
+        	if( v27 >= gInvBackPack->Box.Cnt ) continue;
+            	v27 = 2;
+            	gInvUnk04[ gInvUnk05 ]++;
+            	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
+        	continue;
+    	    case 397:
+        	if( gInvUnk63[gInvUnk40] <= 0 ) continue;
+            	gInvUnk63[ gInvUnk40 ]--;
+            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
+            	WinUpdate( gInvWin );
+        	continue;
+    	    case 401:
+        	if( gInvUnk08 + gInvUnk63[gInvUnk40] >= gInvUnk62->Box.Cnt ) continue;
+            	gInvUnk63[ gInvUnk40 ]++;
+            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
+            	WinUpdate( gInvWin );
+        	continue;
+    	    case 2500 ... 2501:
+        	InvUnk46( sel, 2 );
+        	continue;
         }
-        if( ( MseGetButtons() & 0x02 ) && !gInvUnk80 ){
+        if( ( MseGetButtons() & 0x02 ) && !gSkillUnk80 ){
             InvSetInfoMode( gInvInfoMode ? 0:1 );
             continue;
         }
@@ -2349,9 +2159,9 @@ LABEL_81:
                         v43 = sel - 2000;
                         if( v43 + gInvUnk63[gInvUnk40] < gInvUnk62->Box.Cnt ){
                             v44 = gInvParty[gInvUnk05];
-//                            gInvUnk60++;
-//                            gInvUnk61 += Item24( v44 );
-//                            v45 = InvUnk38( gInvUnk62->Box.Box[gInvUnk62->Box.Cnt - (v43 + gInvUnk63[gInvUnk40] + 1)].obj, v43, gInvUnk39[gInvUnk40], 0 );
+                            gSkillUnk60++;
+                            gSkillUnk61 += Item24( v44 );
+                            v45 = InvUnk38( gInvUnk62->Box.Box[gInvUnk62->Box.Cnt - (v43 + gInvUnk63[gInvUnk40] + 1)].obj, v43, gInvUnk39[gInvUnk40], 0 );
                             if( v45 == 1 ){
                                 v76 = 1;
                             } else if ( v45 == 2 ) {
@@ -2370,11 +2180,11 @@ LABEL_81:
                     v27 = v37 + gInvUnk04[gInvUnk05];
                     if( v27 < gInvBackPack->Box.Cnt ){
                         v38 = gInvParty[ gInvUnk05 ];
-//                        gInvUnk60++;
+                        gSkillUnk60++;
                         v39 = Item24( v38 );
                         v40 = v37 + gInvUnk04[ gInvUnk05 ];
-//                        gInvUnk61 += v39;
-//                        v41 = InvUnk38( gInvBackPack->Box.Box[ gInvBackPack->Box.Cnt - (v40 + 1) ].obj, v37, gInvUnk39[ gInvUnk40 ], 1 );
+                        gSkillUnk61 += v39;
+                        v41 = InvUnk38( gInvBackPack->Box.Box[ gInvBackPack->Box.Cnt - (v40 + 1) ].obj, v37, gInvUnk39[ gInvUnk40 ], 1 );
                         if( v41 == 1 ){
                             v76 = 1;
                         } else if ( v41 == 2 ){
@@ -2390,20 +2200,19 @@ LABEL_81:
                 }
                 InvActionMenu(sel, 2);
             }
-LABEL_122:
         } while( sel != KEY_ESC );
     	if( v73 ){
     	    ObjCritterListDestroy( ObjTable );
     	    for( i = 0; i != 4; i++ ) ArtClose( ImgObj2[ i ] );            
     	}
-    	if( gInvUnk80 ){
+    	if( gSkillUnk80 ){
     	    if( item  ){ v27 = 1; item->Flags  |= 0x1000000; ItemAdd( Obj2, item, 1  ); }
     	    if( v70   ){ v27 = 1; v70->Flags   |= 0x2000000; ItemAdd( Obj2, v70, 1   ); }
     	    if( dude2 ){ v27 = 1; dude2->Flags |= 0x4000000; ItemAdd( Obj2, dude2, 1 ); }
     	}
     	Item15( NewItem, Obj2 );
-//    	ObjDestroy( NewItem, 0, v27 );
-    	if( gInvUnk80 && !v76 ){
+    	ObjDestroy( NewItem, 0 );
+    	if( gSkillUnk80 && !v76 ){
     	    if( v78 > 0 && !PartyMembRdy(Obj2) ){
                 if( 300 - SkillGetTotal( Critter, 10 ) < v78 ) v78 = 300 - SkillGetTotal( Critter, 10 );
                 eprintf( "\n[[[%d]]]", 300 - SkillGetTotal( Critter, 10 ) );
@@ -2417,187 +2226,138 @@ LABEL_122:
     	}
     	InvMenuClose( v64 );
     	for( j = 0; j != 5; j++ ) ArtClose( gInvMseCursor[ j ].Obj );        
-//    	if( gInvUnk02 ) GameIfaceDisable();
+    	if( gInvUnk02 ) GameIfaceDisable( 0 );
     	InvMsgClose();
     	gInvArt[0].Xpos = 0;
-//        if( gInvUnk80 && v76 && gInvUnk60 > 0 && UseGetScriptId( Obj2, &Id ) != -1 ){
-//    	    ScptUnk138(Id, Critter, 0);
-//    	    ScptExecScriptProc(Id);
-//    	    ScptPtr(Id, &v68);
-//	}
+        if( gSkillUnk80 && v76 && gSkillUnk60 > 0 && UseGetScriptId( Obj2, &Id ) != -1 ){
+    	    ScptUnk138( Id, Critter, 0 );
+    	    ScptExecScriptProc( Id, 4 );
+    	    ScptPtr( Id, &v68 );
+	}
     	return 0;
 }
 
 void InvStealAttempt( Obj_t *Thief, Obj_t *Npc )
 {
     if( Thief == Npc ) return;
-    gInvUnk80 = OBJTYPE( Thief->Pid ) == TYPE_CRIT && CritterCanTalk( Npc );
-//    gInvUnk60 = 0;
-//    gInvUnk61 = 0;
+    gSkillUnk80 = OBJTYPE( Thief->Pid ) == TYPE_CRIT && CritterCanTalk( Npc );
+    gSkillUnk60 = 0;
+    gSkillUnk61 = 0;
     InvMenuSteal( Thief, Npc );
-    gInvUnk80 = 0;
-//    gInvUnk60 = 0;
-//    gInvUnk61 = 0;
+    gSkillUnk80 = 0;
+    gSkillUnk60 = 0;
+    gSkillUnk61 = 0;
 }
 
 int InvUnk38( Obj_t *a1, int a2, Obj_t *a3, int a4 )
 {
-/*
-    int Quantity; // esi
-    int v6; // edx
-    char *Surface; // eax
-    int v8; // ecx
-    __int16 v9; // dx
-    int Id; // eax
-    char *bmp; // eax
-    int ArtId; // eax
-    CachePool_t **v13; // edx
-    ArtFrm_t *Img; // eax
-    ArtFrm_t *v15; // ecx
-    ArtFrmHdr_t *v16; // ecx
-    char *ObjData; // eax
-    Obj_t *v18; // esi
-    Obj_t *v20; // esi
-    char v21; // dl
-    int v22; // [esp-Ch] [ebp-60h]
-    int v23; // [esp-8h] [ebp-5Ch]
-    VidRect_t area; // [esp+0h] [ebp-54h] BYREF
-    MsgLine_t msg; // [esp+10h] [ebp-44h] BYREF
-    CachePool_t *Obj; // [esp+20h] [ebp-34h] BYREF
-    int ObjWidth; // [esp+24h] [ebp-30h]
-    int ObjHeight; // [esp+28h] [ebp-2Ch]
-    char *v29; // [esp+2Ch] [ebp-28h]
-    ArtFrm_t *v30; // [esp+30h] [ebp-24h]
-    int v31; // [esp+34h] [ebp-20h]
-    int v32; // [esp+38h] [ebp-1Ch]
-    int v33; // [esp+3Ch] [ebp-18h]
-    int v34; // [esp+40h] [ebp-14h]
-    int v35; // [esp+44h] [ebp-10h]
+    VidRect_t area;
+    MsgLine_t msg;
+    CachePool_t *Obj;
+    ArtFrmHdr_t *Img;
+    char *Surface, *bmp;
+    int Quantity, n, ObjWidth, ObjHeight, flg, err;
 
-    v33 = a4;
-    v35 = 0;
-    v34 = 1;
+    err = 0;
+    flg = 1;
     if( a4 ){
         area.tp = 48 * a2 + 37;
         area.lt = 176;
-        Quantity = gInvBackPack->Box.Box[ gInvBackPack->Box.Cnt - ( a2 + gInvUnk04[ gInvUnk05 ] + 1 ) ].Quantity;
+        Quantity = gInvBackPack->Box.Box[ gInvBackPack->Box.Cnt - (a2 + gInvUnk04[ gInvUnk05 ] + 1 ) ].Quantity;
         if( Quantity > 1 ){
             InvBpUpdate( gInvUnk04[ gInvUnk05 ], a2, 2 );
-            v34 = 0;
+            flg = 0;
         }
     } else {
         area.lt = 297;
         area.tp = 48 * a2 + 37;
-        Quantity = gInvUnk62->Box.Box[ gInvUnk62->Box.Cnt - ( a2 + gInvUnk63[ gInvUnk40 ] + 1 ) ].Quantity;
+        Quantity = gInvUnk62->Box.Box[gInvUnk62->Box.Cnt - ( a2 + gInvUnk63[ gInvUnk40 ] + 1 ) ].Quantity;
         if( Quantity > 1 ){
             InvUnk03( gInvUnk63[ gInvUnk40 ], a2, &gInvUnk62->Box, 2 );
             WinUpdate( gInvWin );
-            v34 = v6;
+            flg = 0;
         }
     }
-    if( v34 ){
-        Surface = WinGetSurface( gInvWin );
-        v31 = 64;
-        v32 = v8;
-        v29 = Surface;
-        bmp = ArtGetBitmap( ArtMakeId( 6, v9, 0, 0, 0 ), 0, 0, &Obj );
+    if( flg ){
+        Surface = WinGetSurface(gInvWin);
+        bmp = ArtGetBitmap( ArtMakeId( 6, 114, 0, 0, 0 ), 0, 0, &Obj );
         if( bmp ){
-            ScrCopy( &bmp[ 537 * area.tp + area.lt ], 64, 48, 537, &v29[ 537 * area.tp + area.lt ], 537 );
+            ScrCopy( &bmp[ 537 * area.tp + area.lt ], 64, 48, 537, &Surface[ 537 * area.tp + area.lt ], 537 );
             ArtClose( Obj );
         }
-        area.rt = v31 + area.lt - 1;
-        area.bm = v32 + area.tp - 1;
+        area.rt = 64 + area.lt - 1;
+        area.bm = 48 + area.tp - 1;
         WinAreaUpdate( gInvWin, &area );
-    }
-    ArtId = ItemGetArtId( a1 );
-    Img = (ArtFrm_t *)ArtLoadImg(ArtId, v13);
-    v30 = Img;
-    if( Img ){
-        ObjWidth = ArtGetObjWidth(Img, 0, 0);
-        ObjHeight = ArtGetObjHeight(v15, 0, 0);
-        v23 = ObjHeight / 2;
-        v22 = ObjWidth / 2;
-        ObjData = (char *)ArtGetObjData(v16, 0, 0);
-        MseSetStaticCursor(ObjData, ObjWidth, ObjHeight, ObjWidth, v22, v23, 0);
-        GSoundPlay("ipickup1");
+    }    
+    if( (Img = ArtLoadImg( ItemGetArtId( a1 ), &Obj ) ) ){
+        ObjWidth = ArtGetObjWidth( Img, 0, 0 );
+        ObjHeight = ArtGetObjHeight( Img, 0, 0 );
+        MseSetStaticCursor( ArtGetObjData( Img, 0, 0 ), ObjWidth, ObjHeight, ObjWidth, ObjWidth / 2, ObjHeight / 2, 0 );
+        GSoundPlay( "ipickup1" );
     }
     do
         InpUpdate();
-    while( (MseGetButtons() & 4) != 0 );
-    if( v30 ){ ArtClose( Obj ); GSoundPlay( "iputdown" ); }
-    if( v33 ) 
-        if( !MseCursorCenterInArea( 377, 37, 441, 48 * gInvUnk08 + 37 ) ) goto LABEL_44;
-        v18 = (Obj_t *)(Quantity <= 1 ? 1 : InvPopUpDlg(4, a1, Quantity));
-        if( v18 == (Obj_t *)-1 ) goto LABEL_44;
-        if( gInvUnk80 ){
-            if( !SkillUseSteal( gInvSelectedDude, a3, 1, a1 ) ) v35 = 1;
-        }
-        if( v35 == 1 ) goto LABEL_44;
-        if( Item13( gInvSelectedDude, a3, a1, v18 ) != -1 ) {
-            v35 = 2;
-            InvSetInfoMode( 0 );
-            return v35;
-        }
-        msg.Id = 26;
-        if( MessageGetMsg( &gInvMsg, &msg ) != 1 ) goto LABEL_44;
-        goto LABEL_43;
+    while( MseGetButtons() & 0x04 );
+    if( Img ){
+        ArtClose( Obj );
+        GSoundPlay( "iputdown" );
     }
-    if( !MseCursorCenterInArea(256, 37, 320, 48 * gInvUnk08 + 37) ) goto LABEL_44;
-    v20 = (Obj_t *)(Quantity <= 1 ? 1 : InvPopUpDlg(4, a1, Quantity));
-    if( v20 == (Obj_t *)-1 ) goto LABEL_44;
-    if( gInvUnk80 && !SkillUseSteal(gInvSelectedDude, a3, 0, a1) )  v35 = 1;
-    if( v35 == 1 ) goto LABEL_44;
-    if( Item13(a3, gInvSelectedDude, a1, v20) ){
-        msg.Id = 25;
-        if( MessageGetMsg(&gInvMsg, &msg) != 1 ){
-LABEL_44:
-            InvSetInfoMode(0);
-            return v35;
+    if( a4 ){
+        if( MseCursorCenterInArea( 377, 37, 441, 48 * gInvUnk08 + 37 ) ){
+    	    n = Quantity <= 1 ? 1 : InvPopUpDlg( 4, a1, Quantity );
+    	    if( n != -1 ){
+    		if( gSkillUnk80 ){
+        	    if( !SkillUseSteal( gInvSelectedDude, a3, a1, 1 ) ) err = 1;
+    		}
+    		if( err != 1 ){
+    		    if( Item13( gInvSelectedDude, a3, a1, n ) != -1 ){ InvSetInfoMode( 0 ); return 2; }
+    		    msg.Id = 26; // 'There is no space left for that item.'
+    		    if( MessageGetMsg( &gInvMsg, &msg ) == 1 ) IfcMsgOut( msg.Text );
+    		}
+    	    }
         }
-LABEL_43:
-        IfcMsgOut(msg.Text);
-        InvSetInfoMode(0);
-        return v35;
+    } else {
+	if( MseCursorCenterInArea( 256, 37, 320, 48 * gInvUnk08 + 37 ) ){
+	    n = ( Quantity <= 1 ) ? 1 : InvPopUpDlg( 4, a1, Quantity );
+	    if( n != -1 ){
+		if( gSkillUnk80 && !SkillUseSteal( gInvSelectedDude, a3, a1, 0 ) ) err = 1;
+		if( err != 1 ){
+		    if( !Item13( a3, gInvSelectedDude, a1, n ) ){
+			if( a1->Flags & 0x2000000 ) a3->ImgId = ArtMakeId( OBJTYPE( a3->ImgId ), a3->ImgId & 0xFFF, (a3->ImgId & 0xFF0000u) >> 16, 0, a3->Orientation + 1);
+			a1->Flags &= 0x07000000;
+			InvSetInfoMode( 0 );
+			return 2;
+		    }
+	    	    msg.Id = 25; // 'You cannot pick that up. You are at your maximum wieght capacity.'
+		    if( MessageGetMsg( &gInvMsg, &msg ) == 1 ) IfcMsgOut( msg.Text );
+		}
+	    }
+	}
     }
-    if( (a1->Flags & 0x2000000) != 0 ) a3->ImgId = ArtMakeId((a3->ImgId & 0xF000000) >> 24, a3->ImgId & 0xFFF, (a3->ImgId & 0xFF0000u) >> 16, 0, a3->Orientation + 1);
-    v21 = HIBYTE(a1->Flags) & 0xF8;
-    v35 = 2;
-    HIBYTE(a1->Flags) = v21;
-    InvSetInfoMode(0);
-    return v35;
-*/
+    InvSetInfoMode( 0 );
+    return err;    
 }
 
-int InvStackPrice( Obj_t *dude, Obj_t *a2 )
+int InvStackPrice( Obj_t *dude, Obj_t *Merchant )
 {
-/*
-    Obj_t *v3; // eax
-    float v4; // edx
-    Obj_t *v5; // ecx
-    unsigned int v6; // edx
-    double *v8; // [esp+0h] [ebp-1Ch]
-    double *Total; // [esp+4h] [ebp-18h]
-    float MoneyAll; // [esp+Ch] [ebp-10h]
-    float v12; // [esp+10h] [ebp-Ch]
-    float v13; // [esp+14h] [ebp-8h]
-    float v14; // [esp+14h] [ebp-8h]
-    float v15; // [esp+14h] [ebp-8h]
-    float v16; // [esp+18h] [ebp-4h]
+    double PartyBarterLvl, MerchantBarterLvl;
+    float MoneyAll,v12, v14, v15, discount;
 
-    if( gInvBarterDiscount ) return ItemGetBackPackWeight( gInvUnk65 );
-    v3 = Item27( gInvUnk65 );
-    v16 = 0;
-    MoneyAll = (float)ItemGetMoneyAll( gInvUnk65 );
-    if( (dude == gObjDude) && PerkLvl( gObjDude, PERK_MASTER_TRADER ) ) v16 = 25.0; // -25% discount
-    v12 = ((double)gInvUnk66 + 100.0 - v16) * 0.01;
-    if( v12 < 0.0 ) v12 = 0.01;
-    return (int)lround(((((double)SkillGetTotal(a2, SKILL_BARTER)) + 160.0) / (((double )PartyGetBestSkillLvl( SKILL_BARTER )) + 160.0) * ((v3 - MoneyAll) * 2.0)) * v12 + MoneyAll);
-*/
+    if( gDlgUnk45 ) return ItemGetBackPackWeight( gInvUnk65 );
+    discount = 0.0;
+    MoneyAll = ItemGetMoneyAll( gInvUnk65 );
+    v14 = Item27( gInvUnk65 ) - MoneyAll;
+    if( dude == gObjDude && PerkLvl( gObjDude, PERK_MASTER_TRADER ) ) discount = 25.0;
+    PartyBarterLvl = PartyGetBestSkillLvl( SKILL_BARTER );
+    MerchantBarterLvl = SkillGetTotal( Merchant, SKILL_BARTER );
+    v12 = ((double)gInvUnk66 + 100.0 - discount) * 0.01;
+    v15 = ((double)(int)MerchantBarterLvl + 160.0) / ((double)(int)PartyBarterLvl + 160.0) * (v14 * 2.0);
+    if( v12 < 0.0 ) v12 = 0.0099999998;
+    return lround( v15 * v12 + MoneyAll );
 }
 
-int InvBarterDo( Obj_t *dude, Obj_t *Item, Obj_t *a3, Obj_t *a4 )
+int InvBarterDo( Obj_t *dude, Obj_t *Item, Obj_t *a4, Obj_t *a3 )
 {
-/*
     MsgLine_t msg;
     int Reject;
 
@@ -2606,14 +2366,14 @@ int InvBarterDo( Obj_t *dude, Obj_t *Item, Obj_t *a3, Obj_t *a4 )
 	if( MessageGetMsg( &gInvMsg, &msg ) == 1 ) GdialogReply( msg.Text );
 	return -1;    
     }
-    if( gInvUnk64 ){
+    if( gDlgUnk45 ){
 	if( ItemGetBackPackWeight( Item ) > (FeatGetVal( a4, 12 ) - ItemGetBackPackWeight( a4 )) ){
     	    msg.Id = 32; // 'Sorry, that's too much to carry.'
     	    if( MessageGetMsg( &gInvMsg, &msg ) == 1 ) GdialogReply( msg.Text );
     	    return -1;
 	} 
     }
-    if( gInvUnk64 == 0 ){
+    if( gDlgUnk45 == 0 ){
 	Reject = 0;
 	if( !Item->Critter.Box.Cnt ){
     	    Reject = 1;
@@ -2631,7 +2391,6 @@ int InvBarterDo( Obj_t *dude, Obj_t *Item, Obj_t *a3, Obj_t *a4 )
     }
     Item15( a3, dude );
     Item15( Item, a4 );
-*/
     return 0;
 }
 
@@ -2697,7 +2456,6 @@ void InvUnk41( Obj_t *dude, int quantity, int a3, int a4, Obj_t *a1, Obj_t *a2, 
 
 void InvUnk42( Obj_t *Item, int quantity, int a3, Obj_t *a4, Obj_t *a1, int a6 )
 {
-/*
     char *Surface, *v9;
     ArtFrmHdr_t *Img;
     int w,tmp,h;
@@ -2720,7 +2478,7 @@ void InvUnk42( Obj_t *Item, int quantity, int a3, Obj_t *a4, Obj_t *a1, int a6 )
     } else {
         InvUnk43( gInvUnk18, 0, a1, a3 );
     }    
-    if( (Img = ArtLoadImg( ItemGetArtId( Item ), ImgObj ) ) ){
+    if( (Img = ArtLoadImg( ItemGetArtId( Item ), &ImgObj ) ) ){
         w = ArtGetObjWidth( Img, 0, 0 );
         h = ArtGetObjHeight( Img, 0, 0 );
         MseSetStaticCursor( ArtGetObjData( Img, 0, 0 ), w, h, w, w / 2, h / 2, 0 );
@@ -2737,591 +2495,326 @@ void InvUnk42( Obj_t *Item, int quantity, int a3, Obj_t *a4, Obj_t *a1, int a6 )
         if( MseCursorCenterInArea( 80, 310, 144, 48 * gInvUnk08 + 310 ) ){
             tmp = quantity <= 1 ? 1 : InvPopUpDlg( 4, Item, quantity );
             if( tmp != -1 && Item14( a1, gInvSelectedDude, Item, tmp ) == -1 ){
-                msg.Id = 26;
+                msg.Id = 26; // 'There is no space left for that item.'
                 if( MessageGetMsg( &gInvMsg, &msg ) == 1 ) IfcMsgOut( msg.Text );
             }
         }
     } else if( MseCursorCenterInArea( 475, 310, 539, 48 * gInvUnk08 + 310 ) ){
         tmp = quantity <= 1 ? 1 : InvPopUpDlg(4, Item, quantity);
         if( tmp != -1 && Item14(a1, a4, Item, tmp ) == -1 ){
-            msg.Id = 25;
-            if ( MessageGetMsg(&gInvMsg, &msg) == 1 ) IfcMsgOut(msg.Text);
+            msg.Id = 25; // 'You cannot pick that up. You are at your maximum weight capacity.'
+            if ( MessageGetMsg( &gInvMsg, &msg ) == 1 ) IfcMsgOut(msg.Text);
         }
     }
-    InvSetInfoMode(0);
-*/
+    InvSetInfoMode( 0 );
 }
 
-void InvUnk43( int win, ObjContainer_t *box, Obj_t *obj, int a4 )
+void InvUnk43( int win, Obj_t *box, Obj_t *obj, int a4 )
 {
-/*
-    char *surf1; // edi MAPDST
-    int const_480; // edx
-    char *surf2; // eax
-    int v7; // edx
-    char *v8; // edi
-    int i; // esi
-    int ArtId; // eax
-    char *v11; // edx
-    int v12; // ecx
-    ObjStack_t *v13; // eax
-    char *v14; // ebx
-    int v15; // esi
-    Obj_t *BackPackWeight; // eax
-    Obj_t *v17; // eax
-    int v19; // edi
-    char *v20; // eax
-    int v21; // edx
-    int v22; // esi
-    char *v23; // edi
-    int v24; // eax
-    char *v25; // edx
-    int v26; // ecx
-    int v27; // eax
-    int v28; // esi
-    int v29; // eax
-    int v30; // eax
-    void *v31; // [esp-4h] [ebp-B8h]
-    int v32; // [esp+0h] [ebp-B4h]
-    int v33; // [esp+0h] [ebp-B4h]
-    char stmp[80]; // [esp+4h] [ebp-B0h] BYREF
-    VidRect_t area; // [esp+54h] [ebp-60h] BYREF
-    MsgLine_t msg1; // [esp+64h] [ebp-50h] BYREF
-    MsgLine_t msg2; // [esp+74h] [ebp-40h] BYREF
-    int v38; // [esp+84h] [ebp-30h]
-    int DestPitch; // [esp+88h] [ebp-2Ch]
-    int FontId; // [esp+8Ch] [ebp-28h]
-    Obj_t *item; // [esp+98h] [ebp-1Ch]
-    int v45; // [esp+A0h] [ebp-14h]
+    Obj_t *item;
+    ObjStack_t *v13, *v27;
+    VidRect_t area;
+    MsgLine_t msg1, msg2;
+    char stmp[80], *surf1, *surf2, *v8, *Surface;
+    void *v31;
+    int v7,i,v15,v24,v38,DestPitch,FontId,v45;
 
-    item = (Obj_t *)box;
-    surf1 = WinGetSurface(gInvWin);
+    item = box;
+    surf1 = WinGetSurface( gInvWin );
     FontId = FontGetCurrent();
-    DestPitch = const_480;
-    FontSet(101);
+    DestPitch = 480;
+    FontSet( 101 );
     v45 = gFont.ChrHeight() + 48 * gInvUnk08;
     if( item ){
         surf2 = WinGetSurface( win );
         v31 = surf1 + 9769;
-        v8 = surf1 + 11689;
-        i = 0;
-        ScrCopy(&surf2[v7 + 249], 64, v45 + 1, gVidMainGeo.rt - gVidMainGeo.lt + 1, v31, 480);
-        while( i + gInvUnk78 < item->Feat.Critter.Box.Cnt && i < gInvUnk08 ){
-            ArtId = ItemGetArtId(item->Feat.Critter.Box.Box[item->Feat.Critter.Box.Cnt - (i + gInvUnk78 + 1)].obj);
-            ArtLoadImgScaled(ArtId, v11, 56, v12, 480);
-            v32 = i == a4;
-            v13 = &item->Feat.Critter.Box.Box[item->Feat.Critter.Box.Cnt - (i + gInvUnk78 + 1)];
-            v14 = v8;
+        v7 = gVidMainGeo.rt - gVidMainGeo.lt + 1;
+        ScrCopy( &surf2[ 20 * v7 + 249 ], 64, v45 + 1, v7, v31, 480 );
+        v8 = surf1 + 11689;        
+        for( i = 0; i + gInvUnk78 < item->Critter.Box.Cnt && i < gInvUnk08; ){
+            ArtLoadImgScaled( ItemGetArtId( item->Critter.Box.Box[ item->Critter.Box.Cnt - ( i + gInvUnk78 + 1 ) ].obj ), v8, 56, 40, 480);
+            v13 = &item->Critter.Box.Box[ item->Critter.Box.Cnt - ( i + gInvUnk78 + 1 ) ];
             v8 += 23040;
-            ++i;
-            InvPrintQuantity(v13->obj, v13->Quantity, v14, 480, v32);
+            i++;
+            InvPrintQuantity( v13->obj, v13->Quantity, v8, 480, i == a4 );
         }
         v15 = DestPitch * (48 * gInvUnk08 + 24) + 169;
-        if( gInvUnk64 ){
+        if( gDlgUnk45 ){
             msg1.Id = 30;
-            if( MessageGetMsg(&gInvMsg, &msg1) == 1 ){
-                BackPackWeight = ItemGetBackPackWeight(item);
-                sprintf(stmp, "%s %d", msg1.Text, BackPackWeight);
-            }
+            if( MessageGetMsg( &gInvMsg, &msg1 ) == 1 ) sprintf( stmp, "%s %d", msg1.Text, ItemGetBackPackWeight( item ) );            
         } else {
-            sprintf(stmp, "$%d", Item27(item));
+            sprintf( stmp, "$%d", Item27( item ) );
         }
-        gFont.Print(&surf1[v15], stmp, 80, DestPitch, gPalColorCubeRGB[31][31][31]);
+        gFont.Print( &surf1[v15], stmp, 80, DestPitch, gPalColorCubeRGB[31][31][31] );
         area.lt = 169;
         area.tp = 24;
         area.bm = v45 + 24;
         area.rt = 233;
-        WinAreaUpdate(gInvWin, &area);
+        WinAreaUpdate( gInvWin, &area );
     }
     if( obj ){
-        v19 = 4 * (gVidMainGeo.rt - gVidMainGeo.lt + 1);
-        v20 = WinGetSurface(win);
-        ScrCopy(&v20[4 * v21 + 334 + 4 * v19], 64, v45 + 1, gVidMainGeo.rt - gVidMainGeo.lt + 1, &surf1[20 * DestPitch + 254], DestPitch);
-        v38 = 48 * DestPitch;
-        v22 = 0;
-        v23 = &surf1[24 * DestPitch + 254];
-        while( v22 + gInvUnk77 < obj->Feat.Critter.Box.Cnt && v22 < gInvUnk08 ){
-            v33 = DestPitch;
-            v24 = ItemGetArtId(obj->Feat.Critter.Box.Box[obj->Feat.Critter.Box.Cnt - (v22 + gInvUnk77 + 1)].obj);
-            ArtLoadImgScaled(v24, v25, 56, v26, v33);
-            v27 = (int)&obj->Feat.Critter.Box.Box[obj->Feat.Critter.Box.Cnt - (v22 + gInvUnk77 + 1)];
-            InvPrintQuantity(*(Obj_t **)v27, *(_DWORD *)(v27 + 4), v23, DestPitch, v22++ == a4);
-            v23 += v38;
+	v7 = ( gVidMainGeo.rt - gVidMainGeo.lt + 1 );
+        Surface = WinGetSurface( win );
+        ScrCopy( &Surface[ 20 * v7 + 334], 64, v45 + 1, v7, &surf1[ 20 * DestPitch + 254 ], DestPitch );
+        v38 = 48 * DestPitch;        
+        v8 = &surf1[ 24 * DestPitch + 254 ];
+        for( i = 0; i + gInvUnk77 < obj->Critter.Box.Cnt && i < gInvUnk08; ){
+            v24 = ItemGetArtId( obj->Critter.Box.Box[ obj->Critter.Box.Cnt - ( i + gInvUnk77 + 1 ) ].obj );
+            ArtLoadImgScaled( v24, v8, 56, 40, DestPitch );
+            v27 = &obj->Critter.Box.Box[ obj->Critter.Box.Cnt - ( i + gInvUnk77 + 1 ) ];
+            InvPrintQuantity( v27->obj, v27->Quantity, v8, DestPitch, i++ == a4 );
+            v8 += v38;
         }
-        v28 = DestPitch * (48 * gInvUnk08 + 24) + 254;
-        if( gInvUnk64 ){
+        if( gDlgUnk45 ){
             msg2.Id = 30;
-            if ( MessageGetMsg( &gInvMsg, &msg2 ) == 1 ){
-                sprintf( stmp, "%s %d", msg2.Text, InvStackPrice(gObjDude, gInvUnk39[0] ) );
+            if( MessageGetMsg( &gInvMsg, &msg2 ) == 1 ){
+                sprintf( stmp, "%s %d", msg2.Text, InvStackPrice( gObjDude, gInvUnk39[ 0 ] ) );
             }
         } else {
-            sprintf( stmp, "$%d", InvStackPrice( gObjDude, gInvUnk39[0] ) );
+            sprintf( stmp, "$%d", InvStackPrice( gObjDude, gInvUnk39[ 0 ] ) );
         }
-        gFont.Print(&surf1[v28], stmp, 80, DestPitch, (unsigned __int8)gPalColorCubeRGB[31][31][31]);
+        gFont.Print( &surf1[ DestPitch * (48 * gInvUnk08 + 24) + 254 ], stmp, 80, DestPitch, gPalColorCubeRGB[31][31][31] );
         area.lt = 254;
         area.tp = 24;
         area.bm = v45 + 24;
         area.rt = 318;
-        WinAreaUpdate(gInvWin, &area);
+        WinAreaUpdate( gInvWin, &area );
     }
-    FontSet(FontId);
-*/
+    FontSet( FontId );
 }
 
-int InvMenuBarter(int eax0, Obj_t *a2, Obj_t *a3, Obj_t *a4, int a5 )
+int InvMenuBarter( int eax0, Obj_t *a2, Obj_t *a3, Obj_t *a4, int a5 )
 {
-/*
-    int sel; // esi MAPDST
-    int rr; // eax
-    Obj_t *ArmorObj; // eax
-    Obj_t *RHandObj; // eax
-    int v11; // ecx
-    int Cnt; // ebx
-    int v13; // ecx
-    int v14; // eax
-    unsigned int v15; // eax
-    int v17; // ecx
-    int v18; // ecx
-    int v19; // edx
-    int v20; // ecx
-    int v21; // edx
-    int v22; // ecx
-    int v23; // ecx
-    ObjContainer_t *v24; // edx
-    Window01_t *v25; // eax
-    int v26; // esi
-    int v27; // ecx
-    ObjStack_t *v28; // eax
-    int v29; // ecx
-    int v30; // esi
-    int v31; // ecx
-    ObjStack_t *v32; // eax
-    int v33; // ecx
-    ObjContainer_t *v34; // edx
-    Window01_t *v35; // eax
-    int v36; // esi
-    ObjStack_t *v37; // eax
-    int v38; // ecx
-    int v39; // esi
-    ObjStack_t *v40; // eax
-    Obj_t *v44; // eax
-    int i; // esi
-    CachePool_t *v46; // eax
-    int v47; // edx
-    MsgLine_t msg; // [esp+0h] [ebp-40h] BYREF
-    int v49; // [esp+10h] [ebp-30h] BYREF
-    int v50; // [esp+14h] [ebp-2Ch]
-    Obj_t *v51; // [esp+18h] [ebp-28h]
-    Obj_t *v52; // [esp+1Ch] [ebp-24h] MAPDST
-    Obj_t *v53; // [esp+20h] [ebp-20h] MAPDST
-    int v54; // [esp+24h] [ebp-1Ch]
-    int v55; // [esp+28h] [ebp-18h]
-    Obj_t *obj; // [esp+2Ch] [ebp-14h] MAPDST
-    Obj_t *a1; // [esp+30h] [ebp-10h]
+    Obj_t *ArmorObj, *RHandObj,*v12,*v53,*v55,*v56,*v57,*obj,*a1;
+    ObjStack_t *stk;
+    MsgLine_t msg;
+    int v15,v14,k,n,i,sel,v54,v58,v59;
 
     obj = a2;
     a1 = a3;
     sel = -1;
-    v51 = 0;
-    v49 = 0;
+    v55 = 0;
+    v53 = 0;
     gInvUnk66 = a5;
-    rr = InvInit();
-    if ( rr != -1 )
-    {
-        ArmorObj = InvGetArmorObj(obj);
-        v53 = ArmorObj;
-        if ( ArmorObj )
-            ItemUseItem(obj, ArmorObj, 1);
-        RHandObj = InvGetRHandObj(obj);
-        v52 = RHandObj;
-        if ( RHandObj )
-            goto LABEL_7;
-        if ( !gInvUnk64 )
-        {
-            RHandObj = InvSearchObjByType(obj, 3, 0);
-            v51 = RHandObj;
-            if ( RHandObj )
-LABEL_7:
-                ItemUseItem(obj, RHandObj, 1);
-        }
-        rr = ObjCreate((Obj_t **)&v49, 0, 467);
-        if ( rr != -1 )
-        {
-            Item16(obj, (Obj_t *)v49);
-            gInvBackPack = (ObjContainer_t *)&gInvSelectedDude->Feat;
-            gInvUnk65 = a1;
-            gInvUnk84 = a4;
-            gInvUnk78 = 0;
-            gInvUnk77 = 0;
-            gInvUnk79 = (ObjContainer_t *)((char *)a4 + 44);
-            gInvUnk85 = (ObjContainer_t *)&a1->Feat;
-            gInvUnk18 = (int)eax0;
-            gInvUnk40 = 0;
-            gInvUnk62 = (ObjContainer_t *)&obj->Feat;
-            gInvUnk39[0] = obj;
-            gInvUnk63[0] = 0;
-            v50 = InvMenuCreate(3u);
-            InvUnk03(gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, v11);
-            InvBpUpdate(gInvUnk04[0], -1, 3);
-            InvBodyUpdate(obj->ImgId, 3);
-            Cnt = (int)a1;
-            WinUpdate(gInvUnk18);
-            InvUnk43((int)eax0, a4, (Obj_t *)Cnt, v13);
-            InvSetInfoMode(0);
-            v14 = EvQeUnk23(obj);
-            v15 = EvQeUnk20(v14);
-            if ( v15 )
-            {
-                if ( v15 <= 1 )
-                {
-                    v55 = 0;
-                }
-                else if ( v15 == 2 )
-                {
-                    v55 = -15;
-                }
-            }
-            else
-            {
-                v55 = 25;
-            }
-            v54 = a5 + v55;
-            while ( 1 )
-            {
-                while ( 1 )
-                {
-                    while ( 1 )
-                    {
-                        do
-                        {
-                            if ( sel != 27 && !gMenuEscape )
-                            {
-                                sel = InpUpdate();
-                                if ( sel == 17 || sel == 24 || sel == 324 )
-                                    SysQuitDlg();
-                                if ( !gMenuEscape )
-                                    continue;
-                            }
-LABEL_108:
-                            Item15((Obj_t *)v49, obj);
-                            ObjDestroy((Obj_t *)v49, 0, Cnt);
-                            if ( v53 )
-                            {
-                                HIBYTE(v53->Flags) |= 4u;
-                                ItemAdd(obj, v53, 1);
-                            }
-                            if ( v52 )
-                            {
-                                v44 = obj;
-                                HIBYTE(v52->Flags) |= 2u;
-                                ItemAdd(v44, v52, 1);
-                            }
-                            if ( v51 )
-                                ItemAdd(obj, v51, 1);
-                            InvMenuClose(v50);
-                            for ( i = 0;
-                                  i != 5;
-                                  ++i )
-                            {
-                                v46 = gInvMseCursor[i].Obj;
-                                ArtClose(v46);
-                            }
-                            if ( gInvUnk02 )
-                                GameIfaceDisable();
-                            rr = InvMsgClose();
-                            gInvArt[0].Xpos = v47;
-                            return rr;
-                        }
-                        while ( sel == -1 );
-                        gInvUnk66 = v54;
-                        if ( sel == 116 || v55 <= -30 )
-                        {
-                            Item15(a1, obj);
-                            Item15((Obj_t *)a4, gObjDude);
-                            GdialogUnk59((int)eax0, (int)a4, sel);
-                            goto LABEL_108;
-                        }
-                        if ( (unsigned int)sel >= 337 )
-                            break;
-                        if ( (unsigned int)sel < 328 )
-                        {
-                            if ( sel != 109 )
-                                goto LABEL_71;
-                            if ( a4[1].Box.Capacity || gInvUnk65->Feat.Critter.Box.Cnt )
-                            {
-                                Cnt = (int)obj;
-                                if ( !InvBarterDo(gInvSelectedDude, (Obj_t *)a4, a1, obj) )
-                                {
-                                    InvUnk03(gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, 3);
-                                    InvBpUpdate(gInvUnk04[gInvUnk05], -1, 3);
-                                    InvUnk43((int)eax0, a4, a1, v22);
-                                    Cnt = 27;
-                                    msg.Id = 27;// 'OK, That's good trade.'
-                                    if ( !gInvUnk64 && MessageGetMsg(&gInvMsg, &msg) == 1 )
-                                        GdialogReply(msg.Text);
-                                }
-                            }
-                        }
-                        else if ( (unsigned int)sel <= 328 )
-                        {
-                            v17 = gInvUnk04[gInvUnk05];
-                            if ( v17 > 0 )
-                            {
-                                Cnt = 3;
-                                v18 = v17 - 1;
-                                gInvUnk04[gInvUnk05] = v18;
-                                InvBpUpdate(v18, -1, 3);
-                            }
-                        }
-                        else if ( (unsigned int)sel <= 329 )
-                        {
-                            if ( gInvUnk78 > 0 )
-                            {
-                                Cnt = (int)a1;
-                                --gInvUnk78;
-                                InvUnk43((int)eax0, a4, a1, -1);
-                            }
-                        }
-                        else
-                        {
-                            if ( sel != 336 )
-                                goto LABEL_71;
-                            Cnt = gInvUnk04[gInvUnk05] + gInvUnk08;
-                            if ( Cnt < gInvBackPack->Box.Cnt )
-                            {
-                                v19 = gInvUnk04[gInvUnk05] + 1;
-                                Cnt = 3;
-                                gInvUnk04[gInvUnk05] = v19;
-                                InvBpUpdate(v19, -1, 3);
-                            }
-                        }
-                    }
-                    if ( (unsigned int)sel > 337 )
-                        break;
-                    if ( gInvUnk78 + gInvUnk08 < gInvUnk79->Box.Cnt )
-                    {
-                        Cnt = (int)a1;
-                        ++gInvUnk78;
-                        InvUnk43((int)eax0, a4, a1, -1);
-                    }
-                }
-                if ( (unsigned int)sel < 397 )
-                {
-                    if ( (unsigned int)sel < 374 )
-                        goto LABEL_71;
-                    if ( (unsigned int)sel <= 374 )
-                    {
-                        Cnt = gInvUnk08;
-                        if ( gInvUnk08 + gInvUnk77 < gInvUnk85->Box.Cnt )
-                        {
-                            Cnt = (int)a1;
-                            ++gInvUnk77;
-                            InvUnk43((int)eax0, a4, a1, -1);
-                        }
-                    }
-                    else
-                    {
-                        if ( sel != 388 )
-                            goto LABEL_71;
-                        if ( gInvUnk77 > 0 )
-                        {
-                            Cnt = (int)a1;
-                            --gInvUnk77;
-                            InvUnk43((int)eax0, a4, a1, -1);
-                        }
-                    }
-                }
-                else if ( (unsigned int)sel <= 397 )
-                {
-                    if ( gInvUnk63[gInvUnk40] > 0 )
-                    {
-                        v20 = gInvUnk63[gInvUnk40] - 1;
-                        Cnt = (int)gInvUnk62;
-                        gInvUnk63[gInvUnk40] = v20;
-                        InvUnk03(v20, -1, (ObjBox_t *)Cnt, 3);
-                        WinUpdate(gInvWin);
-                    }
-                }
-                else if ( (unsigned int)sel < 401 )
-                {
-LABEL_71:
-                    if ( (MseGetButtons() & 2) != 0 )
-                    {
-                        if ( gInvInfoMode )
-                            InvSetInfoMode(0);
-                        else
-                            InvSetInfoMode(1);
-                    }
-                    else if ( (MseGetButtons() & 1) != 0 )
-                    {
-                        if ( sel >= 1000 && sel < gInvUnk08 + 1000 )
-                        {
-                            if ( gInvInfoMode == 1 )
-                            {
-                                InvActionMenu(sel, 3);
-                                Cnt = 0;
-                                v24 = a4;
-                                v25 = eax0;
-                                goto LABEL_82;
-                            }
-                            v26 = sel - 1000;
-                            Cnt = gInvBackPack->Box.Cnt;
-                            if ( v26 + gInvUnk04[gInvUnk05] < gInvBackPack->Box.Cnt )
-                            {
-                                v27 = gInvUnk04[gInvUnk05];
-                                v28 = &gInvBackPack->Box.Box[Cnt - (v26 + v27 + 1)];
-                                InvUnk41(v28->obj, v28->Quantity, v26, v27, obj, (Obj_t *)a4, 1);
-                                InvUnk03(gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, 3);
-                                InvBpUpdate(gInvUnk04[gInvUnk05], -1, 3);
-                                v24 = a4;
-                                v25 = eax0;
-                                Cnt = 0;
-LABEL_82:
-                                InvUnk43((int)v25, v24, 0, v23);
-                            }
-                            sel = -1;
-                        }
-                        if ( sel >= 2000 && sel < gInvUnk08 + 2000 )
-                        {
-                            if ( gInvInfoMode == 1 )
-                            {
-                                Cnt = (int)a1;
-                                InvActionMenu(sel, 3);
-                                goto LABEL_90;
-                            }
-                            v30 = sel - 2000;
-                            Cnt = gInvUnk62->Box.Cnt;
-                            if ( v30 + gInvUnk63[gInvUnk40] < gInvUnk62->Box.Cnt )
-                            {
-                                v31 = gInvUnk63[gInvUnk40];
-                                v32 = &gInvUnk62->Box.Box[gInvUnk62->Box.Cnt - (v30 + v31 + 1)];
-                                InvUnk41(v32->obj, v32->Quantity, v30, v31, obj, a1, 0);
-                                InvUnk03(gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, 3);
-                                InvBpUpdate(gInvUnk04[gInvUnk05], -1, 3);
-                                Cnt = (int)a1;
-LABEL_90:
-                                InvUnk43((int)eax0, 0, (Obj_t *)Cnt, v29);
-                            }
-                            sel = -1;
-                        }
-                        if ( sel < 2300 || sel >= gInvUnk08 + 2300 )
-                            goto LABEL_100;
-                        if ( gInvInfoMode == 1 )
-                        {
-                            InvActionMenu(sel, 3);
-                            Cnt = 0;
-                            v34 = a4;
-                            v35 = eax0;
-LABEL_98:
-                            InvUnk43((int)v35, v34, 0, v33);
-                            goto LABEL_99;
-                        }
-                        v36 = sel - 2300;
-                        if ( v36 < gInvUnk79->Box.Cnt )
-                        {
-                            v37 = &gInvUnk79->Box.Box[gInvUnk79->Box.Cnt - (v36 + gInvUnk78 + 1)];
-                            InvUnk42(v37->obj, v37->Quantity, v36, obj, (Obj_t *)a4, 1);
-                            InvUnk03(gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, 3);
-                            InvBpUpdate(gInvUnk04[gInvUnk05], -1, 3);
-                            v34 = a4;
-                            v35 = eax0;
-                            Cnt = 0;
-                            goto LABEL_98;
-                        }
-LABEL_99:
-                        sel = -1;
-LABEL_100:
-                        if ( sel >= 2400 && sel < gInvUnk08 + 2400 )
-                        {
-                            if ( gInvInfoMode == 1 )
-                            {
-                                Cnt = (int)a1;
-                                InvActionMenu(sel, 3);
-                            }
-                            else
-                            {
-                                v39 = sel - 2400;
-                                if ( v39 >= gInvUnk85->Box.Cnt )
-                                    goto LABEL_107;
-                                v40 = &gInvUnk85->Box.Box[gInvUnk85->Box.Cnt - (v39 + gInvUnk77 + 1)];
-                                InvUnk42(v40->obj, v40->Quantity, v39, obj, a1, 0);
-                                InvUnk03(gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, 3);
-                                InvBpUpdate(gInvUnk04[gInvUnk05], -1, 3);
-                                Cnt = (int)a1;
-                            }
-                            InvUnk43((int)eax0, 0, (Obj_t *)Cnt, v38);
-LABEL_107:
-                            sel = -1;
-                        }
-                    }
-                }
-                else if ( (unsigned int)sel <= 401 )
-                {
-                    Cnt = (int)gInvUnk62;
-                    if ( gInvUnk08 + gInvUnk63[gInvUnk40] < gInvUnk62->Box.Cnt )
-                    {
-                        v21 = gInvUnk63[gInvUnk40] + 1;
-                        gInvUnk63[gInvUnk40] = v21;
-                        InvUnk03(v21, -1, (ObjBox_t *)Cnt, 3);
-                        WinUpdate(gInvWin);
-                    }
-                }
-                else
-                {
-                    if ( (unsigned int)sel < 2500 || (unsigned int)sel > 2501 )
-                        goto LABEL_71;
-                    InvUnk46(sel, 3);
-                }
-            }
-        }
+    if( InvInit() == -1 ) return -1;
+    ArmorObj = InvGetArmorObj(obj);
+    v57 = ArmorObj;
+    if( ArmorObj ) ItemUseItem(obj, ArmorObj, 1);
+    RHandObj = InvGetRHandObj( obj );
+    v56 = RHandObj;
+    if( RHandObj ){
+	ItemUseItem(obj, RHandObj, 1);
+    } else {
+	if( !gDlgUnk45 ){
+    	    RHandObj = InvSearchObjByType( obj, 3, 0 );
+    	    v55 = RHandObj;
+    	    if( RHandObj ) ItemUseItem(obj, RHandObj, 1);
+	}
     }
-    return rr;
-*/
-}
-
-void InvUnk45( int a1, int *a2 )
-{
-/*
-    int v3; // ecx
-    int v4; // ecx
-    int v5; // ebp
-    Obj_t *v6; // eax
-    int v7; // edx
-    int v8; // ecx
-    int v9; // ecx
-    int v10; // ebp
-    Obj_t *v11; // eax
-    int v12; // ecx
-
-    if( a1 >= 2000 ){
-        v8 = gInvUnk62->Box.Cnt - (gInvUnk63[gInvUnk40] + a1 - 2000 + 1);
-        if( v8 < gInvUnk62->Box.Cnt && gInvUnk40 < 9 && ItemGetObjType(gInvUnk62->Box.Box[v8].obj) == 1 ){
-            v10 = gInvUnk40 + 1;
-            gInvUnk39[v10] = *(Obj_t **)((char *)&gInvUnk62->Box.Box->obj + v9);
-            v11 = gInvUnk39[v10];
-            gInvUnk63[v10] = 0;
-            gInvUnk40 = v10;
-            gInvUnk62 = (ObjContainer_t *)&v11->Feat;
-            InvBodyUpdate(v11->ImgId, (int)a2);
-            InvUnk03(gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, v12);
-            WinUpdate(gInvWin);
+    if( ObjCreate( &v53, 0, 467 ) == -1 ) return -1;
+    Item16(obj, v53);
+    gInvBackPack = (ObjContainer_t *)&gInvSelectedDude;
+    gInvUnk65 = a1;
+    gInvUnk84 = (ObjContainer_t *)a4;
+    gInvUnk78 = 0;
+    gInvUnk77 = 0;
+    gInvUnk79 = (ObjContainer_t *)&a4;
+    gInvUnk85 = (ObjContainer_t *)&a1;
+    gInvUnk18 = eax0;
+    gInvUnk40 = 0;
+    gInvUnk62 = (ObjContainer_t *)&obj;
+    gInvUnk39[0] = obj;
+    gInvUnk63[0] = 0;
+    v54 = InvMenuCreate( 3 );
+    InvUnk03( gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, 3 );
+    InvBpUpdate(gInvUnk04[0], -1, 3);
+    InvBodyUpdate(obj->ImgId, 3);
+    v12 = a1;
+    WinUpdate( gInvUnk18 );
+    InvUnk43( eax0, a4, v12, -1 );
+    InvSetInfoMode(0);
+    v14 = EvQeUnk23(obj);
+    v15 = EvQeUnk20(v14);
+    if( v15 ){
+        if( v15 <= 1 ){
+            v59 = 0;
+        } else if( v15 == 2 ){
+            v59 = -15;
         }
     } else {
-        v3 = gInvBackPack->Box.Cnt - (gInvUnk04[gInvUnk05] + a1 - 1000 + 1);
-        if( v3 < gInvBackPack->Box.Cnt && gInvUnk05 < 9 && ItemGetObjType(gInvBackPack->Box.Box[v3].obj) == 1 ){
-            v5 = gInvUnk05 + 1;
-            gInvParty[v5] = *(Obj_t **)((char *)&gInvBackPack->Box.Box->obj + v4);
-            gInvUnk05 = v5;
-            gInvSelectedDude = gInvParty[v5];
-            v6 = gInvSelectedDude;
-            gInvUnk04[v5] = 0;
-            gInvBackPack = (ObjContainer_t *)&v6->Feat;
+        v59 = 25;
+    }
+    v58 = a5 + v59;
+    while( 1 ){
+        if( sel == KEY_ESC || gMenuEscape ) break;
+        sel = InpUpdate();
+        if( sel == 17 || sel == 24 || sel == 324 ) SysQuitDlg();
+        if( gMenuEscape ) break;
+        if( sel == -1 ) continue;
+        gInvUnk66 = v58;
+        if( sel == 't' || v59 <= -30 ){
+            Item15( a1, obj );
+            Item15( a4, gObjDude );
+            GdialogUnk59();
+            break;
+        }
+        switch( sel ){
+    	    case 328:
+        	if( gInvUnk04[ gInvUnk05 ] > 0 ){ gInvUnk04[ gInvUnk05 ]--; InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 ); }
+        	continue;
+    	    case 329:
+        	if( gInvUnk78 > 0 ){ gInvUnk78--; InvUnk43( eax0, a4, a1, -1 ); }
+        	continue;
+    	    case 336:
+    		if( gInvUnk04[ gInvUnk05 ] + gInvUnk08 < gInvBackPack->Box.Cnt ){ gInvUnk04[ gInvUnk05 ]++; InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 ); }
+    		continue;
+            case 109:
+        	if( !((a4->Critter.Box.Cnt || gInvUnk65->Critter.Box.Cnt) && !InvBarterDo( gInvSelectedDude, a4, a1, obj )) ) continue;
+            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+            	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
+            	InvUnk43( eax0, a4, a1, -1 );
+            	msg.Id = 27;    // 'OK, That's good trade.'
+            	if( !gDlgUnk45 && MessageGetMsg( &gInvMsg, &msg ) == 1 ) GdialogReply( msg.Text );
+        	continue;
+            case 337:
+    		if( gInvUnk78 + gInvUnk08 < gInvUnk79->Box.Cnt ){ gInvUnk78++; InvUnk43( eax0, a4, a1, -1 ); }
+    		continue;       
+            case 374:
+        	if( gInvUnk08 + gInvUnk77 < gInvUnk85->Box.Cnt ){ gInvUnk77++; InvUnk43( eax0, a4, a1, -1 ); }
+        	continue;
+            case 388:
+        	if( gInvUnk77 > 0 ){ gInvUnk77--; InvUnk43( eax0, a4, a1, -1 ); }
+        	continue;
+            case 397:
+        	if( gInvUnk63[ gInvUnk40 ] <= 0 ) continue;
+            	gInvUnk63[ gInvUnk40 ]--;
+            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+            	WinUpdate( gInvWin );
+        	continue;
+            case 401:
+        	if( gInvUnk08 + gInvUnk63[gInvUnk40] >= gInvUnk62->Box.Cnt ) continue;
+            	gInvUnk63[ gInvUnk40 ]++;
+            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+            	WinUpdate( gInvWin );
+                continue;
+            case 2500 ... 2501: 
+        	InvUnk46( sel, 3 ); 
+        	continue;
+	}
+
+        if( MseGetButtons() & 0x02 ){
+            InvSetInfoMode( gInvInfoMode ? 0 : 1 );
+            continue;
+        }
+        if( !(MseGetButtons() & 0x01) ) continue;        
+        if( sel >= 1000 && sel < gInvUnk08 + 1000 ){
+            if( gInvInfoMode == 1 ){
+                    InvActionMenu( sel, 3 );
+                    InvUnk43( eax0, a4, 0, -1 );
+            } else {
+        	n = sel - 1000;
+        	if( n + gInvUnk04[gInvUnk05] < gInvBackPack->Box.Cnt ){
+            	    k = gInvUnk04[ gInvUnk05 ];
+            	    stk = &gInvBackPack->Box.Box[ gInvBackPack->Box.Cnt - (n + k + 1) ];
+                    InvUnk41( stk->obj, stk->Quantity, n, k, obj, a4, 1 );
+                    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+                    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
+                    InvUnk43( eax0, a4, 0, -1 );
+        	}
+            }
+            sel = -1;
+        }
+        if( sel >= 2000 && sel < gInvUnk08 + 2000 ){
+            if( gInvInfoMode == 1 ){
+                InvActionMenu( sel, 3 );
+                InvUnk43( eax0, 0, a1, -1 );
+            } else {
+            	n = sel - 2000;
+            	if( n + gInvUnk63[ gInvUnk40 ] < gInvUnk62->Box.Cnt ){
+            	    k = gInvUnk63[ gInvUnk40 ];
+                    stk = &gInvUnk62->Box.Box[ gInvUnk62->Box.Cnt - (n + k + 1) ];
+                    InvUnk41( stk->obj, stk->Quantity, n, k, obj, a1, 0 );
+                    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+                    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
+                    InvUnk43( eax0, 0, a1, -1 );
+            	}
+            }
+            sel = -1;
+        }
+        if( !(sel < 2300 || sel >= 2300 + gInvUnk08 ) ){
+    	    if( gInvInfoMode == 1 ){
+        	InvActionMenu( sel, 3 );
+            	InvUnk43( eax0, a4, 0, -1 );
+    	    } else {
+        	n = sel - 2300;
+        	if( n < gInvUnk79->Box.Cnt ){
+            	    stk = &gInvUnk79->Box.Box[ gInvUnk79->Box.Cnt - (n + gInvUnk78 + 1) ];
+            	    InvUnk42( stk->obj, stk->Quantity, n, obj, a4, 1 );
+        	    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+        	    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
+            	    InvUnk43( eax0, a4, 0, -1 );
+        	}
+            }
+            sel = -1;
+        }
+        if( sel >= 2400 && sel < gInvUnk08 + 2400 ){
+            if( gInvInfoMode == 1 ){
+                InvActionMenu( sel, 3 );
+                InvUnk43( eax0, 0, a1, -1 );
+            } else {
+                n = sel - 2400;
+                if( n < gInvUnk85->Box.Cnt ){
+                    stk = &gInvUnk85->Box.Box[ gInvUnk85->Box.Cnt - (n + gInvUnk77 + 1) ];
+                    InvUnk42( stk->obj, stk->Quantity, n, obj, a1, 0 );
+                    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+                    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
+            	    InvUnk43( eax0, 0, a1, -1 );
+                }
+            }                            
+            sel = -1;
+        }        
+    }
+    Item15( v53, obj );
+    ObjDestroy( v53, 0 );
+    if( v57 ){ v57->Flags |= 0x04000000; ItemAdd( obj, v57, 1 ); }
+    if( v56 ){ v56->Flags |= 0x02000000; ItemAdd( obj, v56, 1 ); }
+    if( v55 ) ItemAdd( obj, v55, 1 );
+    InvMenuClose( v54 );
+    for( i = 0; i != 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
+    if( gInvUnk02 ) GameIfaceDisable( 0 );
+    n = InvMsgClose();
+    gInvArt[ 0 ].Xpos = 0;
+    return n;
+}
+
+void InvUnk45( int a1, int a2 )
+{
+    int idx;
+
+    if( a1 >= 2000 ){
+        idx = gInvUnk62->Box.Cnt - (gInvUnk63[ gInvUnk40 ] + a1 - 2000 + 1);
+        if( idx < gInvUnk62->Box.Cnt && gInvUnk40 < 9 && ItemGetObjType( gInvUnk62->Box.Box[ idx ].obj ) == 1 ){
+            gInvUnk40++;
+            gInvUnk39[ gInvUnk40 ] = gInvUnk62->Box.Box[ idx ].obj;
+            gInvUnk63[ gInvUnk40 ] = 0;            
+            gInvUnk62 = &gInvUnk39[ gInvUnk40 ]->Container;
+            InvBodyUpdate( gInvUnk39[ gInvUnk40 ]->ImgId, a2 );
+            InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, a2 );
+            WinUpdate( gInvWin );
+        }
+    } else {
+        idx = gInvBackPack->Box.Cnt - (gInvUnk04[gInvUnk05] + a1 - 1000 + 1);
+        if( idx < gInvBackPack->Box.Cnt && gInvUnk05 < 9 && ItemGetObjType(gInvBackPack->Box.Box[idx].obj) == 1 ){
+            gInvUnk05++;
+            gInvParty[ gInvUnk05 ] = gInvBackPack->Box.Box[ idx ].obj;
+            gInvSelectedDude = gInvParty[ gInvUnk05 ];
+            gInvUnk04[ gInvUnk05 ] = 0;
+            gInvBackPack = &gInvSelectedDude->Container;
             InvSetBodyImg();
-            InvBodyUpdate(-1, v7);
-            InvBpUpdate(gInvUnk04[gInvUnk05], -1, (int)a2);
+            InvBodyUpdate( -1, a2 );
+            InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, a2 );
         }
     }
-*/
 }
 
 void InvUnk46( int sel, int mode )
@@ -3341,7 +2834,7 @@ void InvUnk46( int sel, int mode )
         obj = gInvUnk39[ --gInvUnk40 ];
         gInvUnk62 = &obj->Container;
         InvBodyUpdate( obj->ImgId, mode );
-//        InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, mode );
+        InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, mode );
         WinUpdate( gInvWin );
     }    
 }
@@ -3387,7 +2880,7 @@ int InvLoadAmmo( Obj_t *item0, Obj_t *item1, Obj_t **item2, int quantity, int se
     for( i = 0; i < quantity; i++ ){
         if( !( err = Item51( item0, item1 ) ) ){
             if( item2 ) *item2 = NULL;
-            UseUnk06( &item1->TimeEv );
+            UseUnk06( item1 );
             v16 = 1;
             if( !InvPickItem( sel, &item1, 0, 0 ) ) break;
         }
@@ -3631,31 +3124,17 @@ void InvPopUpClose( int Mode )
 
 int InvSetTimer( Obj_t *a1 )
 {
-DD
-/*
-    Obj_t *v1; // edx
-    int result; // eax
-    int v3; // ebx
-    int v4; // ecx
-    int i; // edx
-    int v6; // ecx
+    int err, i, n;
 
-    v1 = a1;
-    if ( gInvArt[0].Xpos )
-        goto LABEL_3;
-    result = InvInit();
-    if( result != -1 ){
-LABEL_3:
-        v3 = InvPopUpDlg(5, v1, 180);
-        if( !v4 ){
-            for ( i = 0; i != 140;  ) ArtClose(*(CachePool_t **)((char *)&gInvMseCursor[0].Obj + i));
-            if( gInvUnk02 ) GameIfaceDisable();
-            InvMsgClose();
-            gInvArt[0].Xpos = v6;
-        }
-        return v3;
+    if( !( n = gInvArt[ 0 ].Xpos ) ){
+	if( InvInit() == -1 ) return -1;
     }
-    return result;
-*/
+    err = InvPopUpDlg( 5, a1, 180 );
+    if( n ) return err;
+    for( i = 0; i != 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
+    if( gInvUnk02 ) GameIfaceDisable( 0 );
+    InvMsgClose();
+    gInvArt[ 0 ].Xpos = 0;    
+    return err;
 }
 

@@ -264,7 +264,7 @@ int Item12( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4, int a5 )
 */
 }
 
-int Item13( Obj_t *a1, Obj_t *a2, Obj_t *a3, Obj_t *a4 )
+int Item13( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 )
 {
     return Item12( a1, a2, a3, a4, 0 );
 }

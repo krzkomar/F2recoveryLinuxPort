@@ -12,3 +12,5 @@ int GlobVarLoadFile( char *fname, char *SecName, int *pCount, int **pData );
 int GlobUnk01();
 int GlobUnk02(unsigned int );
 int GlobUnk03();
+int GlobVarUnk03();
+int GlobVarUnk02();

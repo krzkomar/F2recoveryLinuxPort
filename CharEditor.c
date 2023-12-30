@@ -2288,7 +2288,7 @@ int CharEditCaption( int ImgId, char *Title, char *Param, char *Dsc )
 
     // description
     FontSet( 101 );
-    if( TextWrap( Dsc, LineWidth + 136, LinOffs, &Lines ) ) return -1;
+    if( WinTextWrap( Dsc, LineWidth + 136, LinOffs, &Lines ) ) return -1;
     y = 315;
     h = gFont.ChrHeight() + 1;
     for( i = 0; i < Lines - 1; i++, y += h ){
@@ -3322,7 +3322,7 @@ int CharEditDscPanel( int ImgId, char *Name, char *Param, char *Dsc )
     FontSet( 101 );
 
     h = gFont.ChrHeight() + 1;
-    if( TextWrap( Dsc, MaxLen + 133, Offsets, &Lines) ) return -1;
+    if( WinTextWrap( Dsc, MaxLen + 133, Offsets, &Lines) ) return -1;
     j = 70;
     for( i = 0; i < (Lines - 1); i++, j += h ){
         s1 = &Dsc[ Offsets[ i + 0 ] ];

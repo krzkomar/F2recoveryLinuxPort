@@ -129,7 +129,7 @@ int FeatGetVal( Obj_t *dude, int FeatId )
     int tmp;
     Obj_t *dd;
     int Val; // ecx MAPDST
-    int Min; // esi
+//    int Min; // esi
 
     if( FeatId < 35 || FeatId >= 38 ){
         if( FeatId < 35 ){
@@ -138,12 +138,12 @@ int FeatGetVal( Obj_t *dude, int FeatId )
             if( dude == gObjDude ) Val += TraitSpecBonus( FeatId );
             Val += FeatGetBoost( dude, FeatId );
 
+            if( (FeatId == FEAT_AC) && (gCombatStatus & 1) != 0 && CombatUnk05() != dude ){
 /*
-            if( (FeatId == FEAT_AC) && (gCombatStatus & 1) != 0 && (Obj_t *)Unk1004() != dude ){
                 v9 = 0;
                 v30 = 1;
                 tmp = 0;
-                if( dude == gObjDude && PerkLvl( gObjDude, 93 ) ){
+                if( dude == gObjDude && PerkLvl( gObjDude, PERK_HTH_EVADE ) ){
                     v11 = InvGetRHandObj( gObjDude );
                     if( v11 && ItemGetObjType( v11 ) == 3 && Item58( v11 ) ) v9 = 1;
                     if( !v9 ){
@@ -157,8 +157,8 @@ int FeatGetVal( Obj_t *dude, int FeatId )
                     }
                 }
                 Val += tmp + dude->Critter.State.CurrentMP * v30;
-            }
 */
+            }
             if( FeatId == FEAT_PERCEPTION && (dude->Critter.State.CombatResult & 0x40) ) Val -= 5;
             if( FeatId == FEAT_33 ){ // starting age
                 Val += ScptGetGameDekaSeconds() / 315360000;

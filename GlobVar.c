@@ -69,46 +69,25 @@ int GlobUnk01()
 
 int GlobVarUnk02( unsigned int a1 )
 {
-    if ( a1 < 2 )
-    {
-        if ( !a1 )
-            a1 = 1;
-    }
-    else if ( a1 <= 2 )
-    {
+    if( a1 < 2 ){
+        if( !a1 ) a1 = 1;
+    } else if( a1 <= 2 ){
         a1 = 3;
-    }
-    else if ( a1 == 4 )
-    {
+    } else if( a1 == 4 ){
         a1 = 5;
     }
-    if ( gGlobUnk01 == 4 && a1 == 5 )
-        return -1;
+    if( gGlobUnk01 == 4 && a1 == 5 ) return -1;
     gGlobUnk01 = a1;
     return 0;
 }
 
 int GlobVarUnk03()
 {
-    int v0; // edx
-    int result; // eax
-
-    v0 = gGlobUnk01;
-    switch ( gGlobUnk01 )
-    {
-        case 1:
-            v0 = 0;
-            break;
-        case 3:
-            v0 = 2;
-            break;
-        case 5:
-            v0 = 4;
-            break;
-        default:
-            break;
+    switch( gGlobUnk01 ){
+        case 1: gGlobUnk01 = 0; break;
+        case 3: gGlobUnk01 = 2; break;
+        case 5: gGlobUnk01 = 4; break;
+        default: break;
     }
-    result = 0;
-    gGlobUnk01 = v0;
-    return result;
+    return 0;
 }

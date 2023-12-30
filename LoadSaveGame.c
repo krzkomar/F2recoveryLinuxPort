@@ -976,7 +976,7 @@ void LsgDescription( int SlotNo )
     	    );
             gFont.Print( gLsgSurf + 640 * (h + 256) + 397, gLsgMsgPath, 640, 640, col );
 //            sprintf( gLsgMsgPath, "%s %s", MapGetCityName( gLsgSlots[ SlotNo ].MapNum ), MapCityLvlName( gLsgSlots[ SlotNo ].MapNum, gLsgSlots[ SlotNo ].MapLvl ) );
-            if( !TextWrap( gLsgMsgPath, 164, WrapLines, &WrapLinesNo ) ){                
+            if( !WinTextWrap( gLsgMsgPath, 164, WrapLines, &WrapLinesNo ) ){                
         	y = 2 * h + 3 + 256;
                 for( i = 0; WrapLinesNo - 1 > i; y += h + 2, i++ ){
                     s = &gLsgMsgPath[ WrapLines[ i + 1 ] ];

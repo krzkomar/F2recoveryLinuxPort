@@ -1,18 +1,18 @@
 #include "FrameWork.h"
-
+/*
 #define SCP_GETARG_A( type, val, p ) 	type = IntpPopShortStack( (p)->StackA, &(p)->StackApos ); val = IntpPopIntStack( (p)->StackA, &(p)->StackApos );
 #define SCP_GETARG_B( type, val, p )    type = IntpPopwB( (p) ); val = IntpPopIntStack( (p)->StackB, &(p)->StackIdxB );
 #define SCP_PUSHARG_A( type, val, p )	IntpPushIntStack( (p)->StackA, &(p)->StackApos, val ); IntpPushwA( (p), type );
 #define SCP_PUSHARG_B( type, val, p )  	IntpPushIntStack( (p)->StackB, &(p)->StackIdxB, val ); IntpPushwB( (p), type );
 #define SCP_ERRTYPE( cond, str )  if( cond ) IntpError( str )
-#define SCP_ERRTYPEF( cond, s, fmt, m... )  if( cond ){ sprintf( s, fmt, #m ); IntpError( s ); }
+#define SCP_ERRTYPEF( cond, s, fmt, m... )  if( cond ){ sprintf( s, fmt, ##m ); IntpError( s ); }
 #define SCP_FSTRDEREF( type, val, scr ) if( (type) == SCR_FSTRING ) IntpStringDeRef( scr, SCR_FSTRING, val );
 #define SCP_GETARG( type, ArgsCnt, scr ) SCP_GETARG_A( type, ArgsCnt, scr ); SCP_FSTRDEREF( type, ArgsCnt, scr );
 #define SCP_GETARGF( type, Argi, Argf, scr)   SCP_GETARG( type, Argi, scr ); Argf = *((float *)(&Argi));
-
+*/
 
 int gScpUnk01 = 1;
-extern gSciUnk01;
+extern int gSciUnk01;
 
 /*
     name: o_nop()
@@ -366,7 +366,6 @@ LABEL_37:
         IntpPushwA( scr, SCR_INT );
 	return;
     }
-LABEL_23:
     if( Arg2f == 0.0 ){
         IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 == 0 );
     } else {
@@ -377,7 +376,6 @@ LABEL_23:
     return;    
 LABEL_55:
     IntpPushwA( scr, SCR_INT );
-LABEL_56:
 }
 
 void ScpA_CmpLE( Intp_t *scr ) // 8035 'stack:= p2<=p1'
@@ -720,7 +718,6 @@ LABEL_37:
 LABEL_55:
     IntpPushwA( scr, SCR_INT );
     return;
-LABEL_56:
 }
 
 void ScpA_Add( Intp_t *scr ) // 8039
@@ -1253,10 +1250,11 @@ void ScpA_Jump( Intp_t *scr ) // 8004 jmp()
 void ScpA_CallExt( Intp_t *scr ) // 8005 call( adres, arguments_cnt, )
 {
     unsigned short Type;
-    char b, *ExtName, stmp[256], *s, *ArgV;
+    char b, *ExtName, stmp[256], *s;
     int Arg,i,ArgL, tmp, ArgC_got;
     short TypeL, ArgC_expected, v9;    
     Intp_t LocalScr;
+    char *ArgV;
 
     SCP_GETARG( Type, Arg, scr );
     SCP_ERRTYPE( SCRTYPE( Type ) != SCR_INT, "Invalid address given to call" );
@@ -1314,12 +1312,22 @@ void ScpA_CallExt( Intp_t *scr ) // 8005 call( adres, arguments_cnt, )
 
 void ScpA_801F( Intp_t *scr ) // 801F ?( arg1, arg2, arg3 )
 {
+
     unsigned short Type1, Type2, Type3;
     int Arg1, Arg3;
     void *Arg2;
 
-    SCP_GETARG( Type1, Arg1, scr ); scr->i34 = Arg1;
-    SCP_GETARG( Type2, Arg2, scr ); scr->Func = Arg2;
+    SCP_GETARG( Type1, Arg1, scr ); scr->i34 = Arg1; // window
+
+    Type2 = IntpPopShortStack( scr->StackA, &scr->StackApos);
+    if( Type2 == 0x9801 ){
+	Arg1 = IntpPopIntStack( scr->StackA, &scr->StackApos);
+	IntpStringDeRef( scr, 0x9801, Arg1 );
+	scr->Func = NULL; // ???
+    } else {
+	Arg2 = IntpPopPtrStack( scr->StackA, &scr->StackApos);
+	scr->Func = Arg2;
+    }    
     SCP_GETARG( Type3, Arg3, scr ); scr->Flags = Arg3;
 }
 
@@ -1538,19 +1546,26 @@ void ScpA_SetExportedVar( Intp_t *scr ) // 8015
 
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
-    SCP_ERRTYPEF( ExportSetVarArg( scr, &scr->StringBase[ Arg1 ], Type2, Arg2 ), stmp, "External variable %s does not exist\n", IntpGetUnk01( scr, Arg1 ) );
+    if( ExportSetVarArg( scr, (char *)scr->StringBase + Arg1, Type2, Arg2 ) ){
+        sprintf( stmp, "External variable %s does not exist\n", IntpGetString( scr, Arg1 ) );
+        IntpError( stmp );
+    }
 }
 
 void ScpA_GetExportedVar( Intp_t *scr ) // 8014
 {
-    unsigned short Type;
+    short Type;
     char stmp[ 256 ];
     int Arg;
-    short tmp;
+    char *tmp;
 
     SCP_GETARG( Type, Arg, scr );
-    SCP_ERRTYPEF( ExportGetVarArg( scr, scr->StringBase + Arg, &Type, &tmp ), stmp, "External variable %s does not exist\n", IntpGetUnk01( scr, Arg ) );
-    IntpPushIntStack( scr->StackA, &scr->StackApos, tmp ); IntpPushwA( scr, Type );
+    if( ExportGetVarArg( scr, (char *)scr->StringBase + Arg, &Type, &tmp ) ){
+        sprintf( stmp, "External variable %s does not exist\n", IntpGetString( scr, Arg ) );
+        IntpError( stmp );
+    }
+    IntpPushPtrStack( scr->StackA, &scr->StackApos, tmp ); 
+    IntpPushwA( scr, Type );
 }
 
 void ScpA_ExportProcedure( Intp_t *scr ) // 8017
@@ -1572,7 +1587,10 @@ void ScpA_ExportVariable( Intp_t *scr ) // 8016
     int Arg;
     
     SCP_GETARG( Type, Arg, scr );
-    SCP_ERRTYPEF( ExportCreateIVar( &scr->FileName, &scr->StringBase[ Arg ] ), stmp, "External variable %s already exists", IntpGetUnk01( scr, Arg ) );
+    if( ExportCreateIVar( &scr->FileName, (char *)scr->StringBase + Arg ) ){
+        sprintf( stmp, "External variable %s already exists", IntpGetString( scr, Arg ) );
+        IntpError( stmp );
+    }
 }
 
 void ScpA_KillProcedure( Intp_t *scr ) // 800E
@@ -1596,14 +1614,21 @@ void ScpA_CallStart( Intp_t *scr ) // 8008 callstart()
 {
     Intp_t *LocScr;
     unsigned short Type;
-    char stmp[ 256 ];
+    char stmp[ 256 ], *v10;
     int Arg;
 
     SCP_ERRTYPE( scr->ChildProcess, "Error, already have a child process\n" );
     SCP_GETARG( Type, Arg, scr );
     SCP_ERRTYPE( SCRTYPE( Type ) != SCR_STRING , "Invalid type given to callstart" );
     scr->Flags |= 0x0020;
-    LocScr = IntpLoad( IntpMseHandler() );
+    if( Type & 0x800 ){
+        v10 = &scr->Strings->Data[ Arg ];
+    } else if( Type & 0x1000 ){
+        v10 = &scr->Floats->Data[ Arg ];
+    } else {
+        v10 = 0;
+    }    
+    LocScr = IntpLoad( IntpMseHandler( v10 ) );
     if( LocScr ){
         SciItpEqAdd( LocScr );
         SciOpcodeExec( LocScr, 24 );
@@ -1618,14 +1643,21 @@ void ScpA_Spawn( Intp_t *scr ) // 800A
 {
     Intp_t *LocScr;
     unsigned short Type;
-    char stmp[ 256 ];
+    char stmp[ 256 ], *v10;
     int Arg;
 
     SCP_ERRTYPE( scr->ChildProcess, "Error, already have a child process\n" );
     SCP_GETARG( Type, Arg, scr );
     SCP_ERRTYPE( SCRTYPE( Type ) != SCR_STRING, "Invalid type given to spawn" );
     scr->Flags |= 0x0100;
-    LocScr = IntpLoad( IntpMseHandler() );
+    if( (Type & 0x800) != 0 ){
+        v10 = &scr->Strings->Data[Arg];
+    } else if ( (Type & 0x1000) != 0 ){
+        v10 = &scr->Floats->Data[Arg];
+    } else {
+        v10 = 0;
+    }
+    LocScr = IntpLoad( IntpMseHandler( v10 ) );
     if( LocScr ){
         SciItpEqAdd( LocScr );
         SciOpcodeExec( LocScr, 24 );
@@ -1644,11 +1676,18 @@ void ScpA_Fork( Intp_t *scr ) // 800B fork()
 {
     Intp_t *LocScr;
     short Type;
-    char stmp[ 256 ];
+    char stmp[ 256 ], *v6;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
-    LocScr = IntpLoad( IntpMseHandler() );
+    if( (Type & 0x800) != 0 ){
+        v6 = &scr->Strings->Data[Arg];
+    } else if ( (Type & 0x1000) != 0 ){
+        v6 = &scr->Floats->Data[Arg];
+    } else {
+        v6 = 0;
+    }    
+    LocScr = IntpLoad( IntpMseHandler( v6 ) );
     if( LocScr ){
         SciItpEqAdd( LocScr );
         SciOpcodeExec( LocScr, 24 );
@@ -1682,14 +1721,18 @@ void ScpA_8027( Intp_t *scr ) // 8027 ?( arg1, arg2 )
 
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
-    SCP_ERRTYPEF( IntpReadBei( &scr->ProcTable[ 6 * Arg2 ].NameOfst, 20) != Arg1, stmp, "Wrong number of args to procedure %s\n", IntpGetUnk01( scr, IntpReadBei( &scr->ProcTable->NameOfst + 6 * Arg2, 0 ) ) );
+    if( IntpReadBei( &scr->ProcTable->NameOfst + 6 * Arg2, 20 ) != Arg1 ){
+        sprintf( stmp, "Wrong number of args to procedure %s\n", IntpGetString( scr, IntpReadBei( &scr->ProcTable->NameOfst + 6 * Arg2, 0 ) ) );
+        IntpError( stmp );
+    }
 }
 
 void ScpA_LookupStringProc( Intp_t *scr ) // 8028
 {
     unsigned short Type;
     char stmp[ 256 ], *s;
-    int Arg, i, *p, cnt;
+    int Arg, i, cnt;
+    void *p;
 
     SCP_GETARG( Type, Arg, scr );
     SCP_ERRTYPE( SCRTYPE( Type ) != SCR_STRING, "Wrong type given to lookup_string_proc\n" );
@@ -1702,8 +1745,8 @@ void ScpA_LookupStringProc( Intp_t *scr ) // 8028
         s = NULL;
     }
 
-    cnt = IntpReadBei( &scr->ProcTable->Count, 0 ) - 1;
-    p = &scr->ProcTable[ 1 ].Count;
+    cnt = IntpReadBei( scr->ProcTable, 0 ) - 1;
+    p = &scr->ProcTable[ 1 ];
     for( i = 0; i < cnt; i++, p += 6 ){
         if( !strcasecmp( scr ? &scr->StringBase[ IntpReadBei( p, 0 ) ] : NULL, s ) ){
 	    IntpPushIntStack( scr->StackA, &scr->StackApos, i ); IntpPushwA( scr, SCR_INT );
@@ -1793,6 +1836,6 @@ void ScpAInitCommands()
     SciAddOpcode( 0x804B, ScpA_EndCritical );
     SciAddOpcode( 0x8027, ScpA_8027 );
     SciAddOpcode( 0x8028, ScpA_LookupStringProc );
-//    ScpIfcInit( );
-//    ScpUnk03( );
+    ScpIfcInit( );
+    ExportFlushProc( );
 }

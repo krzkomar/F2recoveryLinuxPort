@@ -32,12 +32,12 @@ int (*gMveUnk45)();
 unsigned int gMveSubsHeight;
 int gMvePlaying = 0;
 xFile_t *gMveFile;
-char *gMveScreen;
+unsigned char *gMveScreen;
 int gMvePosX;
 int gMvePosY;
 int gMveAudioEn;
 xFile_t *gMveMraFile;
-char *gMveUnk53;
+unsigned char *gMveUnk53;
 Pal8_t gMveFx[768];
 char gMveUnk55[768];
 char gMvePal[768];
@@ -224,10 +224,10 @@ int MveUnk10( int WinId, char *pSrc, int Width, int Height, int Pitch )
 
 int MveUnk11( int WinId, char *pSrc, int Width, int Height, int Pitch )
 {
-//    int w;
+    int w;
 
-//    w = WinGetWidth( WinId );
-//    UnkA101( a2, a3, a5, a4, gMveScreen, gMveUnk53, WinGetSurface( WinId ) + gMvePosY * w + gMvePosX, w );
+    w = WinGetWidth( WinId );
+    WinUnk201( pSrc, Width, Height, Pitch, gMveScreen, gMveUnk53, WinGetSurface( WinId ) + gMvePosY * w + gMvePosX, w );
     return 1;
 }
 

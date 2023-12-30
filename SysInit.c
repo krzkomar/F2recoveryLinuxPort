@@ -1,3 +1,5 @@
+
+
 //int gMapperEnable = 0;
 //int GameSaveBmp( int width, int height, char *palette, char *pixels );
 //int gSysMapperEnable = 0;
@@ -12,43 +14,6 @@ int SysOpenDataFiles();
 void SysLoadConfiguration( int MapperFlag, int argc, char **argv );
 void SysUnloadConfiguration( int SaveFlag );
 xFile_t *SysMapperInit();
-
-#define SYS_ERROR( errmsg, fmt, m... ) sprintf( errmsg, fmt, ##m ); WinMsgError( errmsg ); exit(1)
-
-typedef struct // local
-{
-  int Width;
-  int Height;
-} Resolutions_t;
-
-
-static int ( *gSysInitVidModeSel[12])() = {
-    VidInit320x200x8bpp, VidInit640x480x8bpp, VidInitDummy, VidInit320x400x8bpp,
-    VidInitDummy, VidInit640x400x8bpp, VidInitDummy, VidInit800x600x8bpp,
-    VidInitDummy, VidInit1024x768x8bpp, VidInitDummy, VidInit1280x1024x8bpp
-};
-
-static Resolutions_t gSysResolutionTable[12] = {
-    { 320,  200  }, { 640,  480  }, { 640,  240  }, { 320,  400  }, 
-    { 640,  200  }, { 640,  400  }, { 800,  300  }, { 800,  600  }, 
-    { 1024, 384  }, { 1024, 768  }, { 1280, 512  }, { 1280, 1024 }
-};
-
-
-
-
-int gSysResolWidth;
-
-int gSysResolHeight;
-int gSysUnk54;
-int gSysFont;
-
-int gSysUnk52;
-int gSysUnk53;
-int gSysUnk56;
-int gSysUnk51;
-int gSysUnk55;
-int gSysUnk57;
 
 int gSysMasterDataFile;
 int gSysCritterDataFile;
@@ -79,7 +44,7 @@ void SysHelpDialog()
                 ArtClose( Block );
                 WinMoveTop( Window );
                 PalLoadFromFile( "art/intrface/helpscrn.pal" );
-                FadeSetPalette( &gPalBase );
+                FadeSetPalette( gPalBase );
                 while( InpUpdate() == -1 && !gMenuEscape );
                 while( MseGetButtons() ) InpUpdate();
                 FadeSetPalette(gFadePaletteC);
@@ -87,64 +52,13 @@ void SysHelpDialog()
         }
         WinClose( Window );
         PalLoadFromFile( "color.pal" );
-        FadeSetPalette( &gPalBase );
+        FadeSetPalette( gPalBase );
     }
     if( IsEnabled ) CycleColorStart();
     GmouseIsoEnter();
     if( v9 ) MapUnk34();
 }
 
-void SykInit( int VideoModeSel, int Flags )
-{
-//    int v2, v5,v6, v12; 
-    int i, n, k,j, err;
-    char errmsg[ 256 ];
-printf("Syk Init<<<<<<<<<<<<<<<<<<<\n");
-//    IntLib_TaskListAdd(InitVidTab);
-    gSysUnk51 = 0x1f;
-    gSysUnk52 = 0x1f;
-    gSysUnk53 = 0x1f;
-    gSysUnk54 = 0x1f;
-    gSysUnk55 = 0x1f;
-    gSysUnk56 = 0x2010000;
-    gSysUnk57 = 0;
-    gSysResolHeight = gSysResolutionTable[ VideoModeSel ].Height;
-    gSysResolWidth  = gSysResolutionTable[ VideoModeSel ].Width;
-//    for( i = 0; i < 368; ){
-//        i += 23;
-//        gVidTabUnk02[i] = -1;
-//    }
-    VidSetMMX(1);
-    err = WinInit( gSysInitVidModeSel[ VideoModeSel ], VidClose, Flags );
-    switch( err ){
-        case 0: break;
-        case 1:  SYS_ERROR( errmsg, "Error initializing video mode %dx%d\n", gSysResolWidth, gSysResolHeight );
-        case 2:  SYS_ERROR( errmsg, "Not enough memory to initialize video mode\n" );
-        case 3:  SYS_ERROR( errmsg, "Couldn't find/load text fonts\n" );
-        case 4:  SYS_ERROR( errmsg, "Attempt to initialize window system twice\n" );
-        case 5:  SYS_ERROR( errmsg, "Window system not initialized\n" );
-        case 6:  SYS_ERROR( errmsg, "Current windows are too big for new resolution\n" );
-        case 7:  SYS_ERROR( errmsg, "Error initializing default database.\n" );
-        case 8:  SYS_ERROR( errmsg, "Error 8\n" );
-        case 9:  SYS_ERROR( errmsg, "Program already running.\n" );
-        case 10: SYS_ERROR( errmsg, "Program title not set.\n" );
-        case 11: SYS_ERROR( errmsg, "Failure initializing input devices.\n" );
-        default: SYS_ERROR( errmsg, "Unknown error code %d\n", err );
-    }
-    FontSet( 100 );
-    gSysFont = 100;
-    MouseMgrResetSpeed();
-//    MouseMgrSetHandler( ScpHandlerCallback );
-    for( j = 0; j < 64; j++ ){
-        i = j * 256;
-        k = 0;
-        n = (j + 1) * 256;
-        do{
-            i++;
-//            gVidTabUnk60[ i ] = k*j*i / 512;
-        } while ( i != n );
-    }
-}
 
 
 int SysSetMemMng()
@@ -161,11 +75,11 @@ int GameSaveBmp( int width, int height, char *palette, char *pixels )
 
     if( InpSaveBMP( width, height, pixels, palette ) ){
         Line.Id = 8;
-//        if( MessageGetMsg( &gMessage, &Line ) == 1 ) IfcMsgOut();
+        if( MessageGetMsg( &gMessage, &Line ) == 1 ) IfcMsgOut( Line.Text );
         return -1;
     } else {
         Line.Id = 3;
-//        if( MessageGetMsg( &gMessage, &Line ) == 1 ) IfcMsgOut();
+        if( MessageGetMsg( &gMessage, &Line ) == 1 ) IfcMsgOut( Line.Text );
         return 0;
     }
 }

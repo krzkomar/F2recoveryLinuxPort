@@ -72,7 +72,7 @@ void PipMenu( int Clock )
 
     if( !WmPipBoyEquipped() ){ // 'You aren't wearing a pipboy'
         DlgBox( MessageGetMessage( &gMessage, &gPipMsgLine, 7000 ), 0, 0, 192, 135, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
-        return 0;
+        return;
     }    
     if( (err = PipCreate( Clock )) == -1 ) return;
     MseGetCursorPosition( &gPipMseX0, &gPipMseY0 );
@@ -444,7 +444,7 @@ void PipStatus( int Selected )
         v19 = gGVals[ gPipQuestList[ v59 ].c ];
         if( v19 >= gPipQuestList[ v59 ].d ){
             sprintf( v53, "%d. %s", v58++, MessageGetMessage( &gPipUnk28, &gPipMsgLine, gPipQuestList[ v59 ].b ) );
-            if( TextWrap( v53, 350, WrapList, &pWraps ) ){
+            if( WinTextWrap( v53, 350, WrapList, &pWraps ) ){
                 eprintf( "\n ** Word wrap error in pipboy! **\n" );
             } else {
                 for( i = 0; i < pWraps - 1; i++ ){

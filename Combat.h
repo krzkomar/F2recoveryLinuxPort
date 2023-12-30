@@ -112,7 +112,7 @@ int CombatFSave( xFile_t *fh );
 int CombatUnk02( Obj_t *a1, Obj_t *a2, int a4, Obj_t *a3, int *pSteps );
 int CombatUnk03( Obj_t *a1, Obj_t *a2, int a3, Obj_t *a4, int *pSteps, Obj_t *a6 );
 int CombatUnk04( Obj_t *a1, Obj_t *a2, Obj_t *a3, Obj_t *a4 );
-int CombatUnk05();
+Obj_t *CombatUnk05();
 void CombatUnk06( Obj_t *obj );
 void CombatUnk07();
 void CombatUnk08( int a1, int a2 );

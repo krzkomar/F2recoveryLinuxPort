@@ -5,7 +5,7 @@ WidgetMsg_t gWidgetEditor;
 int gWidgetUnk08;
 int gWidgetEditValidFlg;
 int gWidgetUnk07;
-WidgetProc_t **gWidgetUnk10;
+WidgetProc_t *gWidgetUnk10[ 32 ];
 Widget02_t gWidgetUnk13;
 char *gWidgetEditorString;
 int gWidgetUnk09;
@@ -655,7 +655,7 @@ int WidgetUnk13()
 {
     int i;
 
-    for( i = 0; i != 32; i++ ){
+    for( i = 0; i < 32; i++ ){
         if( gWidgetUnk10[ i ] ) WidgetWinRegisterUpdate( gWidgetUnk10[ i ] );
     }
     return 1;

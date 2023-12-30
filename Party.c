@@ -342,7 +342,7 @@ int PartyRecoverLoad()
 int PartyRecoverLoadInstance( Party_t *party )
 {
     int type;
-    unsigned int Id;
+    int Id;
     Scpt_t *scr;
 
     Id = -1;
@@ -614,7 +614,7 @@ void PartyItemRecover( Party_t *party )
 {
     Scpt_t *Script;
     int *LocalVars;
-    unsigned int Id;
+    int Id;
     Scpt_t *scr;
 
     Id = -1;

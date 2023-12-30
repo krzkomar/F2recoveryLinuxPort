@@ -58,7 +58,33 @@ int abs32( int x )
     return (x < 0) ? -x:x;
 }
 
+int FileListSort( char **a1, char **a2 )
+{
+    return strcmp( *a1, *a2 );
+}
+
+char **FileListMake( char *path, int *pCnt )
+{
+    int cnt;
+    char **list;
+
+    cnt = dbGetFileList( path, &list );
+    *pCnt = cnt;
+    if( !cnt ) return NULL;
+    qsort( list, cnt, sizeof( char *), (void *)FileListSort );
+    return list;
+}
+
+void FileListFree( char **FileList )
+{
+    dbDelFileList( &FileList );
+}
+
+
+
+
 // dummies
+
 
 
 

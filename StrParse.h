@@ -9,7 +9,5 @@ int StrParseGetPrefixedStrInt( char **pStr, char *Dst, int *Val, char *Prefix );
 
 int StriCmp( const char *s1, const char *s2 );
 
-// inny plik
-int TextWrap( char *Str, int LineWidth, short *pOffs, short *pLines );
 
 

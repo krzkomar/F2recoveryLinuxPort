@@ -7,6 +7,36 @@ typedef struct
   int tab[480];
 } Automap_t;
 
+/*
+int gAutomap_03[ 480 ]; 
+int gAutomapUnk10[ 160 ];
+int gAutomapImgIds[ 5 ];
+int gAutomapScannerStatus;
+Automap_t gAutomap_05;
+int gAutomapRawSize;
+char gAutomapUnk102;
+char *gAutomapRawData;
+char *gAutomapData;
+*/
+
+int AutomapInit();
+void AutomapReset();
+void AutomapClose();
+int AutomapFLoad( xFile_t *fh );
+int AutomapFSave( xFile_t *fh );
+int AutomapUnk04( int a1 );
+void AutomapScanner( int a1, int MotionFlg );
+void AutomapRender( int win, int MapLvl, char *a3, char Flags );
+int AutomapRenderMinimap( int WinId, int MapId, int MapLvl );
 int AutomapSave();
-int AutomapFSave( xFile_t * );
-int AutomapFLoad( xFile_t * );
+int AutomapSaveEntryData( xFile_t *fh );
+int AutomapCreateMinimap( int MapId, int MapLvl );
+int AutomapWriteHdr( xFile_t *fh );
+int AutomapReadHdr( xFile_t *fh );
+void AutomapMakeMinimap( int a1 );
+int AutomapCreateDatabase();
+int AutomapUnk17( int a1, int a2 );
+int AutomapFileCopy( xFile_t *fh1, xFile_t *fh2 , unsigned int a3 );
+int AutomapLoadDB( Automap_t **pAutomap );
+
+

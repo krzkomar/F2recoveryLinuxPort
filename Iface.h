@@ -117,6 +117,8 @@ int gIfcCurrentHP = 0;
 int gIfcStateHP = COUNTER_RED;
 int gIfcCurrentAC = 0;
 */
+extern int gIfcTimeout;
+
 
 int IfaceInit();
 void IfaceReset();

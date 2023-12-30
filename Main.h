@@ -13,7 +13,7 @@ int gMainUnk01 = 0;
 extern void *gCharEditKarma;
 */
 
-void GameVersion( char *str );
+void MainGameVersion( char *str );
 void MainGame( int argc, char **argv );
 int MainInit( int argc, char **argv );
 int MainReset();
@@ -27,8 +27,7 @@ void MainFilesClose();
 void MainSelectRecordMap();
 void MainUnk04();
 void MainUnk05();
-static void MainUnk07();
 int MainUnk08( char *a1, char *path );
 int MainUnk06( char *str, int LineWidth, short *pOffs, short *pLines );
-int main( int argc, char **argv );
+
 

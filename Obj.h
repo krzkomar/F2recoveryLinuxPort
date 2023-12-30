@@ -2,6 +2,128 @@
 
 #define OBJ_FLG_NOTREMOVE	0x400	// cause the object cannot be deleted by ObjDelete()
 
+typedef struct 
+{
+  struct _Obj_t *obj;
+  int Quantity;
+} ObjStack_t;
+
+typedef struct
+{
+    int Cnt;	      // 12 occupied box positions
+    int Capacity;     // 13 box size
+    ObjStack_t *Box;  // 14 box of stacked objects
+} ObjBox_t;
+
+typedef struct 
+{
+  int Reaction;
+  int CurrentAP;
+  int CombatResult;
+  int DmgLastTurn;
+  int AIpackNb;
+  int GroupId;
+  int WhoHitMe;
+} ObjCritterCond_t;
+
+typedef struct // 0x38
+{
+    ObjBox_t Box;
+    int i04; // 15
+    ObjCritterCond_t State;
+    int HitPts;
+    int Radiated;
+    int Poisoned;
+} ObjCritter_t;
+
+typedef struct // 0x20
+{
+    ObjBox_t Box;
+    int i04;
+    union{
+	int Ammo;
+	int Charges;
+	int KeyCode;
+    };
+    int AmmoId;
+    struct _Obj_t *Obj;
+    int i08;
+//    int i09;
+//    int i10;
+} ObjContainer_t;
+
+typedef struct // 0x28
+{
+    ObjBox_t Box;
+    int i04;
+    int DestMapId;
+    int DestStartPos;
+    int DestMapElev;
+    int DestOrientation;
+    int i09;
+    int i10;
+} ObjGrid_t;
+
+typedef struct // 0x28
+{
+    ObjBox_t Box;
+    int i04;
+    int i05;
+    int i06;
+    int i07;
+    int i08;
+    int i09;
+    int i10;
+} ObjScenery_t;
+
+typedef struct _Obj_t // 132
+{
+    union{
+	int ProtoPid;
+	int BodyPart;
+	int TimeEv;
+	struct _Obj_t *obj;
+    };
+  int GridId;
+  int PosX;
+  int PosY;
+  int Sx;
+  int Sy;
+  int FrameNo;
+  int Orientation;
+  int ImgId;
+  int Flags; // 0x400 - removable
+  int Elevation;	// map level
+  union {
+    ObjCritter_t  Critter;
+    ObjContainer_t Container;// zmienic na item
+    ObjScenery_t  Scenery;
+    ObjGrid_t  Grid;
+  };
+  int Pid;
+  int CritterIdx;
+  int LightRadius;
+  int LightIntensity;
+  int OutlineColor;
+  int ScrId;
+  struct _Obj_t *Owner;
+  int ScrFNameId;
+} Obj_t;
+
+typedef struct _ObjList_t
+{
+  Obj_t *object;
+  struct _ObjList_t *Next;
+} ObjList_t;
+
+typedef struct 
+{
+  int Flags;
+  Obj_t *obj;
+} ObjTable_t;
+
+
+
 enum{
     OBJ_ORI_NE,	// 0
     OBJ_ORI_E,	// 1
@@ -10,7 +132,6 @@ enum{
     OBJ_ORI_W,	// 4
     OBJ_ORI_NW	// 5
 };
-
 
 #define OBJTYPE( Pid )	((((unsigned int)Pid) >> 24) & 0x0f)
 #define OBJIDX( Pid )	(((unsigned int)Pid) & 0xffffff )
@@ -28,6 +149,7 @@ enum{
     CCCC - ObjectID
 */
 
+extern Obj_t *gObjDude;
 extern Obj_t *gObjUnk42;
 extern char gObjPalRY[256];
 extern char gObjPalBY[256];
@@ -66,7 +188,7 @@ int gObjUnk14;
 Obj_t *gObjRadius; // light player object 
 int gObjIsoPitch;
 int gObjUnk13;
-Obj_t *gObjDude;
+
 char gObjUnk79;
 char gObjUnk80;
 int gObjUnk81[4999];

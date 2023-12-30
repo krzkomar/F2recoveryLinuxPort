@@ -246,7 +246,7 @@ int OptMenuCreate()
         wdg = WinCreateButton( gOptionMenuWindow, 13, ypos, 
     	    gOptMenuImgSize[ 1 ].Width, gOptMenuImgSize[ 1 ].Height, -1, -1, -1, j + 500, gOptMenuImgs[2*j + 0], gOptMenuImgs[2*j + 1], 0, 32 
     	);
-        if( wdg != -1 ) WinSetClickSound( wdg, GSoundPlayKnobLt, GSoundPlayKnobRt );
+        if( wdg != -1 ) WinSetClickSound( wdg, (void *)GSoundPlayKnobLt, GSoundPlayKnobRt );
         ypos += gOptMenuImgSize[ 1 ].Height + 3;
     }
     FontSet( 101 );

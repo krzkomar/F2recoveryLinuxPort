@@ -46,7 +46,7 @@ int ItemAdd( Obj_t *dude, Obj_t *item, int Quantity );
 int ItemUseItem( Obj_t *Obj1, Obj_t *Obj2, int QuantityMax );
 int Item11( Obj_t *a1, Obj_t *a2 );
 int Item12( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4, int a5 );
-int Item13( Obj_t *a1, Obj_t *a2, Obj_t *a3, Obj_t *a4 );
+int Item13( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 );
 int Item14( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 );
 int Item15( Obj_t *a1, Obj_t *a2 );
 int Item16( Obj_t *a1, Obj_t *a2 );

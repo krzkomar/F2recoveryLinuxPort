@@ -662,7 +662,7 @@ void SciUnk20()
     }        
 }
 
-void SciAddOpcode( short Opcode, int (*Func)( Intp_t * ) )
+void SciAddOpcode( short Opcode, void (*Func)( Intp_t * ) )
 {
     Opcode &= 0x03ff;
     if( Opcode >= MAX_OPCODES ){ printf( "Too many opcodes!\n" ); exit( 1 ); }

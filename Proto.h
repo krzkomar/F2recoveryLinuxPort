@@ -269,7 +269,7 @@ extern char *gProtoUnk100[4];
 //char *gProtoUnk103[7];
 //char *gProtoUnk104[19];
 
-int ProtoUnk10( char *path, unsigned int Pid );
+void ProtoUnk10( char *path, unsigned int Pid );
 //int ProtoUnk09( unsigned int Pid, char *a2 );
 //int ProtoUnk08( unsigned int Pid, char *a2, int *a3 );
 int ProtoGetFName( unsigned int Idx, char *fname );

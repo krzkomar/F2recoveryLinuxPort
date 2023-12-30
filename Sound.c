@@ -6,10 +6,8 @@
 
 
 static void *SoundMalloc( size_t nsize );
-static void *SoundRealloc( void *ptr, size_t size );
 static void SoundFree( void *ptr );
 static int SoundUpdate( Sound_t *snd );
-static SDL_AudioDeviceID gSoundDevId;
 
 Sound_t *gSounds;
 SoundFile_t gSoundOpenCb;
@@ -88,10 +86,10 @@ static void *SoundMalloc( size_t nsize )
     return malloc( nsize );
 }
 
-static void *SoundRealloc( void *ptr, size_t size )
-{
-    return realloc( ptr, size );
-}
+//void *SoundRealloc( void *ptr, size_t size )
+//{
+//    return realloc( ptr, size );
+//}
 
 static void SoundFree( void *ptr )
 {
@@ -157,13 +155,13 @@ int SoundInit( int rr, int BitFmt, int BuffSize, int SampleRate )
     static ALfloat ListenerOri[] = { 0.0, 0.0, 1.0, 0.0, 1.0, 0.0 };
 
     gSoundSampleRate = SampleRate;
-    if( !(gSoundAlcDevice = alcOpenDevice( NULL )) ) return 1;
-    if( !(gSoundContext = alcCreateContext( gSoundAlcDevice, NULL ))) return 1;
+    if( !(gSoundAlcDevice = (ALCchar *)alcOpenDevice( NULL )) ) return 1;
+    if( !(gSoundContext = alcCreateContext( (ALCdevice *)gSoundAlcDevice, NULL ))) return 1;
     if( !alcMakeContextCurrent( gSoundContext ) ) return 1;
     alListener3f( AL_POSITION, 0, 0, 1.0 );
     alListener3f( AL_VELOCITY, 0, 0, 0 );
     alListenerfv( AL_ORIENTATION, ListenerOri );
-    alGenSources( (ALuint)3, &gSoundSrc );
+    alGenSources( (ALuint)3, (ALuint *)&gSoundSrc );
 
     // background, looped
     alSourcef( gSoundSrc[0], AL_PITCH, 1 );
@@ -214,7 +212,7 @@ void SoundClose()
     if( gSoundAlcDevice ){
 	alDeleteSources( 2, gSoundSrc );
 	alcDestroyContext( gSoundContext );
-	alcCloseDevice( gSoundAlcDevice );
+	alcCloseDevice( (ALCdevice *)gSoundAlcDevice );
 	gSoundAlcDevice = NULL;
     }
     gSoundErrno = 0;
@@ -225,8 +223,8 @@ Sound_t *SoundCreate( int FlagB, int FlagC )
 {
     Sound_t *NewSnd;
 
-    if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return 0; }
-    if(!(NewSnd = (Sound_t *)gSoundMalloc( sizeof( Sound_t ) )) ){ gSoundErrno = SND_ERR_ALLOC; return SND_ERR_ALLOC; }
+    if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return NULL; }
+    if(!(NewSnd = (Sound_t *)gSoundMalloc( sizeof( Sound_t ) )) ){ gSoundErrno = SND_ERR_ALLOC; return NULL; }
     memset( NewSnd, 0x00, sizeof( Sound_t ) );
     memcpy( &NewSnd->File, &gSoundOpenCb, sizeof( SoundFile_t ) );
     NewSnd->Channels = 1;
@@ -257,9 +255,8 @@ Sound_t *SoundCreate( int FlagB, int FlagC )
 
 void SoundLoad( Sound_t *Snd )
 {
-    Audio_t *inst;
-    unsigned int flen,InBufferSize,ReadOutBytes,i,nsize,Bps;
-    char *p,*FileBuffer;
+    unsigned int flen,ReadOutBytes,nsize;
+    char *FileBuffer;
 
     flen = Snd->File.Length( Snd->File.Handler );
     Snd->FileLen = flen;
@@ -363,8 +360,6 @@ int SoundPlayAcm( Sound_t *snd )
 
 int SoundStop( Sound_t *Snd )
 {
-    int k;
-
     if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return SND_ERR_NOINIT; }
     if( !Snd ){ gSoundErrno = SND_ERR_NOSOUND; return SND_ERR_NOSOUND; }
     if( !gSoundDriverOn ){
@@ -383,9 +378,9 @@ int SoundDelete( Sound_t *Snd )
 {
     if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return SND_ERR_NOINIT; }    
     if( !Snd ){ gSoundErrno = SND_ERR_NOSOUND; return SND_ERR_NOSOUND; }
-    if( Snd->File.Handler != (void *)-1 ){
+    if( Snd->File.Handler != -1 ){
         Snd->File.Close( Snd->File.Handler );
-        Snd->File.Handler = (void *)-1;
+        Snd->File.Handler = -1;
     }
     SoundDestruct( Snd, Snd->File.Handler );
     gSoundErrno = 0;
@@ -524,7 +519,7 @@ static int SoundUpdate( Sound_t *snd )
     if( snd->State & SND_PAUSED ){ gSoundErrno = SND_ERR_NOTPLAYING;return SND_ERR_NOTPLAYING; }    
     if( snd->State & SND_PLAYED ){ gSoundErrno = SND_ERR_UNK; return SND_ERR_UNK; }
 
-    alSourcei( snd->SrcId, AL_SOURCE_STATE, &state );
+    alGetSourcei( snd->SrcId, AL_SOURCE_STATE, (ALint *)&state );
 
     if( snd->FlagsC && ( state == AL_PLAYING ) ) {
         if( (snd->State & SND_PAUSED) == 0 && (snd->FlagsB & 2 ) ) SoundProcess( snd );
@@ -654,7 +649,6 @@ int SoundVolConvert( unsigned int Volume )
 int SoundSetSndVol( Sound_t *Snd, int Volume )
 {
     double vol;
-    int err;
 
     if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return SND_ERR_NOINIT; }
     if( !Snd ){ gSoundErrno = SND_ERR_NOSOUND; return SND_ERR_NOSOUND; }
@@ -678,7 +672,7 @@ int SoundSetCallback( Sound_t *Snd, void (*Cb)(int, int), void *pArg )
 {
     if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return SND_ERR_NOINIT; }    
     if( !Snd ){ gSoundErrno = SND_ERR_NOSOUND; return SND_ERR_NOSOUND; }
-    Snd->Callback = Cb;
+    Snd->Callback = (void *)Cb;
     Snd->pCallbackArg = pArg;
     gSoundErrno = 0;
     return 0;
@@ -854,7 +848,8 @@ int SoundSpeechUnk01( Sound_t *snd )
 
 int SoundSpeechPlay( Sound_t *snd, int Pos )
 {
-    unsigned int ReadOut, Frac;
+//    unsigned int ReadOut;
+//    unsigned int Frac;
 
 DD
     if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return SND_ERR_NOINIT; }
@@ -1054,14 +1049,14 @@ int SoundInitIO(
 	int (GetFmt)( int, int *, int *, int * )
     )
 {
-    if( open )  gSoundOpenCb.Open = open;
-    if( close ) gSoundOpenCb.Close = close;
-    if( read )  gSoundOpenCb.Read = read;
-    if( write ) gSoundOpenCb.Write = write;
-    if( seek )  gSoundOpenCb.Seek = seek;
-    if( tell )  gSoundOpenCb.Tell = tell;
-    if( len )   gSoundOpenCb.Length = len;
-    if( GetFmt ) gSoundOpenCb.GetFmt = GetFmt;
+    if( open )  gSoundOpenCb.Open = (void *)open;
+    if( close ) gSoundOpenCb.Close = (void *)close;
+    if( read )  gSoundOpenCb.Read = (void *)read;
+    if( write ) gSoundOpenCb.Write = (void *)write;
+    if( seek )  gSoundOpenCb.Seek = (void *)seek;
+    if( tell )  gSoundOpenCb.Tell = (void *)tell;
+    if( len )   gSoundOpenCb.Length = (void *)len;
+    if( GetFmt ) gSoundOpenCb.GetFmt = (void *)GetFmt;
     gSoundErrno = 0;
     return 0;
 }
@@ -1132,19 +1127,20 @@ SoundStr_t *SoundStrCreate( int Freq, int Stereo, int bits )
 
 int SoundStrQueue( SoundStr_t *snd, void *data, int Size )
 {
-    ALint pcs, buff = 0, qed = 0, err, fmt;
+    ALint pcs, buff = 0, qed = 0, fmt;
      
     if( snd == NULL ) return -1;
     alGetSourcei( snd->SourceId, AL_BUFFERS_PROCESSED, &pcs ); // retrieve the number of processed buffers
     alGetSourcei( snd->SourceId, AL_BUFFERS_QUEUED, &qed ); // retrieve the number of processed buffers
     if( pcs ){
-	alSourceUnqueueBuffers( snd->SourceId, 1, &buff ); // unqueue 1 buffer
+	alSourceUnqueueBuffers( snd->SourceId, 1, (ALuint *)&buff ); // unqueue 1 buffer
     } else {
-	alGenBuffers( 1, &buff ); // create buffer    
+	alGenBuffers( 1, (ALuint *)&buff ); // create buffer    
     }
     fmt = snd->Bits ? ((snd->Channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16) : ( (snd->Channels == 1) ? AL_FORMAT_MONO8 : AL_FORMAT_STEREO8 );
     alBufferData( buff, fmt, data, Size, snd->Freq ); // load data to buffer
-    alSourceQueueBuffers( snd->SourceId, 1, &buff ); // queue buffer
+    alSourceQueueBuffers( snd->SourceId, 1, (ALuint *)&buff ); // queue buffer
+    return 0;
 }
 
 void SoundStrClose( SoundStr_t *snd )
@@ -1155,8 +1151,8 @@ void SoundStrClose( SoundStr_t *snd )
     alSourceStop( snd->SourceId );        
     alGetSourcei( snd->SourceId, AL_BUFFERS_PROCESSED, &pcs ); // retrieve the number of processed buffers    
     for( ;pcs; pcs-- ){
-	alSourceUnqueueBuffers( snd->SourceId, 1, &buff );
-	alDeleteBuffers( 1, &buff );
+	alSourceUnqueueBuffers( snd->SourceId, 1, (ALuint *)&buff );
+	alDeleteBuffers( 1, (ALuint *)&buff );
     }
     dbg_free( snd );
 }

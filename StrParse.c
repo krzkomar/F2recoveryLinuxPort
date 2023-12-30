@@ -167,43 +167,6 @@ int StrParseGetPrefixedStrInt( char **pStr, char *Dst, int *Val, char *Prefix )
 /******************************************************************************/
 // inny plik
 
-int TextWrap( char *Str, int LineWidth, short *pOffs, short *pLines )
-{
-    unsigned int LinePix, dist, i;
-    char *n, *s;
-
-    *pLines = 1;
-    pOffs[ 0 ] = 0;
-    for( i = 1; i < 64; i++ ) pOffs[ i ] = -1;
-    
-    if( gFont.MaxWidth() > LineWidth ) return -1;
-    if( gFont.LineWidth( Str ) < LineWidth ){ pOffs[ (*pLines)++ ] = strlen( Str ); return 0; }    
-    dist = gFont.Distance();
-    LinePix = 0;
-    n = NULL;
-    for( s = Str; *s; s++ ){
-        LinePix += dist + gFont.ChrWidth( *s );
-        if( LinePix <= LineWidth ){
-            if( ( IsTable[ *s + 1 ] & 0x02 ) || *s == '-' ) n = s; 
-        } else {
-            if( *pLines >= 64 ) return -1;
-            if( n ){
-                pOffs[ *pLines ] = n - Str + 1;
-                s = n;
-            } else {
-        	s--;
-                pOffs[ *pLines ] = s - Str + 1;
-            }
-            (*pLines)++;
-            LinePix = 0;
-            n = NULL;
-        }
-    }
-    if( *pLines >= 64 ) return -1;
-    pOffs[ *pLines ] = s - Str + 1;
-    (*pLines)++;
-    return 0;
-}
 
 int StriCmp( const char *Str1, const char *Str2 )
 {

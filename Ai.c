@@ -731,10 +731,10 @@ int AiUnk20( Obj_t *a1, Obj_t **a2, Obj_t **Attacker, Obj_t **a4 )
         if( Attacker ){
             if( !*Attacker && GroupId == v8->Critter.State.GroupId ){                        
                 if( (WhoHitMe = v8->Critter.State.WhoHitMe) ){
-                    if( WhoHitMe != a1 && (GroupId != WhoHitMe->Critter.State.GroupId) && !( v8->Critter.State.WhoHitMe->Critter.State.CombatResult & 0x80) ){
-                        v5++;
-                        *Attacker = v8->Critter.State.WhoHitMe;
-                    }
+//                    if( WhoHitMe != a1 && (GroupId != WhoHitMe->Critter.State.GroupId) && !( v8->Critter.State.WhoHitMe->Critter.State.CombatResult & 0x80) ){
+//                        v5++;
+//                        *Attacker = v8->Critter.State.WhoHitMe;
+//                    }
                 }
             }
         }
@@ -775,10 +775,10 @@ Obj_t *AiDangerSource( Obj_t *obj )
             case 0:
                 v18 = CombatUnk11( gObjDude );
                 if( !v18 || obj->Critter.State.GroupId == v18->Critter.State.GroupId ) break;
-                if( !AnimMakeTrace( obj, obj->GridId, gObjDude->Critter.State.WhoHitMe->GridId, 0, 0, (void *)ObjReach ) && CombatAttackTest( obj, v18, 2, 0 ) ){
-                    eprintf( "\nai_danger_source: %s couldn't attack at target!  Picking alternate!", CritterGetName( obj ) );
-                    break;
-                }
+//                if( !AnimMakeTrace( obj, obj->GridId, gObjDude->Critter.State.WhoHitMe->GridId, 0, 0, (void *)ObjReach ) && CombatAttackTest( obj, v18, 2, 0 ) ){
+//                    eprintf( "\nai_danger_source: %s couldn't attack at target!  Picking alternate!", CritterGetName( obj ) );
+//                    break;
+//                }
                 if( v2 && CritterUnk49( v18 ) ) break;
                 return v18;
             case 1: case 2: case 4: obj->Critter.State.WhoHitMe = 0; break;

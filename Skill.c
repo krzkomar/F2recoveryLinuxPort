@@ -21,12 +21,16 @@ Skill_t gSkills[ 18 ] = {
     { NULL, NULL, NULL, 45, 0,  2, 2,  4, 1, 100, 0 } // 17 outdoorsman
 };
 
+int gSkillUnk80 = 0;
+int gSkillUnk60 = 0;
+int gSkillUnk61 = 0;
 int gSkillMenuInited = 0;
 int gSkillMenuIds[ 6 ] = { 0x79, 0x77, 0x78, 0x08, 0x09, 0xAA };
 int gSkillMenuIdx[ 8 ] = { 0x08, 0x09, 0x0A, 0x0B, 0x06, 0x07, 0x0C, 0x0D };
 
 
 const int gSkillDoctorInjuresMask[5] = { 0x40, 0x10, 0x20, 0x08, 0x04 }; // dmaged eye, crippled la, crippled ra, crippled ll, crippled rl
+
 
 
 int gSkillUsage[ 18 ][3]; // 12*18
@@ -242,35 +246,34 @@ int SkillDec( Obj_t *dude, unsigned int SkillIdx )
 
 int SkillUse( Obj_t *dude, unsigned int SkillIdx, int *a3, int a4 )
 {
-/*
-    int v9; int Val; int v12;
+    Obj_t *best;
+    int Total;
 
     if( SkillIdx >= 18 ) return 1;
-    if( dude == gObjDude && SkillIdx != 10 ){
-        v9 = PartyUnk19( SkillIdx );
-        if( v9 ){
-            if( PartyUnk18( v9 ) == SkillIdx ) dude = v9;
+    if( dude == gObjDude && SkillIdx != 10 ){        
+        if( (best = PartyGetBestSkilled( SkillIdx )) ){
+            if( PartyBestSkill( best ) == SkillIdx ) dude = best;
         }
     }
-    SkillGetTotal( dude, SkillIdx );
-    if( dude == gObjDude && SkillIdx == 10 ){
-        if( CritterUnk39(0) ) CritterUnk42();
+    Total = SkillGetTotal( dude, SkillIdx );
+    if( dude == gObjDude && SkillIdx == SKILL_STEAL ){
+        if( CritterUnk39( 0 ) ){
+          if( CritterUnk42() ) Total += 30;
+        }
     }
-    return RandUnk05( a4 + v12, FeatGetVal( dude, FEAT_CRIT ), a3 );
-*/
+    return RandUnk05( a4 + Total, FeatGetVal( dude, FEAT_CRIT ), a3 );
 }
 
 int SkillUseOnDude( Obj_t *dude1, Obj_t *dude2, int a3, unsigned int SkillIdx, int a5, int *a6 )
 {
     int v8; int v10; int v11;
-/*
+
     if( (v8 = SkillUse( dude1, SkillIdx, &v11, a3 ) ) >= 2 ){
         if( SkillUse( dude2, SkillIdx, &v10, a5 ) >= 2 ) v11 -= v10;
         v8 = RandUnk04( v11, 0 );
     }
     if( a6 ) *a6 = v11;
     return v8;
-*/
 }
 
 char *SkillGetName( unsigned int SkillNo )
@@ -593,55 +596,52 @@ LABEL_43:
 */
 }
 
-int SkillUseSteal( Obj_t *dude1, Obj_t *dude2, int a3, Obj_t *Company)
+int SkillUseSteal( Obj_t *dude1, Obj_t *dude2, Obj_t *Company, int a3 )
 {
-/*
-    Obj_t *hero;
-    signed int a;
-    int Val;
+    int tmp, v24, Awareness, v16, v11;
     int CatchChance;
     char stmp[60];
     MsgLine_t MsgLine;
 
-    hero = gObjDude;
-    v22 = 0;
-    if( dude1 != gObjDude || !CharEditUnk53( dude1, 37 ) ){
-//        Unk3024(Company, hero);
-        if( (dude2->ImgId & 0xF000000) >> 24 == 1 ) ActionUnk16(dude1, dude2);
+    tmp = 0;
+    Awareness = 1 - gSkillUnk60;
+    if( dude1 != gObjDude || !PerkLvl( dude1, PERK_PICKPOCKET ) ){
+        Awareness -= 4 * Item24( Company );
+        if( OBJTYPE( dude2->ImgId ) == TYPE_CRIT ) ActionUnk16( dude1, dude2 );
     }
-    v24 = v9 + SkillGetTotal( dude1, SKILL_STEAL );
+    if( dude2->Critter.State.CombatResult & 0x03 ) Awareness += 20;
+    v24 = Awareness + SkillGetTotal( dude1, SKILL_STEAL );
     if( v24 > 95 ) v24 = 95;
-    if( dude1 == gObjDude && PambUnk11( dude2 ) ){
+    if( dude1 == gObjDude && PartyMembRdy( dude2 ) ){
         v11 = 3;
     } else {
-        v11 = RandUnk05( v24, FeatGetVal( dude1, FEAT_CRIT ), &v22 );
+        v11 = RandUnk05( v24, FeatGetVal( dude1, FEAT_CRIT ), &tmp );
     }
     if( v11 == 3 ){
         CatchChance = 0;
     } else if( v11 ){
-        if( ( dude2->Pid >> 24 ) == 1 ){
-            v16 = SkillGetTotal( dude2, SKILL_STEAL ) - v15;
+        if( OBJTYPE( dude2->Pid ) == TYPE_CRIT ){
+            v16 = SkillGetTotal( dude2, SKILL_STEAL ) - Awareness;
         } else {
-            v16 = 30 - v10;
+            v16 = 30 - Awareness;
         }
-        CatchChance = RandUnk05( v16, 0, &v22 );
+        CatchChance = RandUnk05( v16, 0, &tmp );
     } else {
         CatchChance = 2;
     }
     if( CatchChance == 2 || CatchChance == 3 ){
-        MsgLine.Id = 2 * a3 + 570; // you're caught stealing the %s
+        MsgLine.Id = 570 + 2 * a3; // you're caught stealing the %s
         if( MessageGetMsg( &gSkillMsg, &MsgLine ) != 1 ) return -1;
-        sprintf( stmp, MsgLine.Text, NgCompanyName( Company ) );
+        sprintf( stmp, MsgLine.Text, ObjGetName( Company ) );
         IfcMsgOut( stmp );
         return 0;
     } else {
-        MsgLine.Id = 2 * a3 + 571; // you steal %s
+        MsgLine.Id = 570 + 2 * a3 + 1; // you steal %s
         if( MessageGetMsg( &gSkillMsg, &MsgLine ) != 1 ) return -1;
-        sprintf( stmp, MsgLine.Text, NgCompanyName( Company ) );
+        sprintf( stmp, MsgLine.Text, ObjGetName( Company ) );
         IfcMsgOut( stmp );
         return 1;
     }
-*/
 }
 
 int SkillGetDifficulty( int SkillIdx )
@@ -699,12 +699,12 @@ int SkillUsingClear()
 
 int SkillUsingSave( xFile_t *fh )
 {
-    return ( dbputBeiBlk( fh, gSkillUsage, sizeof( gSkillUsage ) / sizeof(int) ) != -1 ) - 1;
+    return ( dbputBeiBlk( fh, (int *)gSkillUsage, sizeof( gSkillUsage ) / sizeof(int) ) != -1 ) - 1;
 }
 
 int SkillUsingLoad( xFile_t *fh )
 {    
-    return (dbreadBeiBlk( fh, gSkillUsage, sizeof( gSkillUsage ) / sizeof(int) ) != -1) - 1;
+    return (dbreadBeiBlk( fh, (int *)gSkillUsage, sizeof( gSkillUsage ) / sizeof(int) ) != -1) - 1;
 }
 
 char *SkillUseTryWantMsg( int Want )

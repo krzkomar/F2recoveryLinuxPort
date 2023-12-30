@@ -140,9 +140,9 @@ int  DialogBorder( int hor, int vert ); // set hor/vert tabs for windows
 int  DialogScrollUp( int a1, int a2, char *a3, char *a4, char *a5, char *a6, int a7 );	// sayscrollup( "", "", "", int,int,int )
 int  DialogScrollDn( int a1, int a2, char *a3, char *a4, char *a5, char *a6, int a7 );	// sayscrolldn( "", "", "", int,int,int )
 int  DialogSetOptSpacing( int spc ); // gap beetwen options
-void DialogSetOptionColor( float r, float g, float b );
-void DialogSetReplyColor( float r, float g, float b );
-void DialogSetOptionFlags( short justify ); // justify: 0-left, 1-right, 2-center
+int  DialogSetOptionColor( float r, float g, float b );
+int  DialogSetReplyColor( float r, float g, float b );
+int  DialogSetOptionFlags( short justify ); // justify: 0-left, 1-right, 2-center
 void DialogFree();
 int  DialogGetSayModeLvl();
 void DialogUnk34( int (*)(), int (*a2)() );

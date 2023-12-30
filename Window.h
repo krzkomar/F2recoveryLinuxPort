@@ -38,20 +38,24 @@ typedef struct { // size of 272
     struct _Widget_t *Wgs[ 64 ];
 } WinRadio_t;
 
-typedef struct 
+typedef struct { // size of 36
+    VidRect_t Rect;
+    int key;
+    int Lines;
+    char **TextList;
+    int FgColor;
+    int BgColor;
+} WinDlgBox_t;
+
+typedef struct // size of 572
 {
-  int i01;
-  int i02;
-  int i03;
-  int i04;
-  int i05;
-  int Cnt;
-  int i07;
-  int i08;
-  int i09;
-  int i10;
-  int *i11;
-} WinDlg_t;
+    int WinId;		// 4
+    VidRect_t	Area;	// 16
+    int Cnt;		// 4
+    WinDlgBox_t box[ 15 ];    // 36 *15 = 540
+    int ColorA;		// 4
+    int ColorB;		// 4
+} WinDlg_t; // textbox01_t ?
 
 
 typedef struct 
@@ -173,7 +177,7 @@ int   WinButtonState( int WdgId );
 int   WinProcess( Window_t *win, int *a2 );
 int   WinGetAreaPointedPixel( Widget_t *Wg, VidRect_t *Rect );
 int   WinImageGetWinId( int ImageId );
-int   WinImageUnk04();
+int   WinGetPointed();
 int   WinImageRemove( int ImageId );
 void  WinWidgetsFree( Widget_t *img );
 void  WinCloseWithKey( int WdgId, int Key );

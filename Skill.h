@@ -39,6 +39,11 @@ typedef struct
     int i11;
 } Skill_t;
 
+extern int gSkillUnk80;
+extern int gSkillUnk60;
+extern int gSkillUnk61;
+
+
 //Skill_t gSkills[ 18 ];
 //int gSkillMenuUnk01;
 //int gSkillMenuIds[ 6 ];
@@ -83,7 +88,7 @@ char *SkillGetAttr( unsigned int SkillNo );
 int  SkillGetImgId( unsigned int SkillNo );
 void SkillHoningAward( Obj_t *dude,int SkillIdx, int a3, int a4 );
 int  SkillUseHeal( Obj_t *dude1, Obj_t *dude2, int a3, unsigned int SkillIdx );
-int  SkillUseSteal( Obj_t *dude1, Obj_t *dude2, int a3, Obj_t *Company);
+int  SkillUseSteal( Obj_t *dude1, Obj_t *dude2, Obj_t *Company, int a3);
 int  SkillGetDifficulty( int SkillIdx );
 int  SkillUsingTired( int SkillIdx );
 int  SkillUsing( int SkillIdx );

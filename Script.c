@@ -395,7 +395,7 @@ void ScptTaskCb( int arg )
         gScptUnk107 = Time;
         while( --i != -1 ) SciUnk19();
     }
-    WinMovieUpdate();
+    WinRun();
     if( gScptEnable == 1 && gScptEnable == gScptUnk07 && !GdialogUnk01() ){
         ScptUnk133();
         ScptUnk132();

@@ -502,19 +502,19 @@ int SfxCacheCreateFileList()
     Free( p );
     
     if( gSfxCacheSfxCount > 10000 ){
-        dbDelFileList( &list );
+        dbDelFileList( list );
         return 1;
     }
     if( gSfxCacheSfxCount <= 0 ) return 1;
     n = sizeof( SfxCacheList_t ) * gSfxCacheSfxCount;
     gSfxCacheList = Malloc( n );
     if( !gSfxCacheList ){
-        dbDelFileList( &list );
+        dbDelFileList( list );
         return 1;
     }
     memset( gSfxCacheList, 0, n );
     err = SfxCacheListCopyFnames( list );
-    dbDelFileList( &list );
+    dbDelFileList( list );
     if( err ){
 	SfxCacheListFree();
 	return err;

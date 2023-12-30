@@ -850,25 +850,28 @@ int DialogSetOptSpacing( int spc )
     return 0;
 }
 
-void DialogSetOptionColor( float r, float g, float b )
+int DialogSetOptionColor( float r, float g, float b )
 {
     gSayOptColors = 1;    
     gSayOptColorR = lround( r * 31.0 );
     gSayOptColorG = lround( g * 31.0 );    
     gSayOptColorB = lround( b * 31.0 );
+    return 1;
 }
 
-void DialogSetReplyColor( float r, float g, float b )
+int DialogSetReplyColor( float r, float g, float b )
 {
     gSayReplyColors = 1;    
     gSayReplyColorR = lround( r * 31.0 );
     gSayReplyColorG = lround( g * 31.0 );
     gSayReplyColorB = lround( b * 31.0 );
+    return 1;
 }
 
-void DialogSetOptionFlags( short flags )
+int DialogSetOptionFlags( short flags )
 {
     gSayOptFlags = flags;
+    return 1;
 }
 
 void DialogFree()

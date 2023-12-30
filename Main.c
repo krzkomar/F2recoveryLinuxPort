@@ -1,7 +1,6 @@
 #include <SDL.h>
 #include "FrameWork.h"
 
-
 int gMainUnk03;
 int gMainUnk05 = 0;
 char **gMainFileList = NULL;
@@ -13,9 +12,9 @@ int gMainUnk01 = 0;
 static void MainUnk07();
 extern void *gCharEditKarma;
 
-void GameVersion( char *str )
+void MainGameVersion( char *str )
 {
-    sprintf(str, "FALLOUT II %d.%02d ", 1, 2);
+    sprintf( str, "FALLOUT II %d.%02d ", 1, 2 );
 }
 
 void MainGame( int argc, char **argv )
@@ -49,9 +48,9 @@ void MainGame( int argc, char **argv )
                     GSoundBgClose();
             	    break;
                 case 0:  // INTRO
-//                    MainMenuUpdate( 1 );
-//                    GMoviePlay( 1, 8 );
-//                    GMoviePlay( 16, 0 );
+                    MainMenuUpdate( 1 );
+                    GMoviePlay( 1, 8 );
+                    GMoviePlay( 16, 0 );
                     break;
                 case 1: // NEW GAME
                     MainMenuUpdate(1);
@@ -141,7 +140,7 @@ void MainGame( int argc, char **argv )
     }
     GSoundBgClose();
 //    GameCleanFiles();
-//    GameExit();
+    GameExit();
 }
 
 int MainInit( int argc, char **argv )
@@ -434,7 +433,7 @@ int MainUnk06( char *str, int LineWidth, short *pOffs, short *pLines )
         s[ 0 ] = ' ';
         s[ -1 ] = ' ';
     }
-    if( TextWrap( str, LineWidth, pOffs, pLines ) == -1 ) return -1;
+    if( WinTextWrap( str, LineWidth, pOffs, pLines ) == -1 ) return -1;
     offs = pOffs + 1;
     for( i = 1; i < (*pLines - 1); i++, offs++ ){
         for( s = str + *offs; *s != ' '; --*offs ){

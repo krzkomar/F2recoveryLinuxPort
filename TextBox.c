@@ -1,466 +1,219 @@
 /* Not done */
 #include "FrameWork.h"
 
-#define TEXTBOX_MARGIN_H 2
-#define TEXTBOX_MARGIN_V 8
+int TextBoxEditNumber( int WinId, int *pValue, int Digits, int Clear, char a5, int posX, int posY );
+int TextBoxUnk09( int min, int max );
 
-typedef struct 
+int gTextBoxWinId = -1;
+WinDlg_t *gTextBoxGuard = NULL;
+int gTextBoxXpos;
+int gTextBoxYpos;
+
+
+int TextBoxFileSelect( char *Title, char **FileList, int Win, void (*Cb)(), int w, int h, int flags )
 {
-  int i01;
-  int i02;
-  int i03;
-  int i04;
-  int i05;
-  int i06;
-  int i07;
-  int i08;
-  int i09;
-  int i10;
-  char *i11;
-} TextBox_t;
-
-
-int TextBoxFileSelect( char *Title, char **List, int Win, int cnt, int w, int h, int flags )
-{
-    return TextBoxSelect( Title, List, Win, cnt, w, h, flags, 0 );
+    return TextBoxSelect( Title, FileList, Win, Cb, w, h, flags, 0 );
 }
 
-int TextBoxSelect( char *msg, char **FileList, int n, int ebx0, int a0,int a1,int a7,int a8 )
+int TextBoxSelect( char *msg, char **FileList, int n, void (*Cb)(), int a0, int a1, int a7, int a8 )
 {
-/*
-    int v8; // edi
-    unsigned int v10; // esi
-    signed int v11; // eax
-    int v12; // edx
-    unsigned int v13; // edx
-    signed int v14; // esi
-    int i; // ebp
-    char *Surface; // edx
-    int v17; // eax
-    int v18; // eax
-    int v19; // eax
-    int v20; // eax
-    int v21; // ebp
-    int v22; // ebp
-    const char **v23; // edx
-    int v24; // ebx
-    int v25; // eax
-    int v26; // eax
-    int v27; // edx
-    int v28; // ecx
-    int v29; // eax
-    int v30; // edx
-    int v31; // eax
-    int v32; // ecx
-    int v33; // eax
-    int v34; // eax
-    int v35; // edx
-    int v36; // eax
-    int v37; // edx
-    int v38; // eax
-    int v39; // edx
-    int v40; // eax
-    int v41; // ecx
-    int v42; // eax
-    int v43; // ebx
-    int v44; // ecx
-    int v45; // ecx
-    int v46; // eax
-    const char **v47; // edx
-    int v48; // ebx
-    int v49; // eax
-    int v50; // eax
-    int v51; // ecx
-    int v52; // edx
-    unsigned int v53; // ebx
-    int v54; // eax
-    int v55; // edx
-    int v56; // ebx
-    int v57; // eax
-    int v58; // ecx
-    int v59; // eax
-    unsigned int v60; // ebx
-    int v61; // eax
-    const char *v62; // edx
-    int v63; // eax
-    int v64; // edx
-    int v65; // ebx
-    int v66; // eax
-    int v67; // [esp-20h] [ebp-DCh]
-    int v68; // [esp-4h] [ebp-C0h]
-    int v69; // [esp-4h] [ebp-C0h]
-    int v70; // [esp+0h] [ebp-BCh]
-    int v71; // [esp+0h] [ebp-BCh]
-    int v72; // [esp+0h] [ebp-BCh]
-    int v73; // [esp+0h] [ebp-BCh]
-    int v74; // [esp+0h] [ebp-BCh]
-    int v75; // [esp+0h] [ebp-BCh]
-    VidRect_t v76; // [esp+4h] [ebp-B8h] BYREF
-    int bottom; // [esp+14h] [ebp-A8h] BYREF
-    int right; // [esp+18h] [ebp-A4h] BYREF
-    char **v79; // [esp+1Ch] [ebp-A0h]
-    char *pal; // [esp+20h] [ebp-9Ch]
-    int y1; // [esp+24h] [ebp-98h]
-    int a3; // [esp+28h] [ebp-94h]
-    int v83; // [esp+2Ch] [ebp-90h]
-    int a5; // [esp+30h] [ebp-8Ch]
-    int v85; // [esp+34h] [ebp-88h]
-    int v86; // [esp+38h] [ebp-84h]
-    int v87; // [esp+3Ch] [ebp-80h]
-    int x0; // [esp+40h] [ebp-7Ch]
-    int posX; // [esp+44h] [ebp-78h]
-    int xx; // [esp+48h] [ebp-74h]
-    char *pDst; // [esp+4Ch] [ebp-70h]
-    unsigned int v92; // [esp+50h] [ebp-6Ch]
-    int Color; // [esp+54h] [ebp-68h]
-    unsigned int v94; // [esp+58h] [ebp-64h]
-    int Height; // [esp+5Ch] [ebp-60h]
-    unsigned int a4; // [esp+60h] [ebp-5Ch]
-    int v97; // [esp+64h] [ebp-58h]
-    int g0; // [esp+68h] [ebp-54h]
-    int a6; // [esp+6Ch] [ebp-50h]
-    int v100; // [esp+70h] [ebp-4Ch]
-    VidRect_t *p_Geometry; // [esp+74h] [ebp-48h]
-    int v102; // [esp+78h] [ebp-44h]
-    int Ypos; // [esp+7Ch] [ebp-40h]
-    Window01_t *v104; // [esp+80h] [ebp-3Ch]
-    Window01_t *win; // [esp+84h] [ebp-38h]
-    Window_t *Window; // [esp+88h] [ebp-34h]
-    unsigned int Width; // [esp+8Ch] [ebp-30h]
-    char **v108; // [esp+90h] [ebp-2Ch]
-    int arg4; // [esp+94h] [ebp-28h]
-    int posY; // [esp+98h] [ebp-24h]
-    unsigned int v111; // [esp+9Ch] [ebp-20h]
-    unsigned int v112; // [esp+A0h] [ebp-1Ch]
-    unsigned int a2; // [esp+A4h] [ebp-18h]
-    int Pitch; // [esp+A8h] [ebp-14h]
-    int ebx0a; // [esp+ACh] [ebp-10h]
+    VidRect_t Area;
+    Window_t *Window;
+    int i,v8,v10,v14,v11,v19,v20,v46,v21,v22,sel,ecc;
+    int bottom,right,a3,v97,v102,Ypos,win,arg4,posY,Pitch,zgz;
+    unsigned int Width, v111, v112, a2;
+    char *p;
 
     v8 = a8;
-    y1 = msg;
-    v104 = FileList;
     Pitch = n;
-    Height = ebx0;
     v111 = -1;
     v102 = -1;
-    if ( !gWinSys.Init )
-        return -1;
-    a2 = TextBoxListWidth(v104, n);
+    if( !gWinSys.Init ) return -1;
+    a2 = TextBoxListWidth( FileList, n );
     v10 = a2 + 16;
-    v11 = gFont.LineWidth(y1);
-    if ( v11 > (a2 + 16) )
-    {
-        v13 = v11 - v10 + v12;
+    v11 = gFont.LineWidth( msg );
+    if( v11 > (a2 + 16) ){
+        a2 += v11 - v10;
         v10 = v11;
-        a2 = v13;
     }
     v14 = v10 + 20;
-    ebx0a = 10;
-    for ( i = 13;
-          i > 8;
-          --i )
-    {
+    zgz = 10;
+    for( i = 13; i > 8; i--, zgz-- ){
         v97 = i * gFont.ChrHeight() + 22;
-        win = WinCreateWindow(a0, a1, v14, v97, 256, 20);
-        if ( win != -1 )
-            break;
-        --ebx0a;
+        if( (win = WinCreateWindow( a0, a1, v14, v97, 256, 20 ) ) != -1 ) break;
     }
-    if ( win == -1 )
-        return -1;
-    Window = WinGetWindow(win);
-    Surface = Window->Surface;
-    p_Geometry = &Window->Geometry;
-    pDst = Surface;
-    ScrRectangle(Surface, v14, 0, 0, v14 - 1, v97 - 1, gPalColorCubeRGB[0][0][0]);
-    ScrShadowRectangle(pDst, v14, 1, 1, v14 - 2, v97 - 2, gPalColorCubeRGB[0][0][gWinSys.Colors[1]], gPalColorCubeRGB[0][0][gWinSys.Colors[2]]);
-    v79 = (v14 / 2 + 8 * v14 - gFont.LineWidth(y1) / 2);
-    v70 = gPalColorCubeRGB[0][0][gWinSys.Colors[0]];
-    v17 = gFont.ChrHeight();
-    ScrFillSolid(&pDst[5 * v14 + 5], v14 - 11, v17 + 3, v14, v70);
-    gFont.Print(&pDst[v79], y1, v14, v14, gPalColorCubeRGB[0][0][gWinSys.Colors[3]] | 0x10000);
-    v71 = gPalColorCubeRGB[0][0][gWinSys.Colors[1]];
-    v68 = gPalColorCubeRGB[0][0][gWinSys.Colors[2]];
-    v18 = gFont.ChrHeight();
-    ScrShadowRectangle(pDst, v14, 5, 5, v14 - 6, v18 + 8, v68, v71);
+    if( win == -1 ) return -1;
+    Window = WinGetWindow( win );
+    ScrRectangle( Window->Surface, v14, 0, 0, v14 - 1, v97 - 1, COLOR( 0, 0, 0 ) );
+    ScrShadowRectangle( Window->Surface, v14, 1, 1, v14 - 2, v97 - 2, COLOR( 0, 0, gWinSys.Colors[ 1 ] ), COLOR( 0, 0, gWinSys.Colors[ 2 ] ) );
+    ScrFillSolid( &Window->Surface[ 5 * v14 + 5 ], v14 - 11, gFont.ChrHeight() + 3, v14, COLOR( 0, 0, gWinSys.Colors[ 0 ] ) );
+    gFont.Print( &Window->Surface[ v14 / 2 + 8 * v14 - gFont.LineWidth( msg ) / 2 ], msg, v14, v14, COLOR( 0, 0, gWinSys.Colors[ 3 ] ) | 0x10000 );
+    ScrShadowRectangle( Window->Surface, v14, 5, 5, v14 - 6, gFont.ChrHeight() + 8, COLOR( 0, 0, gWinSys.Colors[ 2 ] ), COLOR( 0, 0, gWinSys.Colors[ 1 ] ) );
     arg4 = gFont.ChrHeight() + 16;
     v19 = gFont.ChrHeight();
-    a3 = ebx0a * v19 + arg4;
-    v108 = &pDst[v14 * arg4 + 8];
+    a3 = zgz * v19 + arg4;
+    p = &Window->Surface[ v14 * arg4 + 8 ];
     Ypos = 8;
-    ScrFillSolid(v108 - 2 * v14 - 3, a2 + 6, ebx0a * v19 + 2, v14, gPalColorCubeRGB[0][0][gWinSys.Colors[0]]);
-    if ( a8 < 0 || a8 >= Pitch )
-        v8 = 0;
-    if ( Pitch - v8 >= ebx0a )
-    {
+    ScrFillSolid( p - 2 * v14 - 3, a2 + 6, zgz * v19 + 2, v14, COLOR( 0, 0, gWinSys.Colors[ 0 ] ));
+    if( a8 < 0 || a8 >= Pitch ) v8 = 0;
+    if( Pitch - v8 >= zgz ){
         v22 = 0;
-    }
-    else
-    {
-        v20 = Pitch - ebx0a;
-        if ( Pitch - ebx0a < 0 )
-            v20 = 0;
+    } else {
+        v20 = Pitch - zgz;
+        if( Pitch - zgz < 0 ) v20 = 0;
         v21 = v8;
         v8 = v20;
         v22 = v21 - v20;
     }
-    v23 = (&v104->Id + v8);
-    if ( Pitch >= ebx0a )
-        WinDrawTextList(win, v23, ebx0a, a2, Ypos, arg4, a7 | 0x2000000);
-    else
-        WinDrawTextList(win, v23, Pitch, a2, Ypos, arg4, a7 | 0x2000000);
-    v24 = gFont.ChrHeight();
-    v25 = gFont.ChrHeight();
-    ScrEnlight(v108 + v14 * v22 * v25, a2, v24, v14);
-    ScrShadowRectangle(pDst, v14, 5, arg4 - 3, a2 + 10, a3, gPalColorCubeRGB[0][0][gWinSys.Colors[2]], gPalColorCubeRGB[0][0][gWinSys.Colors[1]]);
-    v79 = (v14 - 25);
-    WinAddButton(win, v14 - 25, arg4 - 3, -1, -1, 328, -1, byte_50FA48, 0);
-    v26 = gFont.ChrHeight();
-    WinAddButton(win, v27, a3 - v26 - 5, v28, -1, 336, -1, byte_50FA4C, 0);
-    v29 = gFont.ChrHeight();
-    WinAddButton(win, v14 / 2 - 32, v30 - v29 - 6, -1, -1, -1, 27, "Done", 0);
-    xx = v14 - 21;
-    v31 = gFont.ChrHeight();
-    posY = v32 + v31 + 7;
+    WinDrawTextList( win, &FileList[ v8 ], ( Pitch >= zgz ) ? zgz : Pitch, a2, Ypos, arg4, a7 | 0x2000000 );
+    ScrEnlight( &p[ v14 * v22 * gFont.ChrHeight() ], a2, gFont.ChrHeight(), v14 );
+    ScrShadowRectangle(Window->Surface, v14, 5, arg4 - 3, a2 + 10, a3, COLOR( 0, 0, gWinSys.Colors[ 2 ] ), COLOR( 0, 0, gWinSys.Colors[ 1 ] ) );
+    WinAddButton( win, v14 - 25, arg4 - 3, -1, -1, 328, -1, "\x18\x18\x18", 0 );
+    WinAddButton( win, v14, a3 - gFont.ChrHeight() - 5, -1, -1, 336, -1, "\x19\x19\x19", 0 );
+    WinAddButton( win, v14 / 2 - 32, v14 - gFont.ChrHeight() - 6, -1, -1, -1, 27, "Done", 0 );
+    posY = arg4 + gFont.ChrHeight() + 7;
     Width = 14;
-    v72 = gPalColorCubeRGB[0][0][gWinSys.Colors[0]];
-    v79 = (a3 - posY);
-    v33 = gFont.ChrHeight();
-    pal = &pDst[v14 - 21 + v14 * posY];
-    ScrFillSolid(pal, 0xFu, a3 - posY - v33 - 8, v14, v72);
-    v34 = gFont.ChrHeight();
-    WinCreateButton(win, v14 - 21, posY, 15, v35 - v34 - 8, -1, -1, 2048, -1, 0, 0, 0, 0);
-    v73 = gPalColorCubeRGB[0][0][gWinSys.Colors[1]];
-    v69 = gPalColorCubeRGB[0][0][gWinSys.Colors[2]];
-    v36 = gFont.ChrHeight();
-    ScrShadowRectangle(pDst, v14, v14 - 22, posY - 1, v14 - 21 + 15, v37 - v36 - 9, v69, v73);
-    ScrShadowRectangle(pDst, v14, xx, posY, xx + 14, posY + 14, gPalColorCubeRGB[0][0][gWinSys.Colors[1]], gPalColorCubeRGB[0][0][gWinSys.Colors[2]]);
-    ScrEnlight(pal, 0xEu, 14, v14);
-    v100 = 0;
-    if ( ebx0a > 0 )
-    {
-        a6 = 1024;
-        g0 = 512;
-        do
-        {
-            v67 = gFont.ChrHeight();
-            v38 = gFont.ChrHeight();
-            WinCreateButton(win, Ypos, v39 * v38 + arg4, a2, v67, g0++, -1, a6++, -1, 0, 0, 0, 0);
-            ++v100;
-        }
-        while ( v100 < ebx0a );
+    ScrFillSolid( &Window->Surface[ v14 - 21 + v14 * posY ], 15, a3 - posY - gFont.ChrHeight() - 8, v14, COLOR( 0, 0, gWinSys.Colors[ 0 ] ) );
+    WinCreateButton( win, v14 - 21, posY, 15, v14 - gFont.ChrHeight() - 8, -1, -1, 2048, -1, 0, 0, 0, 0 );
+    ScrShadowRectangle( Window->Surface, v14, v14 - 22, posY - 1, v14 - 21 + 15, v14 - gFont.ChrHeight() - 9, COLOR( 0, 0, gWinSys.Colors[ 2 ] ), COLOR( 0, 0, gWinSys.Colors[ 1 ] ) );
+    ScrShadowRectangle( Window->Surface, v14, v14 - 21, posY, v14 - 21 + 14, posY + 14, COLOR( 0, 0, gWinSys.Colors[ 1 ] ), COLOR( 0, 0, gWinSys.Colors[ 2 ] ));
+    ScrEnlight( &Window->Surface[ v14 - 21 + v14 * posY ], 14, 14, v14 );
+    for( i = 0; i < zgz; i++ ){
+        WinCreateButton( win, Ypos, v14 * gFont.ChrHeight() + arg4, a2, gFont.ChrHeight(), 512 + i, -1, 1024 + i, -1, 0, 0, 0, 0 );
     }
-    v40 = gFont.ChrHeight();
-    WinCreateButton(win, 0, 0, v41, v40 + 8, -1, -1, -1, -1, 0, 0, 0, 16);
-    WinUpdate(win);
-    v94 = Width + 1;
-    v92 = &pDst[xx];
-    a4 = a3 - arg4;
-    v112 = Pitch - ebx0a;
-    a5 = Width + xx;
-    Color = a7 | 0x2000000;
-    v85 = 4 * a7;
-    HIWORD(v42) = HIWORD(a7);
-    LOWORD(v42) = 0;
-    v83 = v42;
-    x0 = Pitch - 1;
-    posX = ebx0a - 1;
-    v87 = ebx0a + 512;
-    v86 = ebx0a + 1024;
-    while ( 1 )
-    {
-        while ( 1 )
-        {
-            while ( 1 )
-            {
-                v43 = InpUpdate();
-                MseGetCursorPosition(&right, &bottom);
-                if ( v43 != 13 && (v43 < 1024 || v43 >= v86) )
-                    break;
-                if ( v22 != -1 )
-                {
-                    v102 = v8 + v22;
-                    if ( v8 + v22 < Pitch )
-                    {
-                        if ( !Height )
-                            goto LABEL_90;
-                        (Height)();
-                    }
-                    v102 = -1;
+    WinCreateButton( win, 0, 0, v14, gFont.ChrHeight() + 8, -1, -1, -1, -1, 0, 0, 0, 16 );
+    WinUpdate( win );
+    v112 = Pitch - zgz;
+    while( 1 ){
+        sel = InpUpdate();
+        MseGetCursorPosition( &right, &bottom );
+        if( sel != 13 && (sel < 1024 || sel >= (zgz + 1024) ) ){
+    	    if( sel == 2048 ){
+    		if( Window->Geometry.tp + posY > bottom ){
+            	    sel = 329;
+    		} else {
+    		    if( (Window->Geometry.tp + Width + posY) >= bottom ) continue;
+        	    sel = 337;
+        	}
+            }
+        } else {
+    	    if( v22 != -1 ){
+                v102 = v8 + v22;
+                if( v8 + v22 < Pitch ){
+            	    if( !Cb ){
+                    	WinClose( win );
+			return v102;
+            	    }
+            	    Cb();
                 }
-            }
-            if ( v44 != 2048 )
-                break;
-            if ( Window->Geometry.tp + posY > bottom )
-            {
-                v44 = 329;
-                break;
-            }
-            if ( (Window->Geometry.tp + Width + posY) < bottom )
-            {
-                v44 = 337;
-                break;
-            }
+                v102 = -1;
+    	    }
+    	    continue;
+        }        
+        if( sel == 27 ) break;
+        if( ( sel >= 512) && ( sel < zgz + 512 ) ){
+    	    ecc = sel - 512;
+	    if( !((ecc != v22) && (ecc < Pitch)) ) continue;
+	    v111 = v22;
+	    v22 = ecc;
+    	    sel = -3;
         }
-        if ( v44 == 27 )
-            break;
-        if ( v44 < 512 || v44 >= v87 )
-        {
-            switch ( v44 )
-            {
-                case 327:
-                    if ( v8 > 0 )
-                    {
-                        v44 = -4;
+        switch( sel ){
+            case 327:
+                    if( v8 > 0 ){
+                        sel = -4;
                         v8 = 0;
                     }
                     break;
-                case 328:
-                    if ( v22 <= 0 )
-                    {
-                        if ( v8 > 0 )
-                        {
-                            v44 = -4;
-                            --v8;
+            case 328:
+                    if( v22 <= 0 ){
+                        if( v8 > 0 ){
+                            sel = -4;
+                            v8--;
                         }
-                    }
-                    else
-                    {
-                        v44 = -3;
+                    } else {
+                        sel = -3;
                         v111 = v22--;
                     }
                     break;
-                case 329:
-                    if ( v8 > 0 )
-                    {
-                        v8 -= ebx0a;
-                        if ( v8 < 0 )
-                            v8 = 0;
-                        v44 = -4;
+            case 329:
+                    if( v8 > 0 ){
+                        v8 -= zgz;
+                        if( v8 < 0 ) v8 = 0;
+                        sel = -4;
                     }
                     break;
-                case 335:
-                    if ( v8 < v112 )
-                    {
-                        v44 = -4;
+            case 335:
+                    if( v8 < v112 ){
+                        sel = -4;
                         v8 = v112;
                     }
                     break;
-                case 336:
-                    if ( v22 >= posX || v22 >= x0 )
-                    {
-                        if ( v8 + ebx0a < Pitch )
-                        {
-                            v44 = -4;
-                            ++v8;
+            case 336:
+                    if( v22 >= (zgz - 1) || v22 >= Pitch - 1 ){
+                        if( v8 + zgz < Pitch ){
+                            sel = -4;
+                    	    v8++;
                         }
-                    }
-                    else
-                    {
-                        v44 = -3;
+                    } else {
+                        sel = -3;
                         v111 = v22++;
                     }
                     break;
-                case 337:
-                    if ( v8 < v112 )
-                    {
-                        v8 += ebx0a;
-                        if ( v8 > v112 )
-                            v8 = v112;
-                        v44 = -4;
+            case 337:
+                    if( v8 < v112 ){
+                        v8 += zgz;
+                        if( v8 > v112 ) v8 = v112;
+                        sel = -4;
                     }
                     break;
-                default:
-                    if ( Pitch > ebx0a && (v44 >= 97 && v44 <= 122 || v44 >= 65 && v44 <= 90) )
-                    {
-                        v46 = TextBoxSearchLine(v44, v104, Pitch);
-                        v44 = v46;
-                        if ( v46 != -1 )
-                        {
-                            v8 = v46;
-                            if ( v46 > v112 )
-                                v8 = v112;
-                            v44 = -4;
-                            v22 = v46 - v8;
-                        }
-                    }
+            default:
+                    if( (Pitch <= zgz) || ( !(sel >= 'a' && sel <= 'z') && !(sel >= 'A' && sel <= 'Z') ) ) break;
+                    v46 = TextBoxSearchLine( sel, FileList, Pitch );
+                    sel = v46;
+                    if( sel == -1 ) break;
+                    v8 = ( sel > v112 ) ? v112 : sel;
+                    v22 = v46 - v8;
+                    sel = -4;
                     break;
-            }
-LABEL_75:
-            if ( v44 == -4 )
-            {
-                ScrFillSolid(v108, a2, a4, v14, gPalColorCubeRGB[0][0][gWinSys.Colors[0]]);
-                v47 = (&v104->Id + v8);
-                if ( Pitch >= ebx0a )
-                    WinDrawTextList(win, v47, ebx0a, a2, Ypos, arg4, Color);
-                else
-                    WinDrawTextList(win, v47, Pitch, a2, Ypos, arg4, Color);
-                v48 = gFont.ChrHeight();
-                v49 = gFont.ChrHeight();
-                ScrEnlight(v108 + v14 * v22 * v49, a2, v48, v14);
-                if ( Pitch > ebx0a )
-                {
-                    ScrFillSolid((v92 + v14 * posY), v94, v94, v14, gPalColorCubeRGB[0][0][gWinSys.Colors[0]]);
-                    gFont.ChrHeight();
-                    v50 = gFont.ChrHeight();
-                    posY = v52 + v51 + v50 + 7;
-                    ScrShadowRectangle(pDst, v14, xx, posY, a5, Width + posY, gPalColorCubeRGB[0][0][gWinSys.Colors[1]], gPalColorCubeRGB[0][0][gWinSys.Colors[2]]);
-                    ScrEnlight((v92 + v14 * posY), Width, Width, v14);
-                }
-                WinRedraw(Window, p_Geometry, 0);
-            }
-            else if ( v44 == -3 )
-            {
-                v76.lt = Ypos + p_Geometry->lt;
-                v53 = v111;
-                v76.rt = a2 + v76.lt;
-                if ( v111 != -1 )
-                {
-                    v54 = gFont.ChrHeight();
-                    v76.tp = v53 * v54 + arg4 + v55;
-                    v76.bm = gFont.ChrHeight() + v76.tp;
-                    v74 = gPalColorCubeRGB[0][0][gWinSys.Colors[0]];
-                    v56 = gFont.ChrHeight();
-                    v57 = gFont.ChrHeight();
-                    ScrFillSolid(v108 + v14 * v58 * v57, a2, v56, v14, v74);
-                    if ( BYTE1(a7) )
-                        v59 = v83 | gPalColorCubeRGB[0][0][*(&gPalBase + v85 + 172)];
-                    else
-                        v59 = a7;
-                    v75 = v59;
-                    v60 = v111;
-                    v61 = gFont.ChrHeight();
-                    gFont.Print(v108 + v14 * v60 * v61, v62, v14, v14, v75);
-                    WinRedraw(Window, &v76, 0);
-                }
-                if ( v22 != -1 )
-                {
-                    v63 = gFont.ChrHeight();
-                    v76.tp = v22 * v63 + v64;
-                    v76.bm = gFont.ChrHeight() + v76.tp;
-                    v65 = gFont.ChrHeight();
-                    v66 = gFont.ChrHeight();
-                    ScrEnlight(v108 + v14 * v22 * v66, a2, v65, v14);
-                    WinRedraw(Window, &v76, 0);
-                }
-            }
         }
-        else
-        {
-            v45 = v44 - 512;
-            if ( v45 != v22 && v45 < Pitch )
-            {
-                v111 = v22;
-                v22 = v45;
-                v44 = -3;
-                goto LABEL_75;
-            }
-        }
+	switch( sel ){
+            case -4:
+            	    ScrFillSolid( p, a2, a3 - arg4, v14, COLOR( 0, 0, gWinSys.Colors[ 0 ] ) );
+            	    WinDrawTextList( win, &FileList[ v8 ],( Pitch >= zgz ) ? zgz : Pitch, a2, Ypos, arg4, a7 | 0x2000000 );
+            	    ScrEnlight( &p[ v14 * v22 * gFont.ChrHeight() ], a2, gFont.ChrHeight(), v14 );
+            	    if( Pitch > zgz ){
+                	ScrFillSolid( &(&Window->Surface[ v14 - 21 ])[ v14 * posY ], Width + 1, Width + 1, v14, COLOR( 0, 0, gWinSys.Colors[ 0 ] ) );
+                	gFont.ChrHeight();
+                	posY = v14 + ecc + gFont.ChrHeight() + 7;
+                	ScrShadowRectangle( Window->Surface, v14, v14 - 21, posY, Width + v14 - 21, Width + posY, COLOR( 0, 0, gWinSys.Colors[ 1 ] ), COLOR( 0, 0, gWinSys.Colors[ 2 ] ) );
+                	ScrEnlight( &(&Window->Surface[ v14 - 21 ])[ v14 * posY ], Width, Width, v14 );
+            	    }
+            	    WinRedraw( Window, &Window->Geometry, 0 );
+		    break;
+	    case -3:
+        	    Area.lt = Ypos + (&Window->Geometry)->lt;
+        	    Area.rt = Area.lt + a2;
+        	    if( v111 != -1 ){
+            		Area.tp = v111 * gFont.ChrHeight() + arg4 + v14;
+            		Area.bm = Area.tp + gFont.ChrHeight();
+            		ScrFillSolid( &p[ v14 * ecc * gFont.ChrHeight() ], a2, gFont.ChrHeight(), v14, COLOR( 0, 0, gWinSys.Colors[ 0 ] ) );            		
+            		gFont.Print( &p[ v14 * v111 * gFont.ChrHeight() ], FileList[ v8 + v111 ], v14, v14, 
+            		    ( a7 & 0xff00 ) ? ( (a7 & 0xffff0000) | COLOR( 0, 0, gPalBase[ a7 + 43 ].b ) ) : a7 
+            		);
+            		WinRedraw( Window, &Area, 0 );
+        	    }
+        	    if( v22 != -1 ){
+            		Area.tp = v22 * gFont.ChrHeight() + v14;
+            		Area.bm = Area.tp + gFont.ChrHeight();
+            		ScrEnlight( &p[ v14 * v22 * gFont.ChrHeight() ], a2, gFont.ChrHeight(), v14 );
+            		WinRedraw( Window, &Area, 0 );
+        	    }
+        	    break;
+	}
     }
-LABEL_90:
-    WinClose(win);
+    WinClose( win );
     return v102;
-*/
 }
 
 
@@ -488,67 +241,115 @@ int TextBoxDialogEdit1( char *text, int MaxChars, char *Label, int Xpos, int Ypo
     WinAddButton( win, (w / 2) - 72, h - 8 - gFont.ChrHeight() - 6, -1, -1, -1, 13, "Done",  0 );
     WinAddButton( win, (w / 2) + 8,  h - 8 - gFont.ChrHeight() - 6, -1, -1, -1, 27, "Cancel", 0 );
     WinUpdate( win );
-//    TextBoxDialogRun( win, text, MaxChars, 16, gFont.ChrHeight() + 16, WIN_FRCOL_C, WIN_PALCOLOR_ALPHA );
+    TextBoxDialogRun( win, text, MaxChars, 16, gFont.ChrHeight() + 16, WIN_FRCOL_C, WIN_PALCOLOR_ALPHA );
     WinClose( win );
     return 0;
 }
 
-
-void TextBoxUnk12( char *a1, int a2, int a3, int a4 )
+int TextBoxUnk10( char *Label, char **TextList, int Lines, int Ypos, int Yposa, int Color, char *Title )
 {
-/*
-    int result; // eax
-    int v7; // edx
-    int v8; // esi
-    int v9; // esi
-    int v10; // edi
-    int v11; // edx
-    char *Surface; // edx
-    int v13; // ebx
-    int v14; // eax
-    int v15; // eax
-    int v16; // edx
-    int Height; // [esp+4h] [ebp-14h]
+    char *Surface;
+    int WinId,h,w,a,s,err,Height;
 
-    if ( !gWinSys.Init )
-        return -1;
-    Height = 3 * gFont.ChrHeight() + 16;
-    v8 = gFont.LineWidth(a1) + 16;
-    if ( v8 < 80 )
-        v8 = 80;
-    v9 = v8 + 16;
-    result = WinCreateWindow(a2, v7, v9, Height, 256, 20);
-    v10 = result;
-    if ( result != -1 )
-    {
-        WinDrawFrame(result);
-        Surface = WinGetWindow(v11)->Surface;
-        if ( BYTE1(a4) )
-        {
-            HIWORD(v13) = HIWORD(a4);
-            LOWORD(v13) = 0;
-            v14 = v13 | gPalColorCubeRGB[0][0][*(&gPalBase + a4 + 43)];
-        }
-        else
-        {
-            v14 = a4;
-        }
-        gFont.Print(&Surface[8 * v9 + 16], a1, v9, v9, v14);
-        v15 = gFont.ChrHeight();
-        WinAddButton(v10, v9 / 2 - 32, v16 - v15 - 6, -1, -1, -1, 27, "Done", 0);
-        WinUpdate(v10);
-        while ( InpUpdate() != 27 )
-            ;
-        WinClose(v10);
-        return 0;
+    err = 0;
+    if( !gWinSys.Init ) return -1;
+    h = gFont.ChrHeight();
+    Height = ( Lines + 3 ) * h + 28;
+    w = TextBoxListWidth( TextList, Lines ) + 16;
+    a = gFont.LineWidth( Label ) + 16;
+    if( a > w ) w = a;
+    w += 16;
+    a = gVidMainGeo.rt - gVidMainGeo.lt + 1;
+    if( w + Ypos > a ) w = a - Ypos;    
+    if( (WinId = WinCreateWindow( Ypos, Yposa, w, Height, 256, 20 ) ) == -1 ) return -1;
+    WinDrawFrame( WinId );
+    Surface = WinGetWindow( WinId )->Surface;
+    gFont.Print( &Surface[8 * w + 8], Label, w, w, gPalColorCubeRGB[0][0][gWinSys.Colors[3]] | 0x10000 );
+    s = w * (gFont.ChrHeight() + 8) + 8 + 8 * w + 8;
+    ScrFillSolid( &Surface[ s - 4 + -3 * w ], w - 24, Lines * gFont.ChrHeight() + 7, w, gPalColorCubeRGB[0][0][ gWinSys.Colors[0] ] );
+    WinDrawTextList( WinId, TextList, Lines, 0, 16, gFont.ChrHeight() + 16, Color );
+    ScrShadowRectangle( &Surface[ s - 4 + -3 * w ], w, 0, 0, w - 24, Lines * gFont.ChrHeight() + 7, gPalColorCubeRGB[0][0][gWinSys.Colors[2]], gPalColorCubeRGB[0][0][gWinSys.Colors[1]] );
+    h = Height - 8;
+    w /= 2;
+    if( Title ){
+        WinAddButton( WinId, w - gFont.LineWidth( Title ) - 32, h - gFont.ChrHeight() - 6, -1, -1, -1, 1024, Title, 0 );
+	WinAddButton( WinId, w + 16, h - gFont.ChrHeight() - 6, -1, -1, -1, 27, "Done", 0 );
+    } else {
+	WinAddButton( WinId, w - 32, h - gFont.ChrHeight() - 6, -1, -1, -1, 27, "Done", 0 );
     }
-    return result;
-*/
+    WinUpdate( WinId );
+    while( 1 ){
+        a = InpUpdate();
+        if( a == KEY_ESC ) break;
+        if( a == 1024 ){
+            err = 1;
+            break;
+        }
+    }
+    WinClose( WinId );
+    return err;
 }
 
+int TextBoxUnk11( char *a1, int a2, int a3, int a4 )
+{
+    int v8, win, Height;
+    char *Surface;
 
+    if( !gWinSys.Init ) return -1;
+    Height = 3 * gFont.ChrHeight() + 16;
+    v8 = gFont.LineWidth( a1 ) + 16;
+    if( v8 < 144 ) v8 = 144;
+    v8 += 16;
+    if( (win = WinCreateWindow( a2, a3, v8, Height, 256, 20 ) ) == -1 ) return -1;
+    WinDrawFrame( win );
+    Surface = WinGetWindow( win )->Surface;
+    gFont.Print( &Surface[ 8 * v8 + 16 ], a1, v8, v8, ( a4 & 0xff00 ) ? (gPalColorCubeRGB[0][0][ gPalBase[ a4 + 43 ].r ] | (a4 & 0xffff0000)) : (a4 >> 8) );
+    v8 = v8 / 2;
+    WinAddButton( win, v8 - 64, Height - 8 - gFont.ChrHeight() - 6, -1, -1, -1, 121, "Yes", 0 );
+    WinAddButton( win, v8 + 16, Height - 8 - gFont.ChrHeight() - 6, -1, -1, -1, 110, "No",  0 );
+    WinUpdate( win );
+    do
+        v8 = InpUpdate();
+    while( v8 != KEY_ESC && v8 != 'n' && v8 != 'N' && v8 != '\n' && v8 != ' ' && v8 != 'y' && v8 != 'Y' );
+    WinClose( win );
+    return 1;    
+}
 
+int TextBoxUnk12( char *str, int a2, int a3, int Color )
+{
+    int w,pitch,win,Height;
+    char *Surface;
 
+    if( !gWinSys.Init ) return -1;
+    Height = 3 * gFont.ChrHeight() + 16;
+    w = gFont.LineWidth( str ) + 16;
+    if( w < 80 ) w = 80;
+    pitch = w + 16;
+    if( (win = WinCreateWindow( a2, a3, pitch, Height, 256, 20 )) == -1 ) return -1;
+    WinDrawFrame( win );
+    Surface = WinGetWindow( win )->Surface;
+    if( Color & 0xff00 ){
+	gFont.Print( &Surface[8 * pitch + 16], str, pitch, pitch, (Color & 0xffff0000) | gPalColorCubeRGB[0][0][ gPalBase[ Color + 43 ].r ] );
+    } else {
+	gFont.Print( &Surface[8 * pitch + 16], str, pitch, pitch, Color );
+    }
+    WinAddButton( win, pitch / 2 - 32, Height - gFont.ChrHeight() - 8, -1, -1, -1, 27, "Done", 0 );
+    WinUpdate( win );
+    while( InpUpdate() != KEY_ESC );
+    WinClose( win );
+    return 0;
+}
+
+int TextBoxUnk13( char **pText, int a2, int a3, int a4, int FrameColor )
+{
+    VidRect_t Area;
+    int WinId;
+
+    if( !gWinSys.Init ) return -1;
+    if( (WinId = TextBoxCreate( pText, a2, a3, a4, FrameColor, COLOR( 0, 0, gWinSys.Colors[0] ), &Area ) ) == -1 ) return -1;
+    return TextBoxUnk01( WinId, &Area, pText, a2, FrameColor, COLOR( 0, 0, gWinSys.Colors[0] ), 0, -1 );
+    
+}
 
 int TextBoxCreate( char **TextList, int Lines, int Xpos, int Ypos, int FrameColor, int BgColor, VidRect_t *Area )
 {
@@ -568,82 +369,265 @@ int TextBoxCreate( char **TextList, int Lines, int Xpos, int Ypos, int FrameColo
     return WinId;
 }
 
+int TextBoxUnk01( int WinId, VidRect_t *Area, char **lines, int text, int FrameColor, int CanvasColor, WinDlg_t *dlg, int Idx )
+{
+    unsigned int Height,Pitch,Field;
+    int v8,h,w,Width,v22,v29,v35,tp,lt,ColorBg,ColorFg,v50,sel;
+    char *v18,*v26,*v42,*p,*Surface, *v24;
+    VidRect_t *v56;
 
+    v56 = Area;
+    v8 = -1;
+    v50 = -1;
+    if( dlg ){
+        Surface = WinGetWindow( dlg->WinId )->Surface;
+        lt = dlg->box[ Idx ].Rect.lt;
+        tp = dlg->box[ Idx ].Rect.tp;
+        h = dlg->box[ Idx ].Rect.bm - tp;
+        w = dlg->box[ Idx ].Rect.rt - lt;
+        Width = WinGetWidth( dlg->WinId );
+        w++;
+        h++;
+        ColorFg = dlg->ColorA;
+        if(dlg->ColorA & 0xff00 ) ColorFg = (dlg->ColorA & 0xffff0000) | gPalColorCubeRGB[0][0][ gPalBase[ dlg->ColorA + 43 ].r ];        
+        ColorBg = dlg->ColorB;
+        if( dlg->ColorB & 0xff00 ) ColorBg = (dlg->ColorB & 0xffff0000) | gPalColorCubeRGB[0][0][ gPalBase[ dlg->ColorB + 43 ].r ];
+        ScrColorXchg( &Surface[ Width * tp + lt ], w, h, Width, ColorFg, ColorBg );
+        WinAreaUpdate( dlg->WinId, &dlg->box[ Idx ].Rect );
+    }
+
+    v18 = WinGetWindow( WinId )->Surface;
+    Pitch = v56->rt - Area->lt + 1;
+    MseGetCursorPosition( &lt, &tp );
+    while( ( sel = InpUpdate() ) == -1 ){
+        MseGetCursorPosition( &ColorFg, &ColorBg );
+        if( lt - 4 > ColorFg ) break;
+        if( !((lt + 4) >= ColorFg && (tp - 4) <= ColorBg && (tp + 4) >= ColorBg)) break;
+    }
+
+    Field = Pitch - 4;
+    Height = Area->bm - Area->tp + 1 - 16;
+    v42 = v18 + 2;
+    while( 1 ){
+        MseGetCursorPosition( &ColorFg, &ColorBg );
+        if( sel == -2 && dlg && MseCursorCenterInArea( dlg->Area.lt, dlg->Area.tp, dlg->Area.rt, dlg->Area.bm ) ){            
+            for( v22 = 0; v22 < dlg->Cnt; v22++ ){
+                if( MseCursorCenterInArea( dlg->box[ v22 ].Rect.lt, dlg->box[ v22 ].Rect.tp, dlg->box[ v22 ].Rect.rt, dlg->box[ v22 ].Rect.bm ) ) break;
+            }
+            if( (v22 < dlg->Cnt) && (v22 != Idx) ){ v8 = -2 - v22; break; }
+        }
+        if( ((MseGetButtons() & 0x10) || (MseGetButtons() & 0x01)) && !(MseGetButtons() & 0x04) ){
+            if( MseCursorCenterInArea( v56->lt, v56->tp + 8, v56->rt, v56->bm - 9 ) ) break;
+            v8 = -1; 
+            break;
+        }
+        if( sel == KEY_ESC ){ v8 = -1; break; }
+        if( sel == 13 ) break;
+        if( sel == 331 ){
+    	    if( dlg && Idx > 0 ){ v8 = -2 - (Idx - 1); break; }
+        } else {
+	    if( sel == 333 ){
+		if( dlg && ( dlg->Cnt - 1 > Idx ) ){ v8 = -2 - (Idx + 1); break;}
+	    } else {
+    		v24 = lines[ v8 ];
+    		if( sel == 328 ){
+    		    while( v8 > 0 ){
+            		v8--;
+            		if( *(--v24) ) break;
+    		    }
+    		    sel = -3;
+    		} else {
+    		    if( sel == 336 ){
+    			while( v8 < text - 1 ){
+        		    v8++;
+            		    v26 = v24;
+            		    v24++;
+            		    if( *v26 ) break;            	
+    			}
+    			sel = -3;
+    		    } else {
+    			if( ( ColorFg != lt || ColorBg != tp ) && MseCursorCenterInArea( v56->lt, v56->tp + 8, v56->rt, v56->bm - 9 ) ) {
+    			    v29 = (ColorBg - v56->tp - 8) / gFont.ChrHeight();
+    			    sel = v29;
+    			    if( v29 != v50 ){
+            			v8 = ( lines[ v29 ] ) ? sel : -1;
+            			sel = -3;
+    			    }
+    			    lt = ColorFg;
+    			    tp = ColorBg;
+    			}
+    		    }
+    		}
+    	    }
+    	}
+        if( sel == -3 ){
+            WinDrawFilledRect( WinId, 2, 8, Field, Height, CanvasColor );
+            WinDrawTextList( WinId, lines, text, Field, 2, 8, FrameColor );
+            if( v8 != -1 ) ScrEnlight( &v42[ Pitch * (v8 * gFont.ChrHeight() + 8) ], Field, gFont.ChrHeight(), Pitch );
+            WinUpdate( WinId );
+        }
+        sel = InpUpdate();
+    }
+    WinClose( WinId );
+    if( !dlg ) return v8;
+    p = WinGetWindow( dlg->WinId )->Surface;
+    lt = dlg->box[ Idx ].Rect.lt;
+    tp = dlg->box[ Idx ].Rect.tp;
+    v35 = WinGetWidth( dlg->WinId );
+    ColorFg = ( dlg->ColorA & 0xff00 ) ? (dlg->ColorA & 0xffff0000 ) | gPalColorCubeRGB[0][0][ gPalBase[ dlg->ColorA + 43 ].r ]: dlg->ColorA;
+    ColorBg = ( dlg->ColorB & 0xff00 ) ? (dlg->ColorB & 0xffff0000 ) | COLOR( 0, 0, gPalBase[ dlg->ColorB + 43 ].r ) : dlg->ColorB;
+    ScrColorXchg( &p[ v35 * tp + lt ], dlg->box[ Idx ].Rect.rt - lt + 1, dlg->box[ Idx ].Rect.bm - tp + 1, v35, ColorFg, ColorBg );
+    WinAreaUpdate( dlg->WinId, &dlg->box[ Idx ].Rect );
+    return v8;
+}
 
 int TextBoxUnk03( char *a1 )
 {
-/*
-    int result; // eax
-    int v2; // edi
-    char *Surface; // ebp
-    int v4; // eax
-    int v5; // edx
-    int v6; // eax
-    int v7; // edx
-    int v8; // eax
-    int v9; // eax
-    _BYTE *v10; // edx
-    Window_t *Window; // eax
-    int v13; // [esp+4h] [ebp-24h]
-    char text[4]; // [esp+Ch] [ebp-1Ch] BYREF
+    Window_t *Window;
+    int v9, v2;
+    char *Surface;
 
-    if ( !gWinSys.Init )
-        return -1;
+    if( !gWinSys.Init ) return -1;
     v2 = gFont.ChrHeight();
-    if ( WidgetId == (Window01_t *)-1 )
-    {
-        result = WinCreateWindow(80, 80, 300, 192, 256, 4);
-        WidgetId = (Window01_t *)result;
-        if ( result == -1 )
-            return result;
-        WinDrawFrame(result);
-        Surface = WinGetWindow((int)WidgetId)->Surface;
-        WinDrawFilledRect((int)WidgetId, 8, 8, 284, v2, 257);
-        v4 = gFont.LineWidth(::text);
-        WinDrawText((int)WidgetId, ::text, 0, (v5 - v4) / 2, 8, 0x2000104);
-        ScrShadowRectangle(Surface, 300, 8, 8, 291, v2 + 8, (unsigned __int8)gPalColorCubeRGB[0][0][gWinSys.Colors[2]], (unsigned __int8)gPalColorCubeRGB[0][0][gWinSys.Colors[1]]);
-        WinDrawFilledRect((int)WidgetId, 9, 26, 282, 135, 257);
-        ScrShadowRectangle(Surface, 300, 8, 25, 291, v2 + 145, (unsigned __int8)gPalColorCubeRGB[0][0][gWinSys.Colors[2]], (unsigned __int8)gPalColorCubeRGB[0][0][gWinSys.Colors[1]]);
-        Xpos = 9;
-        statUnk01 = 26;
-        v6 = gFont.LineWidth("Close");
-        v8 = WinAddButton((int)WidgetId, (v7 - v6) / 2, 184 - v2 - 6, -1, -1, -1, -1, "Close", 0);
-        WinSetButtonHandler(v8, 0, 0, 0, TextBoxUnk04);
-        WinCreateButton((int)WidgetId, 8, 8, 284, v2, -1, -1, -1, -1, 0, 0, 0, 16);
+    if( gTextBoxWinId == -1 ){
+        gTextBoxWinId = WinCreateWindow( 80, 80, 300, 192, 256, 4 );
+        if( gTextBoxWinId == -1 ) return -1;
+        WinDrawFrame( gTextBoxWinId );
+        Surface = WinGetWindow( gTextBoxWinId )->Surface;
+        WinDrawFilledRect( gTextBoxWinId, 8, 8, 284, v2, 257 );
+        WinDrawText( gTextBoxWinId, a1, 0, (300 - gFont.LineWidth( a1 )) / 2, 8, 0x2000104 );
+        ScrShadowRectangle( Surface, 300, 8, 8, 291, v2 + 8, COLOR( 0, 0, gWinSys.Colors[2] ), COLOR( 0, 0, gWinSys.Colors[1] ) );
+        WinDrawFilledRect( gTextBoxWinId, 9, 26, 282, 135, 257 );
+        ScrShadowRectangle( Surface, 300, 8, 25, 291, v2 + 145, COLOR( 0, 0, gWinSys.Colors[2] ), COLOR( 0, 0, gWinSys.Colors[1] ) );
+        gTextBoxXpos = 9;
+        gTextBoxYpos = 26;
+        WinSetButtonHandler( WinAddButton( gTextBoxWinId, (300 - gFont.LineWidth( "Close" )) / 2, 184 - v2 - 6, -1, -1, -1, -1, "Close", 0 ), 0, 0, 0, TextBoxUnk04 );
+        WinCreateButton( gTextBoxWinId, 8, 8, 284, v2, -1, -1, -1, -1, 0, 0, 0, 16 );
     }
-    text[1] = 0;
-    if ( *a1 )
-    {
-        do
-        {
-            v9 = gFont.ChrWidth(*a1);
-            v13 = v9;
-            if ( *v10 == 10 || Xpos + v9 > 291 )
-            {
-                Xpos = 9;
-                statUnk01 += v2;
+    a1[ 1 ] = '\0';
+    if( a1[ 0 ] ){
+        do{
+            v9 = gFont.ChrWidth( *a1 );
+            if( *a1 == '\n' || gTextBoxXpos + v9 > 291 ){
+                gTextBoxXpos = 9;
+                gTextBoxYpos += v2;
             }
-            while ( 160 - statUnk01 < v2 )
-            {
-                Window = WinGetWindow((int)WidgetId);
-                ScrCopy(&Window->Surface[300 * v2 + 7809], 282, 134 - v2 - 1, 300, Window->Surface + 7809, 300);
-                statUnk01 -= v2;
-                WinDrawFilledRect((int)WidgetId, 9, statUnk01, 282, v2, 257);
+            while( 160 - gTextBoxYpos < v2 ){
+                Window = WinGetWindow( gTextBoxWinId );
+                ScrCopy( &Window->Surface[300 * v2 + 7809], 282, 134 - v2 - 1, 300, Window->Surface + 7809, 300 );
+                gTextBoxYpos -= v2;
+                WinDrawFilledRect( gTextBoxWinId, 9, gTextBoxYpos, 282, v2, 257 );
             }
-            if ( *a1 != 10 )
-            {
-                text[0] = *a1;
-                WinDrawText((int)WidgetId, text, 0, Xpos, statUnk01, 0x2000104);
-                Xpos += v13 + gFont.Distance();
+            if( a1[ 0 ] != '\n' ){
+//                tmp = *a1;
+                WinDrawText( gTextBoxWinId, a1 + 1, 0, gTextBoxXpos, gTextBoxYpos, 0x2000104 );
+                gTextBoxXpos += v9 + gFont.Distance();
             }
-        }
-        while ( *++a1 );
+        }while( *++a1 );
     }
-    WinUpdate((int)WidgetId);
-*/
+    WinUpdate( gTextBoxWinId );
     return 0;
 }
 
+void TextBoxUnk04()
+{
+    WinClose( gTextBoxWinId );
+    gTextBoxWinId = -1;
+}
+
+int TextBoxNew( int WinId, int x0, int y0, int w, int h, int ColorFg, int ColorBg )
+{
+    Window_t *win;
+    int x1, y1;
+
+    win = WinGetWindow( WinId );
+    if( !gWinSys.Init ) return -1;
+    if( !win ) return -1;
+    if( win->Dialog ) return -1;
+    x1 = x0 + w;
+    y1 = y0 + h;
+    if( x1 > win->Width || y1 > win->Height ) return -1;
+    if( !( win->Dialog = Malloc( sizeof( WinDlg_t ) ) ) ) return -1;
+    win->Dialog->WinId = WinId;
+    win->Dialog->Area.lt = x0;
+    win->Dialog->Area.tp = y0;
+    win->Dialog->Area.rt = x1 - 1;
+    win->Dialog->Area.bm = y1 - 1;
+    win->Dialog->Cnt = 0;
+    win->Dialog->ColorA = ColorFg;
+    win->Dialog->ColorB = ColorBg;
+    WinDrawFilledRect( WinId, x0, y0, w, h, ColorBg );
+    WinDrawRectangle( WinId, x0, y0, x1 - 1, y1 - 1, ColorFg );
+    return 0;
+}
+
+int TextBoxAddMsg( int WinId, int x, char *msg, int key, int Lines, char **TextList, int FgColor, int BgColor )
+{
+    Window_t *win;
+    WinDlg_t *Dialog;
+    int Cnt, Ypos, Xpos;
+    
+    if( !gWinSys.Init ) return -1;
+    if( !(win = WinGetWindow( WinId )) ) return -1;
+    Dialog = win->Dialog;
+    if( !Dialog || Dialog->Cnt == 15 ) return -1;
+    Cnt = Dialog->Cnt;
+    Xpos = Dialog->Area.lt + x;
+    Ypos = (win->Dialog->Area.tp + win->Dialog->Area.bm - gFont.ChrHeight()) / 2;
+    if( (WinCreateButton( WinId, Xpos, Ypos, gFont.LineWidth( msg ), gFont.ChrHeight(), -1, -1, key, -1, 0, 0, 0, 0)) == -1 ) return -1;
+    WinDrawText( WinId, msg, 0, Xpos, Ypos, win->Dialog->ColorA | 0x2000000 );
+    win->Dialog->box[ Cnt ].Rect.lt = Xpos;
+    win->Dialog->box[ Cnt ].Rect.tp = Ypos;
+    win->Dialog->box[ Cnt ].Rect.rt = gFont.LineWidth( msg ) + Xpos - 1;
+    win->Dialog->box[ Cnt ].Rect.bm = gFont.ChrHeight() + Ypos - 1;
+    win->Dialog->box[ Cnt ].key = key;
+    win->Dialog->box[ Cnt ].Lines = Lines;
+    win->Dialog->box[ Cnt ].TextList = TextList;
+    win->Dialog->box[ Cnt ].FgColor = FgColor;
+    win->Dialog->box[ Cnt ].BgColor = BgColor;
+    win->Dialog->Cnt++;
+    return 0;
+}
+
+void TextBoxDelete( int WinId )
+{
+    Window_t *Window;
+    WinDlg_t *dlg;
+
+    Window = WinGetWindow( WinId );
+    if( !gWinSys.Init || !Window ) return;
+    dlg = Window->Dialog;
+    if( !Window->Dialog ) return;
+    WinDrawFilledRect( WinId, dlg->Area.lt, dlg->Area.tp, dlg->Area.rt - dlg->Area.lt + 1, dlg->Area.bm - dlg->Area.tp + 1, Window->FontColor );
+    Free( Window->Dialog );
+    Window->Dialog = NULL;
+}
+
+int TextBoxRun( WinDlg_t *tb, int TextId )
+{    
+    VidRect_t Area;
+    WinDlgBox_t *txp, *tx;
+    int r, ws, key;
+
+    if( gTextBoxGuard ) return -1;
+    gTextBoxGuard = tb;
+    tx = tb->box;
+    do{
+        txp = &tx[ TextId ];
+        r = TextBoxCreate( txp->TextList, txp->Lines, txp->Rect.lt, tb->Area.bm + 1, txp->FgColor, txp->BgColor, &Area );
+        if( r == -1 ){ gTextBoxGuard = 0; return -1; }
+        ws = TextBoxUnk01( r, &Area, txp->TextList, txp->Lines, txp->FgColor, txp->BgColor, tb, TextId );
+        key = ws;
+        if( ws < -1 ) TextId = -2 - ws;
+    }while( ws < -1 );
+    if( ws != -1 ){
+        InpFlushBuffer();
+        InpPushBuffer( ws );
+        key = tb->box[ TextId ].key;
+    }
+    gTextBoxGuard = NULL;
+    return key;
+}
 
 int TextBoxSearchLine( int chr, char **TextList, int Lines )
 {
@@ -669,3 +653,242 @@ int TextBoxListWidth( char **TextList, int Lines )
     }
     return max;
 }
+
+int TextBoxDialogRun( int WinId, char *s, int MaxLen, int PosX, int PosY, int ColorFg, int ColorBg )
+{
+    VidRect_t Area;
+    Window_t *Window;
+    int StrPos,Width,sel,flg;
+    unsigned int w, Height;
+    char *surf;
+
+    flg = 1;
+    Window = WinGetWindow( WinId );
+    surf = &Window->Surface[ Window->Width * PosY + PosX ];
+    Height = gFont.ChrHeight();
+    StrPos = strlen( s );
+    s[ StrPos + 0 ] = '_';
+    s[ StrPos + 1 ] = '\0';
+    Width = gFont.LineWidth( s );
+    ScrFillSolid( surf, Width, Height, Window->Width, ColorBg );
+    gFont.Print( surf, s, Width, Window->Width, ColorFg );
+    Area.lt = PosX + Window->Geometry.lt;
+    Area.tp = PosY + Window->Geometry.tp;
+    Area.rt = Area.lt + Width;
+    Area.bm = Area.tp + Height;
+    WinRedraw( Window, &Area, 0 );
+    for( ;StrPos <= MaxLen; StrPos++ ){
+        sel = InpUpdate();
+    	    if( sel == -1 ){
+    	StrPos--;
+        } else {
+    	    if( sel == KEY_ESC ){ s[ StrPos + 0 ] = '\0'; return -1; }
+    	    if( sel == KEY_BS ){
+    		if( StrPos > 0 ){
+    		    w = gFont.LineWidth( s );
+    		    if( flg ){
+        		ScrFillSolid( surf, w, Height, Window->Width, ColorBg );
+        		Area.lt = PosX + Window->Geometry.lt;
+        		Area.tp = PosY + Window->Geometry.tp;
+        		Area.rt = Area.lt + w;
+        		Area.bm = Area.tp + Height;
+        		WinRedraw( Window, &Area, 0 );
+        		s[ 0 ] = '_';
+        		s[ 1 ] = '\0';
+        		StrPos = 1;
+    		    } else {
+        		s[ StrPos + 0 ] = ' ';
+        		s[ StrPos - 1 ] = '_';
+    		    }
+    		    ScrFillSolid( surf, w, Height, Window->Width, ColorBg );
+    		    gFont.Print( surf, s, w, Window->Width, ColorFg );
+    		    Area.lt = PosX + Window->Geometry.lt;
+    		    Area.tp = PosY + Window->Geometry.tp;
+    		    Area.rt = Area.lt + w;
+    		    Area.bm = Area.tp + Height;
+    		    WinRedraw( Window, &Area, 0 );
+    		    s[ StrPos ] = '\0';
+    		    StrPos -= 2;
+    		    flg = 0;
+    		} else {
+    		    StrPos--;
+    		}
+    	    } else {
+    		if( sel == KEY_ENTER ) break;
+    		if( StrPos == MaxLen ){
+        	    StrPos = MaxLen - 1;
+    		} else {
+        	    if( sel <= 0 || sel >= 256 ){
+    			StrPos--;
+        	    } else {
+        		s[ StrPos + 0 ] = sel;
+        		s[ StrPos + 1 ] = '_';
+        		s[ StrPos + 2 ] = '\0';
+        		w = gFont.LineWidth( s );
+        		ScrFillSolid( surf, w, Height, Window->Width, ColorBg );
+        		gFont.Print( surf, s, w, Window->Width, ColorFg );
+        		Area.lt = PosX + Window->Geometry.lt;
+        		Area.tp = PosY + Window->Geometry.tp;
+        		Area.rt = Area.lt + w;
+        		Area.bm = Area.tp + Height;
+        		WinRedraw( Window, &Area, 0 );
+        		flg = 0;
+        	    }
+    		}
+    	    }
+        }        
+    }
+    s[ StrPos ] = '\0';
+    return 0;
+}
+
+int TextBoxInput( int *Num, int min, int max, unsigned char a4, char *Text, int Xpos, int Ypos )
+{
+    char *Surface, *stmp;
+    int w,win,err,Height,Width,Field,ebx0,OldValue,posY,posX;
+
+    if( !gWinSys.Init || max < min ) return -1;
+    OldValue = *Num;
+    if( OldValue < min || OldValue > max ) *Num = ( max >= *Num ) ? min : max;    
+    ebx0 = TextBoxUnk09( min, max );
+    if( ebx0 == -1 ) return -1;
+    w = gFont.MaxWidth();
+    Field = w * ebx0;
+    w = gFont.LineWidth( Text );
+    if( w < ebx0 ) w = ebx0;
+    w += 16;
+    if( w < 160 ) w = 160;
+    Height = 5 * gFont.ChrHeight() + 16;
+    posX = (w - Field) / 2;
+    posY = gFont.ChrHeight() + 14;
+    Width = gFont.ChrHeight() + 2;    
+    if( (win = WinCreateWindow( Xpos, Ypos, w, Height, 256, 20 ) ) == -1 ) return -1;
+    WinDrawFrame( win );
+    WinDrawFilledRect( win, posX, posY, Field, Width, 257 );
+    WinDrawText( win, Text, w - 16, 8, 8, 261 );
+    Surface = WinGetSurface( win );
+    ScrShadowRectangle( Surface, w, posX - 2, posY - 2, Field + posX + 1, Width + posY - 1, COLOR( 0, 0, gWinSys.Colors[2] ),COLOR( 0, 0, gWinSys.Colors[1] ) );
+    WinAddButton( win, w / 2 - 72, Height - 8 - gFont.ChrHeight() - 6, -1, -1, -1, 13, "Done", 0 );
+    WinAddButton( win, w / 2 + 16, Height - 8 - gFont.ChrHeight() - 6, -1, -1, -1, 27, "Cancel", 0 );    
+    if( !( stmp = Malloc( 80 ) ) ) return -1;
+    sprintf( stmp, "Please enter a number between %d and %d.", min, max );
+    WinUpdate( win );
+    while( 1 ){
+        err = TextBoxEditNumber( win, Num, ebx0, a4, min < 0, posX, posY );
+        if( *Num >= min && *Num <= max ) break;
+        if( err == -1 ) break;
+        TextBoxUnk12( stmp, Xpos - 70, Ypos + 100, 262 );
+        *Num = OldValue;
+    }
+    Free( stmp );
+    WinClose( win );
+    return err;
+}
+
+int TextBoxUnk09( int min, int max )
+{
+    char *s;
+    int l1, l2;
+
+    if( !( s = Malloc( 17 ) ) ) return -1;
+    sprintf( s, "%d", min );
+    l1 = strlen( s );
+    sprintf( s , "%d", max );
+    l2 = strlen( s );
+    Free( s );
+    return (( l2 > l1 ) ? l2 : l1) + 1;
+}
+
+int TextBoxEditNumber( int WinId, int *pValue, int Digits, int Clear, char a5, int posX, int posY )
+{
+    Window_t *Window;
+    VidRect_t Area;
+    unsigned int Height;
+    int pos,enter,sel,tmp,OldVal,full,Width,TextWidth;
+    char *n;
+    
+    TextWidth = 1;
+    if( !( Window = WinGetWindow( WinId ) ) ) return -1;
+    OldVal = *pValue;    
+    Height = gFont.ChrHeight();
+    WinGetSurface( WinId );
+    WinGetWidth( WinId );
+    Width = gFont.MaxWidth() * Digits;
+    if( !(n = Malloc( Digits + 1 )) )return -1;
+    if( Clear )
+        n[ 0 ] = '\0';
+    else
+        sprintf( n, "%d", *pValue );
+    pos = strlen( n );
+    n[ pos + 0 ] = '_';
+    n[ pos + 1 ] = '\0';
+
+    WinDrawText( WinId, n, Width, posX, posY, 260 );
+    Area.lt = posX;
+    Area.tp = posY;
+    Area.rt = Width + posX;
+    Area.bm = posY + Height;
+    WinAreaUpdate( WinId, &Area );
+    enter = 0;
+    if( pos <= Digits ){
+        full = Digits - 1;
+        do{
+            sel = InpUpdate();
+            switch( sel ){
+        	case KEY_ESC: *pValue = OldVal; Free( n ); return -1;
+        	case 13: enter = 1; continue;
+        	case 331: 
+            	    if( pos > 0 ){
+            		n[ pos - 1 ] = '_';
+            		n[ pos + 0 ] = '\0';
+            		WinDrawFilledRect( WinId, posX, posY, gFont.LineWidth( n ), Height, 257 );
+            		pos--;
+            		WinDrawText( WinId, n, Width, posX, posY, 260 );
+            	        WinAreaUpdate( WinId, &Area );
+        		TextWidth = 0;
+            	    }
+            	    pos--;   
+            	    continue;
+                case KEY_BS:
+        	    if( pos > 0 ){
+            		tmp = gFont.LineWidth( n );
+            		if( TextWidth ){
+                	    n[ 1 ] = '\0';
+                	    pos = 1;
+            		    n[ 0 ] = '_';
+            		} else {
+                	    n[ pos + 0 ] = '\0';
+                	    n[ pos - 1 ] = '_';
+            		}
+            		WinDrawFilledRect( WinId, posX, posY, tmp, Height, 257 );
+            		WinDrawText( WinId, n, Width, posX, posY, 260 );
+            		WinAreaUpdate( WinId, &Area );
+            	        pos--;
+            		TextWidth = 0;
+        	    }
+        	    pos--;
+        	    continue;
+                case '0' ... '9':
+    		    n[ pos + 0 ] = sel;
+    		    n[ pos + 1 ] = '_';
+    		    n[ pos + 2 ] = '\0';
+    		    WinDrawFilledRect( WinId, posX, posY, gFont.LineWidth( n ), Height, 257 );
+    		    WinDrawText( WinId, n, Width, posX, posY, 260 );
+    		    WinAreaUpdate( WinId, &Area );
+    		    TextWidth = 0;
+    		    continue;
+            }
+    	    if( sel <= -1 ){
+        	if( pos > Digits ) break;
+    	    } else {
+		if( (pos != full) && ( sel == '-' ) && ( pos || !a5 ) ) pos--;
+    		pos--; 
+    	    }
+        }while( ++pos <= Digits && !enter );
+    }
+    n[ pos ] = '\0';
+    *pValue = strtol( n, NULL, 10 );
+    Free( n );
+    return 0;
+}
+

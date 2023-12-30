@@ -115,7 +115,7 @@ int gDlgImg101Height;
 CachePool_t *gDlgUnk130;
 CachePool_t *gDlgUnk131;
 ArtFrmHdr_t *gDlgImg101Dat;
-int gDlgUnk133;
+int gDlgFontSave;
 int gDlgUnk134;
 int gDlgUnk135;
 Intp_t *gDlgUnk136;
@@ -282,14 +282,14 @@ int GdialogUnk05( int a1, int a2 )
     AnimReset();    
 //    gDlgUnk87 = IfaceUnk47();
     gDlgUnk45 = PartyMembRdy( gDlgUnk44 );
-    gDlgUnk123 = FontGetCurrent();
+    gDlgFontSave = FontGetCurrent();
     FontSet( 101 );
     DialogReplyWin( 135, 225, 58, 379, 0 );
     DialogSetReplyColor( 0.30000001, 0.30000001, 0.30000001 );
     DialogOptWin( 127, 335, 117, 393, 0 );
     DialogSetOptionColor( 0.2, 0.2, 0.2 );
     DialogSetTitle( 0 );
-    DialogUnk34( GdialogDemoCopyTitle, GdialogDemoCopyOptions );
+    DialogUnk34( (void *)GdialogDemoCopyTitle, (void *)GdialogDemoCopyOptions );
     GdialogUnk85();
     CycleColorStop();
     if( gDlgUnk18 ) GmouseSetIfaceMode( 0 );
@@ -329,7 +329,7 @@ int GdialogUnk06()
         Pid_high = TileUnk49( gDlgUnk12, 2 );
     }
     GdialogUnk41( Pid_high );
-    FontSet( gDlgUnk133 );
+    FontSet( gDlgFontSave );
     if( gDlgUnk84 ){
         ArtClose( gDlgUnk85 );
         gDlgUnk84 = 0;
@@ -399,23 +399,23 @@ void GdialogUnk09()
 
 int GdialogUnk10( int a1, int a2, int a3 )
 {
-    gDlgOptions[ gDlgOption ].i04 = NULL;
+    gDlgOptions[ gDlgOption ].i04 = 0;
     return (GdialogUnk21( a1, a2, a3 ) != -1) - 1;
 }
 
 int GdialogUnk11( int a1, char *a2, int a3, int a4 )
 {
-    gDlgOptions[ gDlgOption ].i04 = NULL;
+    gDlgOptions[ gDlgOption ].i04 = 0;
     return (GdialogUnk22( a1, a2, a4 ) != -1) - 1;
 }
 
-int GdialogUnk12( int a1, int a2, char *a3, int a4 )
+int GdialogUnk12( int a1, int a2, int a3, int a4 )
 {
     gDlgOptions[ gDlgOption ].i04 = a3;
     return (GdialogUnk21( a1, a2, a4 ) != -1) - 1;
 }
 
-int GdialogUnk13( int a1, char *a2, char *a3, int a4 )
+int GdialogUnk13( int a1, char *a2, int a3, int a4 )
 {
     gDlgOptions[ gDlgOption ].i04 = a3;
     return (GdialogUnk22( a1, a2, a4 ) != -1) - 1;
@@ -1707,7 +1707,7 @@ void GdialogUnk59()
     DialogQuit();
     DialogFree();
     SciUnk19();
-//    Unk9874( 1, v4, v1 );
+    WinRun();
     gDlgUnk09 = 1;
     gDlgUnk08 = 1;
 }

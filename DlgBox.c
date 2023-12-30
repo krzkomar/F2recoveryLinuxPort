@@ -117,7 +117,7 @@ int DlgBox( char *Str1, char **List, int Lines, int Xpos, int Ypos, int Color1, 
                 }
                 y += gFont.ChrHeight();
             } else {
-                if( TextWrap( List[ i ], WinW - 26, pLines, &Splitted) ) eprintf( "\nError: dialog_out" );                
+                if( WinTextWrap( List[ i ], WinW - 26, pLines, &Splitted) ) eprintf( "\nError: dialog_out" );                
                 for( n = 1,ps = &List[ i ]; n < Splitted; n++, y += gFont.ChrHeight() ){
                     len = pLines[n] - pLines[n - 1];
                     if( len >= 260 ) len = 259;
@@ -299,7 +299,7 @@ int DlgBoxLoad( char *Title, char **pList, char *Selected, int Lines, int Xpos, 
     	if( !Action ){
     	    WinUpdate( win );
     	    if( !--v72 ){ v72 = ' '; v74 = -2; }
-//    	    while( TimerCurrDiff( time ) < 41 );
+    	    while( TimerCurrDiff( time ) < 41 );
     	} else {
     	    v42 = 4;
     	    v74 = -2;
@@ -332,9 +332,9 @@ int DlgBoxLoad( char *Title, char **pList, char *Selected, int Lines, int Xpos, 
         	    WinUpdate( win );
             	}
             	if( v85 > 14.4 ){
-//            	    while( TimerCurrDiff( SysTime ) < 1000 / v42 );
+            	    while( TimerCurrDiff( SysTime ) < 1000 / v42 );
             	} else {
-//            	    while( TimerCurrDiff( SysTime ) < 41 );
+            	    while( TimerCurrDiff( SysTime ) < 41 );
             	}
             	if( gMenuEscape ){ ExCode = 1; break; }
             	v49 = InpUpdate();                     
@@ -357,90 +357,27 @@ int DlgBoxSave( char *Title, char **pList, char *Selected, int Lines, int Xpos, 
     CachePool_t *ImgH[7];
     MsgLine_t Line;
     Msg_t Msg;
-    CachePool_t **Img;
-    int *p_Height;
-    unsigned int v17;
-    unsigned int v35;
-    unsigned int v37;
-    unsigned int v43;
-    unsigned int v44;
-    unsigned int v48;
-    unsigned int v49;
-    unsigned int v58;
-    unsigned int v59;
-    unsigned int v61;
     unsigned int v63;
-    unsigned int v73;
-    unsigned int v77;
-    unsigned int v78;
-    unsigned int v79;
-    unsigned int v82;
     unsigned int v104;
     unsigned int w;
     unsigned int h;
-//    char *Bmp;
-    char *v16;
-//    char *s;
-//    char *_v2;
-    char **v30;
-    char *v32;
     char *EditSurf;
-    char **v54;
-    char *v55;
-    char *pd;
-    char *ps;
-//    char c;
     char EditField[32];
     char *Imgs[7];
     char *surf;
-//    char *pal;
-//    char **pDst;
-//    char **v137;
-    int Id;
-    int v10;
-    int v11;
     int i;
-    int j;
-//    int _v1;
-    int v24;
     int bt;
-    int v29;
-    int v31;
-    int v33;
-    int v36;
     int v38;
     int SysTime;
     int v41;
-    int v42;
-//    int v45;
-//    int v46;
-//    int v47;
-    int v50;
-//    int _h;
-    int v52;
-    int v56;
-    int v57;
-    int v60;
     int aa;
     int v64;
     int v65;
     int v66;
     int v67;
     int v68;
-    int v69;
-    int v71;
-    int v72;
-    int v75;
-    int v76;
     int v80;
-    int v83;
-    int v84;
-    int v85;
-    int v86;
-//    int k;
-//    int col;
-    int stmp[65];
-    int v105;
+    char stmp[4*65];
     int v112;
     int BlinkCnt;
     int Toggle;
@@ -457,10 +394,7 @@ int DlgBoxSave( char *Title, char **pList, char *Selected, int Lines, int Xpos, 
     int Offset;
     int chr;
     int Width;
-//    int *pWidth;
     int win;
-    int v139;
-    int v140;
     int v141;
     int v142;
     int v143;
@@ -514,7 +448,7 @@ DD
     aa = strlen( EditField );
     EditField[ aa + 1 ] = '\0';
     EditField[ aa ] = ' ';
-    CurPos = v36;
+    CurPos = aa;
     v38 = 190 * Width + 57;
     EditSurf = &surf[ v38 ];
     ScrFillSolid( EditSurf, gFont.LineWidth( EditField ), h, Width, 100 );
@@ -524,7 +458,6 @@ DD
     v112 = ' ';
 
     if( ExCode == -1 ){
-        v105 = v139 = v140 = v38;
         v104 = h - 2;
         v141 = Lines - 1;
         do{
@@ -627,12 +560,12 @@ DD
 		aa = v112;
     		v112--;
     		if( aa == 1 ){ v112 = 32; PrevSel = -2; }
-//    		while( TimerCurrDiff( SysTime ) < 41 );
+    		while( TimerCurrDiff( SysTime ) < 41 );
 	    } else {
     		v63 = 4;
     		PrevSel = -2;
     		while( 1 ){ // edycja
-//        	    v64 = TimerGetSysTime();
+        	    v64 = TimerGetSysTime();
         	    v142 = 0;
         	    v65 = v144 + 1;
         	    Toggle = 1;
@@ -669,7 +602,7 @@ DD
                 	    ScrFillSolid( &surf[ v38 + gFont.LineWidth( EditField ) - w ], w, v104, Width, Toggle ? 100 : gPalColorCubeRGB[0][31][0] );
                 	    Toggle = !Toggle;
             		}
-//            		while( TimerCurrDiff( v64 ) < 41 );
+            		while( TimerCurrDiff( v64 ) < 41 );
         	    }
         	    if( gMenuEscape ){ ExCode = 1; break; }
         	    v80 = InpUpdate();

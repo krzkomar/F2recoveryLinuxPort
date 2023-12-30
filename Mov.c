@@ -184,6 +184,8 @@ const MveXYofs_t gMovEncXYoffst[ 256 ] = {
     { 0x04, 0x0E },{ 0x05, 0x0E },{ 0x06, 0x0E },{ 0x07, 0x0E },{ 0x08, 0x0E },{ 0x09, 0x0E },{ 0x0A, 0x0E },{ 0x0B, 0x0E }
 };
 
+void MovVideoCopy( unsigned char *pSrc, unsigned int SrcW, int SrcH, unsigned int SrcX, int SrcY, unsigned int DstW, unsigned int DstH, int DstX, int DstY, int nnn );
+
 /****************************************************************************/
 
 void MovSetupMemory( void *(*Alloc)(int), void ( *Free)(void *))
@@ -1608,9 +1610,10 @@ void MovProtUnk25( short a1, int a2, int a3, int *a4 )
     v4[ 0 ] = a3; pINT( v4 + a2 )[ 0 ] = a3; v4[ 1 ] = a3; pINT( v4 + a2 )[ 1 ] = a3; v4[ 2 ] = a3; pINT( v4 + a2 )[ 2 ] = a3; v4[ 3 ] = a3; pINT( v4 + a2 )[ 3 ] = a3;
 }
 
-void MovVideoCopy( char *pSrc, unsigned int SrcW, int SrcH, unsigned int SrcX, int SrcY, unsigned int DstW, unsigned int DstH, int DstX, int DstY, int nnn )
+void MovVideoCopy( unsigned char *pSrc, unsigned int SrcW, int SrcH, unsigned int SrcX, int SrcY, unsigned int DstW, unsigned int DstH, int DstX, int DstY, int nnn )
 {
-    char *dst,*src, *v20, *v28, *v22,*v26, *v24;
+    char *dst, *v28, *v22,*v26, *v24;
+    unsigned char *src, *v20;
     int v21,v27,DstPitch,SrcPitch,x,y, i, j;
     unsigned int v12,v23,w,v35;
 

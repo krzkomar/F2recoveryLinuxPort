@@ -51,8 +51,8 @@ void EndGameUnk01()
     MapUnk35();
     FadeStep( gFadePaletteC );
     EndGameUnk22 = 0;
-    InpTaskStart(EndGameUnk16);
-    GSoundBgSetCb(EndGameUnk15);
+    InpTaskStart( (void *)EndGameUnk16 );
+    GSoundBgSetCb( (void *)EndGameUnk15 );
     GSoundLoadBg( "akiss", 12, 14, 15 );
     TimerWaitProc( 3000 );
     FeatGetVal( gObjDude, 34 );
@@ -149,7 +149,7 @@ void EndGameUnk05( int a1, char *a2 )
     Pal8_t v20[256];
     CachePool_t *Obj;
     double v31, v16;
-    int v8,v9,v10,v11,v12,v15,time_ms,SrcPitch,v26,ObjWidth,v29,v30,v32,v33;
+    int v8,v9,v10,v11,v12,v15,time_ms,SrcPitch,v26,ObjWidth,v30,v32,v33;
     char v14,v19[768],*ObjData;
 
     if( (v3 = ArtLoadImg( ArtMakeId( 6, 327, 0, 0, 0 ), &Obj )) ){
@@ -202,7 +202,7 @@ void EndGameUnk05( int a1, char *a2 )
             	if( v14 ){            	    
             	    v16 = v31;
             	    for( v15 = 0; v15 < 768; v15++ ){
-                        v29 = v19[v15];
+//                v29 = v19[v15];
                         ObjWidth = lround(v16);
                         v19[ v15 + 767 ] = ObjWidth;
             	    }
@@ -370,7 +370,7 @@ void EndGameUnk13()
     if( EndGameUnk19 <= EndGameUnk21 ){ if( gEndGameUnk13 ) gEndGameUnk09 = 1; return; } 
     if( TimerCurrDiff( gEndGameUnk14 ) > *(gEndGameUnk15 + EndGameUnk21) ){ EndGameUnk21++; return; }    
     if( !(str = gEndGameUnk07[ EndGameUnk21 ]) ) return;
-    if( TextWrap( str, 540, Wrap, &pOffsets ) ) return;
+    if( WinTextWrap( str, 540, Wrap, &pOffsets ) ) return;
     h = gFont.ChrHeight();
     ypos = 480 - pOffsets * gFont.ChrHeight();
     for( i = 0; i < (pOffsets - 1); i++, ypos += h ){

@@ -2,7 +2,8 @@
 
 #define MAX_OPCODES  342
 
-//char *(*gSciMseHandler)() = NULL; //xxx
+extern char *(*gSciMseHandler)();
+
 //int gSciUnk04 = 10;
 //int (*gScpOpcodeTable[ MAX_OPCODES ])( Intp_t * );
 //int gSciUnk02;
@@ -33,7 +34,7 @@ void SciUnk17();
 void SciUnk18( int val );
 void SciUnk19();
 void SciUnk20();
-void SciAddOpcode( short Opcode, int (*Func)( Intp_t * ) );
+void SciAddOpcode( short Opcode, void (*Func)( Intp_t * ) );
 void SciSetMseHandler( char *(*Cb)(void) );
 void SciTimeUpdate();
 void SciUnk25();

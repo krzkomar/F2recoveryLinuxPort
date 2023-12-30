@@ -6,7 +6,7 @@ void ScrCopyFast( char *Dst, int DstPitch, char *Src, int SrcPitch, short Width,
     int i,j;
 //    ABGR_t *pd;
     char *pd;
-    int col;
+//    int col;
 //DD
 //printf("srcpi:%i, dstpi:%i, w:%i, h:%i\n", SrcPitch, DstPitch, Width, Height);
     for( i = 0; i < Height; i++ ){
@@ -30,7 +30,7 @@ void ScrCopyFast( char *Dst, int DstPitch, char *Src, int SrcPitch, short Width,
 void ScrCopyAlphaFast( unsigned char *pDst, int DstPitch, unsigned char *pSrc, int SrcPitch, int Width, int Height )
 {
     int i,j;
-    char *pd;
+    unsigned char *pd;
     unsigned char col;
 
     for( i = 0; i < Height; i++ ){
@@ -338,7 +338,7 @@ void ScrEnlight( char *pDst, unsigned int Width, int Height, unsigned int Pitch 
     width = Pitch - Width;
     for( i = 0; i < Height; i++, pDst += width ){
         for( j = 0; j < Width; pDst++, j++ ){
-            *pDst = gPalShades[ *pDst ][ ENLIGHT_COLOR ];
+            *pDst = gPalShades[ (int)*pDst ][ ENLIGHT_COLOR ];
         }
     }
 }

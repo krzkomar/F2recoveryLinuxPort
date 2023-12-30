@@ -13,6 +13,8 @@
 #define COLOR_ALPHA	gPalColorCubeRGB[0][0][0]
 #define COLOR_BLACK	gPalColorCubeRGB[0][0][0]
 
+#define COLOR( r, g, b ) gPalColorCubeRGB[ r ][ g ][ b ]
+
 typedef struct // size of 3
 {
   unsigned char r;
