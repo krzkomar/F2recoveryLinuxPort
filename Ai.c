@@ -724,23 +724,23 @@ int AiUnk20( Obj_t *a1, Obj_t **a2, Obj_t **Attacker, Obj_t **a4 )
     v5 = 0;
     for( v11 = 0; v5 < 3 && v12 < gAiObjCount; v11++, v12++ ){
         if( ( v8 = gAiObjList[ v11 ] ) == a1 ) continue;
-        if( a2 && !*a2 && !(v8->Critter.State.CombatResult & 0x80) && a1 == v8->Critter.State.WhoHitMe ){
+        if( a2 && !*a2 && !(v8->Critter.State.CombatResult & 0x80) && a1 == v8->Critter.State.WhoHitMeObj ){
             v5++;
             *a2 = gAiObjList[ v11 ];
         }
         if( Attacker ){
             if( !*Attacker && GroupId == v8->Critter.State.GroupId ){                        
-                if( (WhoHitMe = v8->Critter.State.WhoHitMe) ){
-//                    if( WhoHitMe != a1 && (GroupId != WhoHitMe->Critter.State.GroupId) && !( v8->Critter.State.WhoHitMe->Critter.State.CombatResult & 0x80) ){
+                if( (WhoHitMe = v8->Critter.State.WhoHitMeObj) ){
+//                    if( WhoHitMe != a1 && (GroupId != WhoHitMeObj->Critter.State.GroupId) && !( v8->Critter.State.WhoHitMeObj->Critter.State.CombatResult & 0x80) ){
 //                        v5++;
-//                        *Attacker = v8->Critter.State.WhoHitMe;
+//                        *Attacker = v8->Critter.State.WhoHitMeObj;
 //                    }
                 }
             }
         }
         if( !a4 ) continue;
         if( !*a4 && (GroupId != v8->Critter.State.GroupId) && !(v8->Critter.State.CombatResult & 0x80 ) ){
-            if( (v10 = v8->Critter.State.WhoHitMe) ){
+            if( (v10 = v8->Critter.State.WhoHitMeObj) ){
                 if( GroupId == v10->Critter.State.GroupId ){
                     v5++;
                     *a4 = gAiObjList[ v11 ];
@@ -781,17 +781,17 @@ Obj_t *AiDangerSource( Obj_t *obj )
 //                }
                 if( v2 && CritterUnk49( v18 ) ) break;
                 return v18;
-            case 1: case 2: case 4: obj->Critter.State.WhoHitMe = 0; break;
+            case 1: case 2: case 4: obj->Critter.State.WhoHitMeObj = 0; break;
         }
     } else {
 	AttackWho = -1;
     }
-    WhoHitMe = obj->Critter.State.WhoHitMe;
+    WhoHitMe = obj->Critter.State.WhoHitMeObj;
     if( !WhoHitMe || obj == WhoHitMe ){
         objs[ 0 ] = NULL;
     } else {
 	if( !(WhoHitMe->Critter.State.CombatResult & 0x80) ){
-    	    if( AttackWho == 3 || AttackWho == -1 ) return obj->Critter.State.WhoHitMe;
+    	    if( AttackWho == 3 || AttackWho == -1 ) return obj->Critter.State.WhoHitMeObj;
 	} else {
 	    if( WhoHitMe->Critter.State.GroupId == obj->Critter.State.GroupId )
     		objs[ 0 ] = NULL;
@@ -851,10 +851,10 @@ int AiUnk23( Obj_t **objs, int Count )
     
     for( i = 0;i < Count; i++ ){
         if( objs[ i ]->Critter.State.GroupId == gAiUnk11->Critter.State.GroupId ){
-    	    objs[ i ]->Critter.State.WhoHitMe = AiUnk18( objs[ i ], gAiUnk12, 1 );
+    	    objs[ i ]->Critter.State.WhoHitMeObj = AiUnk18( objs[ i ], gAiUnk12, 1 );
         } else {
     	    if( objs[ i ]->Critter.State.GroupId == gAiUnk12->Critter.State.GroupId ){
-    		objs[ i ]->Critter.State.WhoHitMe = AiUnk18( objs[ i ], gAiUnk11, 1 );
+    		objs[ i ]->Critter.State.WhoHitMeObj = AiUnk18( objs[ i ], gAiUnk11, 1 );
     	    }
         }
     }
@@ -1508,10 +1508,10 @@ int AiUnk48( Obj_t *obj, Obj_t *a2 )
         if( Distance == 1 ){
             if( a2 ) AiUnk35( obj, a2, obj->Critter.State.CurrentAP, 1 );
         } else if( Distance == 2 && a2 && ObjGetDistance( obj, a2 ) < 10 ){
-            AiMoveWalkTo( ( obj == a2->Critter.State.WhoHitMe ) ? a2->Critter.State.WhoHitMe : obj, a2, 10 );
+            AiMoveWalkTo( ( obj == a2->Critter.State.WhoHitMeObj ) ? a2->Critter.State.WhoHitMeObj : obj, a2, 10 );
         }
     } else {
-        if( gObjDude != obj->Critter.State.WhoHitMe ){
+        if( gObjDude != obj->Critter.State.WhoHitMeObj ){
             n = ObjGetDistance( obj, gObjDude );
             if( n > 5 ) AiUnk35( obj, gObjDude, n - 5, 0 );
         }
@@ -1569,7 +1569,7 @@ Obj_t *AiUnk50( Obj_t *a1, Obj_t *a2 )
             }
         }
         if( !a2 && !PartyMembRdy( a1 ) ){
-            WhoHitMe = p_State->WhoHitMe;
+            WhoHitMe = p_State->WhoHitMeObj;
             if( WhoHitMe ){
                 if( !( WhoHitMe->Critter.State.CombatResult & 0x80) && p_State->DmgLastTurn > 0 ){
                     if( (v10 = CombatUnk09( a1 ) ) ){
@@ -1647,7 +1647,7 @@ int AiUnk53( Obj_t *obj, int Group )
     VidRect_t Area;
 
     if( OBJTYPE( obj->Pid ) != TYPE_CRIT ) return 0;    
-    WhoHitMe = obj->Critter.State.WhoHitMe;
+    WhoHitMe = obj->Critter.State.WhoHitMeObj;
     obj->Critter.State.GroupId = Group;
     if( WhoHitMe == (void *)-1 ){
         CritterUnk45( obj, 0 );
@@ -1774,7 +1774,7 @@ int AiUnk59( Obj_t *obj, Obj_t *a2 )
     
     if( obj->Critter.State.WhoHitMe ){
         ObjDmg = AiGetMaxDamagePower( a2 );
-        AttackerDmg = AiGetMaxDamagePower( obj->Critter.State.WhoHitMe );
+        AttackerDmg = AiGetMaxDamagePower( obj->Critter.State.WhoHitMeObj );
         if( ObjDmg <= AttackerDmg ) return AttackerDmg;
     }
     return CritterUnk45( obj, a2 );
@@ -1856,7 +1856,7 @@ void AiUnk63( Obj_t *obj )
         if( p->Critter.State.Reaction & 0x01 ) continue;
         if( !AiUnk60( gAiObjList[ i ], obj ) ) continue;        
         p->Critter.State.Reaction |= 0x01;
-        if( ( obj->Critter.State.CombatResult & 0x80 ) && !AiUnk60( p, obj->Critter.State.WhoHitMe ) ){
+        if( ( obj->Critter.State.CombatResult & 0x80 ) && !AiUnk60( p, obj->Critter.State.WhoHitMeObj ) ){
             eprintf( "\nSomebody Died and I don't know why!  Run!!!" );
             CombatUnk10( p, obj );
         }                

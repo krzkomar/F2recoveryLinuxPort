@@ -20,7 +20,7 @@ char *gItemUnk02 = "<item>";
 int gItemLightLvl = 0x10000;
 
 Msg_t gItemMsg;
-Obj_t *gItemUnk99;
+int gItemUnk99;
 Obj_t *gItemUnk98;
 int gItemGVarId;
 int gItemGridLight[ 3*200*200 ];
@@ -54,41 +54,40 @@ int ItemFSave( xFile_t *fh )
     return 0;
 }
 
-int Item09( Obj_t *dude1, Obj_t *dude2, int a3 )
+int Item09( Obj_t *dude1, Obj_t *dude2, int quantity )
 {
-DD
-/*
-    int v6, type, v17, v18;
-    Obj_t *v19;
+    int Type;
+    Obj_t *Owner;
     Proto_t *proto;
 
-    if( a3 < 1 ) return -1;
-    v6 = (dude1->ImgId & 0xF000000) >> 24;
-    if( v6 == 1 ){
+    if( quantity < 1 ) return -1;
+    Type = OBJTYPE( dude1->ImgId );
+    if( Type == 1 ){
         if( CritterGetBodyType( dude1 ) ) return -5;
-        if( ItemGetItemWeight( dude2 ) + ItemGetBackPackWeight( dude1 ) > FeatGetVal( dude1, FEAT_CARRY ) ) return -6;
-    } else if( v6 == 0 ){
-        type = ItemGetObjType( dude1 );
-        if( type == 1 ){
+        if( ItemGetBackPackWeight( dude1 ) + ItemGetItemWeight( dude2 ) > FeatGetVal( dude1, FEAT_CARRY ) ) return -6;
+    } else if( !Type ){
+        Type = ItemGetObjType( dude1 );
+        if( Type == 1 ){
             if( dude2 ) ProtoGetObj( dude2->Pid, &proto );
-            if( Item95( dude1 ) > Item94( dude1 ) ) return -6;            
-            if( (v19 = ObjGetOwner(v17)) ){
-                if( (v19->ImgId & 0xF000000) >> 24 == 1 ){
-                    if( FeatGetVal( v19, FEAT_CARRY ) < ItemGetBackPackWeight( v19 ) + ItemGetItemWeight( dude2 ) ) return -6;
+            if( Item95( dude1 ) > Item94( dude1 ) ) return -6;
+            Owner = ObjGetOwner( dude1 );
+            if( Owner ){
+                if( OBJTYPE( Owner->ImgId ) == 1 ){
+                    if( FeatGetVal( Owner, FEAT_CARRY ) < (ItemGetBackPackWeight( Owner ) + ItemGetItemWeight( dude2 )) ) return -6;
                 }
             }
         } else {
-            if( type != 5 ) return -1;
+            if( Type != 5 ) return -1;
             ProtoGetObj( dude1->Pid, &proto );
             if( proto->Critt.BaseStat[0] != dude2->Pid ) return -1;
         }
     }
-    return ItemAdd( dude1, dude2, a3 );
-*/
+    return ItemAdd(dude1, dude2, quantity);
 }
 
 int ItemAdd( Obj_t *dude, Obj_t *item, int Quantity )
 {
+    VidRect_t Area;
     int i,Ammo,aa,bb;
     ObjContainer_t *bpck;
     ObjStack_t *p;
@@ -107,12 +106,11 @@ int ItemAdd( Obj_t *dude, Obj_t *item, int Quantity )
         }
         bpck->Box.Box[ bpck->Box.Cnt ].obj = item;
         bpck->Box.Box[ bpck->Box.Cnt ].Quantity = Quantity;
-        if( item->Pid == 210 && ( item->Flags & PRFLG_WORN_LHAND | PRFLG_WORN_RHAND) ){
+        if( item->Pid == PID_STEALTHBOY && ( item->Flags & (PRFLG_WORN_LHAND | PRFLG_WORN_RHAND)) ){
             if( !(dude->Flags & 0x20000) ){
                 dude->Flags |= 0x20000;
-DD
-//                ObjUnk52(dude, v17);
-//                TileUpdateArea(v17, dude->Elevation);
+                ObjGetRadiusArea( dude, &Area );
+                TileUpdateArea( &Area, dude->Elevation );
             }
         }
         bpck->Box.Cnt++;
@@ -146,7 +144,7 @@ DD
     } else {
         bpck->Box.Box[ i ].Quantity += Quantity;
     }
-//    ObjUnk38( bpck->Box.Box[ i ].obj, 0 );
+    ObjDestroy( bpck->Box.Box[ i ].obj, 0 );
     bpck->Box.Box[ i ].obj = item;
     item->Owner = dude;
     return 0;
@@ -196,72 +194,39 @@ int ItemUseItem( Obj_t *Critter, Obj_t *Item, int QuantityMax )
     return -1;
 }
 
-int Item11( Obj_t *a1, Obj_t *a2 )
+void Item11( int a1, ObjBox_t *a2 )
 {
-/*
-    int result; // eax
-    int v4; // edx
-    int *v5; // esi
-    int *v6; // edi
-
-    result = &a1->TimeEv + 1;
-    if ( result < a2->TimeEv )
-    {
-        v4 = 8 * result;
-        do
-        {
-            v5 = (v4 + a2->PosX);
-            v6 = v5 - 2;
-            *v6 = *v5;
-            v6[1] = v5[1];
-            ++result;
-            v4 += 8;
-        }
-        while ( result < a2->TimeEv );
-    }
-    --a2->TimeEv;
-    return result;
-*/
+    int i;
+    
+    for( i = a1 + 1; i < a2->Cnt; i++ ){
+        a2->Box[ i - 1 ].obj = a2->Box[ i ].obj;
+        a2->Box[ i - 1 ].Quantity = a2->Box[ i ].Quantity;
+    }        
+    a2->Cnt--;
 }
 
 int Item12( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4, int a5 )
 {
-/*
-    int r; // eax
-    int v8; // ecx
-    int v9; // ecx
-    Obj_t *v10; // ebp
-    int v11[7]; // [esp+0h] [ebp-1Ch] BYREF
+    int err;
+    Obj_t *Owner;
+    VidRect_t Area;
 
-    r = ItemUseItem(a1, a3, a4);
-    if ( r != -1 )
-    {
-        if ( a5 )
-            r = ItemAdd(a2, a3, v8);
-        else
-            r = Item09(a2, a3, v8);
-        if ( r )
-        {
-            if ( ItemAdd(a1, a3, v9) )
-            {
-                v10 = ObjGetOwner(a1);
-                if ( !v10 )
-                    v10 = a1;
-                if ( v10->GridId != -1 )
-                {
-                    ObjUnk14(a3, v10->GridId, v10->Elevation, v11);
-                    TileUpdateArea(v11, v10->Elevation);
-                }
+    if( ItemUseItem( a1, a3, a4 ) == -1 ) return -1;
+    err = ( a5 ) ? ItemAdd( a2, a3, a4 ) : Item09( a2, a3, a4 );
+    if( err ){
+        if( ItemAdd( a1, a3, a4 ) ){
+            Owner = ObjGetOwner( a1 );
+            if( !Owner ) Owner = a1;
+            if( Owner->GridId != -1 ){
+                ObjUnk14( a3, Owner->GridId, Owner->Elevation, &Area );
+                TileUpdateArea( &Area, Owner->Elevation );
             }
-            return -1;
         }
-        else
-        {
-            a3->Owner = a2;
-        }
+        return -1;
+    } else {
+        a3->Owner = a2;
     }
-    return r;
-*/
+    return err;
 }
 
 int Item13( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 )
@@ -276,192 +241,98 @@ int Item14( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 )
 
 int Item15( Obj_t *a1, Obj_t *a2 )
 {
-/*
-    Obj_u *p_Feat;
-
-    p_Feat = &a1->Feat;
-    if ( a1->Feat.Container.Box.Cnt > 0 )
-    {
-        do
-            Item12(a1, a2, p_Feat->Container.Box.Box->Quantity, p_Feat->Container.Box.Box->obj, 1);
-        while ( p_Feat->Container.Box.Cnt > 0 );
-    }
-*/
+    while( a1->Container.Box.Cnt > 0 ) Item12( a1, a2, a1->Container.Box.Box->obj, a1->Container.Box.Box->Quantity, 1 );
     return 0;
 }
 
 int Item16( Obj_t *a1, Obj_t *a2 )
 {
-/*
-    Obj_u *p_Feat; // ebp
-    int i; // edi
-    int _i; // esi
-    Obj_t *obj; // eax
-    bool v6; // zf
-    Proto_t *proto; // [esp+0h] [ebp-20h] BYREF
+    int i, k;
+    Obj_t *obj;
+    Proto_t *proto;
 
-    p_Feat = &a1->Feat;
-    i = 0;
-    if ( a1->Feat.Container.Box.Cnt > 0 )
-    {
-        _i = 0;
-        do
-        {
-            obj = p_Feat->Container.Box.Box[_i].obj;
-            if ( HIBYTE(obj->Pid) )
-                v6 = 1;
-            else
-                v6 = ProtoGetObj(obj->Pid, &proto) == -1 || (proto->FlgExt & 0x8000000) == 0;
-            if ( v6 )
-            {
-                ++i;
-                ++_i;
-            }
-            else
-            {
-                Item12(a1, a2, p_Feat->Container.Box.Box[_i].Quantity, p_Feat->Container.Box.Box[_i].obj, 1);
-            }
+    for( i = 0; i < a1->Container.Box.Cnt; ){
+        obj = a1->Container.Box.Box[ i ].obj;
+        if( OBJTYPE( obj->Pid ) )
+            k = 1;
+        else
+            k = ProtoGetObj( obj->Pid, &proto ) == -1 || (proto->FlgExt & 0x8000000) == 0;
+        if( k ){
+            i++;
+        } else {
+            Item12( a1, a2, a1->Container.Box.Box[ i ].obj, a1->Container.Box.Box[ i ].Quantity, 1 );
         }
-        while ( i < p_Feat->Container.Box.Cnt );
     }
-*/
     return 0;
 }
 
 int Item17( Obj_t *a1 )
 {
-/*
-    Obj_u *p_Feat; // ebp
-    int i; // edi
-    int v3; // esi
-    Obj_t *obj; // ecx
-    bool v5; // zf
-    int *v6; // ecx
-    Proto_t *v8; // [esp+0h] [ebp-20h] BYREF
-    Obj_t *v9; // [esp+4h] [ebp-1Ch]
+    Obj_t *obj;
+    Proto_t *proto;
+    int i, k;
 
-    v9 = a1;
-    p_Feat = &a1->Feat;
-    i = 0;
-    if ( a1->Feat.Critter.Box.Cnt > 0 )
-    {
-        v3 = 0;
-        do
-        {
-            obj = p_Feat->Critter.Box.Box[v3].obj;
-            if ( HIBYTE(obj->Pid) )
-                v5 = 1;
-            else
-                v5 = ProtoGetObj(obj->Pid, &v8) == -1 || (v8->FlgExt & 0x8000000) == 0;
-            if ( v5 )
-            {
-                ++i;
-                ++v3;
-            }
-            else
-            {
-                ItemUseItem(v9, p_Feat->Critter.Box.Box[v3].obj, 1);
-                UseUnk06(v6);
-            }
-        }
-        while ( i < p_Feat->Critter.Box.Cnt );
+    for( i = 0; i < a1->Critter.Box.Cnt; i++ ){
+        obj = a1->Critter.Box.Box[ i ].obj;
+        if( OBJTYPE( obj->Pid ) )
+            k = 1;
+        else
+            k = ProtoGetObj( obj->Pid, &proto ) == -1 || ( proto->FlgExt & 0x8000000 ) == 0;
+        if( !k ){
+            ItemUseItem( a1, obj->Critter.Box.Box[ i ].obj, 1 );
+            UseUnk06( obj->Critter.Box.Box[ i ].obj );
+        } else {
+    	    i++;
+	}
     }
-*/
     return 0;
 }
 
-int Item18( Obj_t *item, int edx0 )
+int Item18( Obj_t *item, int bb )
 {
-/*
-    int Cnt; // ebx
-    ObjStack_t *Box; // eax
-    Obj_t *obj; // esi
-    Obj_t *v7; // edx
-    int result; // eax
-    char v9; // ah
-    int v10; // eax
-    Obj_t *v11; // esi
-    int Id; // eax
-    int v13[4]; // [esp+0h] [ebp-40h] BYREF
-    Proto_t *proto; // [esp+10h] [ebp-30h] BYREF
-    int v15; // [esp+14h] [ebp-2Ch]
-    __int16 a2[2]; // [esp+18h] [ebp-28h]
-    int v17; // [esp+1Ch] [ebp-24h]
-    int Quantity; // [esp+20h] [ebp-20h]
-    int v19; // [esp+24h] [ebp-1Ch]
-    Obj_u *p_Feat; // [esp+28h] [ebp-18h]
+    ObjStack_t *Box;
+    Obj_t *obj;
+    VidRect_t Area;
+    Proto_t *proto;
+    int Cnt,flg,img,Quantity,i;
 
-    p_Feat = &item->Feat;
-    *a2 = item->ImgId & 0xFFF;
-    Cnt = item->Feat.Critter.Box.Cnt;
-    v15 = 0;
-    if ( !Cnt )
-    {
-LABEL_23:
-        if ( v15 )
-        {
-            Id = ArtMakeId(1, a2[0], (item->ImgId & 0xFF0000u) >> 16, 0, (item->ImgId & 0x70000000) >> 28);
-            ObjUnk20(item, Id, v13);
-            if ( !((item->ImgId & 0xFF0000) >> 16) )
-                TileUpdateArea(v13, gCurrentMapLvl);
-        }
-        return 0;
-    }
-    while ( 1 )
-    {
-        Box = p_Feat->Container.Box.Box;
+    img = item->ImgId & 0xFFF;
+    flg = 0;
+    for( Cnt = item->Critter.Box.Cnt; Cnt; Cnt-- ){
+        Box = item->Container.Box.Box;
         obj = Box->obj;
-        if ( Box->obj->Pid != 41 )
-            break;
-        v7 = Box->obj;
-        Quantity = Box->Quantity;
-        if ( ItemUseItem(item, v7, Quantity) )
-            return -1;
-        if ( ObjUnk14(obj, edx0, item->Elevation, 0) )
-        {
-            if ( ItemAdd(item, obj, 1) )
-                UseUnk06(&obj->TimeEv);
-            return -1;
-        }
-        if ( obj->Pid == 41 )
-            obj->Feat.Critter.State.Reaction = Quantity;
-LABEL_22:
-        if ( !p_Feat->Container.Box.Cnt )
-            goto LABEL_23;
-    }
-    v9 = *(&obj->Flags + 3);
-    if ( (v9 & 7) != 0 )
-    {
-        v15 = 1;
-        if ( (v9 & 4) != 0 )
-        {
-            proto = 0;
-            result = ProtoGetObj(item->Pid, &proto);
-            if ( result == -1 )
-                return result;
-            *a2 = proto->ImgId & 0xFFF;
-            InvUnk14(item, obj, 0);
+        if( Box->obj->Pid != PID_MONEY ){
+	    if( obj->Flags & 0x07000000 ){
+    		flg = 1;
+    		if( obj->Flags & 0x04000000 ){
+        	    proto = NULL;
+        	    if( ProtoGetObj( item->Pid, &proto ) == -1 ) return -1;
+        	    img = proto->ImgId & 0xFFF;
+        	    InvUpdateStatistics( item, obj, 0 );
+    		}
+	    }
+	    for( i = 0; i < item->Container.Box.Box->Quantity; i++ ){
+    		if( ItemUseItem( item, item->Container.Box.Box->obj, 1 ) ) return -1;
+    		if( ObjUnk14( item->Container.Box.Box->obj, bb, item->Elevation, 0 ) ){
+		    if( ItemAdd( item, item->Container.Box.Box->obj, 1 ) ) UseUnk06( item->Container.Box.Box->obj );
+		    return -1;
+    		}        
+	    }
+        } else {
+    	    Quantity = Box->Quantity;
+    	    if( ItemUseItem( item, Box->obj, Quantity ) ) return -1;
+    	    if( ObjUnk14( obj, bb, item->Elevation, 0 ) ){
+        	if( ItemAdd( item, obj, 1 ) ) UseUnk06( obj );
+        	return -1;
+    	    }
+    	    if( obj->Pid == PID_MONEY ) obj->Critter.State.Reaction = Quantity;
         }
     }
-    v10 = p_Feat->Container.Box.Box->Quantity;
-    v19 = 0;
-    v17 = v10;
-    if ( v10 <= 0 )
-        goto LABEL_22;
-    while ( 1 )
-    {
-        v11 = p_Feat->Container.Box.Box->obj;
-        if ( ItemUseItem(item, v11, 1) )
-            return -1;
-        if ( ObjUnk14(v11, edx0, item->Elevation, 0) )
-            break;
-        if ( ++v19 >= v17 )
-            goto LABEL_22;
+    if( flg ){
+        ObjSetShape( item, ArtMakeId( 1, img, (item->ImgId & 0xFF0000u) >> 16, 0, (item->ImgId & 0x70000000) >> 28 ), &Area );
+        if( !( (item->ImgId & 0xFF0000) >> 16 ) ) TileUpdateArea( &Area, gCurrentMapLvl );
     }
-    if ( ItemAdd(item, v11, 1) )
-        UseUnk06(&v11->TimeEv);
-*/
-    return -1;
+    return 0;
 }
 
 int ItemStack( Obj_t *Container, Obj_t *Item )
@@ -565,131 +436,57 @@ int ItemGetItemWeight( Obj_t *item )
 
 int Item26( Obj_t *obj )
 {
-/*
-    int v1; // edx
-    int v2; // ecx
-    Obj_t *v3; // ebx
-    int Flags; // edx
-    Obj_t *v5; // ecx
-    Obj_t *v6; // eax
-    int v7; // ecx
-    int charges; // esi
-    int v9; // eax
-    int v10; // ecx
-    int v11; // ebx
-    Proto_t *v12; // [esp+0h] [ebp-20h] BYREF
-    Proto_t *proto; // [esp+4h] [ebp-1Ch] BYREF
-    Proto_t *pObj; // [esp+8h] [ebp-18h] BYREF
-    Proto_t *v15; // [esp+Ch] [ebp-14h] BYREF
-    int v16; // [esp+14h] [ebp-Ch]
-    int v17; // [esp+18h] [ebp-8h]
+    Proto_t *proto;
+    int t;
 
-    v17 = v2;
-    v16 = v1;
-    v3 = obj;
-    if ( obj )
-    {
-        ProtoGetObj(obj->Pid, &v12);
-        Flags = v12->Critt.Type;
-        v5 = v12->Critt.BaseStat[21];
-        switch ( Flags )
-        {
-            case 1:
-                v6 = Item27(v3);
-                return (v6 + v7);
-            case 3:
-                ProtoGetObj(v3->Pid, &proto);
-                charges = v3->Feat.Container.Charges;
-                if ( charges > 0 )
-                {
-                    v9 = ItemGetObjType(v3) == 3 ? v3->Feat.Container.AmmoId : -1;
-                    if ( v9 != -1 && ProtoGetObj(v9, &v12) != -1 )
-                        return (v5 + charges * v12->Critt.BaseStat[21] / v12->Critt.BaseStat[1]);
-                }
-                break;
-            case 4:
-                ProtoGetObj(v3->Pid, &pObj);
-                ProtoGetObj(v3->Pid, &v15);
-                if ( v15->Critt.Type == 4 )
-                    v11 = v15->Critt.BaseStat[1];
-                else
-                    v11 = v15->Critt.BaseStat[15];
-                return (v10 / v11);
-        }
-        return v5;
+    if( !obj ) return 0;
+    ProtoGetObj( obj->Pid, &proto );
+    switch( proto->Critt.Type ){
+        case 1:
+            return Item27( obj ) + proto->Critt.BaseStat[ 21 ];
+        case 3:
+            ProtoGetObj( obj->Pid, &proto );
+            if( obj->Container.Charges > 0 ){
+                t = ItemGetObjType( obj ) == 3 ? obj->Container.AmmoId : -1;
+                if( t != -1 && ProtoGetObj( t, &proto ) != -1 ) 
+            	    return proto->Critt.BaseStat[ 21 ] + obj->Container.Charges * proto->Critt.BaseStat[ 21 ] / proto->Critt.BaseStat[ 1 ];
+            }
+            break;
+        case 4:
+            ProtoGetObj( obj->Pid, &proto );
+            return (obj->Critter.State.Reaction * obj->Container.Charges) / (( proto->Critt.Type == 4 ) ? proto->Critt.BaseStat[ 1 ] : proto->Critt.BaseStat[ 15 ]);
     }
-    return obj;
-*/
+    return proto->Critt.BaseStat[ 21 ];
 }
 
 int Item27( Obj_t *obj )
 {
-/*
-    Obj_u *p_Feat; // ecx
-    int v3; // esi
-    int i; // edi
-    int _i; // ebx
-    ObjBox_t *v6; // ecx MAPDST
-    ObjStack_t *Box; // eax
-    int *v9; // eax
-    int v10; // edx
-    int v11; // eax
-    int *v12; // eax
-    int v14; // eax
-    int v15; // eax
-    int v16; // edx
-    int v17; // eax
-    Proto_t *proto; // [esp+0h] [ebp-20h] BYREF
-    int v19; // [esp+4h] [ebp-1Ch]
+    int n, i;
+    Obj_t *RHandObj, *LHandObj, *ArmorObj;
+    Proto_t *proto;
 
-    p_Feat = &obj->Feat;
-    if ( obj )
-    {
-        v3 = 0;
-        i = 0;
-        if ( p_Feat->Critter.Box.Cnt > 0 )
-        {
-            _i = 0;
-            do
-            {
-                if ( ItemGetObjType(p_Feat->Container.Box.Box[_i].obj) == 4 )
-                {
-                    ProtoGetObj(v6->Box[_i].obj->Pid, &proto);
-                    Box = v6->Box;
-                    v19 = Box[_i].Quantity - 1;
-                    v9 = Item26(Box[_i].obj);
-                    v11 = v9 + v10;
-                }
-                else
-                {
-                    v12 = Item26(v6->Box[_i].obj);
-                    v11 = *(&v6->Capacity + _i * 8) * v12;
-                }
-                v3 += v11;
-                ++i;
-                ++_i;
-            }
-            while ( i < p_Feat->Critter.Box.Cnt );
-        }
-        if ( (obj->ImgId & 0xF000000) >> 24 == 1 )
-        {
-            v14 = InvGetRHandObj(obj);
-            if ( v14 && (*(v14 + 39) & 2) == 0 )
-                v3 += Item26(v14);
-            v15 = InvGetLHandObj(obj);
-            if ( v15 && v16 != v15 && (*(v15 + 39) & 1) == 0 )
-                v3 += Item26(v15);
-            v17 = InvGetArmorObj(obj);
-            if ( v17 )
-            {
-                if ( (*(v17 + 39) & 4) == 0 )
-                    v3 += Item26(v17);
+    if( !obj ) return 0;
+    n = 0;    
+    if( obj->Critter.Box.Cnt > 0 ){
+        for( i = 0; i < obj->Critter.Box.Cnt; i++ ){
+            if( ItemGetObjType( obj->Container.Box.Box[i].obj) == 4 ){
+                ProtoGetObj( obj->Container.Box.Box[ i ].obj->Pid, &proto );
+                n += Item26( obj->Container.Box.Box[ i ].obj ) + ( obj->Container.Box.Box[ i ].Quantity - 1 ) * proto->Critt.BaseStat[21];
+            } else {
+                n += obj->Container.Box.Box[ i ].Quantity * Item26( obj->Container.Box.Box[ i ].obj );
             }
         }
-        return v3;
     }
-    return obj;
-*/
+    if( OBJTYPE( obj->ImgId ) == 1 ){
+        RHandObj = InvGetRHandObj(obj);
+        if( RHandObj && (RHandObj->Flags & 0x2000000) == 0 ) n += Item26( RHandObj );
+        LHandObj = InvGetLHandObj( obj );
+        if( LHandObj && RHandObj != LHandObj && (LHandObj->Flags & 0x1000000) == 0 ) n += Item26( LHandObj );
+        if( (ArmorObj = InvGetArmorObj( obj )) ){
+            if( (ArmorObj->Flags & 0x4000000) == 0 ) n += Item26( ArmorObj );
+        }
+    }
+    return n;
 }
 
 int ItemGetBackPackWeight( Obj_t *obj )
@@ -722,8 +519,7 @@ int Item29( Obj_t *obj )
 {
     int tmp;
     Proto_t *proto;
-DD
-return 0;
+
     if( !obj ) return 0;    
     if( ItemGetObjType( obj ) != PR_ITEM_WEAPON ) return 0;
     if( (gObjDude->Container.Obj->TimeEv & 0x10) != 0 && (gObjDude->Container.Obj->TimeEv & 0x20) != 0 ) return 1;
@@ -815,24 +611,23 @@ int Item34( Obj_t *obj )
     return 0;
 }
 
-Obj_t *Item35( Obj_t *obj, Obj_t *a2, int a3 )
+int Item35( Obj_t *obj, Obj_t *a2, int a3 )
 {
     int i, n;
-/*
+
     if( !obj || !a2 ) return 0;        
     for( i = 0; i < obj->Container.Box.Cnt; i++ ){
-        if( ItemStack( &obj->Container.Box.Box[ i ].obj->TimeEv, a2, obj->Container ) && !ItemUseItem( obj, obj->Container.Box.Box[ i ].obj) ){
-            obj->Container.i10 |= a3;
-            if( !ItemAdd( obj, obj->Container, 1) ) return -1;
-            obj->Container.i10 &= ~a3;
-//            if( ItemAdd( obj, obj->Container, 1) ) UseUnk06( &obj->Container.Box.Cnt );
+        if( ItemStack( obj->Container.Box.Box[ i ].obj, a2 ) && !ItemUseItem( obj, obj->Container.Box.Box[ i ].obj, 1 ) ){
+            a2->Flags |= a3;
+            if( !ItemAdd( obj, a2, 1 ) ) return -1;
+            a2->Flags &= ~a3;
+            if( ItemAdd( obj, a2, 1 ) ) UseUnk06( a2 );
         }
         if( ItemGetObjType( obj->Container.Box.Box[ i ].obj ) == 1 ){
             n = Item35( obj->Container.Box.Box[ i ].obj, a2, a3 );
             if( n ) return n;
         }
     }        
-*/
     return 0;
 }
 
@@ -883,31 +678,27 @@ int ItemGetSkill( Obj_t *obj, int a2 )
 
 int ItemGetHitChance( Obj_t *obj, int a2 )
 {
-    Obj_t *v2;
-    Proto_t *v3;
-    int v4;
+    Obj_t *v2, *v3;
     int v5;
 
     v2 = obj;
-    if( obj ){
-        v3 = 0;
-        switch( a2 ){
-            case 0: case 1: case 6:
-                v3 = InvGetLHandObj(obj);
-                break;
-            case 2: case 3: case 7:
-                v3 = InvGetRHandObj(obj);
-                break;
-            default:
-                break;
-        }
-        if ( v3 )
-            v5 = ItemGetSkill(v3, v3);
-        else
-            v5 = 3;
-        return SkillGetTotal( v2, v5 );
+    if( !obj ) return 0;
+    v3 = 0;
+    switch( a2 ){
+        case 0: case 1: case 6:
+            v3 = InvGetLHandObj( obj );
+            break;
+        case 2: case 3: case 7:
+            v3 = InvGetRHandObj( obj );
+            break;
+        default:
+            break;
     }
-    return obj;
+    if( v3 )
+        v5 = ItemGetSkill( v3, a2 );
+    else
+        v5 = 3;
+    return SkillGetTotal( v2, v5 );    
 }
 
 int ItemGetWeaponDmg( Obj_t *Weapon, int *pMin, int *pMax )
@@ -923,70 +714,59 @@ int ItemGetWeaponDmg( Obj_t *Weapon, int *pMin, int *pMax )
 
 int Item41( Obj_t *obj, int a2 )
 {
-    int v5;
-    int Val;
-    int v7;
-    int Class;
-    int v11;
-    int v12;
-    int *v14;
-    Obj_t *v4;
-    Obj_t *v8;
+    int v5,Val,Class,v11,v12;
+    Obj_t *item;
     Proto_t *proto;
 
-    v4 = 0;
+    item = NULL;
     v5 = 0;
     Val = 0;
     v11 = 0;
     v12 = 0;
-    if( obj ){
+    if( !obj ) return 0;
+    switch( a2 ){
+        case 0: case 1: case 6:
+            item = InvGetLHandObj( obj );
+            break;
+        case 2: case 3: case 7:
+            item = InvGetRHandObj( obj );
+            break;
+        default:
+            break;
+    }
+    if( item ){
+        ProtoGetObj( item->Pid, &proto );
+        v12 = proto->Critt.BaseStat[ 1 ];
+        v11 = proto->Critt.BaseStat[ 2 ];
+        Class = ItemGetClass( item, a2 );
+        if( Class == 2 || Class == 1 ) Val = FeatGetVal( obj, FEAT_MELEE );
+    } else {
+        v12 = 1;
+        v11 = FeatGetVal( obj, FEAT_MELEE ) + 2;
         switch( a2 ){
-            case 0: case 1: case 6:
-                v4 = InvGetLHandObj(obj);
+            case 8: case 11:
+                v5 = 3;
                 break;
-            case 2: case 3: case 7:
-                v4 = InvGetRHandObj(obj);
+            case 9: case 14:
+                v5 = 5;
+                break;
+            case 10: case 12: case 15: case 17:
+                v5 = 7;
+                break;
+            case 13:
+                v5 = 10;
+                break;
+            case 16: case 18:
+                v5 = 9;
+                break;
+            case 19:
+                v5 = 12;
                 break;
             default:
-                break;
+                return RandMinMax(v5 + v12, v5 + Val + v11);
         }
-        v8 = v4;
-        if( v4 ){
-            v14 = &v11;
-            ProtoGetObj(v4->Pid, &proto);
-            if( &v11 != -4 ) v12 = proto->Critt.BaseStat[1];
-            if ( v14 ) *v14 = proto->Critt.BaseStat[2];
-            Class = ItemGetClass(v8, a2);
-            if( Class == 2 || Class == 1 ) Val = FeatGetVal(obj, 11);
-        } else {
-            v12 = 1;
-            v11 = FeatGetVal(obj, 11) + 2;
-            switch( a2 ){
-                case 8: case 11:
-                    v5 = 3;
-                    break;
-                case 9: case 14:
-                    v5 = 5;
-                    break;
-                case 10: case 12: case 15: case 17:
-                    v5 = 7;
-                    break;
-                case 13:
-                    v5 = 10;
-                    break;
-                case 16: case 18:
-                    v5 = 9;
-                    break;
-                case 19:
-                    v5 = 12;
-                    break;
-                default:
-                    return RandMinMax(v5 + v12, v5 + Val + v11);
-            }
-        }
-        return RandMinMax(v5 + v12, v5 + Val + v11);
     }
-    return obj;
+    return RandMinMax(v5 + v12, v5 + Val + v11);
 }
 
 int ItemGetWeaponBase( Obj_t *obj1, Obj_t *obj2 )
@@ -998,7 +778,7 @@ int ItemGetWeaponBase( Obj_t *obj1, Obj_t *obj2 )
         return proto->Critt.BaseStat[ 3 ];
     }
     if( obj1 ) return CritterUnk03( obj1 );
-    return obj1;
+    return 0;
 }
 
 int ItemWeaponTwoHanded( Obj_t *obj )
@@ -1013,7 +793,6 @@ int ItemWeaponTwoHanded( Obj_t *obj )
 int Item44( Obj_t *obj, int a2 )
 {
     Obj_t *v2;
-    int v3;
 
     v2 = NULL;
     if( obj ){
@@ -1037,7 +816,7 @@ int Item45( Obj_t *obj, int a2 )
     unsigned int v4;
     Proto_t *proto;
 
-    if( a2 == 5 || a2 >= 14 && a2 <= 19 ) return 17;
+    if( a2 == 5 || ( a2 >= 14 && a2 <= 19 ) ) return 17;
     if( !obj ) return 16;
     ProtoGetObj( obj->Pid, &proto );
     if( a2 && a2 != 2 ) 
@@ -1092,52 +871,34 @@ void ItemSetCharges( Obj_t *Obj, int Charges )
 
 int Item50( Obj_t *Obj1, Obj_t *Obj2 )
 {
-/*
-    Obj_t *PackQuantity;
-    Obj_t *v6;
-    Obj_t *v8;
-    Obj_t *v10;
-    Obj_t *v13;
-    Obj_t *v15;
-
-    int result;
-    int v12;
-    int v17;
+    Obj_t *p;
     Proto_t *proto;
+    int n, PackQuantity;
 
-    v17 = -1;
     if( Obj2 ) ProtoGetObj( Obj2->Pid, &proto );
     PackQuantity = ItemGetPackQuantity( Obj2 );
     if( PackQuantity == 0 ) return -1;
-    if( Obj2->Pid != 390 ){
-        while( 1 ){
-            v8 = InvSearchObjByType(Obj1, 4, &v17);
-            v10 = v8;
-            if( !v8 ) break;
-            if( Obj2->Container.AmmoId == v8->Pid && ItemUnk01(Obj2, v8) ){
-                v12 = Item51(Obj2, v10);
-                if( !v12 ) UseUnk06(&v10->TimeEv);
-                if( v12 == -1 ) return v12;
-                return 0;
-            }
-        }
-        v17 = -1;
-        while( 1 ){
-            v13 = InvSearchObjByType(Obj1, 4, &v17);
-            v15 = v13;
-            if( !v13 ) break;
-            if( ItemUnk01(Obj2, v13) ){
-                v12 = Item51(Obj2, v15);
-                if( !v12 ) UseUnk06(&v15->TimeEv);
-                if( v12 != -1 ) return 0;
-                return v12;
-            }
-        }
-        return -1;
+    if( Obj2->Pid == PID_SOLARSCORCHER ){
+	if( Item51( Obj2, 0 ) ) return -1;
+	return 0;
     }
-    if( Item51(Obj2, 0) ) return -1;
-*/
-    return 0;
+    n = -1;
+    while( ( p = InvSearchObjByType( Obj1, 4, &n ) ) ){
+        if( Obj2->Container.AmmoId == p->Pid && ItemUnk01(Obj2, p) ){
+            if( Item51( Obj2, p ) ) return -1;
+            UseUnk06( p );
+            return 0;
+        }
+    }
+    n = -1;
+    while( ( p = InvSearchObjByType( Obj1, 4, &n ) ) ){        
+        if( ItemUnk01( Obj2, p ) ){
+            if( Item51( Obj2, p ) ) return -1;
+            UseUnk06( p );
+            return 0;            
+        }
+    }
+    return -1;    
 }
 
 int ItemUnk01( Obj_t *obj1, Obj_t *obj2 )
@@ -1211,9 +972,11 @@ int Item51( Obj_t *obj1, Obj_t *obj2 )
 
 int ItemGetRange( Obj_t *Obj, int Slot )
 {
-    int v5,v8,v10,Val;
+    int MaxCap,Val;
     Proto_t *proto;
-
+    Obj_t *p;
+    
+    p = Obj;
     if( Obj ){
         switch( Slot ){
             case 0: case 1: case 6:
@@ -1227,27 +990,27 @@ int ItemGetRange( Obj_t *Obj, int Slot )
                 break;
         }
     }
-    if( !Obj || Slot == 4 || Slot == 5 || Slot >= 8 && Slot <= 19 ){
-        if( CritterGetInjure( Obj->Pid, 0x2000 ) ) return 2;
+    if( !Obj || Slot == 4 || Slot == 5 || ( Slot >= 8 && Slot <= 19 ) ){
+        if( CritterGetInjure( p->Pid, 0x2000 ) ) return 2;
         return 1;
     }
     ProtoGetObj(Obj->Pid, &proto);
-    v8 = ( Slot && Slot != 2 ) ? proto->Critt.BaseStat[ 5 ] : proto->Critt.BaseStat[ 4 ];
+    MaxCap = ( Slot && Slot != 2 ) ? proto->Critt.BaseStat[ 5 ] : proto->Critt.BaseStat[ 4 ];
     if( ItemGetClass( Obj, Slot ) == 3 ){
-        if( Obj == gObjDude ){
-            Val = 2 * PerkLvl( gObjDude, 35 ) + FeatGetVal( Obj, 0 );
+        if( p == gObjDude ){
+            Val = 2 * PerkLvl( gObjDude, PERK_HEAVE_HO ) + FeatGetVal( p, FEAT_STAMINA ); // +2 str per rank when determining throw weapon range for perk
         } else {
-            Val = FeatGetVal( Obj, 0 );
+            Val = FeatGetVal( p, FEAT_STAMINA );
         }
-        if( 3 * Val < v8 ) return 3 * Val;
+        if( 3 * Val < MaxCap ) return 3 * Val;
     }
-    return v8;    
+    return MaxCap;    
 }
 
 int ItemGetAPCost( Obj_t *obj, int HandSlot, int a3 )
 {
     Obj_t *v6;
-    int v7, ApCost, Class;
+    int ApCost, Class;
     Proto_t *v14,*proto;
 
     v6 = NULL;
@@ -1377,19 +1140,16 @@ int ItemGetAmmoId( Obj_t *obj )
 
 int Item61( Obj_t *obj )
 {
-    Obj_t *proto;
+    Proto_t *proto;
 
-    if( obj ){
-        ProtoGetObj( obj->Pid, &proto );
-        return proto->Pid;
-    } else {
-        return 0;
-    }
+    if( !obj ) return 0;
+    ProtoGetObj( obj->Pid, &proto );
+    return proto->Critt.BaseStat[ 16 ];
 }
 
 int Item62( Obj_t *obj, int a2 )
 {
-    int v6,v7, v12;
+    int v7, v12;
     Obj_t *v10;
 
     if( obj == gObjDude && TraitSpecActive( 7 ) ) return 0;
@@ -1487,13 +1247,11 @@ int Item66( Obj_t *obj )
 
 int Item67( Obj_t *obj, int *n )
 {
-    int Pid;
-
     if( !n ) return -1;
     if( !obj ) return 0;
-    if( obj->Pid == 399 ){
+    if( obj->Pid == PID_SUPERCATTLEPROD ){
         *n *= 2;
-    } else if( obj->Pid == 407 ){
+    } else if( obj->Pid == PID_MEGAPOWERFIST ){
         *n *= 2;
     }
     return 0;
@@ -1501,10 +1259,10 @@ int Item67( Obj_t *obj, int *n )
 
 int Item68( Obj_t *obj )
 {
-    Obj_t *v1;
+    int n;
 
-    v1 = ItemGetWeaponBase( 0, obj );
-    return v1 == 6 || v1 == 3 || v1 == 5;
+    n = ItemGetWeaponBase( 0, obj );
+    return n == 6 || n == 3 || n == 5;
 }
 
 int Item69( Obj_t *obj, int a2 )
@@ -1698,44 +1456,38 @@ int Item87( Obj_t *obj )
 {
     Proto_t *proto;
 
-    if( obj ){
-        ProtoGetObj( obj->Pid, &proto );
-        obj = proto->Critt.BaseStat[ 2 ];
-    }
-    return obj != 0;
+    if( !obj ) return 0;
+    ProtoGetObj( obj->Pid, &proto );
+    return proto->Critt.BaseStat[ 2 ] != 0;
 }
 
 int ItemRecharge( Obj_t *Obj1, Obj_t *Obj2 )
 {
     int charges, v8;
-    char *Name, stmp[80];
+    char stmp[80];
     MsgLine_t msg;
 
-    if( Obj2->Pid < 59 ){
-        if( Obj2->Pid < 52 || Obj2->Pid > 52 && Obj2->Pid != 54 ) return -1;
-    } else {
-	if( Obj2->Pid > 59 ){
-	    if( Obj2->Pid < 207 || Obj2->Pid > 207 && Obj2->Pid != 210 ) return -1;
-	} else {
-	    charges = ItemGetCharges( Obj2 );
-	    if( charges > 0 )
-    		charges = ItemUseCharges( Obj2, charges - 1 );
-	    else
-    		charges = -1;
-	    if( charges ){
-    		msg.Id = 5;
-    		if( MessageGetMsg( &gItemMsg, &msg ) == 1 ){
-        	    sprintf( stmp, msg.Text, ObjGetName( Obj2 ) );
-    		    IfcMsgOut( stmp );
-    		}
-	    } else{
-    		AutomapScanner( 1, 1 );
-	    }
-	    return 0;
+    if( Obj2->Pid != PID_GEIGER && Obj2->Pid != PID_STEALTHBOY1 ) return -1;
+    if( Obj2->Pid == PID_MOTIONSENSOR1 ){
+	charges = ItemGetCharges( Obj2 );
+	if( charges > 0 )
+    	    charges = ItemUseCharges( Obj2, charges - 1 );
+	else
+    	    charges = -1;
+	if( charges ){
+    	    msg.Id = 5; // '%s has no charges left.'
+    	    if( MessageGetMsg( &gItemMsg, &msg ) == 1 ){
+        	sprintf( stmp, msg.Text, ObjGetName( Obj2 ) );
+    		IfcMsgOut( stmp );
+    	    }
+	} else{
+    	    AutomapScanner( 1, 1 );
 	}
+	return 0;
     }
+    if( Obj2->Pid != PID_GEIGERCOUNTER && Obj2->Pid != PID_STEALTHBOY ) return -1;	
     if( Item87( Obj2 ) )
-        v8 = EvQeEnqueued( &Obj2->TimeEv, 9 );
+        v8 = EvQeEnqueued( Obj2, 9 );
     else
         v8 = 0;
     if( v8 )
@@ -1747,8 +1499,7 @@ int ItemRecharge( Obj_t *Obj1, Obj_t *Obj2 )
 
 int ItemMotSensCharge( Obj_t *obj )
 {
-    int charges;
-    Obj_t *v4;
+    int charges, v4;
 
     if( obj )
         charges = obj->Container.Charges;
@@ -1764,7 +1515,7 @@ int ItemMotSensCharge( Obj_t *obj )
 
 int ItemDeviceUse( Obj_t *obj )
 {
-    Obj_t *charges;
+    int charges;
     char stmp[80];
     MsgLine_t msg;
 
@@ -1774,13 +1525,13 @@ int ItemDeviceUse( Obj_t *obj )
     else
         charges = -1;
     if( charges ){
-//        if( ObjGetOwner(obj) == gObjDude ){
-//            msg.Id = 5; // // '%s has no charges left.'
-//            if( MessageGetMsg( &gItemMsg, &msg ) == 1 ){
-//                sprintf( stmp, msg.Text, ObjGetName( obj ) );
-//                IfcMsgOut( stmp );
-//            }
-//        }
+        if( ObjGetOwner( obj ) == gObjDude ){
+            msg.Id = 5; // // '%s has no charges left.'
+            if( MessageGetMsg( &gItemMsg, &msg ) == 1 ){
+                sprintf( stmp, msg.Text, ObjGetName( obj ) );
+                IfcMsgOut( stmp );
+            }
+        }
         ItemDeviceOff( obj );
     } else {
         EvQeSchedule( ( obj->Pid == 54 || obj->Pid == 210 ) ? 600 : 3000, obj, 0, 9 );
@@ -1790,7 +1541,7 @@ int ItemDeviceUse( Obj_t *obj )
 
 int Item90( Obj_t *obj )
 {
-    if( obj && Item87( obj ) ) return EvQeEnqueued( &obj->TimeEv, 9 );
+    if( obj && Item87( obj ) ) return EvQeEnqueued( obj, 9 );
     return 0;
 }
 
@@ -1798,7 +1549,7 @@ int ItemDeviceOn( Obj_t *obj )
 {
     Obj_t *crit;
     int charges;
-    char v9, stmp[80];
+    char stmp[80];
     VidRect_t Rect;
     MsgLine_t msg;
 
@@ -1824,16 +1575,15 @@ int ItemDeviceOn( Obj_t *obj )
     } 
     if( obj->Pid == 54 || obj->Pid == 210 ){ // geigercounter or stealthboy
         EvQeSchedule( 600, obj, 0, 9 );
-        obj->Pid = 210; // stealth boy
-        v9 = *(&crit->Flags + 2);
-        if( (v9 & 2) == 0 ){
-            *(&crit->Flags + 2) = v9 | 2;
+        obj->Pid = PID_STEALTHBOY; // stealth boy
+        if( !(crit->Flags & 0x020000) ){
+            crit->Flags |= 0x020000;
             ObjGetRadiusArea( crit, &Rect );
             TileUpdateArea( &Rect, crit->Elevation );
         }
     } else {
         EvQeSchedule( 3000, obj, 0, 9 );
-        obj->Pid = 207; // GeigerCounter
+        obj->Pid = PID_GEIGERCOUNTER;
     }
     if( crit == gObjDude ){
         msg.Id = 6; // ' %s is on.'
@@ -1841,7 +1591,7 @@ int ItemDeviceOn( Obj_t *obj )
             sprintf( stmp, msg.Text, ObjGetName( obj ) );
             IfcMsgOut( stmp );
         }
-        if( obj->Pid == 207 ){
+        if( obj->Pid == PID_GEIGERCOUNTER ){
             msg.Id = 8; // 'You pass the Geiger counter over your body. The rem counter reads: %d'
             if( MessageGetMsg( &gItemMsg, &msg ) == 1 ){
                 sprintf( stmp, msg.Text, CritterRadiated( crit ) );
@@ -1854,17 +1604,14 @@ int ItemDeviceOn( Obj_t *obj )
 
 int ItemDeviceOff( Obj_t *obj )
 {
-/*
     Obj_t *Critt;
-    int Pid;
     char stmp[80];
     MsgLine_t msg;
 
     Critt = ObjGetOwner( obj );
     EvQeDelB( obj, 9 );
-    if( Critt && obj->Pid == 210 ) StealthBoyOff( Critt, obj );
-    Pid = obj->Pid;
-    obj->Pid = ( Pid == 210 || Pid == 54 ) ? 54 : 52; // StealthBoy / GeigerCounter
+    if( Critt && obj->Pid == PID_STEALTHBOY ) ItemStealthBoyOff( Critt, obj );
+    obj->Pid = ( obj->Pid == PID_STEALTHBOY || obj->Pid == PID_STEALTHBOY1 ) ? PID_STEALTHBOY1 : PID_GEIGER; // StealthBoy / GeigerCounter
     if( Critt == gObjDude ) IfaceHandSlotUpdate( 0, -1, -1 );
     if( Critt == gObjDude ){
         msg.Id = 7; // '%s is off'
@@ -1873,7 +1620,6 @@ int ItemDeviceOff( Obj_t *obj )
             IfcMsgOut( stmp );
         }
     }
-*/
     return 0;
 }
 
@@ -1985,8 +1731,8 @@ int Item100( Obj_t *Obj )
 
 int Item101( Obj_t *Critter, Obj_t *Obj2, int duration, int *a4, int *a5 )
 {
-    int *v7;int *v8;int i; int *v12; int *v15;
-    ItemEv01_t *v11, *Effect, *v14;
+    int i;
+    ItemEv01_t *Effect;
 
 
     for( i = 0; i < 3; i++ ){
@@ -1995,19 +1741,11 @@ int Item101( Obj_t *Critter, Obj_t *Obj2, int duration, int *a4, int *a5 )
     if( i == 3 ) return -1;    
     if( !(Effect = Malloc( sizeof( ItemEv01_t ) )) ) return -1;
 
-    Effect->i01[0] = Obj2->Pid;
-    v14 = Effect;
-/*
-v7 = a5;
-v15 = v12;
-    do{
-++v7;
-        v14->i01[1] = *v15;
-        v14 += 4;
-++v15;
-        v14->i01[3] = *(v7 - 1);
-    } while( v15 != v12 + 3 );
-*/
+    Effect->Pid = Obj2->Pid;
+    for( i = 0; i < 3; i++ ){
+        Effect->i02[ i ] = a4[ i ];
+        Effect->i03[ i ] = a5[ i ];
+    }
     duration *= 600;
     if( ( Critter == gObjDude ) && TraitSpecActive( TRAIT_CHEM_RESISTANT ) ) duration /= 2;
     if( EvQeSchedule( duration, Critter, Effect, 0 ) != -1 ){ Free( Effect ); return -1; }
@@ -2091,7 +1829,8 @@ int Item102( Obj_t *Obj, int Pid )
 
 int ItemUnk07( Obj_t *Obj1, Obj_t *Obj2 )
 {
-    int *stats; int GVarId; int Pid; int v10; int v11; int v12[4];
+    int *stats; int GVarId; int Pid; int v10; int v11; 
+    MsgLine_t v12;
     char *Message;
     Proto_t *proto;
 
@@ -2107,38 +1846,37 @@ int ItemUnk07( Obj_t *Obj1, Obj_t *Obj2 )
             if( !ItemGVarDefined(-1) ) CritterUnk36(4);
         }
         return 0;
-    } else {
-        Pid = Obj2->Pid;
-        gItemUnk98 = Obj1;
-        gItemGVarId = ItemGetGVarId(Pid);
-        gItemUnk99 = stats[16];
-        EvQeRun( 2, Item110 );
-        if( Item102( Obj1, Obj2->Pid ) ){
-            ItemChemUse( Obj1, stats, 1, stats + 3 );
-            Item101( Obj1, Obj2, stats[6], stats, stats + 7 );
-            Item101( Obj1, Obj2, stats[10], stats, stats + 11 );
-        } else if( Obj1 == gObjDude ){
-            Message = MessageGetMessage(&gItemMsg, v12, 50);
-            IfcMsgOut(Message);
-        }
-        if ( !ItemGVarDefined( Obj2->Pid ) ){
-            v10 = stats[14];
-            if( Obj1 == gObjDude ){
-                if( TraitSpecActive(11) ) v10 *= 2;
-                if( TraitSpecActive(12) ) v10 /= 2;
-                if( PerkLvl(gObjDude, 42u) ) v10 /= 2;
-            }
-            if( RandMinMax(1, 100) <= v10 ){
-                ItemSchedEffect(Obj1, 1, stats[16], stats[15], Obj2->Pid);
-                if( Obj1 == gObjDude ){
-                    v11 = ItemGetGVarId(Obj2->Pid);
-                    if( v11 != -1 ) gGVals[ v11 ] = 1;
-                    CritterUnk37( 4 );
-                }
-            }
-        }
-        return 1;
     }
+    Pid = Obj2->Pid;
+    gItemUnk98 = Obj1;
+    gItemGVarId = ItemGetGVarId(Pid);
+    gItemUnk99 = stats[16];
+    EvQeRun( 2, (void *)Item110 );
+    if( Item102( Obj1, Obj2->Pid ) ){
+        ItemChemUse( Obj1, stats, 1, stats + 3 );
+        Item101( Obj1, Obj2, stats[6], stats, stats + 7 );
+        Item101( Obj1, Obj2, stats[10], stats, stats + 11 );
+    } else if( Obj1 == gObjDude ){
+        Message = MessageGetMessage( &gItemMsg, &v12, 50 ); // 'That didn't seem to do that much.'
+        IfcMsgOut( Message );
+    }
+    if ( !ItemGVarDefined( Obj2->Pid ) ){
+        v10 = stats[14];
+        if( Obj1 == gObjDude ){
+            if( TraitSpecActive(11) ) v10 *= 2;
+            if( TraitSpecActive(12) ) v10 /= 2;
+            if( PerkLvl(gObjDude, 42u) ) v10 /= 2;
+        }
+        if( RandMinMax(1, 100) <= v10 ){
+            ItemSchedEffect(Obj1, 1, stats[16], stats[15], Obj2->Pid);
+            if( Obj1 == gObjDude ){
+                v11 = ItemGetGVarId(Obj2->Pid);
+                if( v11 != -1 ) gGVals[ v11 ] = 1;
+                CritterUnk37( 4 );
+            }
+        }
+    }
+    return 1;    
 }
 
 int Item103( Obj_t *obj, ItemEv01_t *eff )
@@ -2152,29 +1890,27 @@ int Item105( Obj_t *Obj, ItemEv01_t *eff )
 {
     if( !Obj ) return 0;
     if( OBJTYPE(Obj->Pid) != 1 ) return 0;
-    ItemChemUse( Obj, &eff->i01[1], 0, &eff->i05 );
+    ItemChemUse( Obj, eff->i02, 0, eff->i03 );
     return Obj->Critter.State.CombatResult < 0;
 }
 
-int ItemLoadEffects( xFile_t *fh, void **a2 )
+int ItemLoadEffects( xFile_t *fh, ItemEv01_t **a2 )
 {
     ItemEv01_t *p;
     int i,tmp[3];
     
     if( !(p = Malloc( sizeof( ItemEv01_t ) )) ) return -1;
     if( dbreadBeiBlk( fh, tmp, 3 ) == -1 ){ Free( p ); return -1; }
-    if( dbreadBeiBlk( fh, &p->i05, 3 ) == -1 ){ Free( p ); return -1; }
-    for( i = 0; i < 3; i++ ){
-        p->i01[i + 1] = tmp[ i ];
-    }
+    if( dbreadBeiBlk( fh, p->i03, 3 ) == -1 ){ Free( p ); return -1; }
+    for( i = 0; i < 3; i++ ) p->i02[ i ] = tmp[ i ];
     *a2 = p;
     return 0;
 }
 
-int ItemSaveEffects( xFile_t *fh, int *a2 )
+int ItemSaveEffects( xFile_t *fh, ItemEv01_t *a2 )
 {
-    if( dbputBeiBlk( fh, a2 + 1, 3 ) == -1 ) return -1;
-    if( dbputBeiBlk( fh, a2 + 4, 3 ) == -1 ) return -1;
+    if( dbputBeiBlk( fh, a2->i02, 3 ) == -1 ) return -1;
+    if( dbputBeiBlk( fh, a2->i03, 3 ) == -1 ) return -1;
     return 0;
 }
 

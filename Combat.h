@@ -143,7 +143,7 @@ void CombatUnk31();
 void CombatUnk32();
 int CombatUnk33( Obj_t *obj, int edx0 );
 int CombatUnk34();
-void CombatStart( Scpt01_t *pObj );
+void CombatStart( Combat02_t *pObj );
 void CombatSetUp( Combat_t *cmbt, Obj_t *Critt, Obj_t *a3, int Hand, int a5 );
 int CombatAttack( Obj_t *a1, Obj_t *a2, int a3, int a4 );
 int CombatUnk37( Obj_t *a1, Obj_t *a2 );

@@ -1891,8 +1891,8 @@ int WmSetupRandomEncounter()
                     if( obj2 != a1 ){
                         if( enc->EncCnt != 1 ){
                             if( enc->EncCnt == 2 && !IN_COMBAT ){
-                        	obj2->Critter.State.WhoHitMe = a1;
-                        	a1->Critter.State.WhoHitMe = obj2;
+                        	obj2->Critter.State.WhoHitMeObj = a1;
+                        	a1->Critter.State.WhoHitMeObj = obj2;
                         	scr1.obj = obj2;
                         	scr1.i07 = 500;
                         	memset( &scr1.i03, 0, 16 );
@@ -1904,7 +1904,7 @@ int WmSetupRandomEncounter()
                         } else {                        
                     	    if( !IN_COMBAT ){
                         	obj1 = gObjDude;
-                        	obj2->Critter.State.WhoHitMe = gObjDude;
+                        	obj2->Critter.State.WhoHitMeObj = gObjDude;
                         	scr2.obj = obj2;
                         	memset( &scr2.i03, 0, 16 );
                         	scr2.i07 = 500;

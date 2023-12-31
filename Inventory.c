@@ -15,7 +15,7 @@ int gInvUnk77;
 int gInvUnk78;
 ObjContainer_t *gInvUnk79;
 Inv02_t gInvMseCursor[5];
-ObjContainer_t *gInvUnk84;
+Obj_t *gInvUnk84;
 void (*gInvInfoCb)(char *);
 int gInvFocusRegionId;
 int gInvInfoMode;
@@ -1655,7 +1655,7 @@ int InvPickItem( int sel, Obj_t **PickedItem, Obj_t **BoxObj, Obj_t ***PickPtrOb
 	    if( ItemIdx < gInvUnk79->Box.Cnt ){
     		stack = gInvUnk79->Box.Box;
     		ItemIdx = gInvUnk79->Box.Cnt - ItemIdx - 1;
-    	        Box = gInvUnk84->Obj;
+    	        Box = gInvUnk84;
     		picked = stack[ ItemIdx ].obj;
     		Quantity = stack[ ItemIdx ].Quantity;
 	    }
@@ -1953,9 +1953,9 @@ void InvActionMenu( int sel, int mode )
 
     InvSetInfoMode( 1 );
     if( !mode && IconsTable[ SelectedAction ] != 3 ) InvStatsUpdate();
-//    if( mode == 2 || mode == 3 ) InvUnk03( gInvUnk63[ gInvUnk40 ], -1, gInvUnk62, mode );
+    if( mode == 2 || mode == 3 ) InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, mode );
     InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, mode );
-//    if( mode == 3 ) InvUnk43( gInvUnk18, gInvUnk84, gInvUnk65, -1 );
+    if( mode == 3 ) InvUnk43( gInvUnk18, gInvUnk84, gInvUnk65, -1 );
     InvSetBodyImg();
     return;
 }
@@ -2615,7 +2615,7 @@ int InvMenuBarter( int eax0, Obj_t *a2, Obj_t *a3, Obj_t *a4, int a5 )
     Item16(obj, v53);
     gInvBackPack = (ObjContainer_t *)&gInvSelectedDude;
     gInvUnk65 = a1;
-    gInvUnk84 = (ObjContainer_t *)a4;
+    gInvUnk84 = a4;
     gInvUnk78 = 0;
     gInvUnk77 = 0;
     gInvUnk79 = (ObjContainer_t *)&a4;

@@ -17,13 +17,16 @@ typedef struct
 
 typedef struct 
 {
-  int Reaction;
-  int CurrentAP;
-  int CombatResult;
-  int DmgLastTurn;
-  int AIpackNb;
-  int GroupId;
-  int WhoHitMe;
+    int 	Reaction;
+    int 	CurrentAP;
+    int 	CombatResult;
+    int 	DmgLastTurn;
+    int 	AIpackNb;
+    int 	GroupId;
+    union{
+	int 	WhoHitMe;
+	struct _Obj_t *WhoHitMeObj; // added
+    };
 } ObjCritterCond_t;
 
 typedef struct // 0x38

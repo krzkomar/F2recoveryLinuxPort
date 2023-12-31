@@ -1610,7 +1610,7 @@ int ScpUnk02( unsigned int a1 )
 
 void ScpIfcInit()
 {
-    WinDlgInsertExec( ScpUnk02 );
+    WinDlgInsertExec( (void *)ScpUnk02 );
     SciAddOpcode( 0x806A, ScpIfc_FillWin3x3 );
     SciAddOpcode( 0x808C, ScpIfc_DeleteButton );
     SciAddOpcode( 0x8086, ScpIfc_AddButton );

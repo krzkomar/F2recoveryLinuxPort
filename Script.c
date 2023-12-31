@@ -3,7 +3,7 @@
 
 int gScptUnk02;
 Scpt01_t gScptUnk15;
-Scpt01_t gScptUnk114;
+Combat02_t gScptUnk114;
 
 int gScptUnk18;
 

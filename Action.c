@@ -613,17 +613,10 @@ int ActionUnk24( Obj_t *obj1, Obj_t *obj2 )
 
 int ActionUnk23( Obj_t *obj1, Obj_t *obj2, int ap )
 {
-    int v6; // eax
-    unsigned int result; // eax
-    int v8; // eax
-    short v9; // ax
-    int CurrentAP; // ebx
-    char *v11; // eax
-    int v12; // edx
-    int v13; // edx
-    Proto_t *v14; // [esp+0h] [ebp-1Ch] BYREF
-    int v15; // [esp+4h] [ebp-18h]
-    int Type; // [esp+8h] [ebp-14h]
+    int v6,result,v8,CurrentAP,v12,v13,v15,Type;
+    short v9;
+    char *v11;
+    Proto_t *v14;
 
     v6 = (obj2->ImgId & 0xF000000) >> 24;
     Type = -1;

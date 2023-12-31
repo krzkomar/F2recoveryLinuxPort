@@ -4,11 +4,9 @@
 
 typedef struct 
 {
-  int i01[3]; // Pid,,
-  int i04;
-  int i05;
-  int i06;
-  int i07;
+  int 	Pid;
+  int 	i02[ 3 ];
+  int 	i03[ 3 ];
 } ItemEv01_t;
 
 typedef struct 
@@ -44,7 +42,7 @@ int ItemFSave( xFile_t *fh );
 int Item09( Obj_t *dude1, Obj_t *dude2, int a3 );
 int ItemAdd( Obj_t *dude, Obj_t *item, int Quantity );
 int ItemUseItem( Obj_t *Obj1, Obj_t *Obj2, int QuantityMax );
-int Item11( Obj_t *a1, Obj_t *a2 );
+void Item11( int a1, ObjBox_t *a2 );
 int Item12( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4, int a5 );
 int Item13( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 );
 int Item14( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 );
@@ -68,10 +66,10 @@ Obj_t *ItemGetSlotItem( Obj_t *obj, int a2 );
 int ItemGetSlotApCost( Obj_t *obj, int Slot, int a3 );
 int Item33( Obj_t *obj, Obj_t *a2 );
 int Item34( Obj_t *obj );
-Obj_t *Item35( Obj_t *obj, Obj_t *a2, int a3 );
+int Item35( Obj_t *obj, Obj_t *a2, int a3 );
 int Item36( Obj_t *obj );
 int ItemGetClass( Obj_t *item, int slot );
-int ItemGetSkill( Obj_t *obj, int a2 );
+int ItemGetSkill( Obj_t *obj , int a2 );
 int ItemGetHitChance( Obj_t *obj, int a2 );
 int ItemGetWeaponDmg( Obj_t *Weapon, int *pMin, int *pMax );
 int Item41( Obj_t *obj, int a2 );
@@ -147,8 +145,8 @@ int Item102( Obj_t *Obj, int Pid );
 int ItemUnk07( Obj_t *Obj1, Obj_t *Obj2 );
 int Item103( Obj_t *obj, ItemEv01_t *eff );
 int Item105( Obj_t *Obj, ItemEv01_t *eff );
-int ItemLoadEffects( xFile_t *fh, void **a2 );
-int ItemSaveEffects( xFile_t *fh, int *a2 );
+int ItemLoadEffects( xFile_t *fh, ItemEv01_t **a2 );
+int ItemSaveEffects( xFile_t *fh, ItemEv01_t *a2 );
 int ItemSchedEffect( Obj_t *obj, int a2, int RecoveryTime, int EffectId, int a5 );
 int Item109( Obj_t *obj, EvEntry_t *effect );
 int Item110( Obj_t *obj, EvEntry_t *Effect );

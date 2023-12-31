@@ -30,7 +30,7 @@ int gCombatMapLvl;
 int gCombatCritCnt;
 Obj_t *gCombat10;
 int gCombat05;
-int gCombat06;
+Obj_t *gCombat06;
 /**/
 Obj_t *gCombat19;
 int gTargetHighlightLvl;
@@ -111,7 +111,7 @@ int CombatLoad( xFile_t *fh )
     if( !(gCombatStatus & CBT_IN_COMBAT ) ){
         for( p = ObjGetObjectFirst(); p; p = ObjGetObjectNext() ){
             if( OBJTYPE( p->Pid ) != TYPE_CRIT ) continue;
-            if( p->Critter.State.WhoHitMe == ART_NULL ) p->Critter.State.WhoHitMe = NULL;
+            if( p->Critter.State.WhoHitMeObj == ART_NULL ) p->Critter.State.WhoHitMeObj = NULL;
         }
         return 0;
     }
@@ -128,13 +128,13 @@ int CombatLoad( xFile_t *fh )
     }
     if( dbgetBei( fh, &gObjDude->CritterIdx ) == -1 ) return -1;  // Player sequence number
     for( i = 0; i < gCombatCritCnt; i++ ){
-        if( gCombatCritters[ i ]->Critter.State.WhoHitMe == ART_NULL ){
-            gCombatCritters[ i ]->Critter.State.WhoHitMe = 0;
+        if( gCombatCritters[ i ]->Critter.State.WhoHitMeObj == ART_NULL ){
+            gCombatCritters[ i ]->Critter.State.WhoHitMeObj = NULL;
         } else {
             for( j = 0; j < gCombatCritCnt; j++ ){
                 if( gCombatCritters[ i ]->Critter.State.WhoHitMe == gCombatCritters[ j ]->CritterIdx ) break;
             }
-            gCombatCritters[ i ]->Critter.State.WhoHitMe = ( j == gCombatCritCnt ) ? NULL : gCombatCritters[ j ];
+            gCombatCritters[ i ]->Critter.State.WhoHitMeObj = ( j == gCombatCritCnt ) ? NULL : gCombatCritters[ j ];
         }
     }
     // turn order
@@ -235,7 +235,7 @@ int CombatUnk03( Obj_t *Critter, Obj_t *Weapon, int a3, Obj_t *a4, int *a5, Obj_
         for( i = 0; i < gCombatCritCnt; i++ ){
             obj = gCombatCritters[ i ];
             if( GroupId == obj->Critter.State.GroupId && obj != Critter && a4 != obj && !CritterIsDead( gCombatCritters[ i ] ) ){
-                if( ObjGetDistance( a4, obj ) < v39 && obj != obj->Critter.State.WhoHitMe ){
+                if( ObjGetDistance( a4, obj ) < v39 && obj != obj->Critter.State.WhoHitMeObj ){
                     if( FeatGetVal( obj, FEAT_DMG_RES( v34 ) ) * (DmgMax - FeatGetVal( obj, FEAT_DMG_THR( v34 ) )) / 100 > 0 ) return 1;
                 }
             }            
@@ -258,7 +258,7 @@ int CombatUnk03( Obj_t *Critter, Obj_t *Weapon, int a3, Obj_t *a4, int *a5, Obj_
     	    obj = cmbt.obj[ i ];
     	    if( GroupId != obj->Critter.State.GroupId || obj == Critter || a4 == obj  ) continue;
     	    if( CritterIsDead( cmbt.obj[ i ] ) ) continue;
-    	    if( obj == obj->Critter.State.WhoHitMe ) continue;
+    	    if( obj == obj->Critter.State.WhoHitMeObj ) continue;
     	    if( FeatGetVal( obj, FEAT_DMG_THR( v34 ) ) * (DmgMax - FeatGetVal( obj, FEAT_DMG_RES( v34 ) ) ) / 100 > 0 ) return 1;
 	}
     }
@@ -906,7 +906,7 @@ int CombatUnk34()
     return i == gCombat04;
 }
 
-void CombatStart( Scpt01_t *pObj )
+void CombatStart( Combat02_t *pObj )
 {
 /*
     int j, i;
@@ -1195,7 +1195,7 @@ int CombatUnk42( Combat_t *cmbt )
     if( v9 == 1 && (TraitSpecActive( TRAIT_JINXED ) || PerkLvl( gObjDude, PERK_JINXED )) && RandMinMax( 0, 1 ) ) v9 = 0;
     if( (Class == 2 || Class == 1) && v9 == 2 && cmbt->Dude == gObjDude ){
         if( PerkLvl( cmbt->Dude, PERK_SLAYER ) ) v9 = 3;
-        if( PerkLvl( gObjDude, PERK_SILENT_DEATH ) && !ActionUnk16( gObjDude, cmbt->Comp ) && CritterUnk39( 0 ) && gObjDude != cmbt->Comp->Critter.State.WhoHitMe ) v31 = 4;
+        if( PerkLvl( gObjDude, PERK_SILENT_DEATH ) && !ActionUnk16( gObjDude, cmbt->Comp ) && CritterUnk39( 0 ) && gObjDude != cmbt->Comp->Critter.State.WhoHitMeObj ) v31 = 4;
         Hand = cmbt->Hand;
         if( Hand == 16 || Hand == 9 ){
             if( RandMinMax( 1, 100 ) <= 5 ){
@@ -1772,7 +1772,7 @@ void CombatUnk56( Obj_t *obj, int a2 )
             EvQeSchedule( 10 * (35 - 3 * FeatGetVal( obj, FEAT_ENDURANCE ) ), obj, 0, 1 );
         }
     } else {
-        EvQeDelA( &obj->TimeEv );
+        EvQeDelA( obj );
     }
     if( obj == gObjDude && ( a2 & 0x30 ) ){
         obj->Critter.State.CombatResult |= a2 & 0x80FF;
@@ -1803,11 +1803,11 @@ void CombatDealDamage( Obj_t *obj, int damage, int UpdateHpFlag, int a4, Obj_t *
         ScptExecScriptProc( obj->ScrId, 14 );
     }
     if( state->CombatResult & 0x80 ){ // dead condition
-        ScptUnk138( obj->ScrId, state->WhoHitMe, 0 );
+        ScptUnk138( obj->ScrId, state->WhoHitMeObj, 0 );
         ScptExecScriptProc( obj->ScrId, 18 );
         Item17( obj );
         if( obj != gObjDude ){
-            attacker = state->WhoHitMe;
+            attacker = state->WhoHitMeObj;
             if( (attacker == gObjDude) || (attacker && (attacker->Critter.State.GroupId == gObjDude->Critter.State.GroupId)) ){
                 flg = 0;
                 if( ScptPtr( obj->ScrId, &scr ) != -1 ) flg = scr->i18;
@@ -2093,7 +2093,7 @@ void CombatUnk62()
     if( gCombat20.Dude == gObjDude && gTargetHighlightLvl == 2 ) CombatTargetHighlight();
     if( ScptUnk39() && (gObjDude->Grid.DestMapElev & 1) != 0 ){
         if ( Dude->Critter.State.GroupId == gObjDude->Critter.State.GroupId )
-            gCombat10 = gObjDude->Critter.State.WhoHitMe;
+            gCombat10 = gObjDude->Critter.State.WhoHitMeObj;
         else
             gCombat10 = Dude;
     }
