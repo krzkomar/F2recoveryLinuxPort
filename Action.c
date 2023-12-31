@@ -1051,9 +1051,9 @@ int ActionExplode( int GridPos, int MapLvl, int DmgMin, int DmgMax, Obj_t *Targe
 	}
         CombatKillUpdate( cmbt );
         if( !SelfHurt ){
-            if( p && (cmbt->CompInjuries & 0x80) ) CritterKill( p, 0 );            
+            if( p && (cmbt->CompInjuries & 0x80) ) CritterKill( p, -1, 0 );
             for( i = 0; i < cmbt->Count; i++ ){
-                if( cmbt->Injuries[ i ] & 0x80 ) CritterKill( cmbt->obj[ i ], 0 );
+                if( cmbt->Injuries[ i ] & 0x80 ) CritterKill( cmbt->obj[ i ], -1, 0 );
             }
             ActionUnk11( cmbt, Target );
         }
@@ -1233,7 +1233,7 @@ void ActionUnk05( int a1, int edx0, int a3, int a4, int a5, int a6, int a7 )
         Free( cmbt );
     } else {
         if( TragetObj ){
-            if( cmbt->CompInjuries & 0x80 ) CritterKill( TragetObj, 1 );
+            if( cmbt->CompInjuries & 0x80 ) CritterKill( TragetObj, -1, 1 );
         }
         CombatHitInfo( cmbt );
         CombatUnk54( cmbt, 0 );

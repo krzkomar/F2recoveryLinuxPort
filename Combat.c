@@ -2454,7 +2454,7 @@ void CombatKillPoison( Obj_t *obj, char *text )
     if( obj == gObjDude ) return;
     IfcMsgOut( text );
     ScptExecScriptProc( obj->ScrId, 18 );
-    CritterKill( obj, 1 );
+    CritterKill( obj, -1, 1 );
 }
 
 

@@ -112,8 +112,8 @@ int  CritterGetGender( Obj_t *dude );
 char *CritterKillTypeName( int TxtId );
 char *CritterGetKillTypeDsc( int TxtId );
 int  CritterHit1( Obj_t *dude, int a2 );
-int  CritterUnk26( int n );
-int  CritterKill( Obj_t *dude, int a2 );
+int  CritterUnk26( Obj_t *n );
+int  CritterKill( Obj_t *dude, int DeathFrame, int a2 );
 int  CritterUnk27( Obj_t *dude );
 int  CritterCanTalk( Obj_t *dude );
 int  CritterIsDead( Obj_t *dude);
@@ -141,9 +141,9 @@ int  CritterUnk47( Obj_t *dude, int a2 );
 int  CritterOverload( Obj_t *dude );
 int  CritterUnk49( Obj_t *dude );
 int  CritterGetInjure( int Pid, int mask );
-int  CritterSetInjure( Obj_t *dude, int mask );
-int  CritterClrInjure( Obj_t *dude, int mask );
-int  CritterToggleInjure( Obj_t *dude, int mask);
+int  CritterSetInjure( int dudeId, int mask );
+int  CritterClrInjure( int dudeId, int mask );
+int  CritterToggleInjure( int dudeId, int mask);
 
 
 

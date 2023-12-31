@@ -247,8 +247,6 @@ int FeatGetVal( Obj_t *dude, int FeatId )
 int FeatGetTotal( Obj_t *dude, unsigned int Id )
 {
     int val;
-    Obj_t *v4;
-    int v5; int v6;
 
     val = FeatGetBase( dude, Id );
     if( dude == gObjDude ) return val + TraitSpecBonus( Id );

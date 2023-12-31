@@ -59,9 +59,9 @@ int NgNewGame()
     v1 = 0;
     b = 0;
     if( NgCharMenuCreate() != 1 ) return 0;    
-    if( MseIsCursorClear() ) MseDrawCursor();
+    if( (c = MseIsCursorClear()) ) MseDrawCursor();
     PalLoadFromFile( "color.pal" );
-    FadeStep( &gPalBase );
+//    FadeStep( gPalBase );
     if( !v1 ){
         do{
             if( gMenuEscape ) break;
@@ -153,13 +153,13 @@ int NgNewGame()
     }
     FadeStep( gFadePaletteC );
     NgClose();
-    if( !c ) MseCursorRedraw();    
+    if( c ) MseCursorRedraw();
     return a;
 }
 
 int NgCharMenuCreate()
 {
-    ArtFrm_t *img;
+    char *img;
     CachePool_t *ArtIdx;
 
     if( gNgWin != -1 ) return 0;
@@ -169,7 +169,7 @@ int NgCharMenuCreate()
     if( !(img = ArtGetBitmap( ArtMakeId( NG_WALLPAPER ), 0, 0, &ArtIdx)) ){ NgClose(); return 0; }
     ScrCopy( img, 640, 480, 640, gNgSurface, 640 );
     if( !(gNgUnk01 = Malloc( 560 * 300 ))){ NgClose(); return 0; }
-    ScrCopy( &img->Data[ 19228 ], 560, 300, 640, gNgUnk01, 560 );  
+    ScrCopy( img + 19240, 560, 300, 640, gNgUnk01, 560 );  
     ArtClose( ArtIdx );
 
     // arrow left
@@ -242,11 +242,10 @@ void NgClose()
 int NgDudeInit()
 {
     int err = 0;
-    Premade_t tmp;
+    char stmp[ 40 ];
 
-    tmp.label[16] = 0;
-    sprintf( tmp.path, "%s.gcd", gPremadeCharacter[ gNgDudeSel ].path );
-    if( ProtoDudeInit( tmp.path ) == -1 ){
+    sprintf( stmp, "%s.gcd", gPremadeCharacter[ gNgDudeSel ].path );
+    if( ProtoDudeInit( stmp ) == -1 ){
         eprintf( "\n ** Error in dude init! **\n" );
     } else {
         ScrCopy( gNgUnk01, 560, 300, 560, gNgSurface + 30*640 + 40, 640 );
@@ -259,7 +258,7 @@ int NgDudeInit()
 int NgLoadDudeShot()
 {
     int err, Width, Height;
-    ArtFrm_t *Img;
+    ArtFrmHdr_t *Img;
     char *pix;
     CachePool_t *ImgObj;
 

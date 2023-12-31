@@ -1971,7 +1971,7 @@ int WmSetupCritter( int eax0, Obj_t **edx0, int a3 )
                             eprintf( "\nERROR: wmSetupCritterObjs: Inven Wield Failed: %d on %s: Critter Fid: %d", a1->Pid, CritterGetName( pObj ), pObj->ImgId );
                         }
                     }
-                    if( (v5->Flags & 1) != 0 && OBJTYPE( pObj->Pid ) == TYPE_CRIT ) CritterKill( pObj, 0 );
+                    if( (v5->Flags & 1) != 0 && OBJTYPE( pObj->Pid ) == TYPE_CRIT ) CritterKill( pObj, -1, 0 );
                 }                        
             }
         }                

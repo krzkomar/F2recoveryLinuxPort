@@ -1592,17 +1592,19 @@ void CharEditStatModify( int Sel )
 int CharEditPrint()
 {
     int ExCode,v68,a2,bt,v243,win;
-    xPath_t *v84;
-    char **FileList;
-    char stmp1[512];
-    char stmp2[512];
+//    xPath_t *v84;
+//    char **FileList;
+//    char stmp1[512];
+//    char stmp2[512];
     char stmp[512];
-    char v236[512];
-    char *Frame0[10], *Surface, *Str2[2];
-    int err,i,k,n,ww,v131;
+//    char v236[512];
+    char *Frame0[10], *Surface;
+//    char *Str2[2];
+    int err,i,k,n,ww;
+//    int v131;
     
-    Str2[0] = stmp2;
-    Str2[1] = v236;
+//    Str2[0] = stmp2;
+//    Str2[1] = v236;
     a2 = 17;
     if( gChrEditMenuMode ){
         if( (win = WinCreateWindow(238, 90, gChrEditImgGeo[41].Width, gChrEditImgGeo[41].Height, 256, 18)) == -1 ) return -1;
@@ -1642,11 +1644,10 @@ int CharEditPrint()
                 stmp[0] = '\0';
                 strcpy( &stmp[ strlen( stmp ) ], "*." );
                 strcpy( &stmp[ strlen( stmp ) ], "GCD" );
-                if( (v84 = dbGetFileList( stmp, &FileList )) != dbFAIL ){
-                    strcpy( stmp1, MessageGetMessage( &gChrEditMsg, &gChrEditList, 617 ) );
-                    strcpy( stmp, MessageGetMessage( &gChrEditMsg, &gChrEditList, 600 ) );
-                    if( !DlgBoxSave( stmp, FileList, stmp1, v84->nsize, 168, 80 ) ){
-DD
+//                if( (v84 = dbGetFileList( stmp, &FileList )) != dbFAIL ){
+//                    strcpy( stmp1, MessageGetMessage( &gChrEditMsg, &gChrEditList, 617 ) );
+//                    strcpy( stmp, MessageGetMessage( &gChrEditMsg, &gChrEditList, 600 ) );
+//                    if( !DlgBoxSave( stmp, FileList, stmp1, v84->nsize, 168, 80 ) ){
 /*
                         strcpy( &stmp1[ strlen( stmp1 ) ], "." );
                         strcpy( &stmp1[ strlen( stmp1 ) ], "GCD" );
@@ -1676,20 +1677,20 @@ DD
                             }
                         }
 */
-                    }
-                    dbDelFileList( FileList );
-                } else {
-            	    GSoundPlay( "iisxxxx1" );
-            	    ExCode = 0;
-            	    DlgBox( MessageGetMessage( &gChrEditMsg, &gChrEditList, 615 ), NULL, 0, 169, 126, gPalColorCubeRGB[31][18][8], NULL, gPalColorCubeRGB[31][18][8], 0);
-                }
+//                    }
+//                    dbDelFileList( FileList );
+//                } else {
+//            	    GSoundPlay( "iisxxxx1" );
+//            	    ExCode = 0;
+//            	    DlgBox( MessageGetMessage( &gChrEditMsg, &gChrEditList, 615 ), NULL, 0, 169, 126, gPalColorCubeRGB[31][18][8], NULL, gPalColorCubeRGB[31][18][8], 0);
+//                }
             } else if( v68 == 501 || v68 == 108 || v68 == 76 ){ // Load
                     stmp[0] = '\0';
                     strcpy( &stmp[ strlen( stmp ) ], "*." );
                     strcpy( &stmp[ strlen( stmp ) ], "GCD" );
-                    if( (v84 = dbGetFileList( stmp, &FileList ) ) != dbFAIL ){
-                        v131 = DlgBoxLoad( MessageGetMessage( &gChrEditMsg, &gChrEditList, 601 ), FileList, stmp, v84->nsize, 168, 80 );
-                        if( v131 == -1 ){ dbDelFileList( FileList ); return -1; }
+//                    if( (v84 = dbGetFileList( stmp, &FileList ) ) != dbFAIL ){
+//                        v131 = DlgBoxLoad( MessageGetMessage( &gChrEditMsg, &gChrEditList, 601 ), FileList, stmp, v84->nsize, 168, 80 );
+//                        if( v131 == -1 ){ dbDelFileList( FileList ); return -1; }
 /*
                         if( !v131 ){
                             stmp[0] = '\0';
@@ -1730,10 +1731,10 @@ DD
                         }
                         dbDelFileList( FileList );
 */
-                } else {
-            	    GSoundPlay("iisxxxx1");
+//                } else {
+//            	    GSoundPlay("iisxxxx1");
 //                strcpy( stmp, MessageGetMessage((Msg_t **)&gChrEditMsg, v124, 615) );
-		}
+//		}
             } else if( v68 != 502 && v68 != 112 && v68 != 80 ){
 /*
                         if( v68 == 503 || v68 == 101 || v68 == 69 ){
@@ -1804,7 +1805,7 @@ DD
                 DlgBox(stmp, NULL, 0, 169, 126, gPalColorCubeRGB[31][18][8], NULL, gPalColorCubeRGB[31][18][8], 0);
 */
             }
-LABEL_233:
+//LABEL_233:
             WinUpdate( win );
             if( ExCode ){
                 WinClose( win );

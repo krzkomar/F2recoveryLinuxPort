@@ -770,7 +770,7 @@ int PartyFix()
         if( ScptPtr( gParty[ i ].dude->ScrId, &scr ) == -1 )
             eprintf( "\nError: Failed to fix party member obj scripts!" );
         else
-            scr->TimeEv = gParty[ i ].dude->TimeEv;
+            scr->TimeEv = gParty[ i ].dude;
     }
     eprintf( "\nTotal Critter Count: %d\n\n", TotCrittCnt );
     return 0;

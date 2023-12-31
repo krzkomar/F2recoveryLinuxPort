@@ -10,7 +10,8 @@ static int CreditsText( char *text, int *Font, int *Color );
 
 void Credits( const char *fname, int WallPaperId, char sel )
 {
-    ArtFrm_t *ImgData, *ObjData;
+    ArtFrmHdr_t *ImgData;
+    char *ObjData;
     CachePool_t *Img;
     char stmp[260], text[12], *buf,*TextScr,*pSrc,*pTxt,*scr,*Surface,*p,*pDst;
     int CursorClr,w,h,TxtWidth,time,color,FontId,FastExit,FontSave,cc,num,y,win;
@@ -70,7 +71,7 @@ void Credits( const char *fname, int WallPaperId, char sel )
                                 ScrCopy( scr, 640, 480, 640, Surface, 640 ); // copy wallpaper on screen
                                 WinUpdate( win );
                                 time = 0;
-                                FadeStep( &gPalBase );
+                                FadeStep( gPalBase );
                                 FastExit = 0;
                                 pSrc = buf + 640;
                                 pDst = buf + 640*479; // last line
