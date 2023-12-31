@@ -1,17 +1,5 @@
 #include "FrameWork.h"
 
-#define MAIN_MENU_COLOR 		gPalColorCubeRGB[0x14][0x13][3]
-#define MAIN_MENU_ART_WALLPAPER 	6, 140, 0, 0, 0
-#define MAIN_MENU_FONT			100
-#define MAIN_MENU_WIDTH			640
-#define MAIN_MENU_HEIGHT		480
-#define MAIN_MENU_TXT_COPYRIGHT		20
-#define MAIN_MENU_ART_BUTTUP		6, 299, 0, 0, 0
-#define MAIN_MENU_ART_BUTTDN		6, 300, 0, 0, 0
-#define MAIN_MENU_TXT_BUTTs		9
-#define MAIN_MENU_FONT_BUTT		104
-#define MAIN_MENU_POSITIONS		6
-
 static int   gMainMenuWin = -1;
 static char *gWallPaper = NULL;
 static char *gImgButtUp = NULL;
@@ -113,7 +101,7 @@ void MainMenuUpdate( int Fade )
     if( !gMainMenuGuard || gMainMenuUpdate ) return;    
     SoundUpdateAll();
     if( Fade ){
-//        FadeStep( gFadePaletteC );
+        FadeStep( gFadePaletteC );
         SoundUpdateAll();
     }
     WinUpdateDirty( gMainMenuWin );
@@ -127,7 +115,7 @@ void MainMenuFadeInit( int Fade )
     WinMoveTop(gMainMenuWin);
     if( Fade ){
         PalLoadFromFile( "color.pal" );
-        FadeStep( &gPalBase );
+        FadeStep( gPalBase );
     }
     gMainMenuUpdate = 0;    
 }
@@ -149,7 +137,7 @@ unsigned int MainMenuGetTimeout()
 
 int MainMenuHandle()
 {
-    int SelCode,IsCursorClear, CursorClean,time, key, i, result;
+    int SelCode,IsCursorClear, CursorClean,time, key, i;
 
     gMainMenuHandlerGuard = 1;
     IsCursorClear = MseIsCursorClear();

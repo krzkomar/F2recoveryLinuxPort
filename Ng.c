@@ -61,7 +61,7 @@ int NgNewGame()
     if( NgCharMenuCreate() != 1 ) return 0;    
     if( (c = MseIsCursorClear()) ) MseDrawCursor();
     PalLoadFromFile( "color.pal" );
-//    FadeStep( gPalBase );
+    FadeStep( gPalBase );
     if( !v1 ){
         do{
             if( gMenuEscape ) break;
