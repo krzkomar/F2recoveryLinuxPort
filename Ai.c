@@ -731,10 +731,10 @@ int AiUnk20( Obj_t *a1, Obj_t **a2, Obj_t **Attacker, Obj_t **a4 )
         if( Attacker ){
             if( !*Attacker && GroupId == v8->Critter.State.GroupId ){                        
                 if( (WhoHitMe = v8->Critter.State.WhoHitMeObj) ){
-//                    if( WhoHitMe != a1 && (GroupId != WhoHitMeObj->Critter.State.GroupId) && !( v8->Critter.State.WhoHitMeObj->Critter.State.CombatResult & 0x80) ){
-//                        v5++;
-//                        *Attacker = v8->Critter.State.WhoHitMeObj;
-//                    }
+                    if( WhoHitMe != a1 && (GroupId != WhoHitMe->Critter.State.GroupId) && !( v8->Critter.State.WhoHitMeObj->Critter.State.CombatResult & 0x80) ){
+                        v5++;
+                        *Attacker = v8->Critter.State.WhoHitMeObj;
+                    }
                 }
             }
         }
@@ -775,10 +775,10 @@ Obj_t *AiDangerSource( Obj_t *obj )
             case 0:
                 v18 = CombatUnk11( gObjDude );
                 if( !v18 || obj->Critter.State.GroupId == v18->Critter.State.GroupId ) break;
-//                if( !AnimMakeTrace( obj, obj->GridId, gObjDude->Critter.State.WhoHitMe->GridId, 0, 0, (void *)ObjReach ) && CombatAttackTest( obj, v18, 2, 0 ) ){
-//                    eprintf( "\nai_danger_source: %s couldn't attack at target!  Picking alternate!", CritterGetName( obj ) );
-//                    break;
-//                }
+                if( !AnimMakeTrace( obj, obj->GridId, gObjDude->Critter.State.WhoHitMeObj->GridId, 0, 0, (void *)ObjReach ) && CombatAttackTest( obj, v18, 2, 0 ) ){
+                    eprintf( "\nai_danger_source: %s couldn't attack at target!  Picking alternate!", CritterGetName( obj ) );
+                    break;
+                }
                 if( v2 && CritterUnk49( v18 ) ) break;
                 return v18;
             case 1: case 2: case 4: obj->Critter.State.WhoHitMeObj = 0; break;
@@ -1228,44 +1228,40 @@ int AiUnk37( Obj_t *obj, Obj_t *pe, int *pIdx )
     return 0;
 }
 
-int AiUnk38( Ai02_t *grp, int idx )
+int AiUnk38( Ai02_t *group, int a2 )
 {
-DD
-/*
-    Ai02_t *p;
-    int pos[2];
+    Obj_t *p; 
+    int cnt, i;
 
-    pos[0] = 1;
-    pos[1] = idx;
-    if( grp->Intelligence <= 0 ) return 0;
-    if( grp->Cnt <= 0 ) return 0;
-    for( p = grp; idx < grp->Cnt; p++, idx++ ){
-        if( AiUnk39( p->Enemies[0], grp->Unk, grp->Attacker, idx ) ){
+    cnt = 1;
+    if( group->Intelligence <= 0 ) return 0;    
+    for( i = 0; i >= group->Cnt; i++ ){
+        p = group->Enemies[ i ];
+        if( AiUnk39( p, group->Unk, group->Attacker, a2, &cnt ) ){
 	    eprintf( "In the way!" );
-	    grp->Attacker = TileUnk16( pos, ( p->Enemies[0]->Orientation + 1 ) % 6, &pos );
-	    grp->Unk = TileUnk16( pos, ( p->Enemies[0]->Orientation + 5 ) % 6, &pos );
-	    grp->Intelligence -= 2;
-	    grp->Unk02 += 2;
+	    group->Positions[ group->Unk02 + 0 ] = TileUnk16( a2, (p->Orientation + 1) % 6, cnt );
+	    group->Positions[ group->Unk02 + 1 ] = TileUnk16( a2, (p->Orientation + 5) % 6, cnt );
+	    group->Intelligence -= 2;
+	    group->Unk02 += 2;
 	    return 0;
-        }        
+        }
     }
-*/
     return 0;
 }
 
-int AiUnk39( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 )
+int AiUnk39( Obj_t *dude, Obj_t *a2, Obj_t *a3, int a4, int *pCnt )
 {
-    Obj_t *v7, *a5;
-    int v8, v10;
+    int Ranged, Slot;
+    Obj_t *item, *a5;
 
-    a5 = 0;
-    v10 = 2;
-    if( a1 == gObjDude ) IfaceGetWeaponDsc( &v10, &v8 );    
-    if( !(v7 = ItemGetSlotItem( a1, v10 )) ) return 0;    
-    if( ItemGetRange( a1, v10 ) < 1 ) return 0;    
-    AnimUnk07( a1, a1->GridId, a2->GridId, 0, &a5, 32, (void *)ObjUnk55 );
+    a5 = NULL;
+    Slot = 2;
+    if( dude == gObjDude ) IfaceGetWeaponDsc( &Slot, &Ranged );
+    if( !( item = ItemGetSlotItem( dude, Slot ) ) ) return 0;
+    if( ItemGetRange( dude, Slot ) < 1 ) return 0;
+    AnimUnk07( dude, dude->GridId, a2->GridId, 0, &a5, 32, (void *)ObjUnk55 );
     if( a5 == a3 ) return 1;
-    if( CombatUnk04( a1, a2, a3, v7 ) ) return 1;
+    if( CombatUnk04( dude, a2, a3, item ) ) return 1;
     return 0;
 }
 

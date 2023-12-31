@@ -66,7 +66,7 @@ Obj_t *ItemGetSlotItem( Obj_t *obj, int a2 );
 int ItemGetSlotApCost( Obj_t *obj, int Slot, int a3 );
 int Item33( Obj_t *obj, Obj_t *a2 );
 int Item34( Obj_t *obj );
-int Item35( Obj_t *obj, Obj_t *a2, int a3 );
+Obj_t *Item35( Obj_t *obj, Obj_t *a2, int a3 );
 int Item36( Obj_t *obj );
 int ItemGetClass( Obj_t *item, int slot );
 int ItemGetSkill( Obj_t *obj , int a2 );

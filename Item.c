@@ -611,21 +611,22 @@ int Item34( Obj_t *obj )
     return 0;
 }
 
-int Item35( Obj_t *obj, Obj_t *a2, int a3 )
+Obj_t *Item35( Obj_t *obj, Obj_t *a2, int a3 )
 {
-    int i, n;
+    int i;
+    Obj_t *p;
 
     if( !obj || !a2 ) return 0;        
     for( i = 0; i < obj->Container.Box.Cnt; i++ ){
         if( ItemStack( obj->Container.Box.Box[ i ].obj, a2 ) && !ItemUseItem( obj, obj->Container.Box.Box[ i ].obj, 1 ) ){
             a2->Flags |= a3;
-            if( !ItemAdd( obj, a2, 1 ) ) return -1;
+            if( !ItemAdd( obj, a2, 1 ) ) return a2;
             a2->Flags &= ~a3;
             if( ItemAdd( obj, a2, 1 ) ) UseUnk06( a2 );
         }
         if( ItemGetObjType( obj->Container.Box.Box[ i ].obj ) == 1 ){
-            n = Item35( obj->Container.Box.Box[ i ].obj, a2, a3 );
-            if( n ) return n;
+            p = Item35( obj->Container.Box.Box[ i ].obj, a2, a3 );
+            if( p ) return p;
         }
     }        
     return 0;

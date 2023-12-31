@@ -175,7 +175,7 @@ int AiUnk35( Obj_t *a1, Obj_t *a2, int a3, int a4 );
 int AiUnk36( Obj_t *a1, Obj_t *a2, int a3 );
 int AiUnk37( Obj_t *obj, Obj_t *pe, int *pIdx );
 int AiUnk38( Ai02_t *grp, int idx );
-int AiUnk39( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 );
+int AiUnk39( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4, int *n );
 int AiUnk40( Obj_t *a1, int *a2, Obj_t **a3, Obj_t *a4 );
 int AiUnk41( Obj_t *a1, Obj_t *a2, int a3 );
 int AiUnk42( Obj_t *a1, Obj_t *a2, int a3 );
