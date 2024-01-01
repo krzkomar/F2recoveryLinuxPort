@@ -1006,6 +1006,8 @@ int ScptGameInit()
 int ScptGameReset()
 {
     eprintf( "\nScripts: [Game Reset]" );
+DD
+return 0;
     ScptReset();
     ScptGameInit();
     PartyUnk06();
@@ -1530,7 +1532,8 @@ int ScptFlush()
     ScptCache_t *p; // edx
     int i; // ebx
     Scpt_t *scr; // eax
-
+DD
+return 0;
     scp = gScrScripts;
     EvQeRun( 3, 0 );
     ScptMsgFree();

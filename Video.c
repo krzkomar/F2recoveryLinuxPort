@@ -304,7 +304,8 @@ void VidSetPaletteAll( Pal8_t *Pal )
 //        gVidPalx[ i ].a = COLOR_SCALE;
     }
     VidPaletteUpdate( );
-    WinUpdateArea( &gVidMainGeo );
+//    WinUpdateArea( &gVidMainGeo );
+    VidUpdate( 0, 0, 640, 480 );
     if( gVidColorCb ) gVidColorCb();
 }
 

@@ -61,14 +61,14 @@ void MainGame( int argc, char **argv )
                         strcpy( stmp, "artemple.map" );
                         MainGameCreate( stmp );
                         MainGameLoop();
-//                        FadeStep( gFadePaletteB );
-//                        ObjUnk33( gObjDude, v15 );
-//                        MapExitMsg();
-//                        GameReset();
-//                        if( gMainUnk08 ){
-//                            MainUnk05();
-//                            gMainUnk08 = 0;
-//                        }
+                        FadeStep( gFadePaletteB );
+                        ObjUnk33( gObjDude, 0 );
+                        MapExitMsg();
+                        GameReset();
+                        if( gMainUnk08 ){
+                            MainUnk05();
+                            gMainUnk08 = 0;
+                        }
                     }
                     MainMenuCreate();
                     break;
@@ -86,7 +86,7 @@ void MainGame( int argc, char **argv )
                     GmouseLoadCursor( 0 );
                     MseDrawCursor();
                     PalLoadFromFile( "color.pal" );
-//                    FadeStep( &gPalBase );
+                    FadeStep( gPalBase );
 		    switch( LsgMenuGameLoad( 0 ) ){
 			case 0: break;
 			case -1: ErrorPrintf("\n ** Error running LoadGame()! **\n"); break;
@@ -96,7 +96,7 @@ void MainGame( int argc, char **argv )
                     	    MainGameLoop();
                     	    break;
 		    }		    
-//                    FadeStep( gFadePaletteB );
+                    FadeStep( gFadePaletteB );
                     if( Window != -1 ) WinClose( Window );
                     ObjUnk33( gObjDude, 0 );
                     MapExitMsg();

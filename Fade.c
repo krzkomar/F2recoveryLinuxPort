@@ -7,17 +7,19 @@ int 	gFadeSteps;
 
 void FadeInit()
 {
-    unsigned int time;
+    unsigned int t0, time;
 
     memset( gFadePaletteC, 0x00, sizeof( gFadePaletteC ) );
     memset( gFadePaletteB, 0x3F, sizeof( gFadePaletteB ) );
     memcpy( gFadePaletteA, &gPalBase, sizeof( gFadePaletteA ) );
-    time = TimerGetSysTime();
+    // calibration
+    t0 = TimerGetSysTime();
     if( GSoundIsMusicEnabled() || GSoundIsSpkOn() ) PalSetFadeSndCb( SoundUpdateAll );
     PalFadeIn( gFadePaletteA, gFadePaletteA, 60 );
     PalSetFadeSndCb( NULL );
-    gFadeSteps = lround( 60.0 / (TimerCurrDiff( time ) * 0.0014) );
-    ErrorPrintf( "\nFade time is %u\nFade steps are %d\n", time, gFadeSteps );
+    time = TimerCurrDiff( t0 );
+    gFadeSteps = lround( FADE_TIME_MS * time / 60.0 ); // lround( 60.0 / (time * 0.0014) );
+    eprintf( "\nFade time is %ums\nFade steps are %d\n", time, gFadeSteps );
 }
 
 void FadeStep( Pal8_t *pal )

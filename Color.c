@@ -152,13 +152,12 @@ void PalSetColors( Pal8_t *Palette )
 {
     int i;
     Pal8_t TmpPal[ 256 ];
-
     for( i = 0; i < 256; i++ ){
-        TmpPal[ i ].r = gPalBright[ (int)Palette[ i ].r ]; gPalCurrent[ i ].r = Palette[ i ].r;
-        TmpPal[ i ].g = gPalBright[ (int)Palette[ i ].g ]; gPalCurrent[ i ].g = Palette[ i ].g;        
-        TmpPal[ i ].b = gPalBright[ (int)Palette[ i ].b ]; gPalCurrent[ i ].b = Palette[ i ].b;
+        TmpPal[ i ].r = gPalBright[ (int)Palette[ i ].r ];
+        TmpPal[ i ].g = gPalBright[ (int)Palette[ i ].g ];
+        TmpPal[ i ].b = gPalBright[ (int)Palette[ i ].b ];
     }
-
+    memcpy( gPalCurrent, Palette, 3*256 );
     VidSetPaletteAll( TmpPal );
 }
 
