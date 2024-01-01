@@ -363,12 +363,12 @@ int KeyGetLangSpKey()
 int KeyGetKey()
 {
     int KeyCode;
-    unsigned char code;
+//    unsigned char code;
     KeyRaw_t *pScanCode;
 
     KeyCode = -1;
     if( KeyCheckScanCode(0, &pScanCode) ) return -1;
-    code = pScanCode->Code;
+//    code = pScanCode->Code;
 //printf("=++>%c\n", code);
 //    if( gKeyNumpadOff && ( code == KEY_SNUM_SLASH || code == KEY_SNUM_AST || code == KEY_SNUM_MINUS || code == KEY_SNUM_PLUS || code == KEY_SNUM_ENTER )  ){
 //        KEY_RingBufPop();
@@ -804,7 +804,7 @@ int KeyCheckScanCode( int ofset, KeyRaw_t **raw)
 
 int KeyShiftKeyState()
 {
-    char *key = SDL_GetKeyboardState( NULL );
+    const unsigned char *key = SDL_GetKeyboardState( NULL );
     int flg = 0;
 
     if( !key ) return 0;

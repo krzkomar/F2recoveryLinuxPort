@@ -28,7 +28,7 @@ int gSkillMenuInited = 0;
 int gSkillMenuIds[ 6 ] = { 0x79, 0x77, 0x78, 0x08, 0x09, 0xAA };
 int gSkillMenuIdx[ 8 ] = { 0x08, 0x09, 0x0A, 0x0B, 0x06, 0x07, 0x0C, 0x0D };
 
-
+const int gSkillUnk15[ 5 ] = { 64, 16, 32, 8, 4 };
 const int gSkillDoctorInjuresMask[5] = { 0x40, 0x10, 0x20, 0x08, 0x04 }; // dmaged eye, crippled la, crippled ra, crippled ll, crippled rl
 
 
@@ -318,282 +318,335 @@ void SkillHoningAward( Obj_t *dude,int SkillIdx, int a3, int a4 )
     IfcMsgOut( stmp );
 }
 
-int SkillUseHeal( Obj_t *dude1, Obj_t *dude2, int a3, unsigned int SkillIdx )
+int SkillUseHeal( Obj_t *dude1, Obj_t *dude2, unsigned int SkillIdx, int a4 )
 {
-/*
-    MsgLine_t MsgLineA, MsgLineB;
-    Obj_t *crit, *dd;
-    char stmp[60];
-    int v5, v6, v11, v19, i, v22;
-    int v36, InjuresMask[5], v50, v51, Val, Max, Min, v55, v56, v58, v59, v60, v24, v25, succ;
+    int v7; // eax
+    int Hp; // ebx
+    int v11; // eax
+    int v17; // ebx
+    int v19; // edi
+    int v21; // ebx
+    char v22; // dl
+    int v23; // eax
+    int v24; // eax
+    Obj_t *db; // ecx
+    char v26; // dh
+    char *v27; // eax
+    int v28; // eax
+    int v29; // ebx
+    int v31; // edi
+    int v33; // ebx
+    int v34; // eax
+    int Total; // eax
+    Obj_t *dd; // ecx
+    char stmp[60]; // [esp+0h] [ebp-C8h] BYREF
+    int InjuresMask[5]; // [esp+3Ch] [ebp-8Ch] MAPDST
+    MsgLine_t MsgLineA; // [esp+64h] [ebp-64h] BYREF
+    MsgLine_t MsgLineB; // [esp+74h] [ebp-54h] BYREF
+    int v47; // [esp+84h] [ebp-44h] BYREF
+    int v48; // [esp+88h] [ebp-40h]
+    int Val; // [esp+8Ch] [ebp-3Ch]
+    int Max; // [esp+90h] [ebp-38h]
+    int Min; // [esp+94h] [ebp-34h]
+    int v52; // [esp+98h] [ebp-30h]
+    int v53; // [esp+9Ch] [ebp-2Ch]
+    int v55; // [esp+A4h] [ebp-24h]
+    int v56; // [esp+A8h] [ebp-20h]
+    int v57; // [esp+ACh] [ebp-1Ch]
+    Obj_t *crit; // [esp+B4h] [ebp-14h]
+    ObjCritterCond_t *p_State; // [esp+B8h] [ebp-10h]
 
     crit = dude1;
-    v60 = v50 = Min = Max = v55 = 0;
-    Val = FeatGetVal( dude2, 35 );
-    v58 = v5;
-    v51 = FeatGetVal( dude2, FEAT_HP );
-    v59 = v6;
+    v57 = 0;
+    v47 = 0;
+    Min = 0;
+    Max = 0;
+    v52 = 0;
+    p_State = &dude2->Critter.State;
+    Val = FeatGetVal(dude2, 35);
+    v55 = 1;
+    v48 = FeatGetVal(dude2, 7);
+    v56 = 1;
     if( crit == gObjDude && (SkillIdx == 6 || SkillIdx == 7) ){
-        i = CharEditUnk53( crit, 19 );
-        Min = 4 * i;
-        Max = 10 * i;
+        v7 = PerkLvl(crit, 19u);
+        Min = 4 * v7;
+        Max = 10 * v7;
     }
-    v56 = FeatGetVal( crit, FEAT_CRIT ) + a3;
+    v53 = FeatGetVal(crit, 15) + a4;
     switch( SkillIdx ){
-        case SKILL_FIRSTAID:
-            if( SkillUsingTired( SKILL_FIRSTAID ) == -1 ){
-                MsgLineA.Id = RandMinMax( 0, 2 ) + 590; // ' you've taxed your ability' 'You are too tired' 'the strain might kill you'
-                if( MessageGetMsg( &gSkillMsg, &MsgLineA ) == 1 ) IfcMsgOut( MsgLineA.Text );
+        case 6u:
+            if( SkillUsingTired(6) == -1 ){
+                MsgLineA.Id = RandMinMax(0, 2) + 590; // 'You've taxed your ability with that skill. Wait a while.'/'You're too tired.'/'The strain might kill you.'
+                if( MessageGetMsg(&gSkillMsg, &MsgLineA) == 1 ) IfcMsgOut(MsgLineA.Text);
                 return -1;
             }
-            if( CritterIsDead( dude2 ) ){
-        	MsgLineA.Id = RandMinMax( 0, 2 ) + 512; // 'you can't heal the dead' 0..2
-        	if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) goto LABEL_43;
-        	goto LABEL_103;
-	    }
-                if( CritterGetHp( dude2 ) >= FeatGetVal( dude2, SKILL_DOCTOR ) ){ // dude is healthy
+            if( !CritterIsDead(dude2) ){
+                Hp = CritterGetHp(dude2);
+                if( Hp >= FeatGetVal(dude2, 7) ){
                     if( crit == gObjDude ){
-                        MsgLineA.Id = (dude2 != gObjDude) + 501; // 'you look healthy already'
-                        if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) return -1;
+                        MsgLineA.Id = (dude2 != gObjDude) + 501; // 'You lookhealthy already.'
+                        if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
                         if( dude2 == gObjDude ){
                             strcpy( stmp, MsgLineA.Text );
                         } else {
-                            sprintf( stmp, MsgLineA.Text, NgCompanyName( dude2 ) );
+                            sprintf(stmp, MsgLineA.Text, ObjGetName(dude2));
                         }
-                        IfcMsgOut( stmp );
-                        v58 = 0;
+                        IfcMsgOut(stmp);
+                        v55 = 0;
                     }
-                } else { // heal process
-//                    FadeStep( gFadePaletteC );
-                    v11 = ( CritterGetBodyType( dude2 ) == 2 ) ? 1 : SkillUse( crit, SkillIdx, &v50, v56 );
+                } else {
+                    FadeStep(gFadePaletteC);
+                    if( CritterGetBodyType(dude2) == 2 )
+                        v11 = 1;
+                    else
+                        v11 = SkillUse(crit, SkillIdx, &v47, v53);
                     if( v11 == 2 || v11 == 3 ){
-                        CritterHeal( dude2, RandMinMax( Min + 1, Max + 5 ) );
+                        v47 = RandMinMax(Min + 1, Max + 5);
+                        CritterHeal(dude2, v47);
                         if( crit == gObjDude ){
-                            MsgLineA.Id = 500; // 'you heal %d points'
-                            if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) return -1;
-                            if( v51 - Val < v50 ) v50 = v51 - Val;
-                            sprintf( stmp, MsgLineA.Text, v50 );
-                            IfcMsgOut( stmp );
+                            MsgLineA.Id = 500; // 'You heal %d hot points.'
+                            if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
+                            if( v48 - Val < v47 ) v47 = v48 - Val;
+                            sprintf(stmp, MsgLineA.Text, v47);
+                            IfcMsgOut(stmp);
                         }
-                        dude2->Injured[0] &= ~0x04;
-//                        SkillUsing( SKILL_FIRSTAID );
-                        v60 = 1;
-//                        if( dude2 == gObjDude ) CharEditUnk26();
+                        dude2->Grid.DestMapId &= ~0x04;
+                        SkillUsing(6);
+                        v57 = 1;
+                        if( dude2 == gObjDude ) IfaceRenderHP(1);
                     } else {
-                        MsgLineA.Id = 503; // 'you fail to do any healing'
-                        if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) return -1;
-                        sprintf( stmp, MsgLineA.Text, v50 );
-//                        IfcMsgOut( stmp );
+                        MsgLineA.Id = 503; // 'Ypu fail to do any healing.'
+                        if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
+                        sprintf(stmp, MsgLineA.Text, v47);
+                        IfcMsgOut(stmp);
                     }
-//                    ScptUnk30();
-//                    FadeStep( &gPalBase );
+                    ScptUnk30();
+                    FadeStep(gPalBase);
                 }
-//                if( crit == gObjDude ) Unk30021( 1800 );
+                if( crit == gObjDude ) ScptTimeCap2(1800);
                 goto LABEL_43;
-            
-        case SKILL_DOCTOR:
-            if( SkillUsingTired( SKILL_DOCTOR ) == -1 ){
-                MsgLineA.Id = RandMinMax( 0, 2 ) + 590; // ' you've taxed your ability' 'You are too tired' 'the strain might kill you'
-                if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) return -1;
-                IfcMsgOut( MsgLineA.Text );                
+            }
+            MsgLineA.Id = RandMinMax(0, 2) + 512; // 'You can't heal dead.'
+            if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) goto LABEL_43;
+            goto LABEL_103;
+        case 7u:
+            if( SkillUsingTired(7) == -1 ){
+                MsgLineA.Id = RandMinMax(0, 2) + 590; // 
+                if( MessageGetMsg(&gSkillMsg, &MsgLineA) == 1 )
+LABEL_99:
+                    IfcMsgOut(MsgLineA.Text);
                 return -1;
             }
-            if( CritterIsDead( dude2 ) ){
-                MsgLineA.Id = RandMinMax( 0, 2 ) + 512; // 'you can't heal the dead' 0..2
-                if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) goto LABEL_43;
+            if( CritterIsDead(dude2) ){
+                MsgLineA.Id = RandMinMax(0, 2) + 512; //
+                if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) goto LABEL_43;
                 goto LABEL_103;
             }
-            if( CritterGetHp( dude2 ) < FeatGetVal( dude2, FEAT_HP ) || CritterUnk30( dude2 ) ){
-//                FadeStep( gFadePaletteC );
-		// heal injures
-                if( CritterGetBodyType( dude2 ) != 2 && CritterUnk30( dude2 ) ){
-                    InjuresMask[ 0 ] = 0x40;
-                    InjuresMask[ 1 ] = gSkillDoctorInjuresMask[ 1 ];
-                    InjuresMask[ 2 ] = gSkillDoctorInjuresMask[ 2 ];
-                    InjuresMask[ 3 ] = gSkillDoctorInjuresMask[ 3 ];
-                    InjuresMask[ 4 ] = gSkillDoctorInjuresMask[ 4 ];
-                    for( i = 0; i < 5; i++ ){
-                        if( InjuresMask[ i ] & dude2->Injured[ 2 ] ){
-                            v59++;
-                            succ = SkillUse( crit, SkillIdx, &v50, v56 );
-                            MsgLineA.Id = i + 530; // damaged eye, crippled la, crippled ra, crippled ll, crippled rl
+            v29 = CritterGetHp(dude2);
+            if( v29 < FeatGetVal(dude2, 7) || CritterUnk30(dude2) ){
+                FadeStep(gFadePaletteC);
+                if( CritterGetBodyType(dude2) != 2 && CritterUnk30(dude2) ){
+                    InjuresMask[0] = gSkillDoctorInjuresMask[0];
+                    InjuresMask[1] = gSkillDoctorInjuresMask[1];
+                    InjuresMask[2] = gSkillDoctorInjuresMask[2];
+                    InjuresMask[3] = gSkillDoctorInjuresMask[3];
+                    InjuresMask[4] = gSkillDoctorInjuresMask[4];
+                    v31 = 0;
+                    do{
+                        if( (InjuresMask[ v31 ] & p_State->CombatResult) != 0 ){
+                            v56++;
+                            v33 = SkillUse(crit, SkillIdx, &v47, v53);
+                            MsgLineA.Id = v31 + 530; // 'damaged eye'
                             if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
-                            if( succ == 2 || succ == 3 ){
-                                dude2->Injured[2] &= ~InjuresMask[ i ]; // clear injure state
-                                MsgLineB.Id = (dude2 != gObjDude) + 520; // 'you heal your %s' / 'you heal the %s'
-                                SkillUsing( SKILL_DOCTOR );
-                                dude2->Injured[0] &= ~0x04;
-                                v60 = v55 = 1;
+                            if( v33 == 2 || v33 == 3 ){
+                                p_State->CombatResult &= ~InjuresMask[ v31 ];
+                                v57 = 1;
+                                MsgLineB.Id = (dude2 != gObjDude) + 520; // 'You heal your %s.'
+                                v52 = 1;
+                                SkillUsing(7);
+                                dude2->Grid.DestMapId &= ~0x04;
                             } else {
-                                MsgLineB.Id = (dude2 != gObjDude) + 525; // 'you fail to heal [your]'...
+                                MsgLineB.Id = (dude2 != gObjDude) + 525; // 'You fail to heal your %s.'
                             }
-                            if( MessageGetMsg( &gSkillMsg, &MsgLineB ) != 1 ) return -1;
-                            sprintf( stmp, MsgLineB.Text, MsgLineA.Text );
-//                            IfcMsgOut( stmp );
-                            SkillHoningAward( crit, SkillIdx, v60, a3 );
-                            v58 = 0;
+                            if( MessageGetMsg(&gSkillMsg, &MsgLineB) != 1 ) return -1;
+                            sprintf(stmp, MsgLineB.Text, MsgLineA.Text);
+                            IfcMsgOut(stmp);
+                            SkillHoningAward(crit, SkillIdx, v57, a4);
+                            v55 = 0;
                         }
-                    }
+                        v31++;
+                    }while( v31 < 5 );
                 }
-                // heal hit points
-                if( CritterGetBodyType( dude2 ) == 2 ){
-                    v36 = 1;
+                if( CritterGetBodyType(dude2) == 2 ){
+                    v34 = 1;
                 } else {
-                    v36 = RandUnk05( SkillGetTotal( crit, SkillIdx ), v56, &v50 );
+                    Total = SkillGetTotal(crit, SkillIdx);
+                    v34 = RandUnk05(Total, v53, &v47);
                 }
-                if( v36 == 2 || v36 == 3 ){
-                    v50 = RandMinMax( Min + 4, Max + 10 );
-                    CritterHeal(dude2, v50);
+                if( v34 == 2 || v34 == 3 ){
+                    v47 = RandMinMax(Min + 4, Max + 10);
+                    CritterHeal(dude2, v47);
                     if( crit == gObjDude ){
-                        MsgLineA.Id = 500; // 'you heal %d hit points'
+                        MsgLineA.Id = 500; // 
                         if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
-                        if ( v51 - Val < v50 ) v50 = v51 - Val;
-                        sprintf( stmp, MsgLineA.Text, v50 );
-                        IfcMsgOut( stmp );
+                        if( v48 - Val < v47 ) v47 = v48 - Val;
+                        sprintf(stmp, MsgLineA.Text, v47);
+                        IfcMsgOut(stmp);
                     }
-                    if( !v55 ) SkillUsing( SKILL_DOCTOR );
-                    v60 = 1;
+                    if( !v52 ) SkillUsing(7);
+                    v57 = 1;
                     dd = gObjDude;
-                    dude2->Injured[0] &= ~0x04;
-                    if( dude2 == dd ) CharEditUnk26();
-                    SkillHoningAward( crit, SkillIdx, v60, a3 );
-                    v58 = 0;
+                    dude2->Grid.DestMapId &= ~0x04;
+                    if( dude2 == dd ) IfaceRenderHP(1);
+                    SkillHoningAward(crit, SkillIdx, v57, a4);
+                    v55 = 0;
+                    ScptUnk30();
+                    FadeStep(gPalBase);
                 } else {
-                    MsgLineA.Id = 503; // 'you fail to do any healing'
-                    if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) return -1;
-                    sprintf( stmp, MsgLineA.Text, v50 );
-                    IfcMsgOut( stmp );
+                    MsgLineA.Id = 503; // 'You fail to do any healing.'
+                    if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
+                    sprintf(stmp, MsgLineA.Text, v47);
+                    IfcMsgOut(stmp);
+                    ScptUnk30();
+                    FadeStep(gPalBase);
                 }
-//                ScptUnk30();
-//                FadeStep( &gPalBase );
             } else if ( crit == gObjDude ){
-                MsgLineA.Id = (dude2 != gObjDude) + 501; // you look healty already
-                if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) return -1;
+                MsgLineA.Id = (dude2 != gObjDude) + 501; //
+                if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
                 if( dude2 == gObjDude ){
                     strcpy( stmp, MsgLineA.Text );
                 } else {
-                    sprintf( stmp, MsgLineA.Text, NgCompanyName( dude2 ) );
+                    sprintf(stmp, MsgLineA.Text, ObjGetName( dude2 ) );
                 }
-                IfcMsgOut( stmp );
-                v58 = 0;
+                IfcMsgOut(stmp);
+                v55 = 0;
             }
             if( crit == gObjDude ){
-//                v30 = 1800 * v59;
-//                if( SkillIdx == SKILL_DOCTOR ) v30 = 3600 * v59;
+                ScptTimeCap2( v56 * (( SkillIdx == 7 ) ? 3600 : 1800 ) );
                 goto LABEL_94;
             }
             goto LABEL_43;
-        case SKILL_SNEAK: case SKILL_LOCKPICK: goto LABEL_43;
-        case SKILL_STEAL:
-//            UNK3023_Steal( crit, dude2 );
+        case 8u:
+        case 9u:
             goto LABEL_43;
-        case SKILL_TRAPS:
-            MsgLineA.Id = 551; // 'you fail to find any traps'
-            if( MessageGetMsg( &gSkillMsg, &MsgLineA ) == 1 ) IfcMsgOut( MsgLineA.Text );
+        case 0xAu:
+            ScptUnk112(crit, dude2);
+            goto LABEL_43;
+        case 0xBu:
+            MsgLineA.Id = 551; // 'You fail to find any traps'
+            if( MessageGetMsg(&gSkillMsg, &MsgLineA) == 1 ) goto LABEL_99;
             return -1;
-        case SKILL_SCIENCE:
-            MsgLineA.Id = 552; // 'you fail to learn anything'
-            if( MessageGetMsg( &gSkillMsg, &MsgLineA) == 1 ) IfcMsgOut( MsgLineA.Text );
+        case 0xCu:
+            MsgLineA.Id = 552; // 'You fail to learn anything.'
+            if( MessageGetMsg(&gSkillMsg, &MsgLineA) == 1 ) goto LABEL_99;
             return -1;
-        case SKILL_REAPAIR:
-            if( CritterGetBodyType( dude2 ) == 2 ){
-                if( SkillUsingTired( SKILL_REAPAIR ) == -1 ){
-                    MsgLineA.Id = RandMinMax(0, 2) + 590; // you've taxed ...
+        case 0xDu:
+            if ( CritterGetBodyType(dude2) == 2 ){
+                if( SkillUsingTired(13) == -1 ){
+                    MsgLineA.Id = RandMinMax(0, 2) + 590; // 
                     if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
-                    IfcMsgOut( MsgLineA.Text ); 
+                    IfcMsgOut(MsgLineA.Text);
                     return -1;
                 }
-                if( CritterIsDead( dude2 ) ){
-                    MsgLineA.Id = 1101; // you got it ?
-                    if( MessageGetMsg( &gSkillMsg, &MsgLineA ) == 1 ){
+                if( CritterIsDead(dude2) ){
+                    MsgLineA.Id = 1101; // 'You got it?'
+                    if( MessageGetMsg(&gSkillMsg, &MsgLineA) == 1 )
 LABEL_103:
-                        IfcMsgOut( MsgLineA.Text );
-                    }
+                        IfcMsgOut(MsgLineA.Text);
                 } else {
-                    if( CritterGetHp(dude2) < FeatGetVal(dude2, v19) || CritterUnk30(dude2) ){
-                        InjuresMask[0] = 0x40;
-                        InjuresMask[1] = gSkillDoctorInjuresMask[1];
-                        InjuresMask[2] = gSkillDoctorInjuresMask[2];
-                        InjuresMask[3] = gSkillDoctorInjuresMask[3];
-                        InjuresMask[4] = gSkillDoctorInjuresMask[4];
-//                        FadeStep( gFadePaletteC );
-                        for( i = 0; i < 5; i++ ){
-                            if( (InjuresMask[i] & dude2->Injured[2]) == 0 ) continue;
-                            v59++;
-                            v22 = SkillUse( crit, SkillIdx, &v50, v56 );
-                            MsgLineA.Id = i + 530;
-                            if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) return -1;
-                            if( v22 == 2 || v22 == 3 ){
-                                dude2->Injured[2] &= ~InjuresMask[ i ];
-                                v60 = 1;
-                                MsgLineB.Id = (dude2 != gObjDude) + 520; // you heal your
-                                SkillUsing( SKILL_REAPAIR );
-                                v55 = 1;
-                                dude2->Injured[0] &= ~0x04;
-                            } else {
-                                MsgLineB.Id = (dude2 != gObjDude) + 525; // you fail to heal your %s
-                            }
-                            if( MessageGetMsg( &gSkillMsg, &MsgLineB ) != 1 ) return -1;
-                            sprintf( stmp, MsgLineB.Text, MsgLineA.Text );
-                            IfcMsgOut( stmp );
-                            SkillHoningAward( crit, SkillIdx, v60, a3 );
-                            v58 = 0;                            
-                        }
-                        v24 = SkillGetTotal( crit, SkillIdx );
-                        v25 = RandUnk05( v24, v56, &v50 );
-                        if( v25 == 2 || v25 == 3 ){
-                            v50 = RandMinMax( Min + 4, Max + 10 );
-                            CritterHeal(dude2, v50);
-                            if( crit == gObjDude ){
-                                MsgLineA.Id = 500; // you heal %d hit points
+                    v17 = CritterGetHp(dude2);
+                    if( v17 < FeatGetVal(dude2, 7) || CritterUnk30(dude2) ){
+                        InjuresMask[0] = gSkillUnk15[0];
+                        InjuresMask[1] = gSkillUnk15[1];
+                        InjuresMask[2] = gSkillUnk15[2];
+                        InjuresMask[3] = gSkillUnk15[3];
+                        InjuresMask[4] = gSkillUnk15[4];
+                        FadeStep(gFadePaletteC);
+                        v19 = 0;
+                        do{
+                            if( (InjuresMask[v19] & p_State->CombatResult) != 0 ){
+                                v56++;
+                                v21 = SkillUse(crit, SkillIdx, &v47, v53);
+                                MsgLineA.Id = v19 + 530; // 'damaged eye'
                                 if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
-                                if ( v51 - Val < v50 ) v50 = v51 - Val;
-                                sprintf( stmp, MsgLineA.Text, v50 );
-                                IfcMsgOut( stmp );
+                                if( v21 == 2 || v21 == 3 ){
+                                    p_State->CombatResult &= ~InjuresMask[v19];
+                                    v57 = 1;
+                                    MsgLineB.Id = (dude2 != gObjDude) + 520; // 
+                                    SkillUsing(13);
+                                    v22 = dude2->Grid.DestMapId & ~0x04;
+                                    v52 = 1;
+                                    dude2->Grid.DestMapId = v22;
+                                } else {
+                                    MsgLineB.Id = (dude2 != gObjDude) + 525;
+                                }
+                                if( MessageGetMsg(&gSkillMsg, &MsgLineB) != 1 ) return -1;
+                                sprintf(stmp, MsgLineB.Text, MsgLineA.Text);
+                                IfcMsgOut(stmp);
+                                SkillHoningAward(crit, SkillIdx, v57, a4);
+                                v55 = 0;
                             }
-                            if( !v55 ) SkillUsing( SKILL_REAPAIR );
-                            v60 = 1;
-                            dude2->Injured[0] &= ~0x04;
-                            if( dude2 == gObjDude ) CharEditUnk26();
-                            SkillHoningAward( crit, SkillIdx, v60, a3 );
-                            v58 = 0;
+                            v19++;
+                        }while( v19 < 5 );
+                        v23 = SkillGetTotal(crit, SkillIdx);
+                        v24 = RandUnk05(v23, v53, &v47);
+                        if( v24 == 2 || v24 == 3 ){
+                            v47 = RandMinMax(Min + 4, Max + 10);
+                            CritterHeal(dude2, v47);
+                            if( crit == gObjDude ){
+                                MsgLineA.Id = 500;
+                                if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
+                                if( v48 - Val < v47 ) v47 = v48 - Val;
+                                sprintf(stmp, MsgLineA.Text, v47);
+                                IfcMsgOut(stmp);
+                            }
+                            if( !v52 ) SkillUsing(13);
+                            db = gObjDude;
+                            v26 = dude2->Grid.DestMapId & 0xFB;
+                            v57 = 1;
+                            dude2->Grid.DestMapId = v26;
+                            if( dude2 == db ) IfaceRenderHP(1);
+                            SkillHoningAward(crit, SkillIdx, v57, a4);
+                            v55 = 0;
+                            ScptUnk30();
+                            FadeStep(gPalBase);
                         } else {
-                            MsgLineA.Id = 503; // you fail to do any healing
-                            if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) return -1;
-                            sprintf( stmp, MsgLineA.Text, v50 );
-                            IfcMsgOut( stmp );
+                            MsgLineA.Id = 503;
+                            if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
+                            sprintf(stmp, MsgLineA.Text, v47);
+                            IfcMsgOut(stmp);
+                            ScptUnk30();
+                            FadeStep(gPalBase);
                         }
-//                        ScptUnk30();
-//                        FadeStep( &gPalBase );
                     } else if( crit == gObjDude ){
-                        MsgLineA.Id = (dude2 != gObjDude) + 501; // you look healthy already
+                        MsgLineA.Id = (dude2 != gObjDude) + 501;
                         if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
-                        sprintf( stmp, MsgLineA.Text, NgCompanyName( dude2 ) );
-                        IfcMsgOut( stmp );
-                        v58 = 0;
+                        v27 = ObjGetName(dude2);
+                        sprintf(stmp, MsgLineA.Text, v27);
+                        IfcMsgOut(stmp);
+                        v55 = 0;
                     }
                     if( crit == gObjDude ){
-//                        v30 = 1800 * v59;
-//                        if( SkillIdx == 7 ) v30 = 3600 * v59;
+                        v28 = 1800 * v56;
+                        if( SkillIdx == 7 ) v28 = 3600 * v56;
+                        ScptTimeCap2(v28);
 LABEL_94:
-//                        Unk30021(v30);
                     }
                 }
 LABEL_43:
-                if( v58 ) SkillHoningAward( crit, SkillIdx, v60, a3 );
-//                if( SkillIdx == 6 || SkillIdx == 7 ) ScptUnk30();
+                if( v55 ) SkillHoningAward(crit, SkillIdx, v57, a4);
+                if( SkillIdx == 6 || SkillIdx == 7 ) ScptUnk30();
                 return 0;
             } else {
-                MsgLineA.Id = 553; // you cannot repair that
-//                if( MessageGetMsg( &gSkillMsg, &MsgLineA ) == 1 ) IfcMsgOut( MsgLineA.Text );
+                MsgLineA.Id = 553; // ' You cannot repair that.'
+                if( MessageGetMsg(&gSkillMsg, &MsgLineA) == 1 ) IfcMsgOut(MsgLineA.Text);                
                 return -1;
             }
         default:
-            MsgLineA.Id = 510; // 'invalid skill used'
-//            if( MessageGetMsg( &gSkillMsg, &MsgLineA ) == 1 ) eprintf( MsgLineA.Text );
+            MsgLineA.Id = 510; // 'skill use: invalid skill used.'
+            if( MessageGetMsg(&gSkillMsg, &MsgLineA) == 1 ) eprintf( "%s", MsgLineA.Text);
             return -1;
     }
-*/
 }
 
 int SkillUseSteal( Obj_t *dude1, Obj_t *dude2, Obj_t *Company, int a3 )

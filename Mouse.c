@@ -453,7 +453,7 @@ void MseGetCursorSize( int *Width, int *Height )
 void MseCursorMoveCenter( int x, int y )
 {
     VidRect_t rect;
-    int clean, a;
+    int clean;
 
     clean = gMseCursorClear;
     if( !gMseCursorClear && gMseAcq && !gMseCursorClear ){

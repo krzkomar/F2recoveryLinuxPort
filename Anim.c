@@ -106,7 +106,7 @@ int AnimClear( Obj_t *obj )
     for( i = 0; i < 32; i++ ){
         if( gAnimations[ i ].i01 == -1000 ) continue;
 	for( j = 0; j < gAnimations[ i ].Steps; j++ ){
-	    if( !(obj != gAnimations[ i ].i05[ j ].Obj || gAnimations[ i ].i05[ j ].State == 11 ) ){
+	    if( !(obj != gAnimations[ i ].i05[ j ].uni.Obj || gAnimations[ i ].i05[ j ].State == 11 ) ){
 		if( (gAnimations[ i ].Flags & 1) != 0 ) return -2;
 		AnimEnd( i );
 		return 0;
@@ -171,7 +171,7 @@ int AnimCancel( Obj_t *obj )
     for( i = 0; i < 32; i++ ){
         if( i == gAnimIdx || gAnimations[ i ].i01 == -1000 ) continue;
         for( j = 0; j < gAnimations[ i ].Steps; j++ ){
-            if( (obj == gAnimations[ i ].i05[ j ].Obj) && (gAnimations[ i ].i05[ j ].State != 11) ){
+            if( (obj == gAnimations[ i ].i05[ j ].uni.Obj) && (gAnimations[ i ].i05[ j ].State != 11) ){
                 if( (gAnimations[ i ].Flags & 0x40) == 0 ) return -1;
                 AnimEnd( i );
             }
@@ -188,7 +188,7 @@ int AnimUnk39( Obj_t *a1 )
     for( i = 0; i < 32; i++ ){
         if( i == gAnimIdx || gAnimations[ i ].i01 == -1000 ) continue;        
 	for( j = 0; j < gAnimations[ i ].Steps; j++ ){
-	    if( a1 == gAnimations[ i ].i05[ j ].Obj && gAnimations[ i ].i05[ j ].State != 11 && ( gAnimations[ i ].Steps != 1 || gAnimations[ i ].i05[ j ].Silence ) ) return -1;
+	    if( a1 == gAnimations[ i ].i05[ j ].uni.Obj && gAnimations[ i ].i05[ j ].State != 11 && ( gAnimations[ i ].Steps != 1 || gAnimations[ i ].i05[ j ].Silence ) ) return -1;
 	}	    
     }
     return 0;
@@ -205,9 +205,9 @@ int AnimObjMoveToObj( Obj_t *Object, Obj_t *DstObj, int Ap, int a4 )
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 0;
     anim->Silence = 1;
-    anim->Obj = Object;
+    anim->uni.Obj = Object;
     anim->GpPtr = DstObj;
-    anim->Ap = Ap;
+    anim->Ap.Int = Ap;
     anim->i07 = a4;
     anim->ImgObj = NULL;
     if( ArtLoadImg( ArtMakeId( OBJTYPE( Object->ImgId ), Object->ImgId & 0xFFF, anim->Silence, (Object->ImgId & 0xF000) >> 12, Object->Orientation + 1), &anim->ImgObj ) ){
@@ -244,7 +244,7 @@ int AnimUnk41( Obj_t *obj1, Obj_t *obj2, int Ap, int a4 )
     }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 0;
-    anim->Obj = obj1;
+    anim->uni.Obj = obj1;
     anim->GpPtr = obj2;
     if( OBJTYPE( obj1->ImgId ) == 1 && ( obj1->Critter.State.CombatResult & ( 0x08 | 0x04 )) ){
         anim->Silence = 1;
@@ -255,7 +255,7 @@ int AnimUnk41( Obj_t *obj1, Obj_t *obj2, int Ap, int a4 )
     	    anim->Silence = ( !ArtFileExist( ArtMakeId( OBJTYPE( obj1->ImgId ), obj1->ImgId & 0xFFF, 19, 0, obj1->Orientation + 1 ) ) ) ? 1 : 19;
         }
     }
-    anim->Ap = Ap;
+    anim->Ap.Int = Ap;
     anim->i07 = a4;
     anim->ImgObj = NULL;
     if( ArtLoadImg( ArtMakeId( OBJTYPE( obj1->ImgId ), obj1->ImgId & 0xFFF, anim->Silence, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ), &anim->ImgObj ) ){
@@ -277,10 +277,10 @@ int AnimStartWalk( Obj_t *obj, int TargetPos, int MapLvl, int Ap, int a5 )
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 1;
     anim->Silence = 1;
-    anim->Obj = obj;
+    anim->uni.Obj = obj;
     anim->TargetPos = TargetPos;
     anim->Elevation = MapLvl;
-    anim->Ap = Ap;
+    anim->Ap.Int = Ap;
     anim->i07 = a5;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, anim->Silence, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ),  &anim->ImgObj ) ){ AnimStop(); return -1; }
@@ -327,10 +327,10 @@ int AnimStartRun( Obj_t *obj, int GridId, int MapLvl, int Ap, int a5 )
 	}
     }
 
-    anim->Obj = obj;
+    anim->uni.Obj = obj;
     anim->TargetPos = GridId;
     anim->Elevation = MapLvl;
-    anim->Ap = Ap;
+    anim->Ap.Int = Ap;
     anim->i07 = a5;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, anim->Silence, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ), &anim->ImgObj ) ){ AnimStop(); return -1; }
@@ -348,7 +348,7 @@ int AnimUnk44( Obj_t *obj, int GridIdx, int MapLvl, int a4, int a5 )
     if( GridIdx == obj->GridId && MapLvl == obj->Elevation ) return 0;
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 2;
-    anim->Obj = obj;
+    anim->uni.Obj = obj;
     anim->TargetPos = GridIdx;
     anim->Elevation = MapLvl;
     anim->Silence = a4;
@@ -369,7 +369,7 @@ int AnimUnk45( Obj_t *obj, int GridIdx, int MapLvl, int a4, int a5 )
     if( GridIdx == obj->GridId && MapLvl == obj->Elevation ) return 0;
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 3;
-    anim->Obj = obj;
+    anim->uni.Obj = obj;
     anim->TargetPos = GridIdx;
     anim->Elevation = MapLvl;
     anim->Silence = a4;
@@ -400,7 +400,7 @@ int AnimUnk46( Obj_t *obj1, Obj_t *obj2, int a3 )
     if( NewPos == obj1->GridId && Elevation == obj1->Elevation ) return 0;
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 20;
-    anim->Obj = obj1;
+    anim->uni.Obj = obj1;
     anim->TargetPos = NewPos;
     anim->Elevation = Elevation;
     anim->Silence = v6;
@@ -421,7 +421,7 @@ int AnimUnk47( Obj_t *obj, int a2 )
     anim = &gAnimations[gAnimIdx].i05[gAnimSubIdx];
     anim->State = 23;
     anim->Silence = 5;
-    anim->Obj = obj;
+    anim->uni.Obj = obj;
     anim->i07 = a2;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), anim->Silence, obj->ImgId & 0xFFF, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ), &anim->ImgObj ) ){
@@ -441,7 +441,7 @@ int AnimUnk48( Obj_t *obj, int a2, int a3 )
     if( AnimCancel( obj ) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 4;
-    anim->Obj = obj;
+    anim->uni.Obj = obj;
     anim->Silence = a2;
     anim->i07 = a3;
     anim->ImgObj = NULL;
@@ -459,7 +459,7 @@ int AnimUnk49( Obj_t *a1, int a2, int a3 )
     if( AnimCancel( a1 ) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 5;
-    anim->Obj = a1;
+    anim->uni.Obj = a1;
     anim->Silence = a2;
     anim->i07 = a3;
     anim->ImgObj = NULL;
@@ -477,7 +477,7 @@ int AnimUnk50( Obj_t *obj, int a2, int a3 )
     if( AnimCancel( obj ) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 6;
-    anim->Obj = obj;
+    anim->uni.Obj = obj;
     anim->Silence = a2;
     anim->i07 = a3;
     anim->ImgObj = NULL;
@@ -497,7 +497,7 @@ int AnimUnk51( Obj_t *obj, int a2 )
     anim[ gAnimSubIdx ].State = 7;
     anim[ gAnimSubIdx ].i07 = -1;
     anim[ gAnimSubIdx ].ImgObj = NULL;
-    anim[ gAnimSubIdx ].Obj = obj;
+    anim[ gAnimSubIdx ].uni.Obj = obj;
     anim[ gAnimSubIdx ].TargetPos = a2;
     gAnimSubIdx++;
     return 0;
@@ -512,7 +512,7 @@ int AnimTurnCCW( Obj_t *obj )
     anim[ gAnimSubIdx ].State = 8;
     anim[ gAnimSubIdx ].i07 = -1;
     anim[ gAnimSubIdx ].ImgObj = 0;
-    anim[ gAnimSubIdx ].Obj = obj;
+    anim[ gAnimSubIdx ].uni.Obj = obj;
     gAnimSubIdx++;
     return 0;
 }
@@ -526,7 +526,7 @@ int AnimTurnCW( Obj_t *a1 )
     anim[ gAnimSubIdx ].State = 9;
     anim[ gAnimSubIdx ].i07 = -1;
     anim[ gAnimSubIdx ].ImgObj = 0;
-    anim[ gAnimSubIdx ].Obj = a1;
+    anim[ gAnimSubIdx ].uni.Obj = a1;
     gAnimSubIdx++;
     return 0;
 }
@@ -541,7 +541,7 @@ int AnimUnk54( Obj_t *a1 )
     anim[ gAnimSubIdx ].i07 = -1;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].i10 = 0;
-    anim[ gAnimSubIdx ].Obj = a1;
+    anim[ gAnimSubIdx ].uni.Obj = a1;
     gAnimSubIdx++;
     return 0;
 }
@@ -556,12 +556,12 @@ int AnimUnk55( Obj_t *a1 )
     anim[ gAnimSubIdx ].i07 = -1;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].i10 = 1;
-    anim[ gAnimSubIdx ].Obj = a1;
+    anim[ gAnimSubIdx ].uni.Obj = a1;
     gAnimSubIdx++;
     return 0;
 }
 
-int AnimUnk56( Obj_t *a1, Obj_t *a2, int (*a3)(void *, void *), int a4 )
+int AnimUnk56( Obj_t *a1, AnimU_t a2, int (*a3)(void *, void *), int a4 )
 {
     Anim01_t *anim;
 
@@ -570,7 +570,7 @@ int AnimUnk56( Obj_t *a1, Obj_t *a2, int (*a3)(void *, void *), int a4 )
     anim[ gAnimSubIdx ].State = 11;
     anim[ gAnimSubIdx ].i10 = 0;
     anim[ gAnimSubIdx ].ImgObj = NULL;
-    anim[ gAnimSubIdx ].Obj = a2;
+    anim[ gAnimSubIdx ].uni = a2;
     anim[ gAnimSubIdx ].GpPtr = a1;
     anim[ gAnimSubIdx ].SndCb = (void *)a3;
     anim[ gAnimSubIdx ].i07 = a4;
@@ -578,7 +578,7 @@ int AnimUnk56( Obj_t *a1, Obj_t *a2, int (*a3)(void *, void *), int a4 )
     return 0;
 }
 
-int AnimUnk57( Obj_t *a1, Obj_t *a2, int Ap, int (*a4)(Sound_t *), int a5 )
+int AnimUnk57( Obj_t *a1, Obj_t *a2, AnimU_t Ap, int (*a4)(Sound_t *), int a5 )
 {
     Anim01_t *anim;
 
@@ -587,7 +587,7 @@ int AnimUnk57( Obj_t *a1, Obj_t *a2, int Ap, int (*a4)(Sound_t *), int a5 )
     anim[ gAnimSubIdx ].State = 12;
     anim[ gAnimSubIdx ].i10 = 0;
     anim[ gAnimSubIdx ].ImgObj = NULL;
-    anim[ gAnimSubIdx ].Obj = a2;
+    anim[ gAnimSubIdx ].uni.Obj = a2;
     anim[ gAnimSubIdx ].GpPtr = a1;
     anim[ gAnimSubIdx ].SndCb2 = a4;
     anim[ gAnimSubIdx ].Ap = Ap;
@@ -605,7 +605,7 @@ int AnimSetFinish( void *a1, Obj_t *a2, int (*a3)(Obj_t *,Obj_t *), int a4 )
     i05[ gAnimSubIdx ].State = 11;
     i05[ gAnimSubIdx ].i10 = 1;
     i05[ gAnimSubIdx ].ImgObj = NULL;
-    i05[ gAnimSubIdx ].Obj = a2;
+    i05[ gAnimSubIdx ].uni.Obj = a2;
     i05[ gAnimSubIdx ].GpPtr = a1;
     i05[ gAnimSubIdx ].SndCb = (void *)a3;
     i05[ gAnimSubIdx ].i07 = a4;
@@ -621,7 +621,7 @@ int AnimUnk59( Obj_t *a1, int a2, int a3 )
     i05 = gAnimations[ gAnimIdx ].i05;
     i05[ gAnimSubIdx ].State = 14;
     i05[ gAnimSubIdx ].ImgObj = NULL;
-    i05[ gAnimSubIdx ].Obj = a1;
+    i05[ gAnimSubIdx ].uni.Obj = a1;
     i05[ gAnimSubIdx ].i10 = a2;
     i05[ gAnimSubIdx ].i07 = a3;
     gAnimSubIdx++;
@@ -636,7 +636,7 @@ int AnimUnk60( Obj_t *a1, int a2, int a3 )
     i05 = gAnimations[ gAnimIdx ].i05;
     i05[ gAnimSubIdx ].State = 15;
     i05[ gAnimSubIdx ].ImgObj = 0;
-    i05[ gAnimSubIdx ].Obj = a1;
+    i05[ gAnimSubIdx ].uni.Obj = a1;
     i05[ gAnimSubIdx ].i10 = a2;
     i05[ gAnimSubIdx ].i07 = a3;
     gAnimSubIdx++;
@@ -651,7 +651,7 @@ int AnimUnk61( Obj_t *a1, int a2 )
     i05 = gAnimations[ gAnimIdx ].i05;
     i05[ gAnimSubIdx ].State = 16;
     i05[ gAnimSubIdx ].ImgObj = NULL;
-    i05[ gAnimSubIdx ].Obj = a1;
+    i05[ gAnimSubIdx ].uni.Obj = a1;
     i05[ gAnimSubIdx ].i07 = a2;
     gAnimSubIdx++;
     return 0;
@@ -664,7 +664,7 @@ int AnimUnk62( Obj_t *a1, int a2, int a3 )
     if( AnimCancel(a1) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 17;
-    anim->Obj = a1;
+    anim->uni.Obj = a1;
     anim->TargetPos = a2; // ???
     anim->i07 = a3;
     anim->ImgObj = NULL;
@@ -685,7 +685,7 @@ int AnimUnk63( Obj_t *a1, int a2, int a3 )
     anim->State = 18;
     anim->Silence = 38;
     anim->i07 = 0;
-    anim->Obj = a1;
+    anim->uni.Obj = a1;
     anim->TargetPos = a2;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( a1->ImgId ), a1->ImgId & 0xFFF, 38, a2, a1->Orientation + 1), &anim->ImgObj ) ){ AnimStop(); return -1; }
@@ -703,7 +703,7 @@ int AnimChangeItemStart( Obj_t *obj, int TargetPos, int a3 )
     anim = gAnimations[ gAnimIdx ].i05;
     anim[ gAnimSubIdx ].State = 19;
     anim[ gAnimSubIdx ].ImgObj = 0;
-    anim[ gAnimSubIdx ].Obj = obj;
+    anim[ gAnimSubIdx ].uni.Obj = obj;
     anim[ gAnimSubIdx ].TargetPos = TargetPos;
     anim[ gAnimSubIdx ].i07 = a3;
     gAnimSubIdx++;
@@ -718,7 +718,7 @@ int AnimUnk65( Obj_t *obj, int TargetPos, int a3 )
     anim = gAnimations[ gAnimIdx ].i05;
     anim[ gAnimSubIdx ].State = 24;
     anim[ gAnimSubIdx ].ImgObj = 0;
-    anim[ gAnimSubIdx ].Obj = obj;
+    anim[ gAnimSubIdx ].uni.Obj = obj;
     anim[ gAnimSubIdx ].TargetPos = TargetPos;
     anim[ gAnimSubIdx ].i07 = a3;
     gAnimSubIdx++;
@@ -732,7 +732,7 @@ int AnimUnk66( Obj_t *a1, char *a2, int a3 )
     if( AnimCancel( a1 ) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 11;
-    anim->Obj = a1;
+    anim->uni.Obj = a1;
     if( a2 ){
         if( (anim->GpPtr = GSoundUnk43( a2, a1, GSoundDistance( a1 ) )) )
             anim->SndCb = GSoundDbgPlayA;
@@ -754,7 +754,7 @@ int AnimUnk67( Obj_t *a1, int a2, int a3 )
     if( AnimCancel( a1 ) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 25;
-    anim->Obj = a1;
+    anim->uni.Obj = a1;
     anim->Silence = a2;
     anim->i07 = a3;
     anim->ImgObj = NULL;
@@ -775,10 +775,10 @@ int AnimUnk68( int a1, int a2 )
     if( (Ap = AnimReserve( a1 )) == -1 ) return -1;        
     gAnimations[ Ap ].Flags = 16;
     anim = gAnimations[ gAnimIdx ].i05;
-    anim[ gAnimSubIdx ].Obj = 0;
+    anim[ gAnimSubIdx ].uni.Obj = 0;
     anim[ gAnimSubIdx ].State = 26;
     anim[ gAnimSubIdx ].ImgObj = 0;
-    anim[ gAnimSubIdx ].Ap = Ap;
+    anim[ gAnimSubIdx ].Ap.Int = Ap;
     anim[ gAnimSubIdx ].i07 = a2;
     gAnimSubIdx++;
     return 0;
@@ -805,84 +805,84 @@ int AnimStateMachine( int AnimIdx )
         }
         anim = &gAnimations[ AnimIdx ].i05[ gAnimations[ AnimIdx ].i01++ ];
         switch( anim->State ){
-            case 0: err = AnimUnk08( anim->Obj, anim->GpPtr, anim->Ap, anim->Silence, AnimIdx ); break;
-            case 1: err = AnimUnk10( anim->Obj, anim->TargetPos, anim->Elevation, anim->Ap, anim->Silence, AnimIdx ); break;
-            case 2: err = AnimUnk12( anim->Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx, 0x00 ); break;
-            case 3: err = AnimUnk12( anim->Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx, 0x10 ); break;
-            case 4: err = AnimUnk17( anim->Obj, anim->Silence, AnimIdx, 0 ); break;
-            case 5: err = AnimUnk17( anim->Obj, anim->Silence, AnimIdx, 1 ); break;
-            case 6: err = AnimUnk17( anim->Obj, anim->Silence, AnimIdx, 64 ); if( err == -1 ){
-                    if( !ObjUnk33( anim->Obj, &Area1 ) ) TileUpdateArea( &Area1, anim->Obj->Elevation );
+            case 0: err = AnimUnk08( anim->uni.Obj, anim->GpPtr, anim->Ap.Int, anim->Silence, AnimIdx ); break;
+            case 1: err = AnimUnk10( anim->uni.Obj, anim->TargetPos, anim->Elevation, anim->Ap.Int, anim->Silence, AnimIdx ); break;
+            case 2: err = AnimUnk12( anim->uni.Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx, 0x00 ); break;
+            case 3: err = AnimUnk12( anim->uni.Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx, 0x10 ); break;
+            case 4: err = AnimUnk17( anim->uni.Obj, anim->Silence, AnimIdx, 0 ); break;
+            case 5: err = AnimUnk17( anim->uni.Obj, anim->Silence, AnimIdx, 1 ); break;
+            case 6: err = AnimUnk17( anim->uni.Obj, anim->Silence, AnimIdx, 64 ); if( err == -1 ){
+                    if( !ObjUnk33( anim->uni.Obj, &Area1 ) ) TileUpdateArea( &Area1, anim->uni.Obj->Elevation );
                     if( AnimIdx != -1 ) AnimUnk70( AnimIdx, 0 );
                     err = 0;
                 }
                 break;
             case 7:
-                if( !CritterUnk31( anim->Obj ) ) AnimUnk24( anim->Obj, TileTurnAt( anim->Obj->GridId, anim->TargetPos ), -1);
+                if( !CritterUnk31( anim->uni.Obj ) ) AnimUnk24( anim->uni.Obj, TileTurnAt( anim->uni.Obj->GridId, anim->TargetPos ), -1);
                 AnimUnk70( AnimIdx, 0 );
                 err = 0;
                 break;
-            case 8: err = AnimUnk27( anim->Obj, 1, AnimIdx ); break; // ?
-            case 9: err = AnimUnk27( anim->Obj, -1, AnimIdx ); break; // ?
+            case 8: err = AnimUnk27( anim->uni.Obj, 1, AnimIdx ); break; // ?
+            case 9: err = AnimUnk27( anim->uni.Obj, -1, AnimIdx ); break; // ?
             case 10:
-                if( !ObjUnk33( anim->Obj, &v18 ) ) TileUpdateArea( &v18, anim->Obj->Elevation );
+                if( !ObjUnk33( anim->uni.Obj, &v18 ) ) TileUpdateArea( &v18, anim->uni.Obj->Elevation );
                 if( AnimIdx != -1 ) AnimUnk70( AnimIdx, 0 );
                 err = 0;
                 break;
             case 11:
-                if( !(err = anim->SndCb( anim->GpPtr, anim->Obj ) ) ) err = AnimUnk70( AnimIdx, 0 );
+                if( !(err = anim->SndCb( anim->GpPtr, anim->uni.Obj ) ) ) err = AnimUnk70( AnimIdx, 0 );
                 break;
             case 12:
                 if( !(err = anim->SndCb2( anim->GpPtr )) ) err = AnimUnk70( AnimIdx, 0 );
                 break;
             case 14:
                 if( anim->i10 == 32 ) {
-                    if( !ObjLightedOn( anim->Obj, &Area ) ) TileUpdateArea( &Area, anim->Obj->Elevation );
+                    if( !ObjLightedOn( anim->uni.Obj, &Area ) ) TileUpdateArea( &Area, anim->uni.Obj->Elevation );
                 } else {
                     if( anim->i10 != 1 ){
-                        anim->Obj->Flags |= anim->i10;
+                        anim->uni.Obj->Flags |= anim->i10;
                     } else {
-                	if( !ObjUnk33( anim->Obj, &Area ) ) TileUpdateArea( &Area, anim->Obj->Elevation );
+                	if( !ObjUnk33( anim->uni.Obj, &Area ) ) TileUpdateArea( &Area, anim->uni.Obj->Elevation );
                     }
                 }                
                 err = AnimUnk70( AnimIdx, 0 ); 
                 break;
             case 15:
                 if( anim->i10 == 32 ){
-                    if( !ObjLightedOff(anim->Obj, &Area) ) TileUpdateArea( &Area, anim->Obj->Elevation );
+                    if( !ObjLightedOff(anim->uni.Obj, &Area) ) TileUpdateArea( &Area, anim->uni.Obj->Elevation );
                 } else {
                     if( anim->i10 != 1 ) {
-                        anim->Obj->Flags &= ~anim->i10;
+                        anim->uni.Obj->Flags &= ~anim->i10;
                     } else {
-                	if( !ObjUnk32( anim->Obj, &Area ) ) TileUpdateArea( &Area, anim->Obj->Elevation );
+                	if( !ObjUnk32( anim->uni.Obj, &Area ) ) TileUpdateArea( &Area, anim->uni.Obj->Elevation );
                     }
                 }                
                 err = AnimUnk70( AnimIdx, 0 ); 
                 break;
-            case 16: if( !ObjSetPlayer( anim->Obj, &Area ) ) TileUpdateArea( &Area, anim->Obj->Elevation );
+            case 16: if( !ObjSetPlayer( anim->uni.Obj, &Area ) ) TileUpdateArea( &Area, anim->uni.Obj->Elevation );
         	err = AnimUnk70( AnimIdx, 0 ); 
         	break;
-            case 17: err = AnimUnk29( anim->Obj, AnimIdx, anim->TargetPos); break;
-            case 18: err = AnimUnk17( anim->Obj, 38, AnimIdx, anim->TargetPos ); break;
+            case 17: err = AnimUnk29( anim->uni.Obj, AnimIdx, anim->TargetPos); break;
+            case 18: err = AnimUnk17( anim->uni.Obj, 38, AnimIdx, anim->TargetPos ); break;
             case 19:
-                ObjSetLight( anim->Obj, anim->TargetPos, anim->Obj->LightIntensity, &Area );
-                TileUpdateArea( &Area, anim->Obj->Elevation );
+                ObjSetLight( anim->uni.Obj, anim->TargetPos, anim->uni.Obj->LightIntensity, &Area );
+                TileUpdateArea( &Area, anim->uni.Obj->Elevation );
                 err = AnimUnk70( AnimIdx, 0 );
                 break;
-            case 20: err = AnimUnk13( anim->Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx );  break;
-            case 23: err = AnimUnk14( anim->Obj, anim->Silence, AnimIdx ); break;
+            case 20: err = AnimUnk13( anim->uni.Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx );  break;
+            case 23: err = AnimUnk14( anim->uni.Obj, anim->Silence, AnimIdx ); break;
             case 24:
                 if( anim->TargetPos ){
-                    if( !ObjUnk34( anim->Obj, &Area ) ) TileUpdateArea( &Area, anim->Obj->Elevation );            	    
+                    if( !ObjUnk34( anim->uni.Obj, &Area ) ) TileUpdateArea( &Area, anim->uni.Obj->Elevation );            	    
                 } else {
-            	    if( !ObjUnk35( anim->Obj, &Area ) ) TileUpdateArea( &Area, anim->Obj->Elevation );
+            	    if( !ObjUnk35( anim->uni.Obj, &Area ) ) TileUpdateArea( &Area, anim->uni.Obj->Elevation );
                 }                
                 err = AnimUnk70( AnimIdx, 0 ); 
                 break;
-            case 25: err = AnimUnk17( anim->Obj, anim->Silence, AnimIdx, 128 ); break;
+            case 25: err = AnimUnk17( anim->uni.Obj, anim->Silence, AnimIdx, 128 ); break;
             case 26:
-                gAnimations[ anim->Ap ].Flags &= ~0x10;
-                if( (err = AnimUnk70( anim->Ap, 1 ) ) != -1 ) err = AnimUnk70( AnimIdx, 0 );
+                gAnimations[ anim->Ap.Int ].Flags &= ~0x10;
+                if( (err = AnimUnk70( anim->Ap.Int, 1 ) ) != -1 ) err = AnimUnk70( AnimIdx, 0 );
                 break;
             case 28: err = AnimUnk70( AnimIdx, 0 ); break;
             default: err = -1; break;
@@ -913,8 +913,8 @@ int AnimEnd( int idx )
      for( i = 0; i < gAnimations[ idx ].Steps; i++ ){
         if( gAnimations[ idx ].i05[ i ].State != 10 ) continue;
         if( i >= gAnimations[ idx ].Step && !(gAnimations[ idx ].i05[ i ].i10 & 1 ) ) continue;
-        ObjDestroy( gAnimations[ idx ].i05[ i ].Obj, &Area );
-        TileUpdateArea( &Area, gAnimations[ idx ].i05[ i ].Obj->Elevation );                
+        ObjDestroy( gAnimations[ idx ].i05[ i ].uni.Obj, &Area );
+        TileUpdateArea( &Area, gAnimations[ idx ].i05[ i ].uni.Obj->Elevation );                
     }
     p = gAnimations[ idx ].i05;
     for( i = 0; i < gAnimations[ idx ].Steps; i++, p++ ){
@@ -922,29 +922,29 @@ int AnimEnd( int idx )
         if( p->State == 11 || p->State == 12 ){
             if( i < gAnimations[ idx ].i01 ) continue;            
             if( p->i10 & 1 ){
-                p->SndCb( p->GpPtr, p->Obj );
+                p->SndCb( p->GpPtr, p->uni.Obj );
             } else if( p->State == 11 && p->SndCb == GSoundDbgPlayA ){
                 GSoundSfxDelete( p->GpPtr );
             }            
 	    continue;
         } 
         if( p->State == 26 ) continue;
-        if( OBJTYPE( p->Obj->ImgId ) != TYPE_CRIT ) continue;
+        if( OBJTYPE( p->uni.Obj->ImgId ) != TYPE_CRIT ) continue;
         for( j = 0; j < i; j++ ){
-            if( p->Obj != gAnimations[ idx ].i05[ j ].Obj ) continue;
+            if( p->uni.Obj != gAnimations[ idx ].i05[ j ].uni.Obj ) continue;
             tmp = gAnimations[ idx ].i05[ j ].State;
             if( tmp != 11 && tmp != 12 ) break;
         }
         if( j != i ) continue;
         for( j = 0; j < gAnimations[ idx ].Step; j++ ){
-            if( gAnimations[ idx ].i05[ j ].State == 10 && p->Obj == gAnimations[ idx ].i05[ j ].Obj ) break;
+            if( gAnimations[ idx ].i05[ j ].State == 10 && p->uni.Obj == gAnimations[ idx ].i05[ j ].uni.Obj ) break;
         }                        
 
         if( j != gAnimations[ idx ].Step ) continue;
         for( j = 0; j < gAnimCnt1; j++ ){
-    	    if( p->Obj == gAnimUnk23[ j ].Obj ){ gAnimUnk23[ j ].Stat = -1000; break; }
+    	    if( p->uni.Obj == gAnimUnk23[ j ].Obj ){ gAnimUnk23[ j ].Stat = -1000; break; }
         }                            
-        if( (gAnimations[ idx ].Flags & 0xff) >= 0 && !CritterUnk31( p->Obj ) ) AnimUnk24( p->Obj, p->Obj->Orientation, -1);
+        if( (gAnimations[ idx ].Flags & 0xff) >= 0 && !CritterUnk31( p->uni.Obj ) ) AnimUnk24( p->uni.Obj, p->uni.Obj->Orientation, -1);
     }
     gAnimations[ idx ].Step = -1;
     gAnimations[ idx ].i01 = -1000;

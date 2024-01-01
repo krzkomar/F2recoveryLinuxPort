@@ -1717,7 +1717,7 @@ int AiCombatTaunts( Obj_t *Critter, Combat_t *Combat, int ReactionType, int a4 )
     }
     eprintf( "%s said message %d\n", ObjGetName( Critter ), fmt.Id );
     strncpy( s, fmt.Text, 259 );
-    return AnimUnk56( Critter, (void *)ReactionType, (void *)AiMumble, a4 ); // !!! scalar to pointer !!!
+    return AnimUnk56( Critter, (AnimU_t)ReactionType, (void *)AiMumble, a4 ); // !!! scalar to pointer !!!
 }
 
 int AiMumble( Obj_t *obj, char *Text )

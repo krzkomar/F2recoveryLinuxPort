@@ -16,11 +16,18 @@ Obj_t *gAnimUnk100[ 100 ];
 */
 
 #include "FrameWork.h"
+typedef union
+{
+    void  *Ptr;
+    Obj_t *Obj;    
+    int   Int;
+} AnimU_t;
+
 
 typedef struct 
 {
     int State;			// machine state
-    Obj_t *Obj;		// 
+    AnimU_t uni;		//     
     void *GpPtr;		// general purpose pointer, holds obj_t or sound_t
     int TargetPos;		// 
     int Elevation;		// 
@@ -29,7 +36,7 @@ typedef struct
     int (*SndCb)(void *, void *);	// 
     int (*SndCb2)(Sound_t *);	// 
     int i10;			// 
-    int Ap; 			// action points
+    AnimU_t Ap; 		// action points/object/skill no
     CachePool_t *ImgObj;	// 
 } Anim01_t;
 
@@ -107,8 +114,8 @@ int AnimTurnCCW( Obj_t *obj );
 int AnimTurnCW( Obj_t *a1 );
 int AnimUnk54( Obj_t *a1 );
 int AnimUnk55( Obj_t *a1 );
-int AnimUnk56( Obj_t *a1, Obj_t *a2, int (*a3)(void *, void *), int a4 );
-int AnimUnk57( Obj_t *a1, Obj_t *a2, int Ap, int (*a4)(Sound_t *), int a5 );
+int AnimUnk56( Obj_t *a1, AnimU_t a2, int (*a3)(void *, void *), int a4 );
+int AnimUnk57( Obj_t *a1, Obj_t *a2, AnimU_t Ap, int (*a4)(Sound_t *), int a5 );
 int AnimSetFinish( void *a1, Obj_t *a2, int (*a3)(Obj_t *,Obj_t *), int a4 );
 int AnimUnk59( Obj_t *a1, int a2, int a3 );
 int AnimUnk60( Obj_t *a1, int a2, int a3 );

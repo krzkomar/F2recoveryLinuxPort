@@ -564,7 +564,7 @@ LABEL_58:
 
 int ActionUnk26( Obj_t *a1 )
 {
-    return ActionUnk23( gObjDude, a1, 0 );
+    return ActionUnk23( gObjDude, a1, NULL );
 }
 
 int ActionReachable( Obj_t *obj1, Obj_t *obj2 )
@@ -599,19 +599,19 @@ int ActionUnk24( Obj_t *obj1, Obj_t *obj2 )
         AnimStartWalk( obj1, tmp, obj2->Elevation, ap, 0 );
     AnimSetFinish( obj1, obj2, ActionReachable, -1 );
     AnimUnk51( obj1, obj2->GridId );
-    AnimUnk56( obj1, obj2, (void *)UseApUpdate, -1 );
+    AnimUnk56( obj1, (AnimU_t)obj2, (void *)UseApUpdate, -1 );
     if( (tmp = (obj1->ImgId & 0xF000) >> 12) ){
         AnimUnk66( obj1, GSoundProtoFname6( obj1, 39, 0 ), -1 );
         AnimUnk48( obj1, 39, 0 );
     }
     AnimUnk66( obj1, GSoundProtoFname6( obj1, 4, 0 ), -1 );
     AnimUnk48( obj1, 4, 0 );
-    AnimUnk56( obj1, obj2, (void *)UseUnk21, -1 );
+    AnimUnk56( obj1, (AnimU_t)obj2, (void *)UseUnk21, -1 );
     if( tmp ) AnimUnk63( obj1, tmp, -1 );
     return AnimBegin();
 }
 
-int ActionUnk23( Obj_t *obj1, Obj_t *obj2, int ap )
+int ActionUnk23( Obj_t *obj1, Obj_t *obj2, Obj_t *ap )
 {
     int v6,result,v8,CurrentAP,v12,v13,v15,Type;
     short v9;
@@ -644,7 +644,7 @@ int ActionUnk23( Obj_t *obj1, Obj_t *obj2, int ap )
     else
         AnimObjMoveToObj(obj1, obj2, CurrentAP, 0);
     AnimSetFinish(obj1, obj2, (void *)ActionReachable, -1);
-    if( !ap ) AnimUnk56(obj1, obj2, (void *)UseApUpdate, -1);
+    if( !ap ) AnimUnk56(obj1, (AnimU_t)obj2, (void *)UseApUpdate, -1);
     v15 = (obj1->ImgId & 0xF000) >> 12;
     if( v15 ){
         v11 = GSoundProtoFname6(obj1, 39, 0);
@@ -661,9 +661,9 @@ int ActionUnk23( Obj_t *obj1, Obj_t *obj2, int ap )
     }
     if( Type != 1 && !ap ) AnimUnk48(obj1, v13, -1);
     if( ap )
-        AnimUnk57(obj1, obj2, ap, (void *)UseUnk18, -1);
+        AnimUnk57(obj1, obj2, (AnimU_t)ap, (void *)UseUnk18, -1);
     else
-        AnimUnk56(obj1, obj2, (void *)UseUnk21, -1);
+        AnimUnk56(obj1, (AnimU_t)obj2, (void *)UseUnk21, -1);
     if( v15 ) AnimUnk63(obj1, v15, -1);
     return AnimBegin();
 }
@@ -702,7 +702,7 @@ int ActionUseObj( Obj_t *Critter, Obj_t *Obj )
 	    AnimUnk41( Critter, Obj, -1, 0 );	
     }
     AnimSetFinish( Critter, Obj, ActionReachable, -1 );
-    AnimUnk56( Critter, Obj, (void *)UseApUpdate, -1 );
+    AnimUnk56( Critter, (AnimU_t)Obj, (void *)UseApUpdate, -1 );
     ProtoGetObj( Obj->Pid, &proto );
 
     if( proto->Critt.Type != 1 || ProtoItemAccessible( Obj->Pid ) ){
@@ -721,7 +721,7 @@ int ActionUseObj( Obj_t *Critter, Obj_t *Obj )
                 ActionFrame = 0;
             }
         }
-	AnimUnk56( Critter, Obj, (void *)UseUseOn, ActionFrame );
+	AnimUnk56( Critter, (AnimU_t)Obj, (void *)UseUseOn, ActionFrame );
     } else {
         if( (tmp = (Critter->ImgId & 0xF000) >> 12) ){
             AnimUnk66( Critter, GSoundProtoFname6( Critter, 39, 0 ), -1 );
@@ -732,10 +732,10 @@ int ActionUseObj( Obj_t *Critter, Obj_t *Obj )
             ArtGetActionFrame( Img );
             ArtClose( ImgObj );
         }
-        if( Obj->FrameNo != 1 ) AnimUnk56( Critter, Obj, (void *)UseSearch, -1 );
+        if( Obj->FrameNo != 1 ) AnimUnk56( Critter, (AnimU_t)Obj, (void *)UseSearch, -1 );
         if( tmp ) AnimUnk63( Critter, tmp, -1 );
         if( Obj->FrameNo > 1 ) return AnimBegin();
-	AnimUnk56( Critter, Obj, ScptUnk113, -1 );
+	AnimUnk56( Critter, (AnimU_t)Obj, ScptUnk113, -1 );
     }
     return AnimBegin();
 }
@@ -761,8 +761,8 @@ int ActionUseOnCritter( Obj_t *a1, Obj_t *a2 )
 	}
     }
     AnimSetFinish( a1, a2, (void *)ActionReachable, -1 );
-    AnimUnk56( a1, a2, (void *)UseApUpdate, -1 );
-    AnimUnk56(a1, a2, (void *)ScptUnk113, -1);
+    AnimUnk56( a1, (AnimU_t)a2, (void *)UseApUpdate, -1 );
+    AnimUnk56(a1, (AnimU_t)a2, (void *)ScptUnk113, -1);
     return AnimBegin();
 }
 
@@ -789,7 +789,7 @@ int ActionUnk20( Obj_t *obj )
 }
 
 
-int ActionSkillUse( Obj_t *obj1, Obj_t *obj2, int SkillNo )
+int ActionSkillUse( Obj_t *dude, Obj_t *target, int SkillNo )
 {
     Obj_t *v4,*v8;
     ArtFrmHdr_t *Img;
@@ -803,9 +803,9 @@ int ActionSkillUse( Obj_t *obj1, Obj_t *obj2, int SkillNo )
         case 6:
         case 7:
             if( IN_COMBAT ){
-        	YOU_CANNOT_DO_THAT_IN_COMBAT( obj1 )
+        	YOU_CANNOT_DO_THAT_IN_COMBAT( dude )
             } else {
-                if( OBJTYPE( obj2->Pid ) == TYPE_CRIT ) break;
+                if( OBJTYPE( target->Pid ) == TYPE_CRIT ) break;
                 return -1;
             }
         case 8:
@@ -813,38 +813,38 @@ int ActionSkillUse( Obj_t *obj1, Obj_t *obj2, int SkillNo )
             return 0;
         case 9:
             if( IN_COMBAT ){
-        	YOU_CANNOT_DO_THAT_IN_COMBAT( obj1 )
+        	YOU_CANNOT_DO_THAT_IN_COMBAT( dude )
             } else {
-                v11 = ( obj2->Pid >> 24 );
+                v11 = OBJTYPE( target->Pid );
                 if( !v11 || v11 == 2 ) break;
                 return -1;
             }
         case 10:
             if( IN_COMBAT ){
-        	YOU_CANNOT_DO_THAT_IN_COMBAT( obj1 )
-            } else if( (obj2->Pid >> 24) < 2 ){
-                if( obj2 != obj1 ) break;
+        	YOU_CANNOT_DO_THAT_IN_COMBAT( dude )
+            } else if( OBJTYPE( target->Pid ) < 2 ){
+                if( target != dude ) break;
                 return -1;
             } else {
                 return -1;
             }
         case 11:
             if( IN_COMBAT ){
-        	YOU_CANNOT_DO_THAT_IN_COMBAT( obj1 )
+        	YOU_CANNOT_DO_THAT_IN_COMBAT( dude )
             } else {
-                if( (obj2->Pid >> 24) != 1 ) break;
+                if( OBJTYPE( target->Pid ) != 1 ) break;
                 return -1;
             }
         case 12 ... 13:
             if( IN_COMBAT ){
-        	YOU_CANNOT_DO_THAT_IN_COMBAT( obj1 )
+        	YOU_CANNOT_DO_THAT_IN_COMBAT( dude )
             } else {
-                if( OBJTYPE( obj2->Pid ) != TYPE_CRIT || CritterGetGender( obj2 ) == 10 || ( CritterGetGender( obj2 ) == 5 && SkillNo == 12 ) ) break;
+                if( OBJTYPE( target->Pid ) != TYPE_CRIT || CritterGetGender( target ) == 10 || ( CritterGetGender( target ) == 5 && SkillNo == 12 ) ) break;
                 return -1;
             }
         default: eprintf( "\nskill_use: invalid skill used." ); break;
     }
-    if( obj1 == gObjDude ){
+    if( dude == gObjDude ){
         v8 = PartyGetBestSkilled( SkillNo );
 	if( v8 == gObjDude ) v8 = NULL;
 	if( SkillNo == SKILL_STEAL ) v8 = NULL;
@@ -863,7 +863,7 @@ int ActionSkillUse( Obj_t *obj1, Obj_t *obj2, int SkillNo )
 	    }
 	}
 	if( v8 ){
-	    v11 = ObjGetDistance( gObjDude, obj2 ) <= 1;
+	    v11 = ObjGetDistance( gObjDude, target ) <= 1;
     	    if( !TextObjCreate( v8, SkillUseTryWantMsg( v11 ), 101, gPalColorCubeRGB[31][31][11], gPalColorCubeRGB[0][0][0], &Area) ) TileUpdateArea( &Area, gCurrentMapLvl );
     	    if( v11 ){
         	v4 = gObjDude;
@@ -877,25 +877,25 @@ int ActionSkillUse( Obj_t *obj1, Obj_t *obj2, int SkillNo )
     }
     if( (gCombatStatus & 1) != 0 ){
         AnimStart( 2 );
-        AnimObjMoveToObj( v4, obj2, v4->Critter.State.CurrentAP, 0 );
+        AnimObjMoveToObj( v4, target, v4->Critter.State.CurrentAP, 0 );
     } else { 
-        AnimStart( ( obj1 == gObjDude ) ? 2 : 1 );
-        if( obj2 != gObjDude ){
-            if( ObjGetDistance( v4, obj2 ) >= 5 ){
-            	AnimUnk41( v4, obj2, -1, 0 );
+        AnimStart( ( dude == gObjDude ) ? 2 : 1 );
+        if( target != gObjDude ){
+            if( ObjGetDistance( v4, target ) >= 5 ){
+            	AnimUnk41( v4, target, -1, 0 );
             } else {
-            	AnimObjMoveToObj( v4, obj2, -1, 0 );
+            	AnimObjMoveToObj( v4, target, -1, 0 );
             }
         }
     }
-    AnimSetFinish( v4, obj2, ActionReachable, -1 );
-    v11 = ( OBJTYPE( obj2->ImgId ) == TYPE_CRIT && CritterUnk31( obj2 ) ) ? 10 : 11;
+    AnimSetFinish( v4, target, ActionReachable, -1 );
+    v11 = ( OBJTYPE( target->ImgId ) == TYPE_CRIT && CritterUnk31( target ) ) ? 10 : 11;
     if( (Img = ArtLoadImg( ArtMakeId(1, v4->ImgId & 0xFFF, v11, 0, v4->Orientation + 1), &ImgObj )) ){
         ArtGetActionFrame( Img );
         ArtClose( ImgObj );
     }
     AnimUnk48( v4, v11, -1 );
-    AnimUnk57( v4, obj2, SkillNo, (void *)UseUseSkill, -1 );
+    AnimUnk57( v4, target, (AnimU_t)SkillNo, (void *)UseUseSkill, -1 );
     return AnimBegin();
 }
 
@@ -1177,7 +1177,7 @@ int ActionTalk( Obj_t *Crit1, Obj_t *Crit2 )
         if( ObjGetDistance( Crit1, Crit2 ) >= 9 || CombatBlockedAim( Crit1, Crit1->GridId, Crit2->GridId, Crit2, 0 ) ) AnimUnk41( Crit1, Crit2, -1, 0 );
     }
     AnimSetFinish( Crit1, Crit2, (void *)ActionSndACb, -1 );
-    AnimUnk56( Crit1, Crit2, (void *)ActionSndBCb, -1 );
+    AnimUnk56( Crit1, (AnimU_t)Crit2, (void *)ActionSndBCb, -1 );
     return AnimBegin();
 }
 

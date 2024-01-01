@@ -77,7 +77,7 @@ char **FileListMake( char *path, int *pCnt )
 
 void FileListFree( char **FileList )
 {
-    dbDelFileList( &FileList );
+    dbDelFileList( FileList );
 }
 
 

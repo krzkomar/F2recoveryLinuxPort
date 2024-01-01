@@ -748,7 +748,7 @@ unsigned int UseUseHealSkill( Obj_t *crit, Obj_t *obj1, Obj_t *obj2 )
         if( crit == gObjDude && MessageGetMsg( &gProtoMessages, &msg) == 1 ) IfcMsgOut( msg.Text );
         return -1;
     }
-    if( SkillUseHeal( crit, obj1, v7, SkillIdx ) || RandMinMax( 1, 10 ) == 1 ){
+    if( SkillUseHeal( crit, obj1, SkillIdx, v7 ) || RandMinMax( 1, 10 ) == 1 ){
         msg.Id = MsgId;
         if( crit == gObjDude && MessageGetMsg( &gProtoMessages, &msg ) == 1 ) IfcMsgOut( msg.Text );
         return 1;
@@ -756,12 +756,12 @@ unsigned int UseUseHealSkill( Obj_t *crit, Obj_t *obj1, Obj_t *obj2 )
     return 0;
 }
 
-void UseUnk18( Obj_t *obj, Obj_t *a2, Obj_t *a3 )
+int UseUnk18( Obj_t *obj, Obj_t *a2, Obj_t *a3 )
 {
     Obj_t *v7;
-    int v5, v8, t;
+    int v5, n, t, v8;
 
-    if( UseUseHealSkill( obj, a2, a3 ) == 1 ){
+    if( (n = UseUseHealSkill( obj, a2, a3 )) == 1 ){
         if( obj ){
             v5 = a2->Flags & 0x3000000;
             ItemUseItem( obj, a2, 1 );
@@ -778,8 +778,10 @@ void UseUnk18( Obj_t *obj, Obj_t *a2, Obj_t *a3 )
             IfaceHandSlotUpdate( 0, t, v8 );
         }
         UseUnk06( a2 );
+        n = 0;
     }
     ScptUnk30();
+    return n;
 }
 
 void UseTileUpdate()
@@ -788,7 +790,7 @@ void UseTileUpdate()
     TileUpdate();
 }
 
-int UseApUpdate( Obj_t *obj )
+int UseApUpdate( Obj_t *obj, Obj_t *obj1, Obj_t *obj2 )
 {
     MsgLine_t msg;
 
@@ -803,7 +805,7 @@ int UseApUpdate( Obj_t *obj )
     return -1;
 }
 
-int UseUnk21( Obj_t *crit, Obj_t *obj )
+int UseUnk21( Obj_t *crit, Obj_t *obj, Obj_t *objn )
 {
     int v3, type;
     char stmp[ 260 ];
@@ -1020,11 +1022,11 @@ int UseDoor( Obj_t *Crit, Obj_t *obj, int a3 )
         AnimStart( 2 );
         for( i = 1; i != v10; i += v18 ){
             if( i ){
-                if( !a3 ) AnimUnk56( obj, obj, (void *)UseUnk27, -1 );
+                if( !a3 ) AnimUnk56( obj, (AnimU_t)obj, (void *)UseUnk27, -1 );
                 AnimUnk66( obj, GSoundProtoFname2( obj, 1 ), -1 );
                 AnimUnk49( obj, 0, 0 );
             } else {
-                if( !a3 ) AnimUnk56(obj, obj, (void *)UseUnk26, -1);
+                if( !a3 ) AnimUnk56(obj, (AnimU_t)obj, (void *)UseUnk26, -1);
                 AnimUnk66( obj, GSoundProtoFname2( obj, 0 ), -1 );
                 AnimUnk48( obj, 0, 0);
             }
@@ -1104,7 +1106,7 @@ int UseUseSkill( Obj_t *crit, Obj_t *obj, unsigned int SkillIdx )
             if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
             i18 = scr->i18;
     }
-    if( !i18 ) SkillUseHeal( crit, obj, 0, SkillIdx );
+    if( !i18 ) SkillUseHeal( crit, obj, SkillIdx, 0 );
     return 0;    
 }
 
@@ -1189,11 +1191,11 @@ int UseStartAnimation( Obj_t *obj )
     UseObjUnjam( obj );
     AnimStart( 2 );
     if( obj->FrameNo ){
-        AnimUnk56( obj, obj, (void *)UseUnk27, -1 );
+        AnimUnk56( obj, (AnimU_t)obj, (void *)UseUnk27, -1 );
         AnimUnk66( obj, GSoundProtoFname2( obj, 1 ), -1 );
         AnimUnk49( obj, 0, 0);
     } else {
-        AnimUnk56( obj, obj, (void *)UseUnk26, -1 );
+        AnimUnk56( obj, (AnimU_t)obj, (void *)UseUnk26, -1 );
         AnimUnk66( obj, GSoundProtoFname2( obj, 0 ), -1 );
         AnimUnk48( obj, 0, 0 );
     }

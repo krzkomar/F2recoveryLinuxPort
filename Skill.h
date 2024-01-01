@@ -87,7 +87,7 @@ char *SkillGetDsc( unsigned int SkillNo );
 char *SkillGetAttr( unsigned int SkillNo );
 int  SkillGetImgId( unsigned int SkillNo );
 void SkillHoningAward( Obj_t *dude,int SkillIdx, int a3, int a4 );
-int  SkillUseHeal( Obj_t *dude1, Obj_t *dude2, int a3, unsigned int SkillIdx );
+int  SkillUseHeal( Obj_t *dude1, Obj_t *dude2, unsigned int SkillIdx, int a3 );
 int  SkillUseSteal( Obj_t *dude1, Obj_t *dude2, Obj_t *Company, int a3);
 int  SkillGetDifficulty( int SkillIdx );
 int  SkillUsingTired( int SkillIdx );

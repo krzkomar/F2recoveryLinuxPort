@@ -65,7 +65,7 @@ typedef struct // size of 12
   };
   unsigned short PixShiftY;		// 10 2 pixel shift in Y direction of frame - the pixel offset of this frame from the previous one.
   char Data[];
-} __attribute__ (( packed )) ArtFrm_t;
+} ArtFrm_t;
 
 // *.Frm file header
 typedef struct	// size of 62
@@ -79,7 +79,7 @@ typedef struct	// size of 62
   unsigned int 		FirstFrame[6];	// 24 -> offsets of the first frame for each direction from beginning of the frame area
   unsigned int 		AllDataSize;	// 4  -> size of frame area
   ArtFrm_t 		FrameArea[];	// Frame Area
-} __attribute__ (( packed )) ArtFrmHdr_t;
+} ArtFrmHdr_t;
 
 extern char gProtoDataFilePath[ 260 ];
 extern ProtoCat_t gArtCatalog[ PROTOs ];

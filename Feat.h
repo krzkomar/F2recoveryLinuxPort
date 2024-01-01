@@ -26,7 +26,7 @@ enum{
     FEAT_INTELLIGENCE,	// 4 intelligence
     FEAT_AGILITY,	// 5 agility
     FEAT_LUCK,		// 6 luck
-    // derived
+//
     FEAT_HP,		// 7 hit points
     FEAT_AP,		// 8 action points
     FEAT_AC,		// 9 armor class
@@ -56,8 +56,8 @@ enum{
     FEAT_33,		// 33 players starting age
     FEAT_GENDER,	// 34 gender 0 - male, 1 - female
     FEAT_35,		// 35 FEAT_CURHP current HP
-    FEAT_36,
-    FEAT_37,
+    FEAT_36,		// 36 FEAT_POISONED
+    FEAT_37,		// 37 FEAT_RADIATED
     // unspent skill points, level, experience, reputation, karma
     FEAT_PTS = 38,
     FEAT_PTS_SKILL = 0, // 0 38 unspent skill points
@@ -135,6 +135,6 @@ int  FeatGetId( int idx );
 int  FeatDice( Obj_t *dude, int Id, int Ofs, int *pVal );
 int  FeatLvlUp( int pts );
 int  FeatLvlUpStats( int pts, int LvlUpAllow );
-void FeatLvlDn( int pts );
+int  FeatLvlDn( int pts );
 
 

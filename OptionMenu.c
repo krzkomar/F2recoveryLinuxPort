@@ -357,7 +357,7 @@ void OptPauseUnk01( int a1 )
     } else {
         MseCursorRedraw();
         TileUpdate();
-        GrUnk10( WinGetSurface( gMapIsoWin ), 640, WinGetHeight( gMapIsoWin ), 640 );
+        GrUnk10( (unsigned char *)WinGetSurface( gMapIsoWin ), 640, WinGetHeight( gMapIsoWin ), 640 );
         WinUpdate( gMapIsoWin );
     }
     MseDrawCursor();

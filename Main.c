@@ -267,7 +267,7 @@ void MainSelectRecordMap()
     cnt = dbGetFileList( "maps/*.map", &FileList );
     err = 0;
     if( cnt ){
-        MapNo = TextBoxFileSelect( "Select Map", FileList, 0, cnt, 80, 80, 0x10104 );
+        MapNo = TextBoxFileSelect( "Select Map", FileList, cnt, NULL, 80, 80, 0x10104 );
         if( MapNo != -1 ){
             stmp[0] = 0;
             if( !TextBoxDialogEdit1( stmp, 11, "Enter name for recording (8 characters max, no extension):", 100, 100 ) ){

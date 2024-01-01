@@ -7,16 +7,16 @@
 #define	HEAP_FREE		0x04
 #define HEAP_ERROR		-1
 
-#define HEAP_FOREHEAD_GUARD	0xDEADC0DE
-#define HEAP_BACKEND_GUARD	0xACDCACDC
-#define HEAP_MEM_GUARD( addr )  *((int *)addr)
+#define HEAP_FOREHEAD_GUARD	0xDEADC0DEu
+#define HEAP_BACKEND_GUARD	0xACDCACDCu
+#define HEAP_MEM_GUARD( addr )  *((unsigned int *)(addr))
 #define HEAP_PAYLOAD		( sizeof( HeapBlk_t ) + sizeof( int ) ) // 20 = (forehead header = 16 ) + (backend guard = 4)
 
 #define HEAP_HANDLERS	64
 
 typedef struct // size of 16
 {
-    int		Guard; //0
+    unsigned int Guard; //0
     int		Size;  //1
     int		State; //2
     int		Id;    //3

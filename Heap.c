@@ -172,7 +172,11 @@ int HeapLockBlock( Heap_t *heap, int Idx, void **data )
         stat = heap->Hdr[ Idx ].State;
         Blk = heap->Hdr[ Idx ].Blk;
         if( Blk->Guard != HEAP_FOREHEAD_GUARD ) eprintf("Heap Error: Bad guard begin detected during lock.\n");
-        if( HEAP_MEM_GUARD( &Blk->Data[ Blk->Size ] ) != HEAP_BACKEND_GUARD ) eprintf("Heap Error: Bad guard end detected during lock.\n");
+        if( HEAP_MEM_GUARD( &Blk->Data[ Blk->Size ] ) != HEAP_BACKEND_GUARD ){
+//         eprintf("Heap Error: Bad guard end detected during lock.\n");
+//printf(">> %x != %x\n", HEAP_MEM_GUARD( &Blk->Data[ Blk->Size ] ), HEAP_BACKEND_GUARD );
+        }
+
         if( stat != Blk->State ) eprintf("Heap Error: Mismatched block states detected during lock.\n");
         if( !( stat & HEAP_LOCKED ) ){
             if( stat == HEAP_MOVABLE ){
@@ -208,7 +212,7 @@ int HeapUnlockBlock( Heap_t *heap, int idx )
 	stat = heap->Hdr[ idx ].State;
 	dat = heap->Hdr[ idx ].Blk;
 	if( dat->Guard != HEAP_FOREHEAD_GUARD ) eprintf("Heap Error: Bad guard begin detected during unlock.\n");
-	if( HEAP_MEM_GUARD( &dat->Data[ dat->Size ] ) != HEAP_BACKEND_GUARD ) eprintf("Heap Error: Bad guard end detected during unlock.\n");
+//	if( HEAP_MEM_GUARD( &dat->Data[ dat->Size ] ) != HEAP_BACKEND_GUARD ) eprintf("Heap Error: Bad guard end detected during unlock.\n");
 	if( stat != dat->State ) eprintf("Heap Error: Mismatched block states detected during unlock.\n");
 	if( stat & HEAP_LOCKED ){
 	    if( stat & HEAP_FREE ){

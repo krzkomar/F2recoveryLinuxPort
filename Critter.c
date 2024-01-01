@@ -110,11 +110,11 @@ int CritterGetHp( Obj_t *dude )
     return 0;
 }
 
-void CritterHeal( Obj_t *dude, int dmg )
+int CritterHeal( Obj_t *dude, int dmg )
 {
     int hp;
 
-    if( OBJTYPE( dude->Pid ) != TYPE_CRIT ) return;
+    if( OBJTYPE( dude->Pid ) != TYPE_CRIT ) return 0;
     hp = FeatGetVal( dude, FEAT_HP );
     dude->Critter.HitPts += dmg;
     if( hp >= dude->Critter.HitPts ){
@@ -122,6 +122,7 @@ void CritterHeal( Obj_t *dude, int dmg )
     } else {
         dude->Critter.HitPts = hp;
     }    
+    return 0;
 }
 
 int CritterPoisoned( Obj_t *dude )
@@ -130,13 +131,13 @@ int CritterPoisoned( Obj_t *dude )
     return 0;
 }
 
-void CritterPoisonInc( Obj_t *dude, int val ) // poison
+int CritterPoisonInc( Obj_t *dude, int val ) // poison
 {
     MsgLine_t MsgLine;
 
-    if( dude != gObjDude ) return;
+    if( dude != gObjDude ) return 0;
     if( val <= 0 ){
-        if( gObjDude->Critter.Poisoned <= 0 ) return;
+        if( gObjDude->Critter.Poisoned <= 0 ) return 0;
     } else {
         val -= FeatGetVal( dude, FEAT_PSNRES ) * val / 100;
     }
@@ -153,6 +154,7 @@ void CritterPoisonInc( Obj_t *dude, int val ) // poison
 	if( MessageGetMsg( &gMessage, &MsgLine ) == 1 ) IfcMsgOut( MsgLine.Text );
     }
     if( dude == gObjDude ) IfaceIndicatorBoxUpdate();
+    return 0;
 }
 
 int CritterPoison( Obj_t *dude, MsgLine_t *MsgLine )
@@ -171,13 +173,13 @@ int CritterRadiated( Obj_t *dude )
     return 0;
 }
 
-void CritterRadInc( Obj_t *dude, int Dose )
+int CritterRadInc( Obj_t *dude, int Dose )
 {
     MsgLine_t MsgLine;
     Proto_t *proto;
     Obj_t *p;
 
-    if( dude != gObjDude ) return;
+    if( dude != gObjDude ) return 0;
     ProtoGetObj( gObjDude->Pid, &proto );
     if( Dose > 0 ) Dose -= FeatGetVal( dude, FEAT_RADRES ) * Dose / 100;
     if( Dose > 0 ){
@@ -209,6 +211,7 @@ jj2:
     dude->Critter.Radiated += Dose;
     if( dude->Critter.Radiated <= 0 ) dude->Critter.Radiated = 0;
     if( dude == gObjDude ) IfaceIndicatorBoxUpdate( dude, Dose );
+    return 0;
 }
 
 void CritterRadSetDose( Obj_t *dude )

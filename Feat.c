@@ -126,122 +126,113 @@ int FeatSavePoints( xFile_t *fh )
 
 int FeatGetVal( Obj_t *dude, int FeatId )
 {
-    int tmp;
-    Obj_t *dd;
-    int Val; // ecx MAPDST
-//    int Min; // esi
+    Obj_t *p;
+    int tmp, Val, v9, v30;
 
-    if( FeatId < 35 || FeatId >= 38 ){
-        if( FeatId < 35 ){
-            Val = FeatGetBase( dude, FeatId );
-
-            if( dude == gObjDude ) Val += TraitSpecBonus( FeatId );
-            Val += FeatGetBoost( dude, FeatId );
-
-            if( (FeatId == FEAT_AC) && (gCombatStatus & 1) != 0 && CombatUnk05() != dude ){
-/*
-                v9 = 0;
-                v30 = 1;
-                tmp = 0;
-                if( dude == gObjDude && PerkLvl( gObjDude, PERK_HTH_EVADE ) ){
-                    v11 = InvGetRHandObj( gObjDude );
-                    if( v11 && ItemGetObjType( v11 ) == 3 && Item58( v11 ) ) v9 = 1;
-                    if( !v9 ){
-                        v13 = InvGetLHandObj( gObjDude );
-                        if( v13 && ItemGetObjType( v13 ) == 3 && Item58( v13 ) )
-                            v9 = 1;
-                        if( !v9 ){
-                            v30 = 2;
-                            tmp = SkillGetTotal(gObjDude, 3u) / 12;
-                        }
-                    }
-                }
-                Val += tmp + dude->Critter.State.CurrentMP * v30;
-*/
-            }
-            if( FeatId == FEAT_PERCEPTION && (dude->Critter.State.CombatResult & 0x40) ) Val -= 5;
-            if( FeatId == FEAT_33 ){ // starting age
-                Val += ScptGetGameDekaSeconds() / 315360000;
-            }
-            if( FeatId == FEAT_AP ){
-                tmp = FeatGetVal( dude, FEAT_CARRY ) - ItemGetBackPackWeight( dude );
-                if( tmp < 0 ) Val -= -tmp / 40 + 1;
-            }
-            if( dude == gObjDude ){
-                if( FeatId ){
-                    if( (FeatId == FEAT_PERCEPTION) && PerkLvl( gObjDude, 85 ) ){
-                        Val++;
-                    } else if( ( FeatId == FEAT_ENDURANCE ) && PerkLvl( dude, 86 ) ){
-                        Val++;
-                    } else {
-                        if( FeatId == FEAT_CHARISMA ){
-//printf("==>%p\n", dude);
-//printf("=o=>%x\n", dude->Pid);
-//// ??                           PerkLvl( dude, 87 );
-//                            tmp = 0;
-//                            if( ( dd = InvGetRHandObj( dude ) ) && dd->Pid == 433 ) tmp = 1;
-//DD
-//                            if( ( dd = InvGetLHandObj( dude ) ) && dd->Pid == 433 ) tmp = 1;
-//DD
-//                            if( tmp ) Val++;
-//DD
-                        } else if( (FeatId == FEAT_INTELLIGENCE) && PerkLvl(dude, 88) ){
-                            Val++;
-                        } else if( (FeatId == FEAT_AGILITY) && PerkLvl(dude, 89) ){
-                            Val++;
-                        } else if( (FeatId == FEAT_LUCK) && PerkLvl(dude, 90) ){
-                            Val++;
-                        } else if( (FeatId == FEAT_PSNRES) && PerkLvl(dude, 78) ){
-                            Val += 10;
-                        } else if( (FeatId == FEAT_RADRES) && PerkLvl(dude, 78) ){
-                            Val += 10;
-                        } else {
-                            switch( FeatId ){
-                                case 24: case 30: // dam resistance normal, explosive
-                                    if( PerkLvl(dude, 74) ){
-                                        Val += 5;
-                                    } else if( PerkLvl(dude, 75u) ){
-                                        Val += 10;
-                                    }
-                                    break;
-                                case 25: case 26: case 27: // dam resistance laser,fire,plasma
-                                    if( PerkLvl(dude, 76) ){
-                                        Val += 5;
-                                    } else if( PerkLvl(dude, 77) ){
-                                        Val += 10;
-                                    }
-                                    break;
-                                case FEAT_HP:
-                                    if( PerkLvl( dude, 108 ) ) Val += 2;
-                                    if( PerkLvl( dude, 109 ) ) Val += 4;
-                                    if( PerkLvl( dude, 110 ) ) Val -= 2;
-                                    if( PerkLvl( dude, 111 ) ) Val -= 4;
-                                    if( PerkLvl( dude, 112 ) ) Val += 2;
-                                    if( PerkLvl( dude, 113 ) ) Val += 4;
-                                    if( PerkLvl( dude, 114 ) ) Val -= 2;
-                                    if( PerkLvl( dude, 115 ) ) Val -= 4;
-                                    break;
-                            }
-                        }
-                    }
-                } else {
-                    PerkLvl( gObjDude, 84 );
-                    if( PerkLvl( dude, 79 ) ){
-                        if( FeatGetVal( gObjDude, 35 ) < (FeatGetVal( gObjDude, FEAT_HP ) / 2) ) Val++;
-                    }
-                }
-            }
-            if( Val < gFeats[ FeatId ].Min ) return gFeats[ FeatId ].Min;
-            if( Val > gFeats[ FeatId ].Max ) return gFeats[ FeatId ].Max;
-            return Val;
-        } else {
-            return 0;
-        }
-    } else if( FeatId == 35 ){
-        return CritterGetHp( dude );
-    } else {        
-        return ( FeatId == 36 ) ? CritterPoisoned( dude ) : CritterRadiated( dude );
+    if( FeatId >= 35 ){
+	switch( FeatId ){
+	    case 35: Val = CritterGetHp( dude ); break;
+	    case 36: Val = CritterPoisoned( dude ); break;
+	    case 37: Val = CritterRadiated( dude ); break;
+	    default: Val = 0;
+	}
+	return Val;
     }
+    Val = FeatGetBase( dude, FeatId );
+    if( dude == gObjDude ) Val += TraitSpecBonus( FeatId );
+    Val += FeatGetBoost( dude, FeatId );
+    if( IN_COMBAT && (FeatId == FEAT_AC) &&  (CombatUnk05() != dude) ){
+        v9 = 0;
+        v30 = 1;
+        tmp = 0;
+        if( dude == gObjDude && PerkLvl( gObjDude, PERK_HTH_EVADE ) ){
+            if( (p = InvGetRHandObj( gObjDude )) && ItemGetObjType( p ) == PR_ITEM_WEAPON && Item58( p ) ) v9 = 1;
+            if( !v9 ){
+                if( (p = InvGetLHandObj( gObjDude )) && ItemGetObjType( p ) == PR_ITEM_WEAPON && Item58( p ) ) v9 = 1;
+                if( !v9 ){
+                    v30 = 2;
+                    tmp = SkillGetTotal( gObjDude, SKILL_UNARMED ) / 12;
+                }
+            }
+        }
+        Val += tmp + dude->Critter.State.CurrentAP * v30;
+    }
+    if( FeatId == FEAT_PERCEPTION && (dude->Critter.State.CombatResult & 0x40) ) Val -= 5;
+    if( FeatId == FEAT_33 ){ // starting age
+        Val += ScptGetGameDekaSeconds() / 315360000;
+    }
+    if( FeatId == FEAT_AP ){
+        tmp = FeatGetVal( dude, FEAT_CARRY ) - ItemGetBackPackWeight( dude );
+        if( tmp < 0 ) Val -= -tmp / 40 + 1;
+    }
+    if( dude == gObjDude ){
+        switch( FeatId ){
+    	    case FEAT_PERCEPTION:
+        	    if( PerkLvl( gObjDude, PERK_GAIN_PERCEPTION ) ) Val++;
+        	    break;
+    	    case FEAT_ENDURANCE:
+        	    if( PerkLvl( dude, PERK_GAIN_ENDURANCE ) ) Val++;
+        	    break;
+    	    case FEAT_CHARISMA: 
+        	    if( !PerkLvl( dude, PERK_GAIN_CHARISMA ) ) break;
+        	    tmp = 0;
+        	    if( ( p = InvGetRHandObj( dude ) ) && p->Pid == PID_MIRROREDSHADES ) tmp = 1;
+        	    if( ( p = InvGetLHandObj( dude ) ) && p->Pid == PID_MIRROREDSHADES ) tmp = 1;
+        	    if( tmp ) Val++;
+        	    break;
+    	    case FEAT_INTELLIGENCE: 
+        	    if( PerkLvl( dude, PERK_GAIN_INTELLIGENCE ) ) Val++;
+        	    break;
+    	    case FEAT_AGILITY:
+        	    if( PerkLvl( dude, PERK_GAIN_AGILITY ) ) Val++;
+        	    break;
+    	    case FEAT_LUCK:
+        	    if( PerkLvl( dude, PERK_GAIN_LUCK ) ) Val++;
+        	    break;
+    	    case FEAT_PSNRES:
+        	    if( PerkLvl( dude, PERK_VAULT_CITY_INOCULATIONS ) ) Val += 10;
+        	    break;
+    	    case FEAT_RADRES: 
+        	    if( PerkLvl( dude, PERK_VAULT_CITY_INOCULATIONS ) ) Val += 10; 
+        	    break;
+            case 24: // damage resistance normal
+            case 30: // damage resistance explosive
+            	    if( PerkLvl(dude, PERK_DERMAL_IMPACT_ARMOR ) ){
+                	Val += 5;
+            	    } else if( PerkLvl( dude, PERK_DERMAL_IMPACT_ASSLT_ENCH ) ){
+                	Val += 10;
+            	    }
+            	    break;
+            case 25: // dam resistance laser
+            case 26: // dam resistance fire
+            case 27: // dam resistance plasma
+            	    if( PerkLvl( dude, PERK_PHOENIX_ARMOR_IMPLANTS ) ){
+                	Val += 5;
+            	    } else if( PerkLvl( dude, PERK_PHOENIX_ASSAULT_ENCH ) ){
+                	Val += 10;
+            	    }
+            	    break;
+            case FEAT_HP:
+            	    if( PerkLvl( dude, PERK_ALCOHOL_RAISED_HP1  ) ) Val += 2;
+            	    if( PerkLvl( dude, PERK_ALCOHOL_RAISED_HP2  ) ) Val += 4;
+            	    if( PerkLvl( dude, PERK_ALCOHOL_LOWERED_HP1 ) ) Val -= 2;
+            	    if( PerkLvl( dude, PERK_ALCOHOL_LOWERED_HP2 ) ) Val -= 4;
+            	    if( PerkLvl( dude, PERK_AUTODOC_RAISED_HP1  ) ) Val += 2;
+            	    if( PerkLvl( dude, PERK_AUTODOC_RAISED_HP2  ) ) Val += 4;
+            	    if( PerkLvl( dude, PERK_AUTODOC_LOWERED_HP1 ) ) Val -= 2;
+            	    if( PerkLvl( dude, PERK_AUTODOC_LOWERED_HP2 ) ) Val -= 4;
+            	    break;
+            case FEAT_STAMINA:
+        	    if( PerkLvl( gObjDude, PERK_GAIN_STRENGHT ) ) Val++;
+        	    if( PerkLvl( dude, PERK_ADRENALINE_RUSH ) ){
+        		if( FeatGetVal( gObjDude, 35 ) < (FeatGetVal( gObjDude, FEAT_HP ) / 2) ) Val++;
+        	    }
+        	    break;
+        }
+    }
+    if( Val < gFeats[ FeatId ].Min ) return gFeats[ FeatId ].Min;
+    if( Val > gFeats[ FeatId ].Max ) return gFeats[ FeatId ].Max;
+    return Val;
 }
 
 int FeatGetTotal( Obj_t *dude, unsigned int Id )
@@ -286,21 +277,20 @@ int FeatSetBase( Obj_t *dude, int Id, int NewVal )
     Proto_t *proto;
 
     switch( Id ){
+	case 0 ... 6:
+            if( dude == gObjDude ) NewVal -= TraitSpecBonus( Id );
+            if( NewVal < gFeats[ Id ].Min ) return -2;
+            if( NewVal > gFeats[ Id ].Max ) return -3;
+            ProtoGetObj( dude->Pid, &proto );
+            proto->Critt.BaseStat[ Id ] = NewVal;
+            if( Id <= 6 ) FeatStatsRecalculate( dude );
+            return 0;		
 	case 7 ... 32: return -1;
-	case 0 ... 6: case 33 ... 34:
-    	    if( dude == gObjDude ) NewVal -= TraitSpecBonus( Id );
-    	    if( NewVal < gFeats[ Id ].Min ) return -2;
-    	    if( NewVal > gFeats[ Id ].Max ) return -3;
-    	    ProtoGetObj( dude->Pid, &proto );
-    	    proto->Critt.BaseStat[ Id ] = NewVal;
-    	    if( Id <= 6 ) FeatStatsRecalculate( dude );
-	    break;
-//	case 35: CritterHeal( dude, CritterGetHp( 35, NewVal ) ); break;
-//	case 36: CritterPoisonInc( dude, CritterPoisoned( 36, NewVal ) ); break;
-//	case 37: CritterRadInc( dude, CritterRadiated( Id, NewVal ) ); break;
-	default: return -5;
-    }
-    return 0;            	
+	case 35: return CritterHeal( dude, NewVal - CritterGetHp( dude ) );
+	case 36: return CritterPoisonInc( dude, NewVal - CritterPoisoned( dude ) );
+	case 37: return CritterRadInc( dude, NewVal - CritterRadiated( dude ) );
+    }        
+    return -5;
 }
 
 int FeatIncVal( Obj_t *dude, int Id )
@@ -423,9 +413,8 @@ int FeatSetPoints( unsigned int Id, int NewVal )
 
 void FeatPtsReset()
 {
-DD
-//    int i;
-//    for( i = 0; i < 5; i++ ) gFeatComment[ 9 + i ] = gFeats[ FEAT_PTS + i ].Value;    
+    int i;
+    for( i = 0; i < 5; i++ ) gFeatPoints[ i ] = gFeats[ FEAT_PTS + i ].Value;
 }
 
 int FeatNextLvlPts()
@@ -476,45 +465,44 @@ int FeatLvlUp( int pts )
 
 int FeatLvlUpStats( int pts, int LvlUpAllow )
 {
-/*
-    int Val, HpBoost;
-    MsgLine_t MsgLine;
+    int Min, Val, Base;
+    MsgLine_t msg;
 
-    pts = gFeatPoints[ 2 ] + CharEditUnk53( gObjDude, 50 ) * 5 * pts / 100 + pts;
-    if( pts < gFeats[40].Min ) pts = gFeats[40].Min;
-    if( pts > gFeats[40].Max ) pts = gFeats[40].Max;
-    gFeatPoints[ 2 ] = pts;
-    while( gFeatPoints[1] < 99 && pts >= FeatNextLvlPts() ){
-        if( FeatSetPoints(1u, gFeatPoints[1] + 1) ) continue;
-        Val = FeatGetVal(gObjDude, FEAT_HP);
-        MsgLine.Id = 600;
-        if( MessageGetMsg( &gFeatMsgStat, &MsgLine ) == 1 ) IfcMsgOut();
-        CritterUnk37( 3, 600 );
+    Min = gFeatPoints[ 2 ] + PerkLvl( gObjDude, 50 ) * 5 * pts / 100 + pts;
+    if( Min < gFeats[ 40 ].Min ) Min = gFeats[ 40 ].Min;
+    if( Min > gFeats[ 40 ].Max ) Min = gFeats[ 40 ].Max;
+    gFeatPoints[ 2 ] = Min;
+    while( gFeatPoints[ 1 ] < 99 && Min >= FeatNextLvlPts() ){
+        if( FeatSetPoints( 1, gFeatPoints[ 1 ] + 1 ) ) continue;
+        Val = FeatGetVal( gObjDude, FEAT_HP );
+        msg.Id = 600; // 'You have gone up a level.'
+        if( MessageGetMsg( &gFeatMsgStat, &msg ) == 1 ) IfcMsgOut( msg.Text );
+        CritterUnk37( 3 );
         GSoundPlay( "levelup" );
-        HpBoost = 4 * CharEditUnk53( gObjDude, 28 ) + (FeatGetBase(gObjDude, 2) + TraitSpecBonus( 2 )) / 2 + 2;
-        FeatSetBoost( gObjDude, FEAT_HP, FeatGetBoost( gObjDude, FEAT_HP ) + HpBoost );
+        Base = FeatGetBase( gObjDude, 2 ) + TraitSpecBonus( 2 );
+        FeatSetBoost( gObjDude, FEAT_HP, FeatGetBoost( gObjDude, FEAT_HP ) + (4 * PerkLvl( gObjDude, PERK_LIFEGIVER ) + Base / 2 + 2) );
         CritterHeal( gObjDude, FeatGetVal( gObjDude, FEAT_HP ) - Val );
-        CharEditUnk26();
-        if( LvlUpAllow ) PambLvlUp();
+        IfaceRenderHP( 0 );
+        if( LvlUpAllow ) PartyLvlUp();
     }
-*/
+    return 0;
 }
 
-void FeatLvlDn( int pts )
+int FeatLvlDn( int pts )
 {
-/*
-    v2 = gFeatPoints[1];
-    gFeatPoints[2] = pts;
+    int n, v1, v2;
+    
     v1 = 1;
-    while( pts >= v3 = FeatPtsPerLvl( ++v1 ) && v1 < 99 );
-    v5 = v1 - 1;
-    FeatSetPoints(1u, v5);
-    CharEditUnk25(3);
-    FeatGetBase(gObjDude, 2);
-    if( v6 == gObjDude ) TraitSpecBonus( 2 );
-    CritterHeal( gObjDude, -((v2 - v5) * (4 * CharEditUnk53( gObjDude, 28 ) + v8)) );
-    FeatSetBoost( gObjDude, FEAT_HP, FeatGetBoost( gObjDude, FEAT_HP ) - v10 );
-    CharEditUnk26();
-*/
+    v2 = gFeatPoints[ 1 ];
+    gFeatPoints[ 2 ] = pts;
+    while( pts >= FeatPtsPerLvl(++v1) && v1 < 99 );
+    v1--;
+    FeatSetPoints( 1, v1 );
+    CritterUnk36( 3 );
+    n = -((v2 - v1) * (4 * PerkLvl( gObjDude, PERK_LIFEGIVER ) + (FeatGetBase( gObjDude, 2 ) + TraitSpecBonus( 2 )) / 2 + 2));
+    CritterHeal( gObjDude, n );
+    FeatSetBoost( gObjDude, FEAT_HP, FeatGetBoost( gObjDude, FEAT_HP ) - n );
+    IfaceRenderHP( 0 );
+    return 0;
 }
 

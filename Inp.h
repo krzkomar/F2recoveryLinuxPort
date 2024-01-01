@@ -35,3 +35,4 @@ void 	InpPauseInit( int PauseHKey, int (*PauseCb)(void) );
 void 	InpScrShotBlit( void *Screen, int SrcPitch, int Unk, int SrcX, int SrcY, int Width, int Height, int Xpos, int Ypos );
 void	InpScrShotTake();
 void	InpScrShotInit( int hk, int (*bmp)(int Width, int Height, char *PaletteData, char *BitmapData) );
+int InpSaveBMP( int, int, char *, char * );
