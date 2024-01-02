@@ -435,7 +435,7 @@ void PalSetBrightness( double bright )
 
     gPalBrightness = bright;
     for( i = 0; i < 64; i++ ){
-        c = pow( i, 1.0);//gPalBrightness );
+        c = pow( i, gPalBrightness );
         if( c > 63.0 ) c = 63.0;
         if( c < 0.0 )  c = 0.0;
         gPalBright[ i ] = lround( c );

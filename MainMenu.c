@@ -159,8 +159,8 @@ int MainMenuHandle()
     	switch( key ){
     	    case 18: SelCode = 8; continue;
     	    case KEY_ESC: SelCode = 7; GSoundPlay( "nmselec1" ); continue;
-//    	    case '+': case '=': OptionsBrightInc(); continue;
-//    	    case '-': case '_': OptionsBrightDec(); continue;
+    	    case '+': case '=': OptBrightInc(); continue;
+    	    case '-': case '_': OptBrightDec(); continue;
     	    case 'D': case 'd': SelCode = 3; continue;
     	    case INP_SELECTED:
         	if( !(MseGetButtons() & MSE_LBUTT_HOLD) ) GSoundPlay( "nmselec0" );

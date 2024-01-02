@@ -49,7 +49,7 @@ typedef struct // 0x20
 	int KeyCode;
     };
     int AmmoId;
-    struct _Obj_t *Obj;
+    int Flags;
     int i08;
 //    int i09;
 //    int i10;

@@ -522,7 +522,7 @@ int Item29( Obj_t *obj )
 
     if( !obj ) return 0;    
     if( ItemGetObjType( obj ) != PR_ITEM_WEAPON ) return 0;
-    if( (gObjDude->Container.Obj->TimeEv & 0x10) != 0 && (gObjDude->Container.Obj->TimeEv & 0x20) != 0 ) return 1;
+    if( (gObjDude->Container.Flags & 0x10) != 0 && (gObjDude->Container.Flags & 0x20) != 0 ) return 1;
     tmp = 1;
     if( obj ){
         ProtoGetObj( obj->Pid, &proto );
