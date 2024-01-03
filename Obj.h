@@ -71,7 +71,7 @@ typedef struct // 0x28
 {
     ObjBox_t Box;
     int i04;
-    int i05;
+    int i05; // bit0 = 1 - closed door/ bit0 = 0 opened
     int i06;
     int i07;
     int i08;
@@ -250,7 +250,7 @@ int ObjSave( Obj_t *Obj, xFile_t *fh );
 int ObjSaveUnk07( xFile_t *fh );
 void ObjRenderObjects( VidRect_t *Area, int MapLvl );
 void ObjRenderCursor( VidRect_t *Area );
-void ObjUnk10( ArtFrm_t *result, int a2, int a3, unsigned int a4, int a7, int *a6, int a9 );
+void ObjUnk10( int result, int a2, int a3, unsigned int a4, int a7, int *a6, int a9 );
 int ObjCreate( Obj_t **obj, int ArtId, int Pid );
 int ObjCopy( Obj_t **pObj, int Pid );
 int ObjUnk13( ObjStack_t *stk, Obj_t *item );

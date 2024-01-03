@@ -447,7 +447,7 @@ int TileUnk16( int MapIdx, int Orientation, int TilesCnt )
 
     for( i = 0; i < TilesCnt; i++ ){
         if( TileGridBorder( MapIdx ) ) break;
-        MapIdx += gTileUnk06[ (MapIdx % gTileMapWidth) & 1][ Orientation ];
+        MapIdx += gTileUnk06[ (MapIdx % gTileMapWidth) & 0x01][ Orientation ];
     }
     return MapIdx;
 }

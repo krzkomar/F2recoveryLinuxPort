@@ -2937,6 +2937,7 @@ int InvPopUpDlg( int mode, Obj_t *Obj, int quantity )
 {
     int Chng, Result, sel, Speed, min;
 
+DD
     InvPopUpDlgCreate( mode, Obj );
     Chng = 0;
     if( mode == 4 ){
@@ -2947,11 +2948,11 @@ int InvPopUpDlg( int mode, Obj_t *Obj, int quantity )
         Result = 60;
         min = 10;
     }
-
     InvDrawCnt( Result, mode );
     while( 1 ){
         sel = InpUpdate();
-        if( sel == KEY_ESC ){ InvPopUpClose( mode ); return -1; }
+        if( sel == KEY_ESC ){ InvPopUpClose( mode ); DD return -1; }
+/*
         if( sel == KEY_ENTER ){
     	    if( (Result >= min) && (Result <= quantity) && ( mode != 5 || !( Result % 10 ) ) ) break;
     	    GSoundPlay( "iisxxxx1" );
@@ -3025,7 +3026,9 @@ int InvPopUpDlg( int mode, Obj_t *Obj, int quantity )
                 continue;
             }
         }        
+*/
     }
+DD
     GSoundPlay( "ib1p1xx1" );
     InvPopUpClose( mode );
     return Result;

@@ -121,7 +121,7 @@ void Credits( const char *fname, int WallPaperId, char sel )
                     }
                 }
                 SoundUpdateAll();
-//                FadeStep( gFadePaletteC );
+                FadeStep( gFadePaletteC );
                 SoundUpdateAll();
                 WinClose( win );
             }

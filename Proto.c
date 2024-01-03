@@ -1382,7 +1382,7 @@ int ProtoLoadCritterFile( unsigned int Pid, Proto_t **Pt )
     xFile_t *fh;
     char fname[512];
 
-
+printf("=A0=> %i\n", Pid );
     strcpy( fname, gProtoDataFilePath );
     strcpy( fname + strlen( fname ), gProtoFilePath );
     err = 0;
@@ -1390,8 +1390,7 @@ int ProtoLoadCritterFile( unsigned int Pid, Proto_t **Pt )
     len = strlen( fname ) + 1;
     fname[ len - 1 ] = '/';
     if( ProtoGetFName( Pid, &fname[ len ] ) == -1 ) return -1;
-DD
-printf("==>'%s'\n", fname);
+printf("==>'%s' %i 0x%x\n", fname, Pid, Pid );
     if( !(fh = dbOpen(fname, "rb")) ){ eprintf("\nError: Can't fopen proto! '%s'\n", fname); *Pt = 0; return -1; }
     if( ProtoAlloc( OBJTYPE( Pid ), (void **)Pt ) == -1 ){ dbClose(fh); return -1; }
     err = 0;

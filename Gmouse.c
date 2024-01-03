@@ -394,7 +394,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             case 1: // pointed object
                 if( !( obj = GmouseGetObject( -1, 1, gCurrentMapLvl ) ) ) return;
                 switch( OBJTYPE( obj->ImgId ) ){
-                    case TYPE_ITEM: ActionUseObj( gObjDude, obj ); break;
+                    case TYPE_ITEM: ActionUseItem( gObjDude, obj ); break;
                     case TYPE_CRIT:
                         if( obj == gObjDude ){
                             if( !((gObjDude->ImgId & 0xFF0000) >> 16) && !ObjTurnCW( obj, &Area2 ) ) TileUpdateArea( &Area2, obj->Elevation );
@@ -432,7 +432,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                 obj = GmouseGetObject( -1, 1, gCurrentMapLvl );
                 if( obj && IfaceGetHandObject( &p ) != -1 ){
                     if( IN_COMBAT ){
-                        if( (ap = ItemGetSlotApCost(gObjDude, ( IfaceGetSelectedHand() ) ? 2 : 0, 0)) <= gObjDude->Critter.State.CurrentAP && ActionUnk23( gObjDude, obj, p ) != -1 ){
+                        if( (ap = ItemGetSlotApCost(gObjDude, ( IfaceGetSelectedHand() ) ? 2 : 0, 0)) <= gObjDude->Critter.State.CurrentAP && ActionUseSceneryObject( gObjDude, obj, p ) != -1 ){
                             if( ap > gObjDude->Critter.State.CurrentAP )
                                 gObjDude->Critter.State.CurrentAP = 0;
                             else
@@ -440,7 +440,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                             IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
                         }
                     } else {
-                        ActionUnk23( gObjDude, obj, p );
+                        ActionUseSceneryObject( gObjDude, obj, p );
                     }
                 }
                 GmouseLoadCursor( 0 );
@@ -546,7 +546,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             switch( OBJTYPE( obj->ImgId ) ){
         	case TYPE_CRIT: ActionUseOnCritter( gObjDude, obj ); break;
         	case TYPE_SCEN: ActionUseOnScenery( gObjDude, obj ); break;
-        	default: ActionUseObj( gObjDude, obj ); break;
+        	default: ActionUseItem( gObjDude, obj ); break;
             }
             break;
         case INV_ACT_SKILL:

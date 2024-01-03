@@ -81,3 +81,4 @@ void VidClearScreen();
 void VidUpdateOpt();
 void VidUpdateClr();
 void VidCopy( void *Buffer, Pal8_t *, int pitch, int x, int y, int w, int h, int bpp );
+void VidUpdate( int x, int y, int w, int h );

@@ -294,7 +294,7 @@ int UseUseOn( Obj_t *crit, Obj_t *obj )
     MsgLine_t msg;
     VidRect_t Area;
     Scpt_t *scr;
-
+DD
     i18 = 0;
     if( obj->ScrId != -1 ){
         ScptUnk138( obj->ScrId, crit, obj );
@@ -760,7 +760,7 @@ int UseUnk18( Obj_t *obj, Obj_t *a2, Obj_t *a3 )
 {
     Obj_t *v7;
     int v5, n, t, v8;
-
+DD
     if( (n = UseUseHealSkill( obj, a2, a3 )) == 1 ){
         if( obj ){
             v5 = a2->Flags & 0x3000000;
@@ -805,7 +805,7 @@ int UseApUpdate( Obj_t *obj, Obj_t *obj1, Obj_t *obj2 )
     return -1;
 }
 
-int UseUnk21( Obj_t *crit, Obj_t *obj, Obj_t *objn )
+int UseObject( Obj_t *crit, Obj_t *obj, Obj_t *objn )
 {
     int v3, type;
     char stmp[ 260 ];
@@ -813,25 +813,29 @@ int UseUnk21( Obj_t *crit, Obj_t *obj, Obj_t *objn )
     Scpt_t *scr;
     Proto_t *proto;
 
-    v3 = 0;
     type = OBJTYPE( obj->ImgId );
     if( crit == gObjDude ){
-        if( type != 2 ) return -1;
+        if( type != TYPE_SCEN ) return -1;
     }
-    if( type != 2 ) return 0;    
+    if( type != TYPE_SCEN ) return 0;    
+
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return -1;
-    if( OBJTYPE( obj->Pid ) == TYPE_SCEN && !proto->Critt.Type ) return UseDoor( crit, obj, 0 );
+    if( OBJTYPE( obj->Pid ) == TYPE_SCEN ){
+	if( proto->Critt.Type == PR_SCN_DOOR ) return UseDoor( crit, obj, 0 );
+    }
+DD
+    v3 = 0;
     if( obj->ScrId != -1 ){
         ScptUnk138( obj->ScrId, crit, obj );
         ScptExecScriptProc( obj->ScrId, 6 );
         if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
         v3 = scr->i18;
     }
-    if( !v3 && OBJTYPE( obj->Pid ) == TYPE_SCEN ){
+    if( !v3 && OBJTYPE( obj->Pid ) == TYPE_SCEN ){ // no script
         switch( proto->Critt.Type ){
-    	    case 4: if( !UseUnk22( crit, obj ) ) v3 = 1; break;
-    	    case 3: if( !UseUnk23( crit, obj ) ) v3 = 1; break;
-    	    case 1: if( !UseUnk24( crit, obj ) ) v3 = 1; break;
+    	    case PR_SCN_LADDER_TOP: if( !UseUnk22( crit, obj ) ) v3 = 1; break;
+    	    case PR_SCN_LADDER_BOT: if( !UseUnk23( crit, obj ) ) v3 = 1; break;
+    	    case PR_SCN_STAIRS: if( !UseUnk24( crit, obj ) ) v3 = 1; break;
         }
     }
     // print info
@@ -925,61 +929,55 @@ int UseUnk25()
     return -1;
 }
 
-int UseUnk26( Sound_t *a1 )
+int UseDoorOpen( Obj_t *door )
 {
-//    LOBYTE(a1->DxBufDsc.guid3DAlgorithm.Data1) |= 1u;
+    door->Scenery.i05 |= 0x01;
     return 0;
 }
 
-int UseUnk27( Sound_t *a1 )
+int UseDoorClose( Obj_t *door )
 {
-//    LOBYTE(a1->DxBufDsc.guid3DAlgorithm.Data1) &= ~1u;
+    door->Scenery.i05 &= ~0x01;
     return 0;
 }
 
-int UseUnk28( Obj_t *obj )
+int UseDoorLock( Obj_t *door )
 {
-    CachePool_t *v2; // edx
-    ArtFrmHdr_t *Art2; // eax MAPDST
-    int i; // edi MAPDST
-    VidRect_t Area1; // [esp+0h] [ebp-48h] BYREF
-    VidRect_t Area2; // [esp+10h] [ebp-38h] BYREF
-    int dy_; // [esp+20h] [ebp-28h] BYREF
-    int dx_; // [esp+24h] [ebp-24h] BYREF
-    CachePool_t *ImgObj; // [esp+28h] [ebp-20h] BYREF
-    ArtFrmHdr_t *Art1; // [esp+2Ch] [ebp-1Ch]
-    int fr; // [esp+30h] [ebp-18h]
+    ArtFrmHdr_t *Art;
+    CachePool_t *ImgObj;
+    VidRect_t Area1, Area2;
+    int i, dy, dx, fr;
 
-    if( (obj->Critter.State.Reaction & 1) == 0 ){
-        obj->Flags &= 0x5FFFFFEF;
+    if( !(door->Scenery.i05 & 0x01) ){ // close
+        door->Flags &= ~0xA0000010;
         ObjLightGrid();
         TileUpdate();
-        if( !obj->FrameNo ) return 0;
-        if( !(Art1 = ArtLoadImg( obj->ImgId, &ImgObj ) ) ) return -1;
-        ObjGetRadiusArea( obj, &Area1 );        
-    	for(i = obj->FrameNo - 1 ; i >= 1; i-- ){
-            ArtGetFrameShift( Art1, i, obj->Orientation, &dx_, &dy_ );
-            ObjMove( obj, -dx_, -dy_, &Area2 );
+        if( !door->FrameNo ) return 0;
+        if( !(Art = ArtLoadImg( door->ImgId, &ImgObj ) ) ) return -1;
+        ObjGetRadiusArea( door, &Area1 );        
+    	for(i = door->FrameNo - 1 ; i >= 1; i-- ){
+            ArtGetFrameShift( Art, i, door->Orientation, &dx, &dy );
+            ObjMove( door, -dx, -dy, &Area2 );
         }        
-        ObjSetFrame( obj, 0, &Area2 );
+        ObjSetFrame( door, 0, &Area2 );
         RegionExpand( &Area1, &Area2, &Area1 );
         TileUpdateArea( &Area1, gCurrentMapLvl );
         ArtClose( ImgObj );
         return 0;
     }
-    obj->Flags |= 0xA0000010;
+    // open
+    door->Flags |= 0xA0000010;
     ObjLightGrid();
     TileUpdate();
-    
-    if( !( Art2 = ArtLoadImg(obj->ImgId, &v2 ) ) ) return -1;
-    fr = ArtGetFpd( Art2 ) - 1;
-    if( fr == obj->FrameNo ){ ArtClose( ImgObj ); return 0; }
-    ObjGetRadiusArea(obj, &Area1);
-    for( i = obj->FrameNo + 1; i <= fr; i++ ){
-        ArtGetFrameShift( Art2, i, obj->Orientation, &dx_, &dy_ );
-        ObjMove( obj, dx_, dy_, &Area2 );
+    if( !( Art = ArtLoadImg( door->ImgId, &ImgObj ) ) ) return -1;
+    fr = ArtGetFpd( Art ) - 1;
+    if( fr == door->FrameNo ){ ArtClose( ImgObj ); return 0; }
+    ObjGetRadiusArea( door, &Area1 );
+    for( i = door->FrameNo + 1; i <= fr; i++ ){
+        ArtGetFrameShift( Art, i, door->Orientation, &dx, &dy );
+        ObjMove( door, dx, dy, &Area1 );
     }
-    ObjSetFrame( obj, fr, &Area2 );
+    ObjSetFrame( door, fr, &Area2 );
     RegionExpand( &Area1, &Area2, &Area1 );
     TileUpdateArea( &Area1, gCurrentMapLvl );
     ArtClose( ImgObj );
@@ -988,56 +986,57 @@ int UseUnk28( Obj_t *obj )
 
 int UseDoor( Obj_t *Crit, Obj_t *obj, int a3 )
 {
-    int v6; // ebx
-    int v10; // eax
-    int i; // edi
-    MsgLine_t v16; // [esp+0h] [ebp-2Ch] BYREF
-    Scpt_t *a2; // [esp+10h] [ebp-1Ch] BYREF
-    int v18; // [esp+14h] [ebp-18h]
+    int v6;
+    int v10;
+    int i;
+    MsgLine_t msg;
+    Scpt_t *a2;
+    int v18;
 
     v6 = 0;
-    if( UseObjLocked( obj ) ){
-        GSoundPlay( GSoundProtoFname2( obj, 2 ) );
-    }
+    if( UseObjLocked( obj ) ) GSoundPlay( GSoundProtoFname2( obj, 2 ) );
     if( obj->ScrId != -1 ){
         ScptUnk138( obj->ScrId, Crit, obj );
         ScptExecScriptProc( obj->ScrId, 6 );
         if( ScptPtr( obj->ScrId, &a2 ) == -1 ) return -1;
         v6 = a2->i18;
     }
-    if( !v6 ){
-        if( obj->FrameNo ){
-            if( ObjReach( 0, obj->GridId, obj->Elevation ) ){
-                IfcMsgOut( MessageGetMessage( &gProtoMessages, &v16, 597 ) ); // 'The doorway seems to be blocked.'
-                return -1;
-            }
-            v10 = (a3 == 0) - 1;
-            v18 = -1;
-        } else {
-            if( obj->Scenery.i05 & 0x01 ) return -1;
-            v10 = (a3 != 0) + 1;
-            v18 = 1;
-        }
+    if( v6 ) return 0;
 
-        AnimStart( 2 );
-        for( i = 1; i != v10; i += v18 ){
-            if( i ){
-                if( !a3 ) AnimUnk56( obj, (AnimU_t)obj, (void *)UseUnk27, -1 );
-                AnimUnk66( obj, GSoundProtoFname2( obj, 1 ), -1 );
-                AnimUnk49( obj, 0, 0 );
-            } else {
-                if( !a3 ) AnimUnk56(obj, (AnimU_t)obj, (void *)UseUnk26, -1);
-                AnimUnk66( obj, GSoundProtoFname2( obj, 0 ), -1 );
-                AnimUnk48( obj, 0, 0);
-            }
+    if( obj->FrameNo ){
+        if( ObjReach( 0, obj->GridId, obj->Elevation ) ){
+            IfcMsgOut( MessageGetMessage( &gProtoMessages, &msg, 597 ) ); // 'The doorway seems to be blocked.'
+            return -1;
         }
-        AnimSetFinish( obj, obj, (void *)UseUnk28, -1 );
-        AnimBegin();
+	// close door
+        v10 = (a3 == 0) - 1;
+        v18 = -1;
+        i = 1;
+    } else {
+	// open door
+        if( obj->Scenery.i05 & 0x01 ) return -1;
+        v10 = (a3 != 0) + 1;
+        v18 = 1;
+        i = 0;
     }
+    AnimStart( 2 );
+    for(; i != v10; i += v18 ){
+        if( i ){ // close door
+            if( !a3 ) AnimSetCallback11( obj, (AnimU_t)obj, (void *)UseDoorClose, -1 );
+            AnimUnk66( obj, GSoundProtoFname2( obj, 1 ), -1 );
+            AnimUnk49( obj, 0, 0 );
+        } else { // open door
+            if( !a3 ) AnimSetCallback11(obj, (AnimU_t)obj, (void *)UseDoorOpen, -1);
+            AnimUnk66( obj, GSoundProtoFname2( obj, 0 ), -1 );
+            AnimUnk48( obj, 0, 0);
+        }
+    }
+    AnimSetFinish( obj, obj, (void *)UseDoorLock, -1 );
+    AnimBegin();
     return 0;
 }
 
-int UseSearch( Obj_t *crit, Obj_t *obj )
+int UseContainer( Obj_t *dude, Obj_t *obj )
 {
     int i18, ScrId;
     char stmp[260];
@@ -1045,42 +1044,43 @@ int UseSearch( Obj_t *crit, Obj_t *obj )
     Proto_t *proto;
     Scpt_t *res;
 
-    i18 = 0;
-    if( OBJTYPE( obj->ImgId ) ) return -1;
+    if( OBJTYPE( obj->ImgId ) != TYPE_ITEM ) return -1;
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return -1;
     if( proto->Critt.Type != 1 ) return -1;
-    if( UseObjLocked( crit ) ){
-	GSoundPlay( GSoundProtoFname2( crit, 2 ) );
-	if( crit != gObjDude ) return -1;
+    if( UseObjLocked( obj ) ){
+	GSoundPlay( GSoundProtoFname2( obj, 2 ) );
+	if( dude != gObjDude ) return -1;
     	msg.Id = 487; // 'It is locked.'
     	if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ) return -1;
     	IfcMsgOut( msg.Text );
 	return -1;
     }
-        ScrId = crit->ScrId;
-        if( (ScrId != -1) - 1 != -1 ){
-            ScptUnk138( crit->ScrId, crit, crit );
-            ScptExecScriptProc( ScrId, 6 );
-            if( ScptPtr( ScrId, &res ) == -1 ) return -1;
-            i18 = res->i18;
-        }
-        if( i18 ) return -1;
-        AnimStart(2);
-        if( crit->FrameNo ){
-            AnimUnk66( crit, GSoundProtoFname2( crit, 1 ), 0 );
-            AnimUnk49( crit, 0, 0 );
-        } else {
-            AnimUnk66( crit, GSoundProtoFname2( crit, 0 ), 0 );
-            AnimUnk48( crit, 0, 0 );
-        }
-        AnimBegin();
-        if( crit == gObjDude ){
-            msg.Id = (crit->FrameNo != 0) + 485; // 'You search the %s.' / 'You close the %s.'
-            if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ) return -1;
-            sprintf( stmp, msg.Text, ObjGetName( crit ) );
-            IfcMsgOut( stmp );
-        }
-        return 0;
+
+    i18 = 0;
+    ScrId = obj->ScrId;
+    if( (ScrId != -1) - 1 != -1 ){
+        ScptUnk138( obj->ScrId, dude, obj );
+        ScptExecScriptProc( ScrId, 6 );
+        if( ScptPtr( ScrId, &res ) == -1 ) return -1;
+        i18 = res->i18;
+    }
+    if( i18 ) return -1;
+    AnimStart( 2 );
+    if( obj->FrameNo ){
+        AnimUnk66( obj, GSoundProtoFname2( obj, 1 ), 0 );
+        AnimUnk49( obj, 0, 0 );
+    } else {
+        AnimUnk66( obj, GSoundProtoFname2( obj, 0 ), 0 );
+        AnimUnk48( obj, 0, 0 );
+    }
+    AnimBegin();
+    if( dude == gObjDude ){
+        msg.Id = (obj->FrameNo != 0) + 485; // 'You search the %s.' / 'You close the %s.'
+        if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ) return -1;
+        sprintf( stmp, msg.Text, ObjGetName( obj ) );
+        IfcMsgOut( stmp );
+    }
+    return 0;
 }
 
 int UseUseSkill( Obj_t *crit, Obj_t *obj, unsigned int SkillIdx )
@@ -1098,7 +1098,10 @@ int UseUseSkill( Obj_t *crit, Obj_t *obj, unsigned int SkillIdx )
         }
         return -1;
     }
+DD
+printf("=>'%s' %i\n",ProtoGetObjName(obj->Pid), obj->Pid );
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return -1;
+DD
     if( obj->ScrId != -1 ){
             ScptUnk138( obj->ScrId, crit, obj );
             ScptUnk136( obj->ScrId, SkillIdx );
@@ -1191,15 +1194,15 @@ int UseStartAnimation( Obj_t *obj )
     UseObjUnjam( obj );
     AnimStart( 2 );
     if( obj->FrameNo ){
-        AnimUnk56( obj, (AnimU_t)obj, (void *)UseUnk27, -1 );
+        AnimSetCallback11( obj, (AnimU_t)obj, (void *)UseDoorClose, -1 );
         AnimUnk66( obj, GSoundProtoFname2( obj, 1 ), -1 );
         AnimUnk49( obj, 0, 0);
     } else {
-        AnimUnk56( obj, (AnimU_t)obj, (void *)UseUnk26, -1 );
+        AnimSetCallback11( obj, (AnimU_t)obj, (void *)UseDoorOpen, -1 );
         AnimUnk66( obj, GSoundProtoFname2( obj, 0 ), -1 );
         AnimUnk48( obj, 0, 0 );
     }
-    AnimSetFinish( obj, obj, (void *)UseUnk28, -1 );
+    AnimSetFinish( obj, obj, (void *)UseDoorLock, -1 );
     AnimBegin();
     return 0;
 }

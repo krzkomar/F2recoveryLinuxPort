@@ -18,9 +18,7 @@ Obj_t *gObjRadius; // light player object
 int gObjIsoPitch;
 int gObjUnk13;
 Obj_t *gObjDude;
-char gObjUnk79;
-char gObjUnk80;
-int gObjUnk81[4999];
+char gObjUnk79[ 5001 ];
 char gObjUnk01[5003];
 
 int gObjUnk20 = 0;
@@ -328,94 +326,51 @@ int ObjSave( Obj_t *Obj, xFile_t *fh )
 
 int ObjSaveUnk07( xFile_t *fh )
 {
-DD
-/*
-    ObjList_t *v6; // ebp
-    Obj_t *object; // eax
-    int WhoHitMe; // eax
-    int Cnt; // ebx
-    Obj_u *p_Feat; // esi
-    int v11; // edi
-    int v12; // ebx
-    int result; // eax
-    int v15; // esi
-    int v16; // edx
-    int v20; // esi
-    int v21; // edx
-    int v25; // [esp+8h] [ebp-30h]
-    int v26; // [esp+Ch] [ebp-2Ch]
-    int v27; // [esp+10h] [ebp-28h]
-    int v28; // [esp+14h] [ebp-24h]
-    int v29; // [esp+18h] [ebp-20h]
-    ObjCritterCond_t *p_State; // [esp+1Ch] [ebp-1Ch]
+    ObjList_t *v6;
+    Obj_t *WhoHitMe;
+    int v11,v15,v20,v21,v25,v26,v27,v28;
 
-    if ( !fh ) return -1;
+    if( !fh ) return -1;
     ObjUnk79();
-    dbtell(fh);
+    v21 = dbtell( fh );
     v25 = 0;
-    if( dbputBei(fh, 0) ) return -1;
-    v27 = 0;
-LABEL_4:
-    dbtell(fh);
-    v28 = 0;
-    if( dbputBei(fh, 0) ) return -1;
-    v26 = 0;
-    while( 1 ){        
-        if( (v6 = gObjGridObjects[v26]) ) break;
-LABEL_25:
-        if( ++v26 >= 40000 ){
-            v15 = dbtell(fh);
-            dbseek(fh, v16, 0);
-            dbputBei(fh, v28);
-            dbseek(fh, v15, 0);
-            v25 += v28;
-            if( ++v27 >= 3 ){
-                v20 = dbtell( fh );
-                dbseek(fh, v21, 0);
-                dbputBei(fh, v25);
-                dbseek(fh, v20, 0);
-                return 0;
-            }
-            goto LABEL_4;
-        }
+    if( dbputBei(fh, 0) ) return -1;    
+    for( v27 = 0; v27 < 3; v25 += v28, v27++ ){
+	dbtell( fh );
+	v28 = 0;
+	if( dbputBei( fh, 0 ) ) return -1;    
+	for( v26 = 0; v26 < 40000; v26++ ){
+    	    if( (v6 = gObjGridObjects[v26]) ){
+		for( ; v6; v6 = v6->Next ){
+    		    if( v27 != v6->object->Elevation || (v6->object->Flags & 0x04) ) continue;
+    		    if( OBJTYPE( v6->object->Pid ) == 1 ){
+        		WhoHitMe = v6->object->Critter.State.WhoHitMeObj;
+        		if( v6->object->Critter.State.WhoHitMe ){
+            		    if( v6->object->Critter.State.WhoHitMe != -1 ) v6->object->Critter.State.WhoHitMe = v6->object->Critter.State.WhoHitMeObj->CritterIdx;
+        		} else {
+            		    v6->object->Critter.State.WhoHitMe = -1;
+        		}
+    		    }
+    		    if( ObjSave( v6->object, fh ) ) return -1;
+    		    if( OBJTYPE( v6->object->Pid ) == 1 ) v6->object->Critter.State.WhoHitMeObj = WhoHitMe;
+		    for( v11 = 0; v11 < v6->object->Critter.Box.Cnt; v11++ ){
+			if( dbputBei( fh, v6->object->Critter.Box.Box[ v11 ].Quantity ) ) return -1;
+    			if( ObjSaveDude( fh, v6->object->Critter.Box.Box[ v11 ].obj ) == -1 ) return -1;
+		    }
+    	    	    v28++;
+		}    
+    	    }        
+	}
+	v15 = dbtell( fh );
+	dbseek( fh, v21, 0 );
+	dbputBei( fh, v28 );
+	dbseek( fh, v15, 0 );	
     }
-    while( 1 ){
-        object = v6->object;
-        if( v27 != v6->object->Elevation || (object->Flags & 4) != 0 ) goto LABEL_24;
-        if( HIBYTE(object->Pid) == 1 ){
-            p_State = &object->Feat.Critter.State;
-            WhoHitMe = object->Feat.Critter.State.WhoHitMe;
-            v29 = WhoHitMe;
-            if( WhoHitMe ){
-                if( WhoHitMe != -1 ) p_State->WhoHitMe = *(WhoHitMe + 104);
-            } else {
-                p_State->WhoHitMe = -1;
-            }
-        }
-        if( ObjSave(v6->object, fh) ) return -1;
-        if( HIBYTE(v6->object->Pid) == 1 ) p_State->WhoHitMe = v29;
-        Cnt = v6->object->Feat.Critter.Box.Cnt;
-        p_Feat = &v6->object->Feat;
-        if( Cnt ){
-            v11 = 0;
-            if( Cnt > 0 ) break;
-        }
-LABEL_23:
-        ++v28;
-LABEL_24:
-        v6 = v6->Next;
-        if( !v6 ) goto LABEL_25;
-    }
-    v12 = 0;
-    while( !dbputBei(fh, p_Feat->Critter.Box.Box[v12].Quantity) ){
-        result = ObjSaveDude(fh, p_Feat->Critter.Box.Box[v12].obj);
-        if( result == -1 ) return result;
-        ++v11;
-        ++v12;
-        if( v11 >= p_Feat->Critter.Box.Cnt ) goto LABEL_23;
-    }
-*/
-    return -1;
+    v20 = dbtell( fh );
+    dbseek( fh, v21, 0 );
+    dbputBei( fh, v25 );
+    dbseek( fh, v20, 0 );
+    return 0;    
 }
 
 void ObjRenderObjects( VidRect_t *Area, int MapLvl )
@@ -492,52 +447,27 @@ void ObjRenderCursor( VidRect_t *Area )
     }    
 }
 
-void ObjUnk10( ArtFrm_t *result, int a2, int a3, unsigned int a4, int a7, int *a6, int a9 )
+void ObjUnk10( int result, int a2, int a3, unsigned int a4, int a7, int *a6, int a9 )
 {
-DD
 /*
-    int v7; // esi
-    int v8; // ebp
-    int v9; // edi
-    int v10; // eax
-    int v11; // ebp
-    int v12; // ebp
-    int v13; // edx
-    int v14; // eax
-    int v15; // ebp
-    int v16; // edi
-    char *ObjData; // eax
-    int v18; // ecx
-    char *v19; // eax
-    int v20; // [esp+0h] [ebp-38h] BYREF
-    char Alpha[4]; // [esp+4h] [ebp-34h] BYREF
-    int Spitch; // [esp+8h] [ebp-30h] BYREF
-    char *Data; // [esp+Ch] [ebp-2Ch]
-    int FrameNo; // [esp+10h] [ebp-28h]
-    unsigned int Orientation; // [esp+14h] [ebp-24h]
-    int v26; // [esp+18h] [ebp-20h]
-    int Id; // [esp+1Ch] [ebp-1Ch]
-    int v28; // [esp+20h] [ebp-18h]
-    int v29; // [esp+24h] [ebp-14h]
-    int w; // [esp+28h] [ebp-10h]
+// -- Not Used function --
+    int v7,v8,v9,v10,v11,v12,v13,v15,v26,v28,v29,w,v18,Spitch,FrameNo;
+    char *ObjData,Alpha[4],*Data;
+    CachePool_t *v20;
+    unsigned int Orientation;
 
-    Id = result;
     FrameNo = a2;
     Orientation = a3;
-    v7 = a4;
-    if( a4 >= gObjUnk13 ) return result;
-    if( a4 > a6[2] ) return result;
-    result = a7;
-    if( a7 >= gObjUnk14 ) return result;
-    if( a7 > a6[3] ) return result;
-    result = ArtIsHidden((Id & 0xF000000) >> 24);
-    if( result ) return result;
-    result = ArtLoadImg(Id, &v20);
-    Data = result;
-    if( !result ) return result;
-    v8 = *a6;
+    if( a4 >= gObjUnk13 ) return a4;
+    if( a4 > a6[2] ) return a4;
+    if( a7 >= gObjUnk14 ) return a7;
+    if( a7 > a6[3] ) return a7;
+    result = ArtIsHidden( OBJTYPE( result ) );
+    if( result ) return result;    
+    if( !(Data = ArtLoadImg(result, &v20)) ) return Data;
+    v8 = a6[0];
     v9 = a6[1];
-    v29 = a6[2] - *a6 + 1;
+    v29 = a6[2] - a6[0] + 1;
     v28 = a6[3] - v9 + 1;
     if( v8 < 0 ) v8 = 0;
     if( v9 < 0 ) v9 = 0;
@@ -550,8 +480,7 @@ DD
     } else {
         v10 = Spitch - (v8 - v7);
         v7 = v8;
-        w = v10;
-        if( v10 > v29 ) w = v29;
+        w = ( v10 > v29 ) ? v29 : v10;
     }
     v12 = a7;
     if( v9 < a7 ){
@@ -559,26 +488,21 @@ DD
         v26 = 0;
         if( *Alpha + a7 > v9 + v28 ){
             v15 = v9 + v28 - a7;
-            goto LABEL_27;
+        } else {
+    	    v15 = v13;
         }
     } else {
-        v13 = v28;
-        v14 = v9 - a7;
         a7 = v9;
         v15 = *Alpha - (v9 - v12);
-        v26 = v14;
-        if( v15 <= v28 ) goto LABEL_27;
-    }
-    v15 = v13;
-LABEL_27:
+        v26 = v9 - a7;
+        if( v15 > v28 ) v15 = v28;
+    }    
     if( w > 0 && v15 > 0 ){
-        v16 = v26;
         ObjData = ArtGetObjData(Data, FrameNo, Orientation);
-        v19 = &ObjData[v16 * Spitch + v18];
-        if( (Id & 0xF000000) >> 24 == 6 )
-            ScrCopyAlpha(v19, w, v15, Spitch, &gObjIsoSurface[a7 * gObjIsoPitch + v7], gObjIsoPitch);
+        if( OBJTYPE( result ) == 6 )
+            ScrCopyAlpha( &ObjData[ v26 * Spitch + v18 ], w, v15, Spitch, &gObjIsoSurface[ a7 * gObjIsoPitch + v7 ], gObjIsoPitch );
         else
-            ObjRenderNormal(v19, w, v15, Spitch, gObjIsoSurface, v7, a7, gObjIsoPitch, a9);
+            ObjRenderNormal( &ObjData[ v26 * Spitch + v18 ], w, v15, Spitch, gObjIsoSurface, v7, a7, gObjIsoPitch, a9 );
     }
     return ArtClose(v20);
 */
@@ -620,13 +544,13 @@ int ObjCreate( Obj_t **obj, int ArtId, int Pid )
     if( proto->Flags & 0x0010 ) p->object->Flags |= 0x10;
     if( proto->Flags & 0x0800 ) p->object->Flags |= 0x800;
     if( proto->Flags & 0xff00 ){
-        if( proto->Flags & 0x1000000 ) {
+        if( proto->Flags & 0x1000000 ){
             p->object->Flags |= 0x01000000;
-        } else if( proto->Flags & 0x2000000 ) {
+        } else if( proto->Flags & 0x2000000 ){
             p->object->Flags |= 0x02000000;
-        } else if( proto->Flags & 0x4000000 ) {
+        } else if( proto->Flags & 0x4000000 ){
             p->object->Flags |= 0x04000000;
-        } else if( proto->Flags & 0x8000000 ) {
+        } else if( proto->Flags & 0x8000000 ){
             p->object->Flags |= 0x08000000;
         } else if( proto->Flags & 0x40000000 ){
             p->object->Flags |= 0x40000000;
@@ -653,53 +577,53 @@ int ObjCopy( Obj_t **pObj, int Pid )
 
 int ObjUnk13( ObjStack_t *stk, Obj_t *item )
 {
-DD
 /*
+    ObjList_t *list;
+    Obj_t *it;
+    ObjBox_t *box;
     int i;
-    ObjStack_t *Ptr;
-    ObjStack_t *NewStack;
+    int j;
+    ObjList_t *Ptr;
 
-    if( !item ) return -1;    
-    if( (Ptr + 4) == 0 ) return -1;    
-
-    if( !(NewStack = Malloc( sizeof( ObjStack_t ) )) ) return -1;    
-    NewStack->Quantity = 0;
-    NewStack->obj = NULL;
-    
-    if( ObjNewObj( &NewStack->obj ) == -1 ){
-        if( &Ptr != -4 && NewStack ){ Free( NewStack ); NewStack = NULL; }
+    it = item;
+    if( !item ) return -1;
+    list = Malloc( sizeof( ObjList_t ) );
+    if( !list ) return -1;
+    list->Next = NULL;
+    list->object = NULL;
+    if( ObjNewObj( &list->object ) == -1 ){
+        if( list ){ Free( list ); list = NULL; }
+	return -1;
+    }
+    ProtoDudeEffectReset( list->object );
+    memcpy( list->object, it, sizeof( Obj_t ) );
+    if( stk ) stk->object = list->object;
+    ObjAddObject( list );
+    stk->object->TimeEv = ScptNewObjId();
+    if( stk->object->ScrId != -1 ){
+        stk->object->ScrId = -1;
+        UseCreateScript( stk->object, &stk->object->ScrId );
+    }
+    if( ObjPutObjOnMap( stk->object, it->Orientation, 0 ) == -1 ){
+        if( list ){ Free( list ); list = NULL; }
         return -1;
     }
-    ProtoDudeEffectReset( NewStack->obj );
-    memcpy( NewStack->obj, item, sizeof( Obj_t ) );
-    if( stk ) stk->obj = NewStack->obj;
-    ObjAddObject( NewStack );
-    stk->obj->TimeEv = ScptNewObjId();
-    if( stk->obj->ScrId != -1 ){
-        stk->obj->ScrId = -1;
-        UseCreateScript( stk->obj, &stk->obj->ScrId );
-    }
-    if( ObjPutObjOnMap( stk->obj, item->Orientation, 0 ) == -1 ){
-        if( &Ptr != -4 ){
-    	    if( NewStack ){ Free( NewStack ); NewStack = NULL; }
+    stk->object->Flags &= ~0x2000;
+    box = &stk->object->Container.Box;
+    box->Capacity = 0;
+    box->Box = 0;
+    item = it;
+    box->Cnt = 0;    
+    for( i = j = 0; i < item->Critter.Box.Cnt; j++, i++ ){
+	if( !ObjUnk13( Ptr, item->Critter.Box.Box[ j ].obj ) ) return -1;
+        if( item->Critter.Box.Box[ j ].obj == -1 ){ Free( list ); list = NULL; return -1; }
+        if( ItemAdd( stk->object, Ptr, item->Container.Box.Box[ i ].Quantity ) == -1 ){
+            if( list ){ Free( list ); list = NULL; }
+    	    return -1;
         }
-        return -1;
-    }
-    stk->obj->Flags &= ~0x2000;
-    stk->obj->Container.Box.Capacity = stk->obj->Container.Box.Cnt = 0;
-    stk->obj->Container.Box.Box = NULL;
-    for( i = 0; i < item->Critter.Box.Cnt; i++ ){
-        if( ItemAdd( stk->obj, Ptr, item->Critter.Box.Box[ i ].Quantity ) == -1 ){
-            if( &Ptr != (void *)-4 && NewStack ){ Free( NewStack ); NewStack = NULL; }
-            return -1;
-        }
-        if( ObjUnk13( Ptr, item->Critter.Box.Box[ i ].obj ) == -1 ){
-	    if( &Ptr != (void *)-4 && NewStack ){ Free( NewStack ); NewStack = NULL; }
-	    return -1;
-        }
-    }
+    }    
 */
-return -1;
+DD
     return 0;
 }
 
@@ -1212,8 +1136,7 @@ int ObjUnk35( Obj_t *obj, VidRect_t *area )
 
 int ObjSetPlayer( Obj_t *obj, VidRect_t *RadArea ) // zla nazwa ?
 {
-    int GridId, v9;
-    VidRect_t Rect, v10;
+    VidRect_t Rect, Area;
     ObjList_t *ObjList, *list;
 
     if( !obj ) return -1;
@@ -1223,26 +1146,24 @@ int ObjSetPlayer( Obj_t *obj, VidRect_t *RadArea ) // zla nazwa ?
         if( list ){
             list->Next = ObjList->Next;
         } else {
-            GridId = ObjList->object->GridId;
-            if( GridId == -1 )
+            if( ObjList->object->GridId == -1 )
                 gObjOffGridObjs = gObjOffGridObjs->Next;
             else
-                gObjGridObjects[ GridId ] = gObjGridObjects[ GridId ]->Next;
+                gObjGridObjects[ ObjList->object->GridId ] = gObjGridObjects[ ObjList->object->GridId ]->Next;
         }
         obj->Flags ^= 0x08;
         ObjAddObject( ObjList );
         ObjGetRadiusArea( obj, &Rect );
-        RegionExpand( RadArea, &v10, RadArea );
+        RegionExpand( RadArea, &Area, RadArea );
         return 0;
     }
     if( list ){
         list->Next = ObjList->Next;
     } else {
-        v9 = ObjList->object->GridId;
-        if( v9 == -1 )
+        if( ObjList->object->GridId == -1 )
             gObjOffGridObjs = gObjOffGridObjs->Next;
         else
-            gObjGridObjects[ v9 ] = gObjGridObjects[ v9 ]->Next;
+            gObjGridObjects[ ObjList->object->GridId ] = gObjGridObjects[ ObjList->object->GridId ]->Next;
     }
     obj->Flags ^= 0x08;
     ObjAddObject( ObjList );
@@ -1251,38 +1172,30 @@ int ObjSetPlayer( Obj_t *obj, VidRect_t *RadArea ) // zla nazwa ?
 
 void ObjUnk37( int Update )
 {
-DD
-/*
-    int v2,i,Elevation,v6,k,v9,v10;
-    ObjList_t *j, *m;
+    int i, t;
+    ObjList_t *p;
 
-    v2 = gCurrentMapLvl;
     gObjUnk41 = 1 - gObjUnk41;
     if( gObjUnk41 ){
         for( i = 0; i != 40000; ++i ){
-            for( j = gObjGridObjects[i]; j; j = j->Next ){
-                Elevation = j->object->Elevation;
-                if( v2 < Elevation ) break;
-                if( v2 == Elevation ) {
-                    v6 = OBJTYPE( j->object->ImgId );
-                    if( v6 == 3 || v6 == 2 ) BYTE2(j->object->Flags) |= 1u;
-                }
+            for( p = gObjGridObjects[ i ]; p; p = p->Next ){
+                if( gCurrentMapLvl < p->object->Elevation ) break;
+                if( gCurrentMapLvl != p->object->Elevation ) continue;
+                t = OBJTYPE( p->object->ImgId );
+                if( t == 3 || t == 2 ) p->object->Flags |= 0x010000;
             }
         }
     } else {
-        for( k = 0; k != 40000; k++ ){
-            for( m = gObjGridObjects[k]; m; m = m->Next ){
-                v9 = m->object->Elevation;
-                if ( v2 < v9 ) break;
-                if ( v2 == v9 ) {
-                    v10 = OBJTYPE( m->object->ImgId );
-                    if( v10 == 3 || v10 == 2 ) BYTE2(m->object->Flags) &= ~1u;
-                }
+        for( i = 0; i != 40000; i++ ){
+            for( p = gObjGridObjects[ i ]; p; p = p->Next ){
+                if( gCurrentMapLvl < p->object->Elevation ) break;
+                if( gCurrentMapLvl != p->object->Elevation ) continue;
+                t = OBJTYPE( p->object->ImgId );
+                if( t == 3 || t == 2 ) p->object->Flags &= ~0x010000;
             }
         }
     }
     if( Update ) TileUpdate();
-*/
 }
 
 int ObjDestroy( Obj_t *obj, VidRect_t *radius )
@@ -2012,54 +1925,34 @@ void ObjUnk78()
 
 void ObjUnk79()
 {
-/*
-    ObjList_t *j;
-    Obj_t *v2;
-    char v8;
-    int v0,i,v3,v4,v5,v7;
+    ObjList_t *p;
+    unsigned char mask;
+    int i, j;
 
-    v0 = 400;
-    memset(gObjUnk79, 0, 5001u);
+    memset( gObjUnk79, 0, sizeof( gObjUnk79 ) );
+    for( i = 0; i < 5001; i++){
+        if( !gObjUnk01[ i ] ) continue;
+        for( j = i - 400; j != 400 + i; j += 25 ){
+            if( j > 5000 || j < 0 ) continue;
+            gObjUnk79[ j ] = -1;
+            if( j > 0 ) gObjUnk79[ j - 1 ] = -1;
+            if( j < 5000 ) gObjUnk79[ j + 1 ] = -1;
+            if( j > 1 ) gObjUnk79[ j - 2 ] = -1;
+            if( j < 4999 ) gObjUnk79[ j + 2 ] = -1;
+        }            
+    }    
     for( i = 0; i < 5001; i++ ){
-        v2 = gObjDude;
-        if( gObjUnk01[i] ){
-            v3 = i - 400;
-            do{
-                if( v3 <= 5000 ){
-                    gObjUnk79[v3] = -1;
-                    if( v3 > 0 ) *((char *)&gObjDude + v3 + 3) = -1;
-                    if( v3 < 5000 ) gObjUnk80[v3] = -1;
-                    if( v3 > 1 ) *((char *)&gObjDude + v3 + 2) = -1;
-                    if( v3 < 4999 ) gObjUnk81[v3] = -1;
+        if( !gObjUnk79[ i ] ) continue;
+        mask = 1;
+        for( j = 0; j < 8; j++, mask <<= 1 ){
+            if( (mask & gObjUnk79[ i ] ) && j < 40000 ){
+                for( p = gObjGridObjects[ i * 8 + i ]; p; p = p->Next ){
+                    if( p->object->Elevation == gObjDude->Elevation ) p->object->Flags |= 0x40000000;
                 }
-                v3 += 25;
-            }while( v3 != v0 );
+            }                
         }
-        gObjDude = v2;
-        ++v0;
     }
-    v4 = 0;
-    v7 = 0;
-    do{
-        if( gObjUnk79[v4] ){
-            v5 = v7;
-            v8 = 1;
-            do{
-                if( ((unsigned char)v8 & (unsigned char)gObjUnk79[v4]) != 0 && v5 < 40000 ){
-                    for ( j = gObjGridObjects[v5]; j; j = j->Next ){
-                        if ( j->object->Elevation == v2->Elevation ) HIBYTE(j->object->Flags) |= 0x40u;
-                    }
-                }
-                v5++;
-                v8 *= 2;
-            }while( v5 != v7 + 8 );
-        }
-        v4++;
-        v7 += 8;
-    }while ( v4 < 5001 );
-    gObjDude = v2;
-    memset(gObjUnk01, 0, 5001u);
-*/
+    memset( gObjUnk01, 0, sizeof( gObjUnk01 ) );
 }
 
 char *ObjGetName( Obj_t *obj )

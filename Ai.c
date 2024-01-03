@@ -1084,7 +1084,7 @@ Obj_t *AiPickUpObj( Obj_t *Critter, Obj_t *Item )
     Obj_t *obj;
 
     obj = NULL;
-    if( ActionUseObj( Critter, Item ) ) return NULL;
+    if( ActionUseItem( Critter, Item ) ) return NULL;
     CombatUpdate();
     obj = InvSearchObjByPid( Critter, Item->ProtoPid );
     CombatUnk14( Critter );    
@@ -1717,7 +1717,7 @@ int AiCombatTaunts( Obj_t *Critter, Combat_t *Combat, int ReactionType, int a4 )
     }
     eprintf( "%s said message %d\n", ObjGetName( Critter ), fmt.Id );
     strncpy( s, fmt.Text, 259 );
-    return AnimUnk56( Critter, (AnimU_t)ReactionType, (void *)AiMumble, a4 ); // !!! scalar to pointer !!!
+    return AnimSetCallback11( Critter, (AnimU_t)ReactionType, (void *)AiMumble, a4 ); // !!! scalar to pointer !!!
 }
 
 int AiMumble( Obj_t *obj, char *Text )

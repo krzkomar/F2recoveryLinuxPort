@@ -27,14 +27,14 @@ typedef union
 typedef struct 
 {
     int State;			// machine state
-    AnimU_t uni;		//     
+    AnimU_t Target;		//     
     void *GpPtr;		// general purpose pointer, holds obj_t or sound_t
     int TargetPos;		// 
     int Elevation;		// 
     int Silence;		// 1 - noisy, 19 - stealth
     int i07;			// 
-    int (*SndCb)(void *, void *);	// 
-    int (*SndCb2)(Sound_t *);	// 
+    int (*Callback11)(void *, void *);	// 
+    int (*Callback12)(Obj_t *, Obj_t *, int );	// 
     int i10;			// 
     AnimU_t Ap; 		// action points/object/skill no
     CachePool_t *ImgObj;	// 
@@ -114,8 +114,8 @@ int AnimTurnCCW( Obj_t *obj );
 int AnimTurnCW( Obj_t *a1 );
 int AnimUnk54( Obj_t *a1 );
 int AnimUnk55( Obj_t *a1 );
-int AnimUnk56( Obj_t *a1, AnimU_t a2, int (*a3)(void *, void *), int a4 );
-int AnimUnk57( Obj_t *a1, Obj_t *a2, AnimU_t Ap, int (*a4)(Sound_t *), int a5 );
+int AnimSetCallback11( Obj_t *a1, AnimU_t a2, int (*a3)(void *, void *), int a4 );
+int AnimSetCallback12( Obj_t *a1, Obj_t *a2, AnimU_t Ap, int (*Callback)(Obj_t *, Obj_t *, int), int a5 );
 int AnimSetFinish( void *a1, Obj_t *a2, int (*a3)(Obj_t *,Obj_t *), int a4 );
 int AnimUnk59( Obj_t *a1, int a2, int a3 );
 int AnimUnk60( Obj_t *a1, int a2, int a3 );

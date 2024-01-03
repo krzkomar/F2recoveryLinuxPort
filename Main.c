@@ -114,7 +114,7 @@ void MainGame( int argc, char **argv )
                     break;
                 case 5: // Credits
                     MainMenuUpdate( 1 );
-//                    Credits( "credits.txt", -1, 1 );
+                    Credits( "credits.txt", -1, 1 );
                     break;
                 case 6:
                     if( !zm ){
@@ -223,7 +223,7 @@ void MainGameLoop()
     while( !gMenuEscape ){
         sel = InpUpdate();
         GameProcess( sel, 0 );
-//        ScptProcess();
+        ScptProcess();
         MapJump();
         if( gMainUnk05 ) gMainUnk05 = 0;
         if( gObjDude->Critter.State.CombatResult & 0x81 ){

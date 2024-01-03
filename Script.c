@@ -519,13 +519,13 @@ void ScptUnk124( Scpt_t *a1 )
 
 void ScptProcess()
 {
-    int v0; // ecx
-    Obj_t *p; // esi
-    Obj_t *i; // esi
-    Map01_t v13; // [esp+0h] [ebp-30h] BYREF
-    short a4; // [esp+10h] [ebp-20h] BYREF
-    int a3; // [esp+14h] [ebp-1Ch] BYREF
-    int MapId; // [esp+18h] [ebp-18h] OVERLAPPED BYREF
+    int v0;
+    Obj_t *p;
+    Obj_t *i;
+    Map01_t v13;
+    short a4;
+    int a3;
+    int MapId;
 
     if( gScptUnk02 ){
         if( gScptUnk02 & 0x01 ){
