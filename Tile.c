@@ -441,7 +441,7 @@ int TileUnk15( int MapIdx1, int MapIdx2 )
     return (double)y1 <= (double)x1 * 1.333333333333333;
 }
 
-int TileUnk16( int MapIdx, int Orientation, int TilesCnt )
+int TileGetTileNumInDir( int MapIdx, int Orientation, int TilesCnt )
 {
     int i;
 

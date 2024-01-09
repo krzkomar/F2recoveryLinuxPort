@@ -11,7 +11,7 @@ int UseExamineMsg( Obj_t *a1, Obj_t *a2);
 int UseExamine( Obj_t *critter, Obj_t *obj, void (*OutCb)(char *) );
 int UseUseOn( Obj_t *crit, Obj_t *obj );
 int UseUnk04( Obj_t *a1, Obj_t *a2);
-int UseUnk05( Obj_t *crit, Obj_t *obj );
+int UseDropObj( Obj_t *crit, Obj_t *obj );
 int UseUnk06( Obj_t *obj );
 int UseReadBook( Obj_t *obj );
 int UseLightFlare( Obj_t *crit, Obj_t *obj );

@@ -74,7 +74,7 @@ int  TileGetPointed( int x, int y );
 int  TileGetDistance( int MapIdx1, int MapIdx2 );
 int  TileUnk14( int MapIdx1, int MapIdx2 );
 int  TileUnk15( int MapIdx1, int MapIdx2 );
-int  TileUnk16( int MapIdx, int n, int TilesCnt );
+int  TileGetTileNumInDir( int MapIdx, int n, int TilesCnt );
 int  TileTurnAt( int MapIdx1, int MapIdx2 );
 int  TileUnk18( int a1, int a2, int a3 );
 int  TileGridBorder( int MapIdx );

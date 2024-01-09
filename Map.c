@@ -247,11 +247,11 @@ int MapVarsAdd( int VarNum )
     return id;
 }
 
-void MapUnk29( int a1, int a2, int a3 )
+void MapSetStart( int GridPos, int MapLvl, int Rotation )
 {
-    gMapUnk33 = a2;
-    gMapUnk35 = a3;
-    gMapUnk34 = a1;
+    gMapUnk33 = MapLvl;
+    gMapUnk35 = Rotation;
+    gMapUnk34 = GridPos;
 }
 
 void MapNewScript( int ScriptId )
@@ -270,7 +270,7 @@ void MapNewScript( int ScriptId )
     obj = NULL;
     ObjCreate( &obj, ArtMakeId( 5, 12, 0, 0, 0 ), -1 );
     obj->Flags |= 0x20000005;
-    ObjPutHexObject( obj, 1, 0, 0 );
+    ObjMoveToTile( obj, 1, 0, 0 );
     obj->ScrId = gMapScriptId;
     ScptSetArg( gMapScriptId, !(gMap.MapFlags & 0x01) );
     ScptPtr( gMapScriptId, &scr );
@@ -578,8 +578,8 @@ int MapLoadMapFile( xFile_t *fh )
     if( MapSetLvl( gMapIsoPlayerElev) ) goto Error;
     if( TileSetCenter(gMapIsoUnk04, 2) ) goto Error;
     ItemMapSetLight( 0x10000, 0 );
-    ObjPutHexObject( gObjDude, gTileCentIdx, gCurrentMapLvl, NULL );
-    ObjPutObjOnMap(gObjDude, gMapIsoUnk05, 0);
+    ObjMoveToTile( gObjDude, gTileCentIdx, gCurrentMapLvl, NULL );
+    ObjSetRotation(gObjDude, gMapIsoUnk05, 0);
     gMap.MapId = WmGetMapIdxByFileName( gMap.Name );
     if( !(gMap.MapFlags & MAPFLG_SAV) ){
         sprintf( stmp2, "maps/%s", gMap.Name );            
@@ -598,7 +598,7 @@ int MapLoadMapFile( xFile_t *fh )
     p = NULL;
     ObjCreate( &p, ArtMakeId( 5, 12, 0, 0, 0 ), -1 ); // scrblk.frm
     p->Flags |= 0x20000005; // PRFLG_LIGHTTHROU
-    ObjPutHexObject( p, 1, 0, NULL );
+    ObjMoveToTile( p, 1, 0, NULL );
     p->ScrId = gMapScriptId;
     ScptSetArg( gMapScriptId, (gMap.MapFlags & 0x01) == 0 );
     ScptPtr( gMapScriptId, &scr );
@@ -635,7 +635,7 @@ Error:
 
     if( gMapCurrentPos.MapId > 0 ){
 
-        if( gMapCurrentPos.Orientation >= 0 ) ObjPutObjOnMap( gObjDude, gMapCurrentPos.Orientation, 0 );
+        if( gMapCurrentPos.Orientation >= 0 ) ObjSetRotation( gObjDude, gMapCurrentPos.Orientation, 0 );
     } else {
 
         TileUpdate();
@@ -734,7 +734,7 @@ int MapClearKilled()
         if( OBJTYPE( obj->Pid ) == TYPE_CRIT ){
 	    if( !CritterGetInjure( obj->Pid, 64 ) ) Item18( obj, obj->GridId );
 	    if( ObjCopy( &a1, 0x5000004 ) == -1 ){ err = -1; break; }	    
-    	    ObjPutHexObject( a1, obj->GridId, obj->Elevation, 0 );
+    	    ObjMoveToTile( a1, obj->GridId, obj->Elevation, 0 );
     	    v15 = RandMinMax( 0, 3 );
     	    ProtoGetObj( obj->Pid, &proto );
     	    if( obj->Flags & 0x800 ){
@@ -793,9 +793,9 @@ int MapJump()
         if( !IN_COMBAT ){
             if( gMapCurrentPos.MapId != gMap.MapId || gCurrentMapLvl == gMapCurrentPos.Frame ) MapOpenById( gMapCurrentPos.MapId );
             if( gMapCurrentPos.PosY != -1 && gMapCurrentPos.PosY && gMap.MapId != 19 && gMap.MapId != 37 && gMapCurrentPos.Frame <= 2 ){
-                ObjPutHexObject( gObjDude, gMapCurrentPos.PosY, gMapCurrentPos.Frame, 0 );
+                ObjMoveToTile( gObjDude, gMapCurrentPos.PosY, gMapCurrentPos.Frame, 0 );
                 MapSetLvl( gMapCurrentPos.Frame );
-                ObjPutObjOnMap( gObjDude, gMapCurrentPos.Orientation, 0 );
+                ObjSetRotation( gObjDude, gMapCurrentPos.Orientation, 0 );
             }
             if( TileSetCenter( gObjDude->GridId, 1 ) == -1 ) eprintf( "\nError: map: attempt to center out-of-bounds!" );
             memset( &gMapCurrentPos, 0, sizeof( gMapCurrentPos ) );
@@ -1073,8 +1073,8 @@ void MapUnk01()
             gObjDude->ImgId = ArtMakeId(1, gObjDude->ImgId & 0xFFF, 0, (gObjDude->ImgId & 0xF000) >> 12, gObjDude->Orientation + 1);
         }
         if( gObjDude->GridId == -1 ){
-            ObjPutHexObject( gObjDude, gTileCentIdx, gCurrentMapLvl, 0 );
-            ObjPutObjOnMap( gObjDude, gMap.PlayerOrientation, 0 );
+            ObjMoveToTile( gObjDude, gTileCentIdx, gCurrentMapLvl, 0 );
+            ObjSetRotation( gObjDude, gMap.PlayerOrientation, 0 );
         }
         ObjSetLight( gObjDude, 4, 0x10000, NULL );
         gObjDude->Flags |= 0x04;

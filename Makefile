@@ -15,7 +15,7 @@ OBJS = Error.o Memory.o Main.o Dfile.o Zfile.o Xfile.o Misc.o Config.o db.o Font
     Random.o MainMenu.o CycleColors.o FontMgr.o Gmouse.o OptionMenu.o Sound.o GSound.o Credits.o SfxCache.o Acm.o Audio.o AudioF.o Ng.o Proto.o \
     Feat.o Skill.o StrParse.o Party.o CharEditor.o Trait.o Critter.o Perk.o GlobVar.o Item.o Obj.o Pip.o DlgBox.o Script.o IntLib.o ScrInter.o ScpCmd.o ScpIfc.o Map.o \
     WordMap.o LoadSaveGame.o Combat.o Ai.o Automap.o GMovie.o Ev.o Iface.o FileCopy.o Tile.o IfcMsg.o Inventory.o Use.o Anim.o Game.o Text.o Gr.o Action.o Export.o \
-    Nevs.o EndGame.o GDialog.o Lipsync.o Dialog.o Elevator.o DataFile.o Pcx.o Dbg.o Widget.o Window1.o Region.o Mve.o Mov.o Sdf.o Gmem.o
+    Nevs.o EndGame.o GDialog.o Lipsync.o Dialog.o Elevator.o DataFile.o Pcx.o Dbg.o Widget.o Window1.o Region.o Mve.o Mov.o Sdf.o Gmem.o ScpGame.o
 
 LDFLAGS += $(LDFLAGS_SDL)
 LDFLAGS += -lz -lm

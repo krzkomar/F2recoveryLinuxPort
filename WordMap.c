@@ -1956,10 +1956,10 @@ int WmSetupCritter( int eax0, Obj_t **edx0, int a3 )
                         UseUnk03( pObj, 4, v5->ScriptId - 1 );
                     }
                     if( player->Position )
-                        ObjPutHexObject( pObj, GridPos, gCurrentMapLvl, 0 );
+                        ObjMoveToTile( pObj, GridPos, gCurrentMapLvl, 0 );
                     else
                         UseUnk46( pObj, GridPos, 0, 0 );
-                    ObjPutObjOnMap( pObj, TileTurnAt( GridPos, gObjDude->GridId ), 0 );
+                    ObjSetRotation( pObj, TileTurnAt( GridPos, gObjDude->GridId ), 0 );
                     for( k = 0; k < v5->ItemsCnt; k++ ){
                         v12 = ( v5->Items[ k ].i03 == v5->Items[ k ].i02 ) ? v5->Items[ k ].i03 : RandMinMax( v5->Items[ k ].i02, v5->Items[ k ].i03 );
                         if( !v12 ) continue;
@@ -2033,23 +2033,23 @@ int WmSetupRndNextTileNum( WmPlayer_t *player, WmTeam_t *team, int *pTileNum, in
                     if( PerkLvl( gObjDude, PERK_CAUTIOUS_NATURE ) ) Distance += 3;
                 }
                 if( Distance < 0 ) Distance = 0;
-                if( team->TileNum == -1 ) TileUnk16( gObjDude->GridId, gWmUnk109[0], Distance );
+                if( team->TileNum == -1 ) TileGetTileNumInDir( gObjDude->GridId, gWmUnk109[0], Distance );
                 if( ++gWmUnk109[0] >= 6 ) gWmUnk109[0] = 0;
-                TileNum = TileUnk16( gObjDude->GridId, (RandMinMax( 0, 5 ) + gWmUnk109[0]) % 6, RandMinMax( 0, Distance / 2 ) );
+                TileNum = TileGetTileNumInDir( gObjDude->GridId, (RandMinMax( 0, 5 ) + gWmUnk109[0]) % 6, RandMinMax( 0, Distance / 2 ) );
                 break;
             case 1: case 2:
                 TileNum = gWmMapDst[ gWmUnk128 ];
                 if( gWmUnk129 ){
                     v11 = (gWmUnk103[ gWmUnk128 ] + gWmUnk109[ gWmUnk128 ] ) % 6;
-                    v12 = TileUnk16( gWmMapDst[ gWmUnk128 ], v11, player->Spacing );
-                    TileNum = gWmMapDst[ gWmUnk128 ] = TileUnk16( v12, (v11 + gWmUnk103[gWmUnk128]) % 6, player->Spacing );
+                    v12 = TileGetTileNumInDir( gWmMapDst[ gWmUnk128 ], v11, player->Spacing );
+                    TileNum = gWmMapDst[ gWmUnk128 ] = TileGetTileNumInDir( v12, (v11 + gWmUnk103[gWmUnk128]) % 6, player->Spacing );
                     gWmUnk128 = 1 - gWmUnk128;
                 }
                 break;
             case 3:
                 TileNum = gWmMapDst[ gWmUnk128 ];
                 if( gWmUnk129 ){
-                    TileNum = TileUnk16(gWmMapDst[gWmUnk128], (gWmUnk103[gWmUnk128] + gWmUnk109[gWmUnk128]) % 6, player->Spacing);
+                    TileNum = TileGetTileNumInDir(gWmMapDst[gWmUnk128], (gWmUnk103[gWmUnk128] + gWmUnk109[gWmUnk128]) % 6, player->Spacing);
                     gWmMapDst[ gWmUnk128 ] = TileNum;
                     gWmUnk128 = 1 - gWmUnk128;
                 }
@@ -2057,7 +2057,7 @@ int WmSetupRndNextTileNum( WmPlayer_t *player, WmTeam_t *team, int *pTileNum, in
             case 4:
                 TileNum = gWmMapDst[ gWmUnk128 ];
                 if( gWmUnk129 ){
-                    TileNum = TileUnk16( gWmMapDst[ gWmUnk128 ], (gWmUnk109[ gWmUnk128 ] + 3 + gWmUnk103[ gWmUnk128 ] ) % 6, player->Spacing );
+                    TileNum = TileGetTileNumInDir( gWmMapDst[ gWmUnk128 ], (gWmUnk109[ gWmUnk128 ] + 3 + gWmUnk103[ gWmUnk128 ] ) % 6, player->Spacing );
                     gWmMapDst[ gWmUnk128 ] = TileNum;
                     gWmUnk128 = 1 - gWmUnk128;
                 }
@@ -2066,7 +2066,7 @@ int WmSetupRndNextTileNum( WmPlayer_t *player, WmTeam_t *team, int *pTileNum, in
                 TileNum = gWmMapDst[ 0 ];
                 if( gWmUnk129 ){
                     gWmUnk109[ 0 ] = (gWmUnk109[ 0 ] + 1) % 6;
-                    TileNum = gWmMapDst[ 0 ] = TileUnk16( gWmMapDst[ 0 ], gWmUnk109[ 0 ], player->Spacing );
+                    TileNum = gWmMapDst[ 0 ] = TileGetTileNumInDir( gWmMapDst[ 0 ], gWmUnk109[ 0 ], player->Spacing );
                 }
                 break;
             default:

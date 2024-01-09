@@ -363,7 +363,7 @@ int EvQeUnk19( Obj_t *obj, int a2 )
 
 int EvQeUnk20( int a1 )
 {
-    if( a1 <= -75 ) return EvQeUnk21();
+    if( a1 <= -75 ) return 0;//EvQeGetReactionInfluence( );
     if( a1 <= -50 ) return 0;
     if( a1 <= -25 ) return 0;
     if( a1 <= -10 ) return 0;
@@ -371,7 +371,7 @@ int EvQeUnk20( int a1 )
     return 1;
 }
 
-int EvQeUnk21()
+int EvQeGetReactionInfluence( int a, int b, int c )
 {
     return 0;
 }

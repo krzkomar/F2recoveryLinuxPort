@@ -431,7 +431,7 @@ int CharEditMenu( int mode )
     }
     CharEditClose();
     if( ExCode == 1 ) CharEditRestoreObj();
-    if( CritterUnk39( 3 ) ) CritterUnk36( 3 );
+    if( CritterUsingSkill( 3 ) ) CritterUnk36( 3 );
 //    Unk8004();
     return ExCode;
 }

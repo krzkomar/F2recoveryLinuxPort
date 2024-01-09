@@ -196,7 +196,7 @@ int AiMumble( Obj_t *obj, char *Text );
 Obj_t *AiDrawOponent( Combat_t *a1 );
 int AiGetMaxDamagePower( Obj_t *obj );
 int AiUnk59( Obj_t *obj, Obj_t *a2 );
-int AiUnk60( Obj_t *Rogue, Obj_t *Target );
+int AiObjCanHearObj( Obj_t *Rogue, Obj_t *Target );
 int AiLoadCombatMsg();
 int AiUnk61();
 void AiUnk62();

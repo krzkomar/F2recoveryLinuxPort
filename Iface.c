@@ -1295,9 +1295,9 @@ int IfaceIndicatorBoxUpdate()
         return 0;
     }
     for( i = 0; i < 6; i++ ) gIfcBarSlots[ i ] = -1;
-    if( CritterUnk39( 0 ) ) k = IfaceIndicatorBoxAddEffect( 1 );
-    if( CritterUnk39( 3 ) ) k += IfaceIndicatorBoxAddEffect( 2 );
-    if( CritterUnk39( 4 ) ) k += IfaceIndicatorBoxAddEffect( 0 );
+    if( CritterUsingSkill( 0 ) ) k = IfaceIndicatorBoxAddEffect( 1 );
+    if( CritterUsingSkill( 3 ) ) k += IfaceIndicatorBoxAddEffect( 2 );
+    if( CritterUsingSkill( 4 ) ) k += IfaceIndicatorBoxAddEffect( 0 );
     if( CritterPoisoned( gObjDude ) > 0 ) k += IfaceIndicatorBoxAddEffect( 3 );
     if( CritterRadiated( gObjDude ) > 65 )  k += IfaceIndicatorBoxAddEffect( 4 );
     if( k > 1 ) qsort( gIfcBarSlots, k, sizeof( int ), (void *)IfaceIndicatorBoxSortCb );

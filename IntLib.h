@@ -131,8 +131,10 @@ void IntpUnk02( Intp_t *r, short opcode, int a3 );
 void IntpStringDeRef( Intp_t *scr, short type, int Idx );
 void IntpPushwA( Intp_t *scr, short wdata );
 void IntpPushiA( Intp_t *scr, int idata );
+void IntpPushPtrA( Intp_t *scr, void *pdata ); // added
 short IntpPopwA( Intp_t *scr );
 int IntpPopiA( Intp_t *scr );
+void *IntpPopPtrA( Intp_t *scr ); // added
 void IntpPushwB( Intp_t *scr, short opcode );
 void IntpPushiB( Intp_t *scr, int idata );
 int IntpPopwB( Intp_t *scr );

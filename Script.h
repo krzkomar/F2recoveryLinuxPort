@@ -40,7 +40,7 @@ typedef struct
   Obj_t *TimeEv; // ptr ?
     Obj_t *crit;
     Obj_t *item;
-  int i17;
+  int i17;	// action being used flag
   int i18;
   int i19;
   int i20;
@@ -58,14 +58,14 @@ typedef struct
 
 typedef struct 
 {
-    Obj_t *obj;
-    Obj_t *crit;
-    char i03[16];
-    int i07;
-    int i08;
-    int i09;
-    int i10;
-} Scpt01_t;
+    Obj_t *obj; // traget ?
+    Obj_t *crit; // who
+    int i03[4];	// 0-?, 1-bonus, 2-0, 3-min dmg
+    int i07;	// max dmg
+    int i08;	// boolean attacker_result == traget result
+    int i09;	// attacker results
+    int i10;	// target results
+} Scpt01_t; 	// attack
 
 
 typedef struct _ScptCache_t
@@ -216,7 +216,7 @@ int ScptPlayMovieEv( int *pMovieId, int WinId );
 int ScptUnk144();
 int ScptNewObjId();
 Obj_t *ScptUnk142( int a1 );
-int ScptUnk141( Intp_t *a1, int a2 );
+int ScptGetActionSource( Intp_t *a1 );
 Obj_t *ScptUnk140( Intp_t *a1 );
 char *ScptUnk139( int a1 );
 int ScptUnk138( int Pids, Obj_t *critter, Obj_t *item );
@@ -228,7 +228,7 @@ int ScptUnk133();
 void ScptUnk132();
 void ScptUnk131( int a1, int a2 );
 int ScptUnk130( int a1, Scpt_t *a2 );
-int ScptUnk129( int a1, int a2 );
+int ScptAddTimerEvent( int, int a1, int a2 );
 int ScptUnk128( xFile_t *a1, int *a2 );
 int ScptLoadUnk17( xFile_t *fh, int **ptr );
 int ScptUnk126( int Unused, Obj_t *obj );
@@ -241,7 +241,7 @@ int ScptUnk120( Scpt01_t *scr );
 int ScptUnk119();
 int ScptUnk118();
 int ScptRequestElevator( Scpt_t *a1, int Reaction );
-void ScptUnk116( unsigned int a1, int a2, int a3, int a4 );
+void ScptExplosion( unsigned int tilenum, int a2, int a3, int a4 );
 void ScptUnk115( Obj_t *a1 );
 void ScptUnk114();
 int ScptUnk113( void *a1, void *a2 );

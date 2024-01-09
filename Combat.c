@@ -1024,7 +1024,7 @@ int CombatAttack( Obj_t *Critter, Obj_t *a2, int a3, int a4 )
 
 int CombatUnk37( Obj_t *a1, Obj_t *a2 )
 {
-    return TileUnk16( a1->GridId, TileTurnAt( a1->GridId, a2->GridId ), 1 );
+    return TileGetTileNumInDir( a1->GridId, TileTurnAt( a1->GridId, a2->GridId ), 1 );
 }
 
 int CombatUnk38( Combat_t *cmbt )
@@ -1148,9 +1148,9 @@ int CombatUnk40( Combat_t *cmbt, int a2, int *a3, int *pAmmoCharges, int a5 )
     else
         GridId = cmbt->Comp->GridId;
     v27 = TileTurnAt( GridId, cmbt->Dude->GridId );
-    v22 = TileUnk18( cmbt->Dude->GridId, TileUnk16( GridId, (v27 + 1) % 6, 1 ), Range );
+    v22 = TileUnk18( cmbt->Dude->GridId, TileGetTileNumInDir( GridId, (v27 + 1) % 6, 1 ), Range );
     *a3 += CombatUnk39( cmbt, v22, ebx0, a5 );
-    *a3 = CombatUnk39( cmbt, TileUnk18( cmbt->Dude->GridId, TileUnk16( GridId, (v27 + 5) % 6, 1 ), Range ), v28, a5 ) + *a3;
+    *a3 = CombatUnk39( cmbt, TileUnk18( cmbt->Dude->GridId, TileGetTileNumInDir( GridId, (v27 + 5) % 6, 1 ), Range ), v28, a5 ) + *a3;
     if( v30 == 1 && ( *a3 > 0 || cmbt->Count > 0 ) ){
         v30 = 2;
     } else if( v30 >= 2 && !*a3 && !cmbt->Count ){
@@ -1195,7 +1195,7 @@ int CombatUnk42( Combat_t *cmbt )
     if( v9 == 1 && (TraitSpecActive( TRAIT_JINXED ) || PerkLvl( gObjDude, PERK_JINXED )) && RandMinMax( 0, 1 ) ) v9 = 0;
     if( (Class == 2 || Class == 1) && v9 == 2 && cmbt->Dude == gObjDude ){
         if( PerkLvl( cmbt->Dude, PERK_SLAYER ) ) v9 = 3;
-        if( PerkLvl( gObjDude, PERK_SILENT_DEATH ) && !ActionUnk16( gObjDude, cmbt->Comp ) && CritterUnk39( 0 ) && gObjDude != cmbt->Comp->Critter.State.WhoHitMeObj ) v31 = 4;
+        if( PerkLvl( gObjDude, PERK_SILENT_DEATH ) && !ActionUnk16( gObjDude, cmbt->Comp ) && CritterUsingSkill( 0 ) && gObjDude != cmbt->Comp->Critter.State.WhoHitMeObj ) v31 = 4;
         Hand = cmbt->Hand;
         if( Hand == 16 || Hand == 9 ){
             if( RandMinMax( 1, 100 ) <= 5 ){
@@ -1234,7 +1234,7 @@ int CombatUnk42( Combat_t *cmbt )
         if( v2 ){
             v15 = RandMinMax( 1, Distance / 2 );
             if( !v15 ) v15 = 1;
-            cmbt->TileNo = TileUnk16( cmbt->Comp->GridId, RandMinMax( 0, 5 ), v15 );
+            cmbt->TileNo = TileGetTileNumInDir( cmbt->Comp->GridId, RandMinMax( 0, 5 ), v15 );
         } else {
             cmbt->TileNo = TileUnk18( cmbt->Dude->GridId, cmbt->Comp->GridId, Range );
         }
@@ -1293,7 +1293,7 @@ void CombatExplosion( Combat_t *cmbt, int a2, int ecx0, int a4 )
             if( v5 == -1 ){
         	if( !(++v23 % v25) && ++v24 == 6 ) v24 = 0;
             } else {
-        	v5 = TileUnk16( v5, v24, 1 );
+        	v5 = TileGetTileNumInDir( v5, v24, 1 );
         	if( v5 != v22 ){
             	    if( !(++v23 % v25) && ++v24 == 6 ) v24 = 0;
         	} else {
@@ -1305,10 +1305,10 @@ LABEL_45:
             	    } else {
 LABEL_19:	
                 	if( ecx0 ){
-                	    v5 = TileUnk16( v22, 0, 1 );
+                	    v5 = TileGetTileNumInDir( v22, 0, 1 );
                 	} else {
                 	    if( Item71() >= v25 )
-                    		v5 = TileUnk16( v22, 0, 1 );
+                    		v5 = TileGetTileNumInDir( v22, 0, 1 );
                 	    else
                     		v5 = -1;
             		}
@@ -2402,7 +2402,7 @@ int CombatBlockedAim( Obj_t *obj1, int GridPos1, int GridPos2, Obj_t *obj2, int 
                 }
             }
             if( (obj1->Flags & 0x800) != 0 ){
-                GridPos1 = TileUnk16( GridPos1, TileTurnAt( GridPos1, GridPos2 ), 1 );
+                GridPos1 = TileGetTileNumInDir( GridPos1, TileTurnAt( GridPos1, GridPos2 ), 1 );
             } else {
                 GridPos1 = obj1->GridId;
             }

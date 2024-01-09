@@ -636,7 +636,7 @@ void CritterUnk38( char a1 )
         CritterUnk37( a1 );
 }
 
-int CritterUnk39( char Effect )
+int CritterUsingSkill( char Effect )
 {
     Proto_t *proto;
 

@@ -50,7 +50,7 @@ int  *EvQeFindPtr( Obj_t *obj, int MethodIdx );
 int  *EvQeFindNextPtr( Obj_t *obj, int MethodIdx );
 int  EvQeUnk19( Obj_t *obj, int a2 );
 int  EvQeUnk20( int a1 );
-int  EvQeUnk21();
+int  EvQeGetReactionInfluence( int, int, int );
 int  EvQeUnk22( int a1, int a2 );
 int  EvQeUnk23( Obj_t *obj );
 

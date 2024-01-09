@@ -1879,25 +1879,25 @@ void InvActionMenu( int sel, int mode )
                 if( Available > 0 ){
                     if( Available == 1 ){
                         ItemSetMoney( Item, 1 );
-                	UseUnk05( BoxObj, Item);
+                	UseDropObj( BoxObj, Item);
                     } else {
                         if( !ItemUseItem( BoxObj, Item, Available - 1 ) ){
                     	    if( !InvPickItem( sel, &obj, &BoxObj, &HandObj ) ){
                         	ItemAdd( BoxObj, Item, Available - 1 );
                     	    } else {
                     		ItemSetMoney( obj, Available );
-                	    	UseUnk05( BoxObj, obj );
+                	    	UseDropObj( BoxObj, obj );
                     	    }
                         }
                     }
             	    break;
                 }
             } else {
-                if( Item->Pid == PID_DYNAMITE || Item->Pid == PID_PLASTICEXPLOSIVES ){ gInvUnk83 = 1; UseUnk05( BoxObj, Item ); break; }
-                if( Available <= 1 ){ UseUnk05( BoxObj, Item ); break; }
+                if( Item->Pid == PID_DYNAMITE || Item->Pid == PID_PLASTICEXPLOSIVES ){ gInvUnk83 = 1; UseDropObj( BoxObj, Item ); break; }
+                if( Available <= 1 ){ UseDropObj( BoxObj, Item ); break; }
                 Available = InvPopUpDlg( 4, Item, Available );
                 for( tmp = 0; tmp < Available; tmp++ ){
-                    if( InvPickItem( sel, &Item, &BoxObj, &HandObj ) ) UseUnk05( BoxObj, Item );
+                    if( InvPickItem( sel, &Item, &BoxObj, &HandObj ) ) UseDropObj( BoxObj, Item );
                 }
             }
             break;

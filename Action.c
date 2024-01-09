@@ -30,14 +30,14 @@ int ActionUnk40( Obj_t *obj, int *a2, int a3, int a4, int a5 )
         if( !ArtFileExist( ArtMakeId( 1, obj->ImgId & 0xFFF, *a2, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ) ) ) *a2 = 20;
     }
     for( i = 1; i <= a3; i++ ){
-        if( ObjReach( obj, TileUnk16( obj->GridId, a4, i ), obj->Elevation) ) break;
+        if( ObjReach( obj, TileGetTileNumInDir( obj->GridId, a4, i ), obj->Elevation) ) break;
     }
     AnimUnk66( obj, GSoundProtoFname6( obj, *a2, 1 ), a5 );
     if( i <= 0 ){
         GridId = obj->GridId;
         AnimUnk48( obj, *a2, 0 );
     } else {
-        GridId = TileUnk16( obj->GridId, a4, i );
+        GridId = TileGetTileNumInDir( obj->GridId, a4, i );
         AnimUnk45( obj, GridId, obj->Elevation, *a2, 0 );
     }
     return GridId;
@@ -198,7 +198,7 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
                 AnimUnk48( obj1, a2, 0 );                
                 v39 = RandMinMax( 0, 5 );
                 for( v18 = RandMinMax( 2, 5 ); v18 > 0; v18-- ){
-                    v19 = TileUnk16( obj1->GridId, v39, v18 );
+                    v19 = TileGetTileNumInDir( obj1->GridId, v39, v18 );
                     v34 = NULL;
                     AnimUnk06( obj1, obj1->GridId, v19, 0, &v34, 4 );
                     if( !v34 ){
@@ -223,7 +223,7 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
 LABEL_47:
     if( a4 ){
         if( obj3 & 0x1000 ){
-    	    AnimSetFinish( obj1, a4, UseUnk05, -1 );
+    	    AnimSetFinish( obj1, a4, UseDropObj, -1 );
     	    AnimUnk62( a4, ArtMakeId( 5, 10, 0, 0, 0 ), 0 );
     	    AnimUnk50( a4, 0, 0 );
     	    AnimUnk66( a4, GSoundProtoFname3( 4, a4, 2, obj1 ), 0 );
@@ -232,7 +232,7 @@ LABEL_47:
     	    if( obj3 & 0x2000 ){
     		result = AnimSetFinish( obj1, a4, (void *)ActionUnk36, -1 );
     	    } else {
-    		if( obj3 & 0x4000 ) result = AnimSetFinish( obj1, a4, UseUnk05, -1 );
+    		if( obj3 & 0x4000 ) result = AnimSetFinish( obj1, a4, UseDropObj, -1 );
     	    }
         }
     }
@@ -343,7 +343,7 @@ int ActionUnk29( Combat_t *cmbt, int a2 )
     Img = ArtLoadImg( ArtMakeId(1, cmbt->Dude->ImgId & 0xFFF, a2, (cmbt->Dude->ImgId & 0xF000) >> 12, cmbt->Dude->Orientation + 1), &ImgObj );
     if( Img ) ActionFrame = ArtGetActionFrame( Img );
     ArtClose( ImgObj );
-    TileUnk16( cmbt->Dude->GridId, cmbt->Dude->Orientation, 1 );
+    TileGetTileNumInDir( cmbt->Dude->GridId, cmbt->Dude->Orientation, 1 );
     AnimUnk51( cmbt->Dude, cmbt->Comp->GridId );
     if( a2 == 16 || a2 == 17 ){
         strcpy( stmp, GSoundProtoFname6( cmbt->Dude, a2, 0 ) );
@@ -425,7 +425,7 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
     ArtClose( Obj );
     ItemGetRange( cmbt->Dude, cmbt->Hand );
     WeaponBase = ItemGetWeaponBase( cmbt->Dude, cmbt->HandEq );
-    TileUnk16( cmbt->Dude->GridId, cmbt->Dude->Orientation, 1 );
+    TileGetTileNumInDir( cmbt->Dude->GridId, cmbt->Dude->Orientation, 1 );
     AnimUnk51( cmbt->Dude, cmbt->Comp->GridId );
     if( a2 == 18 ){
         if( WeaponBase == 6 || WeaponBase == 3 || WeaponBase == 5 ) v50 = 1;
@@ -475,8 +475,8 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
                 ObjUnk33( obj, 0 );
                 ObjSetLight( obj, 9, obj->LightIntensity, 0 );
                 tmp = CombatUnk37( cmbt->Dude, cmbt->Comp );
-                ObjPutHexObject( obj, tmp, cmbt->Dude->Elevation, NULL );
-                ObjPutObjOnMap( obj, TileTurnAt( cmbt->Dude->GridId, cmbt->Comp->GridId ), 0 );
+                ObjMoveToTile( obj, tmp, cmbt->Dude->Elevation, NULL );
+                ObjSetRotation( obj, TileTurnAt( cmbt->Dude->GridId, cmbt->Comp->GridId ), 0 );
                 AnimUnk60( obj, 1, ActionFrame );
                 AnimUnk66( obj, GSoundProtoFname3( 3, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), 0 );
                 if( (cmbt->DudeInjuries & 0x100) != 0 ){
@@ -507,7 +507,7 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
                     for( i = 0; i < 6; ++i ){
                         if( ObjCreate( a1 + i, tmp, -1 ) == -1 ) continue;
                         ObjUnk33( a1[ i ], 0 );
-                        ObjPutHexObject( a1[ i ], TileUnk16( GridId, i, 1 ), obj->Elevation, 0 );
+                        ObjMoveToTile( a1[ i ], TileGetTileNumInDir( GridId, i, 1 ), obj->Elevation, 0 );
                     	AnimUnk60( a1[ i ], 1, i ? 0 : ( ( WeaponBase == 3 ) ? 4 : 2 ) );
                         AnimUnk50( a1[ i ], 0, 0 );
                     }
@@ -593,11 +593,11 @@ int ActionLadderClimb( Obj_t *obj1, Obj_t *obj2 )
     ap = IN_COMBAT ? obj1->Critter.State.CurrentAP : -1;
     if( obj1 == gObjDude ) flgs = 2;
     AnimStart( flgs | 0x04 );
-    tmp = TileUnk16( obj2->GridId, 2, 1 );
+    tmp = TileGetTileNumInDir( obj2->GridId, 2, 1 );
     if( ap == -1 && ObjGetDistance( obj1, obj2 ) >= 5 )
-        AnimStartRun( obj1, tmp, obj2->Elevation, -1, 0 );
+        AnimObjRunToTile( obj1, tmp, obj2->Elevation, -1, 0 );
     else
-        AnimStartWalk( obj1, tmp, obj2->Elevation, ap, 0 );
+        AnimObjMoveToTile( obj1, tmp, obj2->Elevation, ap, 0 );
     AnimSetFinish( obj1, obj2, ActionReachable, -1 );
     AnimUnk51( obj1, obj2->GridId );
     AnimSetCallback11( obj1, (AnimU_t)obj2, (void *)UseApUpdate, -1 );
@@ -637,7 +637,7 @@ DD
     if( dude == gObjDude ) v9 = 2;
     AnimStart( v9 );
     if( CurrentAP == -1 && ObjGetDistance( dude, object ) >= 5 )
-        AnimUnk41( dude, object, -1, 0 );
+        AnimObjRunToObj( dude, object, -1, 0 );
     else
         AnimObjMoveToObj( dude, object, CurrentAP, 0 );
     AnimSetFinish( dude, object, (void *)ActionReachable, -1 );
@@ -671,10 +671,10 @@ int ActionUseOnScenery( Obj_t *obj1, Obj_t *obj2 )
 
 int ActionPlayerPickup( Obj_t *obj )
 {
-    return ActionUseItem( gObjDude, obj );
+    return ActionPickupItem( gObjDude, obj );
 }
 
-int ActionUseItem( Obj_t *Critter, Obj_t *Item )
+int ActionPickupItem( Obj_t *Critter, Obj_t *Item )
 {
     ArtFrmHdr_t *Img;
     Proto_t *proto;
@@ -695,7 +695,7 @@ int ActionUseItem( Obj_t *Critter, Obj_t *Item )
 	if( ObjGetDistance( Critter, Item ) < 5 )
     	    AnimObjMoveToObj( Critter, Item, -1, 0 );
 	else
-	    AnimUnk41( Critter, Item, -1, 0 );	
+	    AnimObjRunToObj( Critter, Item, -1, 0 );	
     }
     AnimSetFinish( Critter, Item, ActionReachable, -1 );
     AnimSetCallback11( Critter, (AnimU_t)Item, (void *)UseApUpdate, -1 );
@@ -754,7 +754,7 @@ DD
 	if( ObjGetDistance( a1, a2 ) < 5 ){
     	    AnimObjMoveToObj( a1, a2, -1, 0 );
 	} else {
-	    AnimUnk41( a1, a2, -1, 0 );
+	    AnimObjRunToObj( a1, a2, -1, 0 );
 	}
     }
     AnimSetFinish( a1, a2, (void *)ActionReachable, -1 );
@@ -881,7 +881,7 @@ printf("=Target=>0x%x %i\n", target->Pid, target->Pid );
         AnimStart( ( dude == gObjDude ) ? 2 : 1 );
         if( target != gObjDude ){
             if( ObjGetDistance( v4, target ) >= 5 ){
-            	AnimUnk41( v4, target, -1, 0 );
+            	AnimObjRunToObj( v4, target, -1, 0 );
             } else {
             	AnimObjMoveToObj( v4, target, -1, 0 );
             }
@@ -940,12 +940,12 @@ int ActionUnk17() // no xref
     while( (sel = InpUpdate()) != -2 ){
         if( sel == 372 ){
             if( ++gActionUnk05 > 5 ) gActionUnk05 = 0;
-            ObjPutObjOnMap( gGmouseObjA, gActionUnk05, &area );
+            ObjSetRotation( gGmouseObjA, gActionUnk05, &area );
             TileUpdateArea( &area, gGmouseObjA->Elevation );
         }
         if( sel == 371 ){
             if( --gActionUnk05 == -1 ) gActionUnk05 = 5;
-            ObjPutObjOnMap( gGmouseObjA, gActionUnk05, &area );
+            ObjSetRotation( gGmouseObjA, gActionUnk05, &area );
             TileUpdateArea( &area, gGmouseObjA->Elevation );
         }
         if( sel == 329 || sel == 337 ){
@@ -989,7 +989,7 @@ int ActionUnk14( Obj_t *obj, int a2 )
     if( a2 == 21 ){
         i = 1;
         do{
-            if( ObjReach( obj, TileUnk16(obj->GridId, obj->Orientation, i ), obj->Elevation ) ){
+            if( ObjReach( obj, TileGetTileNumInDir(obj->GridId, obj->Orientation, i ), obj->Elevation ) ){
         	a2 = 20;
         	break;
             }
@@ -997,7 +997,7 @@ int ActionUnk14( Obj_t *obj, int a2 )
     } else if( a2 == 20 ){
         i = 1;
         do{
-            if( ObjReach( obj, TileUnk16( obj->GridId, (obj->Orientation + 3) % 6, i ), obj->Elevation ) ){
+            if( ObjReach( obj, TileGetTileNumInDir( obj->GridId, (obj->Orientation + 3) % 6, i ), obj->Elevation ) ){
     		a2 = 21;
         	break;
             }
@@ -1025,12 +1025,12 @@ int ActionExplode( int GridPos, int MapLvl, int DmgMin, int DmgMax, Obj_t *Targe
     if( ObjCreate( &TmpObj, ArtMakeId( 5, 10, 0, 0, 0 ), -1 ) == -1 ){ Free( cmbt ); return -1; }
     ObjUnk33( TmpObj, 0 );
     TmpObj->Flags |= 0x04;
-    ObjPutHexObject( TmpObj, GridPos, MapLvl, 0 );
+    ObjMoveToTile( TmpObj, GridPos, MapLvl, 0 );
     for( i = 0; i < 6; i++ ){
         if( ObjCreate( &obj[ i ], ArtMakeId( 5, 10, 0, 0, 0 ), -1 ) == -1 ) break;
         ObjUnk33( obj[ i ], 0 );
         obj[ i ]->Flags |= 0x04;
-        ObjPutHexObject( obj[ i ], TileUnk16( GridPos, i, 1 ), MapLvl, 0 );
+        ObjMoveToTile( obj[ i ], TileGetTileNumInDir( GridPos, i, 1 ), MapLvl, 0 );
     }
     if( i >= 6 ){
 	p = ObjReach( 0, GridPos, MapLvl );
@@ -1173,7 +1173,7 @@ int ActionTalk( Obj_t *Crit1, Obj_t *Crit2 )
     } else {
         tmp = ( Crit1 == gObjDude ) ? 2 : 1;
         AnimStart( tmp );
-        if( ObjGetDistance( Crit1, Crit2 ) >= 9 || CombatBlockedAim( Crit1, Crit1->GridId, Crit2->GridId, Crit2, 0 ) ) AnimUnk41( Crit1, Crit2, -1, 0 );
+        if( ObjGetDistance( Crit1, Crit2 ) >= 9 || CombatBlockedAim( Crit1, Crit1->GridId, Crit2->GridId, Crit2, 0 ) ) AnimObjRunToObj( Crit1, Crit2, -1, 0 );
     }
     AnimSetFinish( Crit1, Crit2, (void *)ActionSndACb, -1 );
     AnimSetCallback11( Crit1, (AnimU_t)Crit2, (void *)ActionSndBCb, -1 );
@@ -1207,7 +1207,7 @@ void ActionUnk05( int a1, int edx0, int a3, int a4, int a5, int a6, int a7 )
     if( ObjCreate( &TmpObj, 0x20001F5, -1 ) == -1 ){ Free( cmbt ); return; }
     ObjUnk33( TmpObj, 0 );
     TmpObj->Flags |= 0x04;
-    ObjPutHexObject( TmpObj, a1, edx0, 0 );
+    ObjMoveToTile( TmpObj, a1, edx0, 0 );
     TragetObj = ObjReach( 0, a1, edx0 );
     CombatSetUp( cmbt, TmpObj, TragetObj, 4, 3 );
     cmbt->TileNo = a1;
@@ -1300,17 +1300,17 @@ int ActionUnk02( Obj_t *a1, Obj_t *a2 )
         if( i18 ) return -1;
     }
     v6 = TileTurnAt( a1->GridId, a2->GridId );
-    v8 = TileUnk16( i18, v6, 1 );
+    v8 = TileGetTileNumInDir( i18, v6, 1 );
     if( ObjReach(a2, v8, a2->Elevation ) ){
-        v8 = TileUnk16( i18, (v6 + 1) % 6, 1 );
+        v8 = TileGetTileNumInDir( i18, (v6 + 1) % 6, 1 );
         if( ObjReach( a2, v8, a2->Elevation ) ){
-            v8 = TileUnk16(i18, (v6 + 5) % 6, 1);
+            v8 = TileGetTileNumInDir(i18, (v6 + 5) % 6, 1);
             if( ObjReach(a2, v8, a2->Elevation) ){
-                v8 = TileUnk16(i18, (v6 + 2) % 6, 1);
+                v8 = TileGetTileNumInDir(i18, (v6 + 2) % 6, 1);
                 if( ObjReach(a2, v8, a2->Elevation) ){
-                    v8 = TileUnk16(i18, (v6 + 4) % 6, 1);
+                    v8 = TileGetTileNumInDir(i18, (v6 + 4) % 6, 1);
                     if( ObjReach(a2, v8, a2->Elevation) ){
-                        v8 = TileUnk16(i18, (v6 + 3) % 6, 1);
+                        v8 = TileGetTileNumInDir(i18, (v6 + 3) % 6, 1);
                         if( ObjReach( a2, v8, a2->Elevation ) ) return -1;
                     }
                 }
@@ -1319,7 +1319,7 @@ int ActionUnk02( Obj_t *a1, Obj_t *a2 )
     }
     AnimStart(2);
     AnimUnk51(a2, v8);
-    AnimStartWalk(a2, v8, a2->Elevation, i18, 0);
+    AnimObjMoveToTile(a2, v8, a2->Elevation, i18, 0);
     return AnimBegin();
 }
 

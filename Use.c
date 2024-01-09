@@ -356,7 +356,7 @@ int UseUnk04( Obj_t *a1, Obj_t *a2)
     return v16;
 }
 
-int UseUnk05( Obj_t *crit, Obj_t *obj )
+int UseDropObj( Obj_t *crit, Obj_t *obj )
 {
     int i18;
     Obj_t *Owner;
@@ -748,7 +748,7 @@ unsigned int UseUseHealSkill( Obj_t *crit, Obj_t *obj1, Obj_t *obj2 )
         if( crit == gObjDude && MessageGetMsg( &gProtoMessages, &msg) == 1 ) IfcMsgOut( msg.Text );
         return -1;
     }
-    if( SkillUseHeal( crit, obj1, SkillIdx, v7 ) || RandMinMax( 1, 10 ) == 1 ){
+    if( SkillAttempt( crit, obj1, SkillIdx, v7 ) || RandMinMax( 1, 10 ) == 1 ){
         msg.Id = MsgId;
         if( crit == gObjDude && MessageGetMsg( &gProtoMessages, &msg ) == 1 ) IfcMsgOut( msg.Text );
         return 1;
@@ -868,7 +868,7 @@ int UseUnk22( Obj_t *crit, Obj_t *obj )
         MapSetPos(&Map);
         WmUnk45(Map.MapId, Map.Frame, 1);
     } else {
-        if( ObjPutHexObject( crit, v5, v6, &rect ) == -1 ) return -1;
+        if( ObjMoveToTile( crit, v5, v6, &rect ) == -1 ) return -1;
         TileUpdateArea( &rect, gCurrentMapLvl );
     }
     return 0;
@@ -893,7 +893,7 @@ int UseUnk23( Obj_t *crit, Obj_t *obj )
         MapSetPos( &Map );
         WmUnk45( Map.MapId, Map.Frame, 1 );
     } else {
-        if( ObjPutHexObject(crit, v5, v6, &Rect) == -1 ) return -1;
+        if( ObjMoveToTile(crit, v5, v6, &Rect) == -1 ) return -1;
         TileUpdateArea( &Rect, gCurrentMapLvl );
     }
     return 0;
@@ -918,7 +918,7 @@ int UseUnk24( Obj_t *crit, Obj_t *obj )
         MapSetPos( &ptr );
         WmUnk45( ptr.MapId, ptr.Frame, 1 );
     } else {
-        if( ObjPutHexObject( crit, v5, v6, &v8 ) == -1 ) return -1;
+        if( ObjMoveToTile( crit, v5, v6, &v8 ) == -1 ) return -1;
         TileUpdateArea( &v8, gCurrentMapLvl );
     }
     return 0;
@@ -1098,10 +1098,7 @@ int UseUseSkill( Obj_t *crit, Obj_t *obj, unsigned int SkillIdx )
         }
         return -1;
     }
-DD
-printf("=>'%s' %i\n",ProtoGetObjName(obj->Pid), obj->Pid );
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return -1;
-DD
     if( obj->ScrId != -1 ){
             ScptUnk138( obj->ScrId, crit, obj );
             ScptUnk136( obj->ScrId, SkillIdx );
@@ -1109,7 +1106,7 @@ DD
             if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
             i18 = scr->i18;
     }
-    if( !i18 ) SkillUseHeal( crit, obj, SkillIdx, 0 );
+    if( !i18 ) SkillAttempt( crit, obj, SkillIdx, 0 );
     return 0;    
 }
 
@@ -1272,21 +1269,21 @@ int UseUnk46( Obj_t *obj, int GridIdx, int lvl, int a4 )
         for( ;v6 < 7; v6++ ){
             if( ++v18 > 100 ) break;
             for( i = 0; i < 6; i++ ){
-                GridIdx = TileUnk16( GridIdx, i, v6 );
+                GridIdx = TileGetTileNumInDir( GridIdx, i, v6 );
                 if(!ObjReach( 0, GridIdx, lvl ) && v6 > 1 && AnimFindTrace( gObjDude, gObjDude->GridId, GridIdx, 0, 0 ) ) break;
             }
             if( i < 6 ) break;            
         }        
         if( a4 != 1 && v6 > a4 + 2 ){
             for ( j = 0; j < 6; j++ ){
-                v10 = TileUnk16( GridIdx, j, 1 );
+                v10 = TileGetTileNumInDir( GridIdx, j, 1 );
                 if( !ObjReach( NULL, v10, lvl ) ) break;
             }
             if( j < 6 ) GridIdx = v10;
         }
     }
     ObjUnk32( obj, &Area2 );
-    if( ObjPutHexObject( obj, GridIdx, lvl, &Area1 ) != -1 ){
+    if( ObjMoveToTile( obj, GridIdx, lvl, &Area1 ) != -1 ){
         RegionExpand( &Area1, &Area2, &Area1 );
         if( lvl == gCurrentMapLvl ) TileUpdateArea( &Area1, lvl );
     }
@@ -1305,13 +1302,13 @@ int UseUnk47( Obj_t *obj, int a2, int a3 )
     if( !v6 ){
         GridId = gObjDude->GridId;
         while( ++v4 <= 100 ){
-            GridId = TileUnk16( GridId, (v4 + 1) % 6, 1 );
+            GridId = TileGetTileNumInDir( GridId, (v4 + 1) % 6, 1 );
             if( WmUnk53( GridId ) ) break;
             if( TileGetDistance( gObjDude->GridId, GridId ) > 8 ){ GridId = a2; break; }
         }
     }
     ObjUnk32( obj, 0 );
-    ObjPutHexObject( obj, GridId, a3, 0 );
+    ObjMoveToTile( obj, GridId, a3, 0 );
     return 0;
 }
 
@@ -1323,7 +1320,7 @@ int UseAddItem( int Pid, int Quantity ) // no X
     if( !gUnk123 ) return -1;
     if( ProtoGetObj( Pid, &proto ) == -1 ) return 0;    
     ObjCreate( &Item, proto->ImgId, Pid );
-    ObjPutHexObject( Item, 0, 0, NULL );
+    ObjMoveToTile( Item, 0, 0, NULL );
     if( ItemAdd( gUnk123, Item, Quantity ) )
         MsgCreate( "Error adding obj to critter!", gPalColorCubeRGB[31][31][11] );
     else

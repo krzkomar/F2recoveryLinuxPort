@@ -129,7 +129,7 @@ int  CritterSaveFile( xFile_t *fh, Critter_t *cr );
 void CritterUnk36( char a1 );
 void CritterUnk37( char a1 );
 void CritterUnk38( char a1 );
-int  CritterUnk39( char Effect );
+int  CritterUsingSkill( char Effect );
 int  CritterUnk40();
 void CritterUnk41();
 int  CritterUnk42();

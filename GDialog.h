@@ -48,6 +48,7 @@ typedef struct
 
 extern Obj_t *gDlgUnk44;
 extern short gDlgUnk46;
+extern int gDlgUnk47;
 
 /*
 int   gDlgUnk06 = 0;
@@ -103,7 +104,7 @@ int gDlgUnk43[] = { 89, 90, 87, 88, 91, 92 };
 Obj_t *gDlgUnk44 = NULL;
 int gDlgUnk45 = 0;
 short gDlgUnk46 = 0;
-int gDlgUnk47 = -1;
+
 int gDlgUnk48[ 42 ] = { 0, 3, 1, 1, 3, 1, 1, 1, 7, 8, 7, 3, 1, 8, 1, 7, 7, 6, 6, 2, 2, 2, 2, 4, 4, 5, 5, 2, 2, 2, 2, 2, 6, 2, 2, 5, 8, 2, 2, 2, 2, 8 };
 int gDlgUnk49 = 0;
 int gDlgUnk50 = -1;

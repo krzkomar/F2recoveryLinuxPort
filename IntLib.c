@@ -259,6 +259,11 @@ void IntpPushiA( Intp_t *scr, int idata )
     IntpPushIntStack( scr->StackA, &scr->StackApos, idata );
 }
 
+void IntpPushPtrA( Intp_t *scr, void *pdata ) // added
+{
+    IntpPushPtrStack( scr->StackA, &scr->StackApos, pdata );
+}
+
 short IntpPopwA( Intp_t *scr )
 {
     return IntpPopShortStack( scr->StackA, &scr->StackApos );
@@ -267,6 +272,11 @@ short IntpPopwA( Intp_t *scr )
 int IntpPopiA( Intp_t *scr )
 {
     return IntpPopIntStack( scr->StackA, &scr->StackApos );
+}
+
+void *IntpPopPtrA( Intp_t *scr )
+{
+    return IntpPopPtrStack( scr->StackA, &scr->StackApos );
 }
 
 void IntpPushwB( Intp_t *scr, short opcode )

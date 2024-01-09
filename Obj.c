@@ -604,7 +604,7 @@ int ObjUnk13( ObjStack_t *stk, Obj_t *item )
         stk->object->ScrId = -1;
         UseCreateScript( stk->object, &stk->object->ScrId );
     }
-    if( ObjPutObjOnMap( stk->object, it->Orientation, 0 ) == -1 ){
+    if( ObjSetRotation( stk->object, it->Orientation, 0 ) == -1 ){
         if( list ){ Free( list ); list = NULL; }
         return -1;
     }
@@ -809,7 +809,7 @@ int ObjPutCursor( Obj_t *Obj, int Xpos, int Ypos, int MapLvl, VidRect_t *Area )
     return 0;
 }
 
-int ObjPutHexObject( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLightArea )
+int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLightArea )
 {
     int v19,xg,yg,v16,v31,k;
     ObjList_t *p, *ListPrev, *ListCur;
@@ -869,10 +869,10 @@ int ObjPutHexObject( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pL
             gObjUnk36 = v31;
         }
         if( pLightArea ){
-            ObjPutHexObject( gObjRadius, GridPos, MapLvl, &v22 );
+            ObjMoveToTile( gObjRadius, GridPos, MapLvl, &v22 );
             RegionExpand( pLightArea, &v22, pLightArea );
         } else {
-            ObjPutHexObject( gObjRadius, GridPos, MapLvl, 0 );
+            ObjMoveToTile( gObjRadius, GridPos, MapLvl, 0 );
         }
         if( MapLvl != obj->Elevation ){
             MapSetLvl( MapLvl );
@@ -974,7 +974,7 @@ int ObjDecFrame( Obj_t *obj, VidRect_t *Area )
     }
     return 0;
 }
-int ObjPutObjOnMap( Obj_t *obj, unsigned int Orientation, VidRect_t *Area )
+int ObjSetRotation( Obj_t *obj, unsigned int Orientation, VidRect_t *Area )
 {
     VidRect_t tmp;
 
@@ -996,7 +996,7 @@ int ObjTurnCW( Obj_t *obj, VidRect_t *Area )
 
     ori = obj->Orientation + 1;
     if( ori >= 6 ) ori = 0;
-    return ObjPutObjOnMap( obj, ori, Area );
+    return ObjSetRotation( obj, ori, Area );
 }
 
 int ObjTurnCCW( Obj_t *obj, VidRect_t *Area )
@@ -1004,7 +1004,7 @@ int ObjTurnCCW( Obj_t *obj, VidRect_t *Area )
     unsigned int ori;
 
     ori = ( obj->Orientation ) ? (obj->Orientation - 1) : 5;
-    return ObjPutObjOnMap( obj, ori, Area );
+    return ObjSetRotation( obj, ori, Area );
 }
 
 void ObjLightGrid()
@@ -1459,7 +1459,7 @@ Obj_t *ObjReach( Obj_t *obj, int GridIdx, int MapLvl )
         }            
     }
     for( i = 0; i < 6; i++ ){
-        idx = TileUnk16( GridIdx, i, 1 );
+        idx = TileGetTileNumInDir( GridIdx, i, 1 );
         if( idx > 39999 ) continue;
         for( p = gObjGridObjects[ idx ]; p; p = p->Next ){
     	    p2 = p->object;
@@ -1487,7 +1487,7 @@ Obj_t *ObjUnk55( unsigned int GridIdx, Obj_t *obj, int MapLvl )
         if( type == TYPE_SCEN || type == TYPE_CRIT || type == TYPE_WALL ) return p->object;
     }
     for( i = 0; i < 6; i++ ){
-        Pos = TileUnk16( GridIdx, i, 1 );
+        Pos = TileGetTileNumInDir( GridIdx, i, 1 );
         if( Pos > 39999 ) continue;                        
     	for( p = gObjGridObjects[ Pos ]; p; p = p->Next ){
     	    if( !(p->object->Flags & 0x800) || MapLvl != p->object->Elevation ) continue;
@@ -1514,7 +1514,7 @@ Obj_t *ObjUnk56( unsigned int GridIdx, Obj_t *obj, int MapLvl )
         gObjUnk42 = p->object;                        
     }
     for( i = 0; i < 6; i++ ){
-        Pos = TileUnk16( GridIdx, i, 1 );
+        Pos = TileGetTileNumInDir( GridIdx, i, 1 );
         if( Pos > 39999 ) continue;        
         for( p = gObjGridObjects[ Pos ]; p; p = p->Next ){
             if( !( p->object->Flags & 0x800 ) || MapLvl != p->object->Elevation ) continue;            
@@ -2175,9 +2175,9 @@ void ObjUnk90()
     for( i = 0; i < 6; i++, e += 144 ){
         n = 0;         
         for( j = 0, jm = 8; j < 8; j++, jm-- ){
-            p = TileUnk16( gTileCentIdx, (i + 1) % 6, j );
+            p = TileGetTileNumInDir( gTileCentIdx, (i + 1) % 6, j );
             for( k = 0; k < jm; k++, n++){
-                gObjLight[ e + 4*n + k ] = TileUnk16( p, i, k + 1 ) - gTileCentIdx;
+                gObjLight[ e + 4*n + k ] = TileGetTileNumInDir( p, i, k + 1 ) - gTileCentIdx;
             }            
         }
     }
@@ -2186,10 +2186,10 @@ void ObjUnk90()
     for( i = 0; i < 6; i++, e += 144 ){
         n = 0;
         for( j = 0, jm = 8; j < 8; j++, jm-- ){
-            p = TileUnk16( gTileCentIdx + 1, (i + 1) % 6, j );
+            p = TileGetTileNumInDir( gTileCentIdx + 1, (i + 1) % 6, j );
             idx = e + 4 * n;
             for( k = 0; k < jm; n++, k++, idx++ ){
-                gObjLight[ idx ] = TileUnk16( p, i, k + 1 ) - (gTileCentIdx + 1);
+                gObjLight[ idx ] = TileGetTileNumInDir( p, i, k + 1 ) - (gTileCentIdx + 1);
             }            
         }
     }
@@ -2339,8 +2339,8 @@ int ObjLoadDude( xFile_t *fh )
     gObjDude->Orientation = Orientation;
 
     if( ScptSetDudeScript() != -1 ){
-        ObjPutHexObject( gObjDude, NewPos, NewLvl, NULL );
-        ObjPutObjOnMap( gObjDude, NewOri, 0 );
+        ObjMoveToTile( gObjDude, NewPos, NewLvl, NULL );
+        ObjSetRotation( gObjDude, NewOri, 0 );
     }
 
     for( i = 0; i < gObjDude->Critter.Box.Cnt; i++ ){

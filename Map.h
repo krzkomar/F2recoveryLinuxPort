@@ -85,7 +85,7 @@ int MapGetVar( int VarId );
 int MapSetLocalVar( int VarId, int Val );
 int MapGetLocalVar( int VarId );
 int MapVarsAdd( int VarNum );
-void MapUnk29( int a1, int a2, int a3 );
+void MapSetStart( int a1, int a2, int a3 );
 void MapNewScript( int ScriptId );
 void MapCurSetFileName( char *fname );
 void MapCurGetFileName( char *fname );

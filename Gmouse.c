@@ -394,7 +394,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             case 1: // pointed object
                 if( !( obj = GmouseGetObject( -1, 1, gCurrentMapLvl ) ) ) return;
                 switch( OBJTYPE( obj->ImgId ) ){
-                    case TYPE_ITEM: ActionUseItem( gObjDude, obj ); break;
+                    case TYPE_ITEM: ActionPickupItem( gObjDude, obj ); break;
                     case TYPE_CRIT:
                         if( obj == gObjDude ){
                             if( !((gObjDude->ImgId & 0xFF0000) >> 16) && !ObjTurnCW( obj, &Area2 ) ) TileUpdateArea( &Area2, obj->Elevation );
@@ -546,7 +546,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             switch( OBJTYPE( obj->ImgId ) ){
         	case TYPE_CRIT: ActionUseOnCritter( gObjDude, obj ); break;
         	case TYPE_SCEN: ActionUseOnScenery( gObjDude, obj ); break;
-        	default: ActionUseItem( gObjDude, obj ); break;
+        	default: ActionPickupItem( gObjDude, obj ); break;
             }
             break;
         case INV_ACT_SKILL:
@@ -1181,7 +1181,7 @@ int GmouseCursorUpdate( int x, int y, int lvl, VidRect_t *Area )
             GridPos = TileGetPointed( x, y );
         }
         if( GridPos == -1 ) return -1;
-        if( !ObjPutHexObject( gGmouseObjA, GridPos, lvl, &AreaOut ) ){
+        if( !ObjMoveToTile( gGmouseObjA, GridPos, lvl, &AreaOut ) ){
             if( (a2 || v38) && !ObjMove( gGmouseObjA, a2, v38, &Area2 ) ) RegionExpand( &AreaOut, &Area2, &AreaOut );
             v40 = 1;
         }
@@ -1205,7 +1205,7 @@ int GmouseCursorUpdate( int x, int y, int lvl, VidRect_t *Area )
         	}
             }
         } else {
-            if( !ObjPutHexObject( gGmouseObjB, GridPos, lvl, &Area2 ) ){
+            if( !ObjMoveToTile( gGmouseObjB, GridPos, lvl, &Area2 ) ){
         	if( v40 ){
         	    RegionExpand( &AreaOut, &Area2, &AreaOut );
         	} else {
@@ -1236,7 +1236,7 @@ int GmouseCursorUpdate( int x, int y, int lvl, VidRect_t *Area )
 	if( !TileGetScrCoordinates( Pointed, &pX, &pY ) ){ // erase previous cursor
 	    if( !ObjPutCursor( gGmouseObjA, pX + 16, pY + 15, 0, &Rect ) ) flg = 1;
 	}
-	if( ObjPutHexObject( gGmouseObjB, Pointed, lvl, &Area1 ) ) return 0;    
+	if( ObjMoveToTile( gGmouseObjB, Pointed, lvl, &Area1 ) ) return 0;    
 	if( flg )
     	    RegionExpand( &Rect, &Area1, &Rect );
 	else

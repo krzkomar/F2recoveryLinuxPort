@@ -221,7 +221,7 @@ int AnimObjMoveToObj( Obj_t *Object, Obj_t *DstObj, int Ap, int a4 )
     return AnimUnk51( Object, DstObj->GridId );
 }
 
-int AnimUnk41( Obj_t *obj1, Obj_t *obj2, int Ap, int a4 )
+int AnimObjRunToObj( Obj_t *obj1, Obj_t *obj2, int Ap, int a4 )
 {
     Anim01_t *anim;
     char stmp[ 100 ];
@@ -249,7 +249,7 @@ int AnimUnk41( Obj_t *obj1, Obj_t *obj2, int Ap, int a4 )
     if( OBJTYPE( obj1->ImgId ) == 1 && ( obj1->Critter.State.CombatResult & ( 0x08 | 0x04 )) ){
         anim->Silence = 1;
     } else {
-        if( obj1 == gObjDude && CritterUnk39( 0 ) && !PerkLvl( gObjDude, PERK_SILENT_RUNNING ) ){
+        if( obj1 == gObjDude && CritterUsingSkill( 0 ) && !PerkLvl( gObjDude, PERK_SILENT_RUNNING ) ){
             anim->Silence = 1;
         } else {
     	    anim->Silence = ( !ArtFileExist( ArtMakeId( OBJTYPE( obj1->ImgId ), obj1->ImgId & 0xFFF, 19, 0, obj1->Orientation + 1 ) ) ) ? 1 : 19;
@@ -268,7 +268,7 @@ int AnimUnk41( Obj_t *obj1, Obj_t *obj2, int Ap, int a4 )
     return AnimUnk51( obj1, obj2->GridId );
 }
 
-int AnimStartWalk( Obj_t *obj, int TargetPos, int MapLvl, int Ap, int a5 )
+int AnimObjMoveToTile( Obj_t *obj, int TargetPos, int MapLvl, int Ap, int a5 )
 {
     Anim01_t *anim;
 
@@ -290,7 +290,7 @@ int AnimStartWalk( Obj_t *obj, int TargetPos, int MapLvl, int Ap, int a5 )
     return 0;
 }
 
-int AnimStartRun( Obj_t *obj, int GridId, int MapLvl, int Ap, int a5 )
+int AnimObjRunToTile( Obj_t *obj, int GridId, int MapLvl, int Ap, int a5 )
 {
     Anim01_t *anim;
     MsgLine_t Line;
@@ -311,7 +311,7 @@ int AnimStartRun( Obj_t *obj, int GridId, int MapLvl, int Ap, int a5 )
             }
             IfcMsgOut( stmp );
         }
-        return AnimStartWalk( obj, GridId, MapLvl, Ap, a5 ); // walk, when overloaded
+        return AnimObjMoveToTile( obj, GridId, MapLvl, Ap, a5 ); // walk, when overloaded
     }
 
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
@@ -320,7 +320,7 @@ int AnimStartRun( Obj_t *obj, int GridId, int MapLvl, int Ap, int a5 )
     if( OBJTYPE( obj->ImgId ) == TYPE_CRIT && (obj->Critter.State.CombatResult & 0x0C) ){
         anim->Silence = 1;
     } else {
-	if( obj == gObjDude && CritterUnk39( 0 ) && !PerkLvl( gObjDude, PERK_SILENT_RUNNING ) ){
+	if( obj == gObjDude && CritterUsingSkill( 0 ) && !PerkLvl( gObjDude, PERK_SILENT_RUNNING ) ){
     	    anim->Silence = 1;
 	} else {
 	    anim->Silence = ( !ArtFileExist( ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, 19, 0, obj->Orientation + 1 ) ) ) ? 1 : 19;
@@ -1039,7 +1039,7 @@ int AnimMakeTrace( Obj_t *obj, int BeginPos, int EndPos, unsigned char *Trace, i
             v50++;
             if( v50 == 2000 ) return 0;
             for( i = 0; i < 6; i++ ){ // kierunki
-                v19 = TileUnk16( Pos, i, 1 );
+                v19 = TileGetTileNumInDir( Pos, i, 1 );
                 if( MAPGRID_TEST( v19 )) continue;
                 if( v19 != EndPos ){
             	    if( (v21 = AccessibleCb( obj, v19, obj->Elevation ) ) ){
@@ -1251,8 +1251,8 @@ int AnimUnk08( Obj_t *a1, Obj_t *a2, int a3, int a4, int a5 )
         gAnimUnk23[ v8 ].Stat = -1000;
         AnimUnk70( a5, 0 );
     }
-    if( dAp ) gAnimUnk23[ v8 ].GridPos = TileUnk16( a2->GridId, gAnimUnk23[ v8 ].Path[ dAp + gAnimUnk23[ v8 ].Ap ], 1 );
-    if( dAp == 2 ) gAnimUnk23[ v8 ].GridPos = TileUnk16( gAnimUnk23[ v8 ].GridPos, gAnimUnk23[ v8 ].Path[ gAnimUnk23[ v8 ].Ap ], 1 );
+    if( dAp ) gAnimUnk23[ v8 ].GridPos = TileGetTileNumInDir( a2->GridId, gAnimUnk23[ v8 ].Path[ dAp + gAnimUnk23[ v8 ].Ap ], 1 );
+    if( dAp == 2 ) gAnimUnk23[ v8 ].GridPos = TileGetTileNumInDir( gAnimUnk23[ v8 ].GridPos, gAnimUnk23[ v8 ].Path[ gAnimUnk23[ v8 ].Ap ], 1 );
     if( a3 != -1 && a3 < gAnimUnk23[ v8 ].Ap ) gAnimUnk23[ v8 ].Ap = a3;
     return 0;
 }
@@ -1381,7 +1381,7 @@ int AnimUnk10( Obj_t *obj, unsigned int MapIdx, int MapLvl, int Ap, int Silence,
         gAnimUnk23[ k ].Stat = -1000;
         AnimUnk70( AnimIdx, 0 );
     }
-    gAnimUnk23[ k ].GridPos = TileUnk16( MapIdx, gAnimUnk23[ k ].Path[ gAnimUnk23[ k ].Ap ], 1 ); // stop position
+    gAnimUnk23[ k ].GridPos = TileGetTileNumInDir( MapIdx, gAnimUnk23[ k ].Path[ gAnimUnk23[ k ].Ap ], 1 ); // stop position
     if( Ap != -1 && Ap < gAnimUnk23[ k ].Ap ) gAnimUnk23[ k ].Ap = Ap;    
     return 0;
 }
@@ -1494,10 +1494,10 @@ void AnimMovement( int AnimIdx )
 
     obj1 = gAnimUnk23[ AnimIdx ].Obj;
     if( gAnimUnk23[ AnimIdx ].Stat == -2000 ){
-        ObjPutHexObject( gAnimUnk23[ AnimIdx ].Obj, obj1->GridId, obj1->Elevation, &Area12 );
+        ObjMoveToTile( gAnimUnk23[ AnimIdx ].Obj, obj1->GridId, obj1->Elevation, &Area12 );
         ObjSetFrame( obj1, 0, &Area3 );
         RegionExpand( &Area12, &Area3, &Area12 );
-        ObjPutObjOnMap( obj1, gAnimUnk23[ AnimIdx ].Path[ 0 ], &Area3 );
+        ObjSetRotation( obj1, gAnimUnk23[ AnimIdx ].Path[ 0 ], &Area3 );
         RegionExpand( &Area12, &Area3, &Area12 );
         ObjSetShape( obj1, ArtMakeId( OBJTYPE( obj1->ImgId ), obj1->ImgId & 0xFFF, gAnimUnk23[ AnimIdx ].i04, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ), &Area3 );
         RegionExpand( &Area12, &Area3, &Area12 );
@@ -1522,17 +1522,17 @@ void AnimMovement( int AnimIdx )
     if( (x < 0 && obj1->PosX <= x) || (x > 0 && x <= obj1->PosX ) || (y < 0 && obj1->PosY <= y) || (y > 0 && y <= obj1->PosY) ){
         x = obj1->PosX - x;
         y = obj1->PosY - y;
-        v10 = TileUnk16( obj1->GridId, dir, 1 );        
+        v10 = TileGetTileNumInDir( obj1->GridId, dir, 1 );        
         if( (obj2 = ObjReach( obj1, v10, obj1->Elevation )) ){
             if( AnimUnk71( obj1, obj2 ) ){
                 UseDoor( obj1, obj2, 0 ); // doorway
             } else {
                 if( (gAnimUnk23[ AnimIdx ].Ap = AnimFindTrace( obj1, obj1->GridId, gAnimUnk23[ AnimIdx ].GridPos, (unsigned char *)gAnimUnk23[ AnimIdx ].Path, 1 ) ) ){
-                    ObjPutHexObject( obj1, obj1->GridId, obj1->Elevation, &Area3 );
+                    ObjMoveToTile( obj1, obj1->GridId, obj1->Elevation, &Area3 );
                     RegionExpand( &Area12, &Area3, &Area12 );
                     ObjSetFrame( obj1, 0, &Area3 );
                     RegionExpand( &Area12, &Area3, &Area12 );
-                    ObjPutObjOnMap( obj1, gAnimUnk23[ AnimIdx ].Path[ 0 ], &Area3 );
+                    ObjSetRotation( obj1, gAnimUnk23[ AnimIdx ].Path[ 0 ], &Area3 );
                     RegionExpand( &Area12, &Area3, &Area12 );
                     gAnimUnk23[ AnimIdx ].Stat = 0;
                 } else {
@@ -1542,7 +1542,7 @@ void AnimMovement( int AnimIdx )
             }
         }
         if( v10 != -1 ){
-            ObjPutHexObject( obj1, v10, obj1->Elevation, &Area3 );
+            ObjMoveToTile( obj1, v10, obj1->Elevation, &Area3 );
             RegionExpand( &Area12, &Area3, &Area12 );
             v16 = 0;
             if( IN_COMBAT && OBJTYPE( obj1->ImgId ) == TYPE_CRIT ){
@@ -1562,7 +1562,7 @@ void AnimMovement( int AnimIdx )
             if( gAnimUnk23[ AnimIdx ].Stat == gAnimUnk23[ AnimIdx ].Ap || v16 ){
                 gAnimUnk23[ AnimIdx ].Stat = -1000;
             } else {
-                ObjPutObjOnMap( obj1, gAnimUnk23[ AnimIdx ].Path[ gAnimUnk23[ AnimIdx ].Stat ], &Area3 );
+                ObjSetRotation( obj1, gAnimUnk23[ AnimIdx ].Path[ gAnimUnk23[ AnimIdx ].Stat ], &Area3 );
                 RegionExpand( &Area12, &Area3, &Area12 );
                 ObjMove( obj1, x, y, &Area3 );
                 RegionExpand( &Area12, &Area3, &Area12 );
@@ -1598,7 +1598,7 @@ void AnimUnk16( int AnimIdx )
         }
         if( gAnimUnk23[ AnimIdx ].Stat < gAnimUnk23[ AnimIdx ].Ap ){
             t = &gAnimUnk23[ AnimIdx ].Tab[ gAnimUnk23[ AnimIdx ].Stat ];
-            ObjPutHexObject( obj, t->GridPos, t->i02, &Area2 );
+            ObjMoveToTile( obj, t->GridPos, t->i02, &Area2 );
             RegionExpand( &Area1, &Area2, &Area1 );
             ObjMove( obj, t->i03, t->i04, &Area2 );
             RegionExpand( &Area1, &Area2, &Area1 );
@@ -1793,7 +1793,7 @@ int AnimWalk( int Ap )
     if( GridPos == gAnimRunPos ) return AnimRun( Ap );        
     gAnimRunPos = GridPos;
     AnimStart( 2 );
-    AnimStartWalk( gObjDude, GridPos, gObjDude->Elevation, Ap, 0 );
+    AnimObjMoveToTile( gObjDude, GridPos, gObjDude->Elevation, Ap, 0 );
     return AnimBegin();        
 }
 
@@ -1804,7 +1804,7 @@ int AnimRun( int Ap )
     if( (TargetGridId = AnimGetTarget( &Ap )) == -1 ) return -1;
     if( !PerkLvl( gObjDude, PERK_SILENT_RUNNING ) ) CritterUnk36( 0 );
     AnimStart( 2 );
-    AnimStartRun( gObjDude, TargetGridId, gObjDude->Elevation, Ap, 0 );
+    AnimObjRunToTile( gObjDude, TargetGridId, gObjDude->Elevation, Ap, 0 );
     return AnimBegin();    
 }
 
@@ -1865,7 +1865,7 @@ void AnimUnk24( Obj_t *obj, unsigned int Orientation, int ArtId )
     VidRect_t Area2, v20;
     int n,Ypos,i,Xoffs,Yoffs,Fpd,Xpos;
 
-    ObjPutObjOnMap( obj, Orientation, &Area2 );
+    ObjSetRotation( obj, Orientation, &Area2 );
     n = (obj->ImgId & 0xF000) >> 12;
     Xpos = Ypos = 0;
     if( n ){
@@ -1893,7 +1893,7 @@ void AnimUnk24( Obj_t *obj, unsigned int Orientation, int ArtId )
         ArtId = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, ( (obj->ImgId & 0xFF0000) >> 16 == 33 ) ? 33 : 0, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 );
     ObjSetShape( obj, ArtId, &v20 );
     RegionExpand( &Area2, &v20, &Area2 );
-    ObjPutHexObject( obj, obj->GridId, obj->Elevation, &v20 );
+    ObjMoveToTile( obj, obj->GridId, obj->Elevation, &v20 );
     RegionExpand( &Area2, &v20, &Area2 );
     ObjSetFrame( obj, 0, &v20 );
     RegionExpand( &Area2, &v20, &Area2 );

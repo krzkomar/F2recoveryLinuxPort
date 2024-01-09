@@ -1695,6 +1695,6 @@ void ScpIfcInit()
     SciAddOpcode( 0x809F, ScpIfc_SelectFileList );
     SciAddOpcode( 0x80A0, ScpIfc_TokenizeString );
     NevsInitOnce( );
-//    ScpSetupGameCmdC(  );
+    ScpGameSetup();
 }
 

@@ -442,7 +442,7 @@ int PartyUnk07()
     v7 = (gObjDude->Orientation + 4) % 6;
     for( i = 1; i < gPartyMembersCount; i++ ){
         if( !( gParty[ i ].dude->Flags & 0x01 ) && OBJTYPE( gParty[ i ].dude->Pid ) == 1 ){
-            UseUnk47( gParty[ i ].dude, TileUnk16( gObjDude->GridId, ( v0 % 2 ) ? v8 : v7, v2 / 2 ), gObjDude->Elevation );
+            UseUnk47( gParty[ i ].dude, TileGetTileNumInDir( gObjDude->GridId, ( v0 % 2 ) ? v8 : v7, v2 / 2 ), gObjDude->Elevation );
             v2++; v0++;
         }
     }

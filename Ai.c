@@ -545,17 +545,17 @@ void AiMoveRunTo( Obj_t *obj1, Obj_t *obj2 )
         b = (a + 5) % 6;
         c = (a + 1) % 6;
         for( i = ap; i > 0; i-- ){
-            EndPos = TileUnk16( obj1->GridId, a, i );
+            EndPos = TileGetTileNumInDir( obj1->GridId, a, i );
             if( AnimFindTrace( obj1, obj1->GridId, EndPos, 0, 1 ) > 0 ) break;
-            EndPos = TileUnk16( obj1->GridId, c, i );
+            EndPos = TileGetTileNumInDir( obj1->GridId, c, i );
             if( AnimFindTrace( obj1, obj1->GridId, EndPos, 0, 1 ) > 0 ) break;
-            EndPos = TileUnk16( obj1->GridId, b, i );
+            EndPos = TileGetTileNumInDir( obj1->GridId, b, i );
             if( AnimFindTrace( obj1, obj1->GridId, EndPos, 0, 1 ) > 0 ) break;
         };
         if( i > 0 ){
             AnimStart( 2 );
             AiCombatTaunts( obj1, NULL, 0, 0 );
-            AnimStartRun( obj1, EndPos, obj1->Elevation, ap, 0 );
+            AnimObjRunToTile( obj1, EndPos, obj1->Elevation, ap, 0 );
             if( !AnimBegin() ) CombatUpdate();
         }
     } else {
@@ -576,17 +576,17 @@ int AiMoveWalkTo( Obj_t *obj1, Obj_t *obj2, int a3 )
             c = (a + 5) % 6;
             b = (a + 1) % 6;
             for( i = ap; i > 0; i-- ){
-                EndPos = TileUnk16( obj1->GridId, a, i );
+                EndPos = TileGetTileNumInDir( obj1->GridId, a, i );
                 if( AnimFindTrace( obj1, obj1->GridId, EndPos, 0, 1 ) > 0 ) break;
-                EndPos = TileUnk16( obj1->GridId, b, i );
+                EndPos = TileGetTileNumInDir( obj1->GridId, b, i );
                 if( AnimFindTrace( obj1, obj1->GridId, EndPos, 0, 1 ) > 0 ) break;
-                EndPos = TileUnk16( obj1->GridId, c, i );
+                EndPos = TileGetTileNumInDir( obj1->GridId, c, i );
                 if( AnimFindTrace( obj1, obj1->GridId, EndPos, 0, 1 ) > 0 ) break;
             }
         }
         if( i > 0 ){
             AnimStart( 2 );
-            AnimStartWalk( obj1, EndPos, obj1->Elevation, ap, 0 );
+            AnimObjMoveToTile( obj1, EndPos, obj1->Elevation, ap, 0 );
             if( !AnimBegin() ) CombatUpdate();
         }
     }
@@ -821,7 +821,7 @@ Obj_t *AiDangerSource( Obj_t *obj )
     }
     qsort( &objs, 4, sizeof( Obj_t *), Cmp );
     for( i = 0; i < 4; i++ ){
-        if( objs[ i ] && AiUnk60( obj, objs[ i ] ) ){
+        if( objs[ i ] && AiObjCanHearObj( obj, objs[ i ] ) ){
             if( AnimMakeTrace( obj, obj->GridId, objs[ i ]->GridId, 0, 0, (void *)ObjReach ) ) return objs[ i ];
             if( !CombatAttackTest( obj, objs[ i ], 2, 0 ) ) return objs[ i ];
             eprintf( "\nai_danger_source: I couldn't get at my target!  Picking alternate!" );
@@ -1084,7 +1084,7 @@ Obj_t *AiPickUpObj( Obj_t *Critter, Obj_t *Item )
     Obj_t *obj;
 
     obj = NULL;
-    if( ActionUseItem( Critter, Item ) ) return NULL;
+    if( ActionPickupItem( Critter, Item ) ) return NULL;
     CombatUpdate();
     obj = InvSearchObjByPid( Critter, Item->ProtoPid );
     CombatUnk14( Critter );    
@@ -1163,13 +1163,13 @@ int AiUnk35( Obj_t *a1, Obj_t *a2, int a3, int a4 )
     if( a2 == v18 ) AiUnk37( a1, a2, &GridId );
     if( a3 >= FeatGetVal( a1, 8 ) / 2 && ArtCritterFidShouldRunData( a1->ImgId ) ){
         if( (a2->Flags & 0x800) != 0 )
-            AnimUnk41( a1, a2, a3, 0 );
+            AnimObjRunToObj( a1, a2, a3, 0 );
         else
-            AnimStartRun( a1, GridId, a1->Elevation, a3, 0 );
+            AnimObjRunToTile( a1, GridId, a1->Elevation, a3, 0 );
     } else if( a2->Flags & 0x800 ) {
         AnimObjMoveToObj( a1, a2, a3, 0 );
     } else {
-        AnimStartWalk( a1, GridId, a1->Elevation, a3, 0 );
+        AnimObjMoveToTile( a1, GridId, a1->Elevation, a3, 0 );
     }
     if( AnimBegin() ) return -1;
     CombatUpdate();
@@ -1239,8 +1239,8 @@ int AiUnk38( Ai02_t *group, int a2 )
         p = group->Enemies[ i ];
         if( AiUnk39( p, group->Unk, group->Attacker, a2, &cnt ) ){
 	    eprintf( "In the way!" );
-	    group->Positions[ group->Unk02 + 0 ] = TileUnk16( a2, (p->Orientation + 1) % 6, cnt );
-	    group->Positions[ group->Unk02 + 1 ] = TileUnk16( a2, (p->Orientation + 5) % 6, cnt );
+	    group->Positions[ group->Unk02 + 0 ] = TileGetTileNumInDir( a2, (p->Orientation + 1) % 6, cnt );
+	    group->Positions[ group->Unk02 + 1 ] = TileGetTileNumInDir( a2, (p->Orientation + 5) % 6, cnt );
 	    group->Intelligence -= 2;
 	    group->Unk02 += 2;
 	    return 0;
@@ -1377,7 +1377,7 @@ LABEL_9:
                     	    GridId = a1->GridId;
                     	    if( Trace < a3 ) a3 = Trace;
                     	    for( i = 0; i < a3; i++, v44++ ){
-                        	GridId = TileUnk16( GridId, a4[ i ], 1 );
+                        	GridId = TileGetTileNumInDir( GridId, a4[ i ], 1 );
                         	if( CombatDetermineHitDist( a1, GridId, edx0, 8, v36 ) >= MinToHit ) return 0;
                     	    }
                     	    if( i == a3 ) v44 = a3;
@@ -1515,7 +1515,7 @@ int AiUnk48( Obj_t *obj, Obj_t *a2 )
     k = obj->GridId;
     if( !AiUnk37( obj, a2, &k ) && k != obj->GridId ){
         AnimStart( 2 );
-        AnimStartWalk( obj, k, obj->Elevation, obj->Critter.State.CurrentAP, 0 );
+        AnimObjMoveToTile( obj, k, obj->Elevation, obj->Critter.State.CurrentAP, 0 );
         if( AnimBegin() ) return -1;
         CombatUpdate();
     }
@@ -1633,7 +1633,7 @@ int AiUnk52( Obj_t *obj )
     if( obj->Critter.State.CombatResult & 0x81 ) return 1;
     if( obj->Grid.DestMapId & 0x04 ) return 1;
     dang = AiDangerSource( obj );
-    return !dang || !AiUnk60( obj, dang );
+    return !dang || !AiObjCanHearObj( obj, dang );
 }
 
 int AiUnk53( Obj_t *obj, int Group )
@@ -1776,7 +1776,7 @@ int AiUnk59( Obj_t *obj, Obj_t *a2 )
     return CritterUnk45( obj, a2 );
 }
 
-int AiUnk60( Obj_t *Rogue, Obj_t *Target )
+int AiObjCanHearObj( Obj_t *Rogue, Obj_t *Target )
 {
     int Distance, Perception, SneakSkill, Check;
 
@@ -1791,7 +1791,7 @@ int AiUnk60( Obj_t *Rogue, Obj_t *Target )
             if( CritterUnk42() ){
                 Check = Check / 4;
                 if( SneakSkill > 120 ) Check--;
-            } else if( CritterUnk39(0) ){
+            } else if( CritterUsingSkill(0) ){
                 Check = 2 * Check / 3;
             }
         } 
@@ -1802,7 +1802,7 @@ int AiUnk60( Obj_t *Rogue, Obj_t *Target )
         if( CritterUnk42() ){
             Check = Check / 4;
             if( SneakSkill > 120 ) Check--;
-        } else if( CritterUnk39( 0 ) ){
+        } else if( CritterUsingSkill( 0 ) ){
             Check = 2 * Check / 3;
         }
     }
@@ -1850,9 +1850,9 @@ void AiUnk63( Obj_t *obj )
     for( i = 0; i < gAiObjCount; i++ ){
         p = gAiObjList[ i ];
         if( p->Critter.State.Reaction & 0x01 ) continue;
-        if( !AiUnk60( gAiObjList[ i ], obj ) ) continue;        
+        if( !AiObjCanHearObj( gAiObjList[ i ], obj ) ) continue;        
         p->Critter.State.Reaction |= 0x01;
-        if( ( obj->Critter.State.CombatResult & 0x80 ) && !AiUnk60( p, obj->Critter.State.WhoHitMeObj ) ){
+        if( ( obj->Critter.State.CombatResult & 0x80 ) && !AiObjCanHearObj( p, obj->Critter.State.WhoHitMeObj ) ){
             eprintf( "\nSomebody Died and I don't know why!  Run!!!" );
             CombatUnk10( p, obj );
         }                
@@ -1867,7 +1867,7 @@ void AiUnk64( Obj_t *obj )
     for( i = 0; i < gAiObjCount; i++ ){
         p = gAiObjList[ i ];
         if( !(p->Critter.State.Reaction & 0x01) && obj->Critter.State.GroupId == p->Critter.State.GroupId ){
-            if( AiUnk60( gAiObjList[ i ], obj ) ) p->Critter.State.Reaction |= 0x01;
+            if( AiObjCanHearObj( gAiObjList[ i ], obj ) ) p->Critter.State.Reaction |= 0x01;
         }
     }
 }

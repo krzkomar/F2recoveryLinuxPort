@@ -281,10 +281,10 @@ Obj_t *ScptUnk142( int a1 )
     return NULL;
 }
 
-int ScptUnk141( Intp_t *a1, int a2 )
+int ScptGetActionSource( Intp_t *a1 )
 {
     ScptCache_t *j;
-    int i;
+    int i,a2;
 
     for( i = 0; i < 5; i++ ){
         for( j = gScrScripts[ i ].First; j; j = j->Next ){
@@ -310,7 +310,7 @@ Obj_t *ScptUnk140( Intp_t *a1 )
     Scpt_t *scr; // [esp+8h] [ebp-14h] OVERLAPPED BYREF
 
     obj = 0;
-    v3 = ScptUnk141( a1, 0 );
+    v3 = ScptGetActionSource( a1 );
     if( ScptPtr( v3, &a2 ) == -1 ) return NULL;
     if( a2->TimeEv ) return a2->TimeEv;
     if( OBJTYPE( v3 ) != TYPE_CRIT ) return NULL;
@@ -325,7 +325,7 @@ Obj_t *ScptUnk140( Intp_t *a1 )
     for( v6 = 0; v6 >= 3; v6++ ){        
 	for( v7 = ScptUnk20( v6 ); v7; v7 = ScptUnk21() ){
 	    if( v7 != a2 ) continue;
-	    ObjPutHexObject( obj, a2->HexOrTimer & 0x3FFFFFF, v6, 0 );
+	    ObjMoveToTile( obj, a2->HexOrTimer & 0x3FFFFFF, v6, 0 );
 	    return obj;
 	}        	
     }
@@ -464,8 +464,9 @@ int ScptUnk130( int a1, Scpt_t *a2 )
     return a1 == gScptUnk113 && a2->i01 == gScptUnk112;
 }
 
-int ScptUnk129( int a1, int a2 )
+int ScptAddTimerEvent( int ScrId, int a1, int a2 )
 {
+/*
     int *p;
     Scpt_t *scr;
 
@@ -475,6 +476,7 @@ int ScptUnk129( int a1, int a2 )
     p[1] = a2;
     if( ScptPtr(a1, &scr) != -1 && EvQeSchedule(a1, scr->TimeEv, p, 3) != -1 ) return 0;
     Free(p);
+*/
     return -1;
 }
 
@@ -554,18 +556,18 @@ void ScptProcess()
                 if( MapId == gMap.MapId ){
                     if( a3 == gCurrentMapLvl ){
                         AnimClear( gObjDude );
-                        ObjPutObjOnMap( gObjDude, 2, NULL );
+                        ObjSetRotation( gObjDude, 2, NULL );
                         UseUnk46( gObjDude, a4, a3, 0 );
                     } else {
                         for( i = ObjGetVisibleObjectFirst( gObjDude->Elevation ); i; i = ObjGetVisibleObjectNext() ){
                             if( (i->Pid >> 24) == 2 && (i->Pid == 0x2000099 || i->Pid == 0x20001A5 || i->Pid == 0x20001D6 ) && TileGetDistance( i->GridId, gObjDude->GridId ) <= 4 ) break;
                         }
                         AnimClear( gObjDude );
-                        ObjPutObjOnMap( gObjDude, 2, 0 );
+                        ObjSetRotation( gObjDude, 2, 0 );
                         UseUnk46( gObjDude, a4, a3, 0 );
                         if( i ){
                             ObjSetFrame( i, 0, 0 );
-                            ObjPutHexObject( i, i->GridId, i->Elevation, NULL );
+                            ObjMoveToTile( i, i->GridId, i->Elevation, NULL );
                             i->Flags &= ~0xA0000010;
                             i->Critter.State.Reaction &= ~0x01;
                             ObjLightGrid();
@@ -579,7 +581,7 @@ void ScptProcess()
                     }
                     if( p ){
                         ObjSetFrame( p, 0, 0 );
-                        ObjPutHexObject( p, p->GridId, p->Elevation, NULL );
+                        ObjMoveToTile( p, p->GridId, p->Elevation, NULL );
                         p->Flags &= ~0xA0000010;
                         p->Critter.State.Reaction &= ~0x01;
                         ObjLightGrid();
@@ -618,18 +620,18 @@ void ScptUnk122()
             if( pMapId == gMap.MapId ){
                 if( Lvl == gCurrentMapLvl ){
                     AnimClear( gObjDude );
-                    ObjPutObjOnMap( gObjDude, 2, NULL );
+                    ObjSetRotation( gObjDude, 2, NULL );
                     UseUnk46( gObjDude, PosY, Lvl, 0 );
                 } else {
                     for( i = ObjGetVisibleObjectFirst( gObjDude->Elevation ); i; i = ObjGetVisibleObjectNext() ){
                         if( (i->Pid >> 24) == 2 && (i->Pid == 0x2000099 || i->Pid == 0x20001A5 || i->Pid == 0x20001D6 ) && TileGetDistance( i->GridId, gObjDude->GridId ) <= 4 ) break;
                     }
                     AnimClear( gObjDude );
-                    ObjPutObjOnMap( gObjDude, 2, NULL );
+                    ObjSetRotation( gObjDude, 2, NULL );
                     UseUnk46( gObjDude, PosY, Lvl, 0 );
                     if( i ){
                         ObjSetFrame( i, 0, 0 );
-                        ObjPutHexObject( i, i->GridId, i->Elevation, NULL );
+                        ObjMoveToTile( i, i->GridId, i->Elevation, NULL );
                         i->Flags &= ~0xA0000010;
                         i->Critter.State.Reaction &= ~0x01;
                         ObjLightGrid();
@@ -712,10 +714,10 @@ int ScptRequestElevator( Scpt_t *a1, int Reaction )
     return 0;	
 }
 
-void ScptUnk116( unsigned int a1, int a2, int a3, int a4 )
+void ScptExplosion( unsigned int tilenum, int a2, int a3, int a4 )
 {
     gScptUnk02 |= 0x10;
-    gScptUnk121 = a1;
+    gScptUnk121 = tilenum;
     gScptUnk122 = a2;
     gScptUnk116 = a3;
     gScptUnk117 = a4;
