@@ -38,9 +38,10 @@
 
 short gScrGameMovieFlags[ 17 ] = { 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,  0x9, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B };
 
+VidRect_t gScrGameUnk001 = { 0, 0, 0x280, 0x1E0 };
 
 int gScrGameMood;
-
+char *gScrGamePlayerName;
 
 void ScrGameErrorMsg( Intp_t *strerr, const char *Operand, int ErrClass )
 {
@@ -215,7 +216,7 @@ void ScrGame_HasSkill( Intp_t *scr )
 /*
     boolean using_skill( ObjectPtr who, int skill )
 */
-void ScrGameUsingSkill( Intp_t *scr )
+void ScrGame_UsingSkill( Intp_t *scr )
 {
     Obj_t *critter;
     int Val;
@@ -233,7 +234,7 @@ void ScrGameUsingSkill( Intp_t *scr )
 */
 void ScrGame_RollVsSkill( Intp_t *scr )
 {
-    Scpt_t *script;
+//    Scpt_t *script;
     Obj_t *critter;
     int skill, modifier, sk;
     short Type[ 3 ];
@@ -245,7 +246,7 @@ void ScrGame_RollVsSkill( Intp_t *scr )
     sk = 0;
     if( critter ){
         if( OBJTYPE( critter->Pid ) == TYPE_CRIT ){
-            if( ScptPtr( ScptGetActionSource( scr ), &script ) != -1 ) sk = SkillUse( critter, skill, script->i20, modifier );
+//            if( ScptPtr( ScptGetActionSource( scr ), &script ) != -1 ) sk = SkillUse( critter, skill, script->i20, modifier );
         }
     } else {
         ScrGameErrorMsg( scr, "roll_vs_skill", 1 );
@@ -517,7 +518,7 @@ void ScrGame_CreateObject( Intp_t *scr )
                     script->Radius = 3;
                 }
                 Obj->TimeEv = ScptNewObjId();
-                script->i08 = (Obj_t *)Obj->TimeEv;
+                script->i08 = Obj->TimeEv;
                 script->TimeEv = Obj;
                 ScptUnk102( sid - 1, Obj->ScrId );
             }
@@ -2066,7 +2067,6 @@ void ScrGame_TileIsVisible( Intp_t *scr )
 
 void ScrGame_Unk06( Intp_t *scr )
 {
-    int ActionSource;
     Scpt_t *script;
     Obj_t *obj;
 
@@ -2272,9 +2272,9 @@ void ScrGame_ProtoData( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], MembId[0], 0, "proto_data" );
     GETARGI( scr, type[ 1 ], MembId[1], 1, "proto_data" );
-    switch( ProtoDataMember( MembId[1], MembId[0], &p ) ){
+    switch( ProtoDataMember( MembId[1], MembId[0], (void **)&p ) ){
 	case 1: RETINT( scr, *p );return;
-	case 2: RETFTR( scr, IntpDbgStr( scr, p, p ) ); return;
+//	case 2: RETFTR( scr, IntpDbgStr( scr, p, p ) ); return;
 	default: RETINT( scr, 0 ); return;
     }
 }
@@ -2697,20 +2697,33 @@ void ScrGame_ObjCarryingPidObj( Intp_t *scr )
     RETPTR( scr, Item );
 }
 
+/*
+    void reg_anim_func (int par1, int par2) - work with a list of animations
+*/
 void ScrGame_RegAnimFunc( Intp_t *scr )
 {
+    Obj_t *obj;
     int par[ 2 ];
     short type[ 2 ];
+    
+    type[0] = IntpPopwA( scr );
+    obj = NULL;
+    if( type[0] != SCR_PTR ){
+	par[0] = IntpPopiA( scr );
+	if( type[0] == SCR_FSTRING ) IntpStringDeRef( scr, type[0], par[0] );
+	if( (type[0] & 0xF7FF) != SCR_INT ) IntpError( "script error: %s: invalid arg %d to reg_anim_func", scr->FileName, 0 );	
+    } else {
+	obj = IntpPopPtrA( scr );
+        if( type[0] == SCR_FSTRING ) IntpStringDeRef( scr, type[0], PTR2INT( obj ) );\
+        if( (type[0] & 0xF7FF) != SCR_PTR ) IntpError( "script error: %s: invalid arg %d to reg_anim_func", scr->FileName, 0 );
+    }
 
-    GETARGI( scr, type[ 0 ], par[0], 0, "reg_anim_func" );
     GETARGI( scr, type[ 1 ], par[1], 1, "reg_anim_func" );
     if( IN_COMBAT ) return;
-    if( par[1] < 2 ){
-        if( par[1] == 1 ) AnimStart( par[0] );
-    } else if( par[1] <= 2 ){
-        AnimClear( (Obj_t *)par[0] );
-    } else if( par[1] == 3 ){
-        AnimBegin();
+    switch( par[1] ){
+	case 1: AnimStart( par[0] );
+	case 2: AnimClear( obj );
+	case 3: AnimBegin( );    
     }
 }
 
@@ -2896,11 +2909,11 @@ void ScrGame_GetDay( Intp_t *scr )
 
 void ScrGame_Explosion( Intp_t *scr )
 {
-    int val0, *val1, tilenum, a3;
+    int val0, val1, tilenum, a3;
     short type[ 3 ];
 
     GETARGI( scr, type[ 0 ], val0, 0, "explosion" );
-    GETARGP( scr, type[ 1 ], val1, 1, "explosion" );
+    GETARGI( scr, type[ 1 ], val1, 1, "explosion" );
     GETARGI( scr, type[ 2 ], tilenum, 2, "explosion" );
     a3 = 1;
     if( tilenum == -1 ){
@@ -3035,7 +3048,7 @@ void ScrGame_GsayOption( Intp_t *scr )
     {
         Arg = IntpGetArg(scr, SHIBYTE(type[1]), a2);
         if ( a3 )
-            GdialogUnk11(a1, (int)a3, (int)Arg, Idx);
+            GdialogUnk11(a1, (int)a3, Idx);
         else
             GdialogUnk10(a1, v14, Idx);
         goto LABEL_25;
@@ -3055,6 +3068,9 @@ LABEL_25:
 */
 }
 
+/*
+    void gsay_message(int msg_list, int msg_num, int reaction) - displays a replica of the NPC, do not imply any response from the player
+*/
 void ScrGame_GsayMessage( Intp_t *scr )
 {
 /*
@@ -3074,32 +3090,25 @@ void ScrGame_GsayMessage( Intp_t *scr )
 
     v2 = 0;
     v3 = 0;
-    v4 = LOBYTE(scr->Flags) | 0x20;
     Arg = 0;
-    LOBYTE(scr->Flags) = v4;
-    do
-    {
+    scr->Flags |= 0x20;
+    do {
         v5 = IntpPopwA(scr);
         *(__int16 *)((char *)type + v6) = v5;
         v7 = IntpPopiA(scr);
         v9 = *(__int16 *)((char *)type + v8);
         val[v3] = v7;
-        if ( v9 == (__int16)0x9801 )
-            IntpStringDeRef(scr, *(__int16 *)((char *)type + v8), v7);
+        if ( v9 == (__int16)0x9801 ) IntpStringDeRef(scr, *(__int16 *)((char *)type + v8), v7);
         v10 = *(__int16 *)((char *)type + v8);
         v11 = v10;
         BYTE1(v11) = HIBYTE(v10) & 0xF7;
-        if ( v11 != 0xC001 )
-        {
-            if ( v2 == 1 )
-            {
-                if ( v11 == 0x9001 )
+        if( v11 != 0xC001 ){
+            if( v2 == 1 ){
+                if( v11 == 0x9001 )
                     Arg = IntpGetArg(scr, SHIBYTE(v10), val[v3]);
                 else
                     IntpError("script error: %s: invalid arg %d to gsay_message", scr->FileName, 1);
-            }
-            else
-            {
+            } else {
                 IntpError("script error: %s: invalid arg %d to gsay_message", scr->FileName, v2);
             }
         }
@@ -3107,13 +3116,14 @@ void ScrGame_GsayMessage( Intp_t *scr )
         ++v2;
     }
     while ( v2 < 3 );
-    if ( Arg )
-        GdialogUnk15((int)scr, Arg);
+
+    if( Arg )
+        GdialogUnk15( scr, Arg );
     else
-        GdialogUnk14(scr, val[2], val[1]);
+        GdialogUnk14( scr, val[2], val[1] );
     GdialogUnk10(-2, -2, 50);
     GdialogUnk09();
-    LOBYTE(scr->Flags) &= ~0x20u;
+    scr->Flags &= ~0x20;
 */
 }
 
@@ -3123,7 +3133,7 @@ void ScrGame_GigOption( Intp_t *scr )
     int v12;
     int v13;
     int v14;
-    char *Arg;
+//char *Arg;
     int val[5];
     short type[5];
     char *a3;
@@ -3145,8 +3155,8 @@ void ScrGame_GigOption( Intp_t *scr )
         }
     }
     a3 = NULL;
-    v14 = v12 = FeatGetVal( gObjDude, 4 );
-    v13 = PerkLvl( gObjDude, 49 );
+    v14 = v12 = FeatGetVal( gObjDude, FEAT_INTELLIGENCE );
+    v13 = PerkLvl( gObjDude, PERK_SMOOTH_TALKER );
     if( v13 ) v14 = v12 + v13;
     if( val[ 4 ] < 0 ){
         if( -v14 < val[ 4 ] ){
@@ -3158,9 +3168,9 @@ void ScrGame_GigOption( Intp_t *scr )
         return;
     }
     if( (type[ 1 ] & 0xF7FF) == 0x9001 ){
-        Arg = IntpGetArg( scr, type[ 1 ] >> 8, val[ 1 ] );
+//	Arg = IntpGetArg( scr, type[ 1 ] >> 8, val[ 1 ] );
         if( a3 )
-            GdialogUnk11( val[3], a3, Arg, val[0] );
+            GdialogUnk11( val[3], a3, val[0] );
         else
             GdialogUnk10( val[3], val[2], val[0] );
         scr->Flags &= ~0x20u;
@@ -3242,7 +3252,7 @@ void ScrGame_RegAnimAnimateForever( Intp_t *scr )
     Obj_t *obj;
     short type[ 2 ];
 
-    GETARGP( scr, type[ 0 ], val0, 0, "reg_anim_animate_forever" );
+    GETARGI( scr, type[ 0 ], val0, 0, "reg_anim_animate_forever" );
     GETARGP( scr, type[ 1 ], obj, 1, "reg_anim_animate_forever" );
     if( IN_COMBAT ) return;    
     if( obj )
@@ -3257,7 +3267,7 @@ void ScrGame_CritterInjure( Intp_t *scr )
     Obj_t *obj;
     short type[ 2 ];
 
-    GETARGP( scr, type[ 0 ], val0, 0, "critter_injure" );
+    GETARGI( scr, type[ 0 ], val0, 0, "critter_injure" );
     GETARGP( scr, type[ 1 ], obj, 1, "critter_injure" );
     if( !obj ){
         ScrGameErrorMsg( scr, "critter_injure", 1 );
@@ -3284,7 +3294,7 @@ void ScrGame_GdialogBarter( Intp_t *scr )
     short type;
     int val;
 
-    GETARGP( scr, type, val, 0, "gdialog_barter" );
+    GETARGI( scr, type, val, 0, "gdialog_barter" );
     if( GdialogUnk58( val ) == -1 ) eprintf( "\nScript Error: gdialog_barter: failed" );
 }
 
@@ -3511,16 +3521,8 @@ void ScrGame_CritterModSkill( Intp_t *scr )
 {
     Obj_t *obj;
     short type[ 3 ];
-    int v9;
-    int v10;
-    int i;
-    int j;
-    int val0;
-    int val1;
-    int v18;
-    int v19;
-    int v20;
-
+    int v9, i, j, v18, v19, val0, val1;
+    
     GETARGI( scr, type[ 0 ], val0, 0, "critter_mod_skill" );
     GETARGI( scr, type[ 1 ], val1, 0, "critter_mod_skill" );
     GETARGP( scr, type[ 2 ], obj, 0, "critter_mod_skill" );
@@ -3528,7 +3530,7 @@ void ScrGame_CritterModSkill( Intp_t *scr )
         if( OBJTYPE( obj->Pid ) == TYPE_CRIT ){
             if ( obj == gObjDude ){
                 v9 = abs32( val0 );
-                if( SkillIsSpecial(val1) ) v9 = v10 / 2;
+                if( SkillIsSpecial(val1) ) v9 /= 2;
                 if( val0 ){
                     for( i = 0; i < v9; i++ ) SkillInc( gObjDude, val1 );                    
                 } else {
@@ -3546,7 +3548,7 @@ void ScrGame_CritterModSkill( Intp_t *scr )
     } else {
         ScrGameErrorMsg(scr, "critter_mod_skill", 1);
     }
-    RETINT( scr, v20 );
+    RETINT( scr, 0 );
 }
 
 void ScrGame_SfxBuildCharName( Intp_t *scr )
@@ -3630,12 +3632,12 @@ void ScrGame_SfxBuildSceneryName( Intp_t *scr )
     GETARGI( scr, type[ 2 ], val2, 2, "sfx_build_scenery_name" );
     s = IntpGetArg( scr, type[ 1 ], val0 );
     strcpy( stmp, GSoundProtoFname1( val2, val1, s ) );
-    RETFTR( scr, IntpDbgStr( scr, stmp, s ) );
+    RETFTR( scr, IntpDbgStr( scr, stmp, val1 ) );
 }
 
 void ScrGame_SfxBuildOpenName( Intp_t *scr )
 {
-    int val, n;
+    int val,n;
     Obj_t *obj;
     short type[2];
     char stmp[16];
@@ -3644,261 +3646,132 @@ void ScrGame_SfxBuildOpenName( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val, 1, "sfx_build_open_name" );
     GETARGP( scr, type[ 1 ], obj, 2, "sfx_build_open_name" );
     if( obj ){
-        strcpy( stmp, GSoundProtoFname2(obj, val) );
-        n = IntpDbgStr( scr, stmp, obj );
+        strcpy( stmp, GSoundProtoFname2( obj, val ) );
+        n = IntpDbgStr( scr, stmp, val );
     } else {
         ScrGameErrorMsg( scr, "sfx_build_open_name", 1 );
     }
     RETFTR( scr, n );
 }
 
+/*
+    void attack_setup( ObjectPtr who, ObjectPtr victim ) - makes a critter who attack victim
+*/
 void ScrGame_AttackSetup( Intp_t *scr )
 {
-/*
-    int v2; // edi
-    int v3; // esi
-    int i; // ebp
-    int v6; // eax
-    __int16 v7; // dx
-    unsigned __int16 v8; // ax
-    Obj_t *v9; // ebx
-    Obj_t *v10; // edx
-    Obj_t *obj; // ecx MAPDST
-    Obj_t *v12; // edx
-    char DestMapId; // ah
-    Scpt01_t tmp; // [esp+0h] [ebp-4Ch] BYREF
-    Obj_t *obj1; // [esp+28h] [ebp-24h]
-    Obj_t *obj2; // [esp+2Ch] [ebp-20h]
-    __int16 type[2]; // [esp+30h] [ebp-1Ch]
+    Scpt01_t tmp;
+    Obj_t *VictimObj, *WhoObj;
+    short type[ 2 ];
 
-    v2 = 0;
-    v3 = 0;
-    for ( i = 0;
-          i < 2;
-          ++i )
-    {
-        type[v3] = IntpPopwA(scr);
-        v6 = IntpPopiA(scr);
-        v7 = type[v3];
-        *(Obj_t **)((char *)&obj1 + v2) = (Obj_t *)v6;
-        if ( v7 == (__int16)0x9801 )
-            IntpStringDeRef(scr, type[v3], v6);
-        v8 = type[v3];
-        HIBYTE(v8) &= ~8u;
-        if ( v8 != 0xC001 )
-            IntpError("script error: %s: invalid arg %d to attack_setup", scr->FileName, i);
-        ++v3;
-        v2 += 4;
-    }
-    LOBYTE(scr->Flags) |= 0x20u;
-    v9 = obj2;
-    if ( obj2 )
-    {
-        if ( !CritterCanTalk(obj2) || (v9->Flags & 1) != 0 )
-        {
-            eprintf("\n   But is already dead or invisible");
-            LOBYTE(obj->ScrFNameId) &= ~0x20u;
+    GETARGP( scr, type[ 0 ], VictimObj, 0, "attack_setup" );
+    GETARGP( scr, type[ 1 ], WhoObj, 1, "attack_setup" );
+    scr->Flags |= 0x20;
+    if( WhoObj ){
+        if( !CritterCanTalk( WhoObj ) || ( WhoObj->Flags & 0x01 ) ){
+            eprintf( "\n   But is already dead or invisible" );
+            scr->Flags &= ~0x20;
             return;
         }
-        if ( !CritterCanTalk(v10) || (v12->Flags & 1) != 0 )
-        {
-            eprintf("\n   But target is already dead or invisible");
-            LOBYTE(obj->ScrFNameId) &= ~0x20u;
+        if( !CritterCanTalk( VictimObj ) || (VictimObj->Flags & 0x01) ){
+            eprintf( "\n   But target is already dead or invisible" );
+            scr->Flags &= ~0x20;
             return;
         }
-        if ( (v12->Feat.Critter.State.Reaction & 4) != 0 )
-        {
-            eprintf("\n   But target is AFRAID");
-            LOBYTE(obj->ScrFNameId) &= ~0x20u;
+        if( VictimObj->Critter.State.Reaction & OBJ_STAT_FLEE ){
+            eprintf( "\n   But target is AFRAID" );
+            scr->Flags &= ~0x20;
             return;
         }
-        if ( (gCombatStatus & 1) != 0 )
-        {
-            DestMapId = v9->Feat.Grid.DestMapId;
-            if ( (DestMapId & 1) == 0 )
-            {
-                LOBYTE(v9->Feat.Grid.DestMapId) = DestMapId | 1;
-                v9->Feat.Critter.State.WhoHitMe = obj1;
+        if( gCombatStatus & 0x01 ){
+            if( !(WhoObj->Grid.DestMapId & 0x01) ){
+                WhoObj->Critter.State.Reaction |= 0x01;
+                WhoObj->Critter.State.WhoHitMeObj = VictimObj;
             }
-        }
-        else
-        {
-            tmp.crit = v12;
-            tmp.obj = v9;
-            memset(tmp.i03, 0, sizeof(tmp.i03));
+        } else {
+            tmp.crit = VictimObj;
+            tmp.obj = WhoObj;
+            memset( tmp.i03, 0, sizeof( tmp.i03 ) );
             tmp.i07 = 0x7FFFFFFF;
-            if ( obj2 == obj1 )
-            {
-                tmp.i10 = (int)obj1;
-                tmp.i09 = (int)obj2;
+            if( WhoObj == VictimObj ) {
+//                tmp.i10 = VictimObj;
+//                tmp.i09 = WhoObj;
                 tmp.i08 = 1;
-            }
-            else
-            {
+            } else {
                 tmp.i08 = 0;
             }
-            ScptUnk121(&tmp);
+            ScptUnk121( &tmp );
         }
     }
-    LOBYTE(scr->Flags) &= ~0x20u;
-*/
+    scr->Flags &= ~0x20;
 }
 
+/*
+    int destroy_mult_objs( ObjectPtr item, int count ) - destroys the specified number of copies of the object
+*/
 void ScrGame_DestroyMultObjs( Intp_t *scr )
 {
-/*
-    char Flags; // ah
-    int v3; // ebp
-    int v4; // edi
-    __int16 v5; // ax
-    int v6; // ecx
-    int v7; // eax
-    int v8; // ecx
-    __int16 v9; // dx
-    unsigned __int16 v10; // ax
-    Obj_t *v11; // edi
-    Obj_t *v12; // eax
-    Obj_t *v13; // edx
-    Obj_t *Owner; // eax
-    Obj_t *v15; // ecx
-    int v16; // ebp
-    Obj_t *v17; // ecx
-    int v18; // ecx
-    VidRect_t *v19; // edx
-    char v20; // dl
-    VidRect_t *v21; // edx
-    int v22; // ebx
-    VidRect_t v23; // [esp+0h] [ebp-3Ch] BYREF
-    int val[2]; // [esp+10h] [ebp-2Ch]
-    __int16 type[2]; // [esp+18h] [ebp-24h]
-    int v26; // [esp+1Ch] [ebp-20h]
-    int v27; // [esp+20h] [ebp-1Ch]
+    Obj_t *obj, *Owner;
+    VidRect_t Area;
+    int val[ 2 ];
+    short type[ 2 ];
+    int v26, v27, v16;
 
-    Flags = scr->Flags;
-    v3 = 0;
-    v4 = 0;
     v26 = 0;
     v27 = 0;
-    LOBYTE(scr->Flags) = Flags | 0x20;
-    do
-    {
-        v5 = IntpPopwA(scr);
-        *(__int16 *)((char *)type + v6) = v5;
-        v7 = IntpPopiA(scr);
-        v9 = *(__int16 *)((char *)type + v8);
-        val[v4] = v7;
-        if ( v9 == (__int16)0x9801 )
-            IntpStringDeRef(scr, *(__int16 *)((char *)type + v8), v7);
-        v10 = *(__int16 *)((char *)type + v8);
-        HIBYTE(v10) &= ~8u;
-        if ( v10 != 0xC001 )
-            IntpError("script error: %s: invalid arg %d to destroy_mult_objs", scr->FileName, v3);
-        ++v3;
-        ++v4;
-    }
-    while ( v3 < 2 );
-    v11 = (Obj_t *)val[1];
-    v12 = ScptUnk140(scr);
-    if ( v13 == v12 )
-        v26 = 1;
-    if ( HIBYTE(v11->Pid) == 1 )
-        CombatUnk79(v11);
-    Owner = ObjGetOwner(v11);
-    if ( Owner )
-    {
-        v16 = Item33(Owner, v11);
-        if ( v16 > val[0] )
-            v16 = val[0];
-        ItemUseItem(v15, v11, v16);
-        if ( v17 == gObjDude )
-        {
-            v18 = GameIfaceStat() == 0;
-            IfaceHandSlotUpdate(v18, -1, -1);
-        }
-        ObjUnk14(v11, 1u, 0, 0);
-        if ( v26 )
-        {
-            v20 = v11->Flags;
-            v11->ScrId = -1;
-            LOBYTE(v11->Flags) = v20 | 5;
-        }
-        else
-        {
-            AnimClear(v11);
-            ObjDestroy(v11, v19);
+    scr->Flags |= 0x20;
+    GETARGI( scr, type[ 0 ], val[ 0 ], 0, "destroy_mult_objs" );
+    GETARGP( scr, type[ 1 ], obj, 1, "destroy_mult_objs" );    
+    if( obj == ScptUnk140( scr ) ) v26 = 1;
+    if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) CombatUnk79(obj);
+    Owner = ObjGetOwner( obj );
+    if( Owner ){
+        v16 = Item33( Owner, obj );
+        if( v16 > val[0] ) v16 = val[0];
+        ItemUseItem( Owner, obj, v16 );
+        if( Owner == gObjDude ) IfaceHandSlotUpdate( (GameIfaceStat() == 0), -1, -1 );
+        ObjUnk14( obj, 1, 0, 0 );
+        if( v26 ){
+            obj->ScrId = -1;
+    	    obj->Flags |= 0x05;
+        } else {
+            AnimClear( obj );
+            ObjDestroy( obj, &Area );
         }
         v27 = v16;
-
+    } else {
+        AnimClear( obj );
+        ObjDestroy( obj, &Area );
+        TileUpdateArea( &Area, gCurrentMapLvl );
     }
-    else
-    {
-        AnimClear(v11);
-        ObjDestroy(v11, v21);
-        TileUpdateArea(&v23, gCurrentMapLvl);
-    }
-    IntpPushiA(scr, v27);
-    IntpPushwA(scr, 0xC001);
-    v22 = v26;
-    LOBYTE(scr->Flags) &= ~0x20u;
-    if ( v22 )
-        HIBYTE(scr->Flags) |= 1u;
-*/
+    RETINT( scr, v27 );
+    scr->Flags &= ~0x20;
+    if( v26 ) scr->Flags |= 0x1000000;
 }
 
+/*
+    ObjectPtr use_obj_on_obj( ObjectPtr item, ObjectPtr targetObj ) 
+	Attempt to use an item object on a target object (targetObj). 
+	This could be used to have a critter use a Stimpack on the player, for instance, or to use a key on a door.
+*/
 void ScrGame_UseObjOnObj( Intp_t *scr )
 {
-/*
-    int v2; // edi
-    int v3; // esi
-    int i; // ebp
-    Obj_t *v6; // eax
-    __int16 v7; // dx
-    unsigned __int16 v8; // ax
-    int ActionSource; // eax
-    Scpt_t **v10; // edx
-    Obj_t *v11; // eax
-    Obj_t *obj1; // [esp+0h] [ebp-28h]
-    Obj_t *obj2; // [esp+4h] [ebp-24h]
-    __int16 type[2]; // [esp+Ch] [ebp-1Ch]
+    Obj_t *obj1, *obj2, *p;
+    short type[2];
+    Scpt_t *script;
 
-    v2 = 0;
-    v3 = 0;
-    for ( i = 0;
-          i < 2;
-          ++i )
-    {
-        type[v3] = IntpPopwA(scr);
-        v6 = (Obj_t *)IntpPopiA(scr);
-        v7 = type[v3];
-        *(Obj_t **)((char *)&obj1 + v2) = v6;
-        if ( v7 == (__int16)0x9801 )
-            IntpStringDeRef(scr, type[v3], (int)v6);
-        v8 = type[v3];
-        HIBYTE(v8) &= ~8u;
-        if ( v8 != 0xC001 )
-            IntpError("script error: %s: invalid arg %d to use_obj_on_obj", scr->FileName, i);
-        ++v3;
-        v2 += 4;
+    GETARGP( scr, type[ 0 ], obj1, 0, "use_obj_on_obj" );
+    GETARGP( scr, type[ 1 ], obj2, 0, "use_obj_on_obj" );
+    if( obj2 && obj1 ){
+	if( ScptPtr( ScptGetActionSource( scr ), &script ) != -1 ){
+    	    p = ScptUnk140( scr );
+    	    if( OBJTYPE( p->Pid ) == TYPE_CRIT )
+        	ActionUseSceneryObject( p, obj1, obj2 );
+    	    else
+        	UseUnk18( p, obj1, obj2 );
+    	    return;
+	}
     }
-    if ( !obj2 )
-        goto LABEL_8;
-    if ( !obj1 )
-        goto LABEL_8;
-    ActionSource = ScptGetActionSource(scr);
-    if ( ScptPtr(ActionSource, v10) != -1 )
-    {
-        v11 = ScptUnk140(scr);
-        if ( HIBYTE(v11->Pid) == 1 )
-            ActionUseSceneryObject(v11, obj1, obj2);
-        else
-            UseUnk18(v11, obj1, obj2);
-    }
-    else
-    {
-LABEL_8:
-        ScrGameErrorMsg(scr, aUseObjOnObj, 1);
-    }
-*/
+    ScrGameErrorMsg( scr, "use_obj_on_obj", 1 );    
 }
 
 void ScrGame_Unk11( Intp_t *scr )
@@ -3908,76 +3781,40 @@ void ScrGame_Unk11( Intp_t *scr )
     scr->Flags &= ~0x20;
 }
 
+/*
+    void move_obj_inven_to_obj( ObjectPtr srcObj, ObjectPtr destObj ) - moves the inventory object in the inventory object srcObj destObj
+*/
 void ScrGame_oveObjInvenToObj( Intp_t *scr )
 {
-/*
-    int v2; // esi
-    int v3; // edi
-    int v4; // ebp
-    Obj_t *v6; // eax
-    __int16 v7; // dx
-    unsigned __int16 v8; // ax
-    int v9; // ecx
-    Obj_t *v10; // [esp+0h] [ebp-30h]
-    Obj_t *obj; // [esp+4h] [ebp-2Ch]
-    __int16 a2[2]; // [esp+8h] [ebp-28h]
-    Obj_t *RHandObj; // [esp+Ch] [ebp-24h]
-    Obj_t *ArmorObj; // [esp+10h] [ebp-20h]
-    int v15; // [esp+14h] [ebp-1Ch]
+    Obj_t *v10, *obj, *RHandObj, *ArmorObj;
+    short type[ 2 ];
+    int v15, v9;
 
-    v2 = 0;
-    v3 = 0;
-    v4 = 0;
     RHandObj = 0;
     v15 = 0;
     ArmorObj = 0;
-    do
-    {
-        a2[v2] = IntpPopwA(scr);
-        v6 = (Obj_t *)IntpPopiA(scr);
-        v7 = a2[v2];
-        *(Obj_t **)((char *)&v10 + v4) = v6;
-        if ( v7 == (__int16)0x9801 )
-            IntpStringDeRef(scr, a2[v2], (int)v6);
-        v8 = a2[v2];
-        HIBYTE(v8) &= ~8u;
-        if ( v8 != 0xC001 )
-            IntpError("script error: %s: invalid arg %d to move_obj_inven_to_obj", scr->FileName, v3);
-        ++v2;
-        ++v3;
-        v4 += 4;
-    }
-    while ( v3 < 2 );
-    if ( obj && v10 )
-    {
-        if ( obj == gObjDude )
-            ArmorObj = InvGetArmorObj(gObjDude);
+    GETARGP( scr, type[ 0 ], v10, 0, "move_obj_inven_to_obj" );
+    GETARGP( scr, type[ 1 ], obj, 0, "move_obj_inven_to_obj" );
+    if( obj && v10 ){
+        if( obj == gObjDude )
+            ArmorObj = InvGetArmorObj( gObjDude );
         else
-            RHandObj = InvGetRHandObj(obj);
-        if ( obj != gObjDude && RHandObj )
-        {
-            if ( (RHandObj->Flags & 0x1000000) != 0 )
-                HIBYTE(v15) |= 1u;
-            if ( (RHandObj->Flags & 0x2000000) != 0 )
-                HIBYTE(v15) |= 2u;
-            ScrGameSetShape(obj, RHandObj, v15);
+            RHandObj = InvGetRHandObj( obj );
+        if( obj != gObjDude && RHandObj ){
+            if( RHandObj->Flags & 0x1000000 ) v15 |= 0x1000000;
+            if( RHandObj->Flags & 0x2000000 ) v15 |= 0x2000000;
+            ScrGameSetShape( obj, RHandObj, v15 );
         }
-        Item15(obj, v10);
-        if ( obj == gObjDude )
-        {
-            if ( ArmorObj )
-                InvUpdateStatistics(gObjDude, ArmorObj, 0);
+        Item15( obj, v10 );
+        if( obj == gObjDude ){
+            if( ArmorObj ) InvUpdateStatistics( gObjDude, ArmorObj, 0 );
             ProtoDudeImgInit();
-            if ( GameIfaceStat() )
-                v9 = 0;
-            IfaceHandSlotUpdate(v9, -1, -1);
+            if( GameIfaceStat() ) v9 = 0;
+            IfaceHandSlotUpdate( v9, -1, -1 );
         }
+    } else {
+        ScrGameErrorMsg( scr, "move_obj_inven_to_obj", 1 );
     }
-    else
-    {
-        ScrGameErrorMsg(scr, "move_obj_inven_to_obj", 1);
-    }
-*/
 }
 
 void ScrGame_Unk12( Intp_t *scr )
@@ -3987,464 +3824,265 @@ void ScrGame_Unk12( Intp_t *scr )
     scr->Flags &= ~0x20;
 }
 
+/*
+    ObjectPtr obj_art_fid( ObjectPtr obj ) - Returns the fid # (used to index art) of a given object (obj). 
+*/
 void ScrGame_ObjArtFid( Intp_t *scr )
 {
-/*
-    int v1; // esi
-    int v3; // eax
-    int v5; // edi
-    __int16 v6; // dx
-    __int16 v8; // [esp+0h] [ebp-18h]
+    int id = 0;
+    short type;
+    Obj_t *obj;
 
-    v8 = IntpPopwA(scr);
-    v3 = IntpPopiA(scr);
-    v5 = v3;
-    if ( v6 == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, v3);
-    if ( (v8 & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to obj_art_fid", scr->FileName);
-    if ( v5 )
-        v1 = *(_DWORD *)(v5 + 32);
+    GETARGP( scr, type, obj, 0, "obj_art_fid" );
+    if( obj )
+        id = obj->ImgId;
     else
-        ScrGameErrorMsg(scr, "obj_art_fid", 1);
-    IntpPushiA(scr, v1);
-    IntpPushwA(scr, 0xC001);
-*/
+        ScrGameErrorMsg( scr, "obj_art_fid", 1 );
+    RETINT( scr, id );
 }
 
+/*
+    void art_anim (int fid) - returns the type of animation for a given FID
+*/
 void ScrGame_ArtAnim( Intp_t *scr )
 {
-/*
-    __int16 type; // si
-    int val; // eax MAPDST
-    __int16 v6; // dx
+    short type;
+    int val;
 
-    type = IntpPopwA(scr);
-    val = IntpPopiA(scr);
-    if ( v6 == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, val);
-    if ( (type & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to art_anim", scr->FileName);
-    IntpPushiA(scr, (val & 0xFF0000u) >> 16);
-    IntpPushwA(scr, 0xC001);
-*/
+    GETARGI( scr, type, val, 0, "art_anim" );
+    RETINT( scr, (val & 0xFF0000) >> 16 );
 }
 
+/*
+    ObjectPtr party_member_obj( int pid ) - returns a pointer to a party member for PID
+*/
 void ScrGame_PartyMemberObj( Intp_t *scr )
 {
-/*
-    __int16 v1; // di
-    int v3; // eax MAPDST
-    __int16 v6; // dx
-    Obj_t *v7; // eax
+    short type;
+    int pid;
 
-    v1 = IntpPopwA(scr);
-    v3 = IntpPopiA(scr);
-    if ( v6 == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, v3);
-    if ( (v1 & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to party_member_obj", scr->FileName);
-    v7 = PartyUnk09(v3);
-    IntpPushiA(scr, (int)v7);
-    IntpPushwA(scr, 0xC001);
-*/
+    GETARGI( scr, type, pid, 0, "party_member_obj" );
+    RETPTR( scr, PartyUnk09( pid ) );
 }
 
+/*
+    int rotation_to_tile( int srcTile, int destTile ) - Returns the rotation (0…5) to face a particular tile (destTile) from a particular tile (srcTile).
+*/
 void ScrGame_RotationToTile( Intp_t *scr )
 {
-/*
-    int v2; // ebp
-    int v3; // esi
-    int i; // edi
-    int v6; // eax
-    __int16 v7; // dx
-    unsigned __int16 v8; // ax
-    int v9; // eax
-    int v12[2]; // [esp+0h] [ebp-24h]
-    __int16 type[2]; // [esp+8h] [ebp-1Ch]
+    int srcTile, destTile;
+    short type[ 2 ];
 
-    v2 = 0;
-    v3 = 0;
-    for ( i = 0;
-          i < 2;
-          ++i )
-    {
-        type[v3] = IntpPopwA(scr);
-        v6 = IntpPopiA(scr);
-        v7 = type[v3];
-        v12[v2] = v6;
-        if ( v7 == (__int16)0x9801 )
-            IntpStringDeRef(scr, type[v3], v6);
-        v8 = type[v3];
-        HIBYTE(v8) &= ~8u;
-        if ( v8 != 0xC001 )
-            IntpError("script error: %s: invalid arg %d to rotation_to_tile", scr->FileName, i);
-        ++v3;
-        ++v2;
-    }
-    v9 = TileTurnAt(v12[1], v12[0]);
-    IntpPushiA(scr, v9);
-    IntpPushwA(scr, 0xC001);
-*/
+    GETARGI( scr, type[ 0 ], destTile, 0, "rotation_to_tile" );
+    GETARGI( scr, type[ 1 ], srcTile, 0, "rotation_to_tile" );
+    RETINT( scr, TileTurnAt( srcTile, destTile ) );
 }
 
+/*
+    int jam_lock(ObjectPtr lockableObj)
+	Jams a lock, which prevents the player from picking the lock for approximately 24 hours. 
+	Meant to be used when a player critically fails to pick a lock.
+*/
 void ScrGame_JamLock( Intp_t *scr )
 {
-/*
-    __int16 type; // di MAPDST
-    Obj_t *obj; // eax MAPDST
+    short type;
+    Obj_t *obj;
 
-    type = IntpPopwA(scr);
-    obj = (Obj_t *)IntpPopiA(scr);
-    if ( type == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, (int)obj);
-    if ( (type & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to jam_lock", scr->FileName);
-    UseObjJam(obj);
-*/
+    GETARGP( scr, type, obj, 0, "jam_lock" );    
+    UseObjJam( obj );
 }
 
+/*
+    void gdialog_set_barter_mod( int mod )
+	Sets the current modifier for barter to a given percentage (mod). 
+	Used to make barter easier/harder, even if the player initiates barter (as opposed to the script starting it.)
+*/
 void ScrGame_GdialogSetBarterMod( Intp_t *scr )
 {
-/*
-    short type; // di
-    int val; // eax MAPDST
-    __int16 v6; // dx
+    short type;
+    int val;
 
-    type = IntpPopwA(scr);
-    val = IntpPopiA(scr);
-    if ( v6 == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, val);
-    if ( (type & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to gdialog_set_barter_mod", scr->FileName);
-    GdialogUnk57(val);
-*/
+    GETARGI( scr, type, val, 0, "gdialog_set_barter_mod" );
+    GdialogUnk57( val );
 }
 
+/*
+    int combat_difficulty - returns the complexity of the fight, set in the game settings
+*/
 void ScrGame_CombatDifficulty( Intp_t *scr )
 {
-/*
-    int v1; // edx
-    int v2; // ecx
-    int n; // [esp+0h] [ebp-14h] OVERLAPPED BYREF
-    int n_8; // [esp+8h] [ebp-Ch]
-    int n_12; // [esp+Ch] [ebp-8h]
+    int n;
 
-    n_12 = v2;
-    n_8 = v1;
-    if ( CfgGetInteger(&gConfiguration, "preferences", "combat_difficulty", &n) != 1 )
-        n = 0;
-    IntpPushiA(scr, n);
-    IntpPushwA(scr, 0xC001);
-*/
+    if( CfgGetInteger( &gConfiguration, "preferences", "combat_difficulty", &n ) != 1 ) n = 0;
+    RETINT( scr, n );
 }
 
+/*
+    boolean obj_on_screen( ObjectPtr what ) - checks to see whether the object on the game screen
+*/
 void ScrGame_ObjOnScreen( Intp_t *scr )
 {
-/*
-    __int16 type; // di
-    int n; // ebp
-    Obj_t *obj; // esi MAPDST
-    __int16 v7; // dx
-    VidRect_t Area2; // [esp+0h] [ebp-38h] BYREF
-    VidRect_t Area1; // [esp+10h] [ebp-28h] BYREF
+    short type;
+    int n;
+    Obj_t *obj;
+    VidRect_t Area2, Area1;
 
     Area2 = (VidRect_t)gScrGameUnk001;
-    type = IntpPopwA(scr);
     n = 0;
-    obj = (Obj_t *)IntpPopiA(scr);
-    if ( v7 == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, (int)obj);
-    if ( (type & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to obj_on_screen", scr->FileName);
-    if ( obj )
-    {
-        if ( gCurrentMapLvl == obj->Elevation )
-        {
-            ObjGetRadiusArea(obj, &Area1);
-            if ( !RegionShrink(&Area1, &Area2, &Area1) )
-                n = 1;
+    GETARGP( scr, type, obj, 1, "obj_on_screen" );    
+    if( obj ){
+        if( gCurrentMapLvl == obj->Elevation ){
+            ObjGetRadiusArea( obj, &Area1 );
+            if( !RegionShrink( &Area1, &Area2, &Area1 ) ) n = 1;
         }
+    } else {
+        ScrGameErrorMsg( scr, "obj_on_screen", 1 );
     }
-    else
-    {
-        ScrGameErrorMsg(scr, "obj_on_screen", 1);
-    }
-    IntpPushiA(scr, n);
-    IntpPushwA(scr, 0xC001);
-*/
+    RETINT( scr, n );
 }
 
+/*
+    boolean critter_is_fleeing( ObjectPtr who ) - checks whether the critter escapes from the battlefield
+*/
 void ScrGame_CritterIsFleeing( Intp_t *scr )
 {
-/*
-    int v1; // esi
-    Obj_t *obj; // eax MAPDST
-    __int16 type; // [esp+0h] [ebp-18h] MAPDST
+    int n = 0;    
+    Obj_t *obj;
+    short type;
 
-    type = IntpPopwA(scr);
-    v1 = 0;
-    obj = (Obj_t *)IntpPopiA(scr);
-    if ( type == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, (int)obj);
-    if ( (type & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to critter_is_fleeing", scr->FileName);
-    if ( obj )
-        v1 = (obj->Feat.Critter.State.Reaction & 4) != 0;
+    GETARGP( scr, type, obj, 1, "critter_is_fleeing" );    
+    if( obj )
+        n = ( obj->Critter.State.Reaction & OBJ_STAT_FLEE );
     else
-        ScrGameErrorMsg(scr, "critter_is_fleeing", 1);
-    IntpPushiA(scr, v1);
-    IntpPushwA(scr, 0xC001);
-*/
+        ScrGameErrorMsg( scr, "critter_is_fleeing", 1 );
+    RETINT( scr, n );
 }
 
+/*
+    int critter_set_flee_state( ObjectPtr who, Boolean flee_on ) - Sets the FLEE flag on or off. This controls whether the critter flees during combat.
+*/
 void ScrGame_CritterSetFleeState( Intp_t *scr )
 {
-/*
-    int v2; // ebp
-    int v3; // esi
-    int i; // edi
-    int v6; // eax
-    __int16 v7; // dx
-    unsigned __int16 v8; // ax
-    int *v9; // eax
-    int state; // [esp+0h] [ebp-24h]
-    Obj_t *obj; // [esp+4h] [ebp-20h]
-    __int16 type[2]; // [esp+8h] [ebp-1Ch]
+    int state;
+    Obj_t *obj;
+    short type[ 2 ];
 
-    v2 = 0;
-    v3 = 0;
-    for ( i = 0;
-          i < 2;
-          ++i )
-    {
-        type[v3] = IntpPopwA(scr);
-        v6 = IntpPopiA(scr);
-        v7 = type[v3];
-        *(int *)((char *)&state + v2) = v6;
-        if ( v7 == (__int16)0x9801 )
-            IntpStringDeRef(scr, type[v3], v6);
-        v8 = type[v3];
-        HIBYTE(v8) &= ~8u;
-        if ( v8 != 0xC001 )
-            IntpError("script error: %s: invalid arg %d to critter_set_flee_state", scr->FileName, i);
-        ++v3;
-        v2 += 4;
-    }
-    if ( obj )
-    {
-        v9 = &obj->Feat.Critter.State.Reaction;
-        if ( state )
-            *(_BYTE *)v9 |= 4u;
+    GETARGI( scr, type[ 0 ], state, 0, "critter_set_flee_state" );
+    GETARGP( scr, type[ 1 ], obj, 1, "critter_set_flee_state" );    
+    if( obj ){
+        if( state )
+            obj->Critter.State.Reaction |= OBJ_STAT_FLEE;
         else
-            *(_BYTE *)v9 &= ~4u;
+            obj->Critter.State.Reaction &= ~OBJ_STAT_FLEE;
+    } else {
+        ScrGameErrorMsg( scr, "critter_set_flee_state", 1 );
     }
-    else
-    {
-        ScrGameErrorMsg(scr, "critter_set_flee_state", 1);
-    }
-*/
 }
 
+/*
+    ?
+*/
 void ScrGame_Unk13( Intp_t *scr )
 {
-/*
-    Obj_t *obj; // eax
-    char Reaction; // bl
+    Obj_t *obj;
 
-    if ( (gCombatStatus & 1) != 0 )
-    {
-        gMenuEscape = 1;
-        obj = ScptUnk140(scr);
-        if ( obj )
-        {
-            if ( HIBYTE(obj->Pid) == 1 )
-            {
-                Reaction = obj->Feat.Critter.State.Reaction;
-                obj->Feat.Critter.State.WhoHitMe = 0;
-                LOBYTE(obj->Feat.Critter.State.Reaction) = Reaction | 2;
-                CombatUnk12(obj, 0);
-            }
-        }
-    }
-*/
+    if( !IN_COMBAT ) return;
+    gMenuEscape = 1;    
+    if( !(obj = ScptUnk140( scr ) ) ) return;
+    if( OBJTYPE( obj->Pid ) != TYPE_CRIT ) return;
+    obj->Critter.State.WhoHitMe = 0;
+    obj->Critter.State.Reaction |= 0x02;
+    CombatUnk12( obj, 0 );
 }
 
+/*
+    void debug_msg( string text ) - displays a message box debug message
+*/
 void ScrGame_DebugMsg( Intp_t *scr )
 {
-/*
-    int v1; // edx
-    int v2; // ecx
-    __int16 v3; // si
-    int v5; // eax
-    Intp_t *v6; // ecx
-    int v7; // edi
-    __int16 v8; // dx
-    char *Arg; // esi
-    int v10[6]; // [esp+0h] [ebp-18h] BYREF
+    int val, debug_en;
+    short type;
+    char *s;
 
-    v10[4] = v2;
-    v10[3] = v1;
-    v10[0] = 0;
-    v3 = IntpPopwA(scr);
-    v5 = IntpPopiA(scr);
-    v7 = v5;
-    if ( v8 == (__int16)0x9801 )
-        IntpStringDeRef(v6, 0x9801, v5);
-    if ( (v3 & 0xF7FF) != 0x9001 )
-        IntpError("script error: %s: invalid arg to debug_msg", v6->FileName);
-    Arg = IntpGetArg(v6, SHIBYTE(v3), v7);
-    if ( Arg )
-    {
-        CfgGetInteger(&gConfiguration, aDebug_2, "show_script_messages", v10);
-        if ( v10[0] )
-        {
-            eprintf("\n");
-            eprintf(Arg);
+    debug_en = 0;
+    GETARGS( scr, type, val, 0, "debug_msg" );    
+    if( (s = IntpGetArg( scr, type >> 8, val )) ){
+        CfgGetInteger( &gConfiguration, "const", "show_script_messages", &debug_en );
+        if( debug_en ){
+            eprintf( "\n%s", s );
         }
     }
-*/
 }
 
+/*
+    void critter_stop_attacking( ObjectPtr who ) - set a flag indicating that the critter does not want to continue the fight
+*/
 void ScrGame_CritterStopAttacking( Intp_t *scr )
 {
-/*
-    __int16 type; // di
-    Obj_t *obj; // eax MAPDST
-    __int16 v6; // dx
-    char Reaction; // dl
+    short type;
+    Obj_t *obj;
 
-    type = IntpPopwA(scr);
-    obj = (Obj_t *)IntpPopiA(scr);
-    if ( v6 == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, (int)obj);
-    if ( (type & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to critter_stop_attacking", scr->FileName);
-    if ( obj )
-    {
-        Reaction = obj->Feat.Critter.State.Reaction;
-        obj->Feat.Critter.State.WhoHitMe = 0;
-        LOBYTE(obj->Feat.Critter.State.Reaction) = Reaction | 2;
-        CombatUnk12(obj, 0);
+    GETARGP( scr, type, obj, 0, "critter_stop_attacking" );
+    if( obj ){
+        obj->Critter.State.WhoHitMe = 0;
+        obj->Critter.State.Reaction |= 0x02;
+        CombatUnk12( obj, 0 );
+    } else {
+        ScrGameErrorMsg( scr, "critter_stop_attacking", 1 );
     }
-    else
-    {
-        ScrGameErrorMsg(scr, "critter_stop_attacking", 1);
-    }
-*/
 }
 
+/*
+    ObjectPtr tile_contains_pid_obj( int tile, int elev, int pid ) - returns a pointer to the first object at a given hex
+*/
 void ScrGame_TileContainsPidObj( Intp_t *scr )
 {
-/*
-    int v2; // ebp
-    int v3; // edi
-    int v4; // esi
-    int v6; // eax
-    __int16 v7; // dx
-    unsigned __int16 v8; // ax
-    Obj_t *i; // edx
-    int val[2]; // [esp+0h] [ebp-30h]
-    int v12; // [esp+8h] [ebp-28h]
-    __int16 type[3]; // [esp+Ch] [ebp-24h]
-    Obj_t *v14; // [esp+14h] [ebp-1Ch]
+    int tile, elev, pid;
+    Obj_t *q, *p;
+    short type [3 ];
 
-    v2 = 0;
-    v3 = 0;
-    v4 = 0;
-    v14 = 0;
-    do
-    {
-        type[v4] = IntpPopwA(scr);
-        v6 = IntpPopiA(scr);
-        v7 = type[v4];
-        val[v3] = v6;
-        if ( v7 == (__int16)0x9801 )
-            IntpStringDeRef(scr, type[v4], v6);
-        v8 = type[v4];
-        HIBYTE(v8) &= ~8u;
-        if ( v8 != 0xC001 )
-            IntpError("script error: %s: invalid arg %d to tile_contains_pid_obj", scr->FileName, v2);
-        ++v4;
-        ++v2;
-        ++v3;
-    }
-    while ( v2 < 3 );
-    if ( v12 != -1 )
-    {
-        for ( i = ObjGetFirst(val[1], v12);
-              i;
-              i = ObjGetNext() )
-        {
-            if ( val[0] == i->Pid )
-                break;
+    q = NULL;
+    GETARGI( scr, type[ 0 ], pid, 0, "tile_contains_pid_obj" );
+    GETARGI( scr, type[ 1 ], elev, 1, "tile_contains_pid_obj" );
+    GETARGI( scr, type[ 2 ], tile, 2, "tile_contains_pid_obj" );
+    if( tile != -1 ){
+        for( p = ObjGetFirst( elev, tile ); p; p = ObjGetNext() ){
+            if( pid == p->Pid ) break;
         }
-        if ( i )
-            v14 = i;
+        if( p ) q = p;
     }
-    IntpPushiA(scr, (int)v14);
-    IntpPushwA(scr, 0xC001);
-*/
+    RETPTR( scr, q );
 }
 
+/*
+    string obj_name( ObjectPtr what ) - returns the name of the object
+*/
 void ScrGame_ObjName( Intp_t *scr )
 {
-/*
-    unsigned int v1; // ebx
-    __int16 type; // di MAPDST
-    int var; // eax MAPDST
-    int v9; // eax
+    int n = 0;
+    short type;
+    Obj_t *obj;
 
-    type = IntpPopwA(scr);
-    var = IntpPopiA(scr);
-    if ( type == (__int16)0x9801 )
-    {
-        v1 = var;
-        IntpStringDeRef(scr, 0x9801, var);
+    GETARGP( scr, type, obj, 0, "obj_name" );
+    if( obj ){
+        gScrGamePlayerName = ObjGetName( obj );
+    } else {
+        n = 1;
+        ScrGameErrorMsg( scr, "obj_name", 1 );
     }
-    if ( (type & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to obj_name", scr->FileName);
-    if ( var )
-    {
-        gScrGamePlayerName = ObjGetName((Obj_t *)var);
-    }
-    else
-    {
-        v1 = 1;
-        ScrGameErrorMsg(scr, "obj_name", 1);
-    }
-    v9 = IntpDbgStr(scr, gScrGamePlayerName, v1);
-    IntpPushiA(scr, v9);
-    IntpPushwA(scr, 0x9801);
-*/
+    RETFTR( scr, IntpDbgStr( scr, gScrGamePlayerName, n ) );
 }
 
+/*
+    int get_pc_stat( int pcStat ) - Returns the value of a desired pc-only stat of the obj_dude. These are found in define.h all starting with “PCSTAT_”.
+*/
 void ScrGame_GetPcStat( Intp_t *scr )
 {
-/*
-    int v1; // edx
-    int v2; // ecx
-    __int16 type; // di
-    int val; // eax
-    unsigned int v7; // esi
-    __int16 v8; // dx
-    int Points; // eax
-    int v12; // [esp-8h] [ebp-Ch]
-    int v13; // [esp-4h] [ebp-8h]
+    short type;
+    int val;
 
-    v13 = v2;
-    v12 = v1;
-    type = IntpPopwA(scr);
-    val = IntpPopiA(scr);
-    v7 = val;
-    if ( v8 == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, val);
-    if ( (type & 0xF7FF) != 0xC001 )
-        IntpError("script error: %s: invalid arg to get_pc_stat", scr->FileName);
-    Points = FeatGetPoints(v7);
-    IntpPushiA(scr, Points);
-    IntpPushwA(scr, 0xC001);
-*/
+    GETARGI( scr, type, val, 0, "get_pc_stat" );
+    RETINT( scr, FeatGetPoints( val ) );
 }
 
 void ScpGameSetup()
@@ -4459,7 +4097,7 @@ void ScpGameSetup()
     SciAddOpcode( 0x80A8, ScrGame_SetMapStart );
     SciAddOpcode( 0x80A9, ScrGame_OverrideMapStart );
     SciAddOpcode( 0x80AA, ScrGame_HasSkill );
-    SciAddOpcode( 0x80AB, ScrGameUsingSkill );
+    SciAddOpcode( 0x80AB, ScrGame_UsingSkill );
     SciAddOpcode( 0x80AC, ScrGame_RollVsSkill );
     SciAddOpcode( 0x80AD, ScrGame_SkillContest );
     SciAddOpcode( 0x80AE, ScrGame_DoCheck );

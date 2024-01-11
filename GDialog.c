@@ -403,7 +403,7 @@ int GdialogUnk10( int a1, int a2, int a3 )
     return (GdialogUnk21( a1, a2, a3 ) != -1) - 1;
 }
 
-int GdialogUnk11( int a1, char *a2, int a3, int a4 )
+int GdialogUnk11( int a1, char *a2, int a4 )
 {
     gDlgOptions[ gDlgOption ].i04 = 0;
     return (GdialogUnk22( a1, a2, a4 ) != -1) - 1;

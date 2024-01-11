@@ -58,14 +58,14 @@ typedef struct
 
 typedef struct 
 {
-    Obj_t *obj; // traget ?
-    Obj_t *crit; // who
-    int i03[4];	// 0-?, 1-bonus, 2-0, 3-min dmg
-    int i07;	// max dmg
-    int i08;	// boolean attacker_result == traget result
-    int i09;	// attacker results
-    int i10;	// target results
-} Scpt01_t; 	// attack
+    Obj_t 	*obj; 	// who obj
+    Obj_t 	*crit; 	// victim obj
+    int 	i03[4];	// 0-?, 1-bonus, 2-0, 3-min dmg
+    int 	i07;	// max dmg
+    int 	i08;	// boolean attacker_result == traget result
+    int 	i09;	// attacker results obj?
+    int 	i10;	// target results obj?
+} Scpt01_t; 		// attack
 
 
 typedef struct _ScptCache_t

@@ -1557,7 +1557,7 @@ void ScpA_GetExportedVar( Intp_t *scr ) // 8014
     short Type;
     char stmp[ 256 ];
     int Arg;
-    char *tmp;
+    int tmp;
 
     SCP_GETARG( Type, Arg, scr );
     if( ExportGetVarArg( scr, (char *)scr->StringBase + Arg, &Type, &tmp ) ){
@@ -1730,7 +1730,7 @@ void ScpA_8027( Intp_t *scr ) // 8027 ?( arg1, arg2 )
 void ScpA_LookupStringProc( Intp_t *scr ) // 8028
 {
     unsigned short Type;
-    char stmp[ 256 ], *s;
+    char stmp[ 256 ], *s, *a;
     int Arg, i, cnt;
     void *p;
 
@@ -1748,7 +1748,8 @@ void ScpA_LookupStringProc( Intp_t *scr ) // 8028
     cnt = IntpReadBei( scr->ProcTable, 0 ) - 1;
     p = &scr->ProcTable[ 1 ];
     for( i = 0; i < cnt; i++, p += 6 ){
-        if( !strcasecmp( scr ? &scr->StringBase[ IntpReadBei( p, 0 ) ] : NULL, s ) ){
+	a = scr ? &scr->StringBase[ IntpReadBei( p, 0 ) ] : NULL;
+        if( !strcasecmp( a, s ) ){
 	    IntpPushIntStack( scr->StackA, &scr->StackApos, i ); IntpPushwA( scr, SCR_INT );
             return;
         }        

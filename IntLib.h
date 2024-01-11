@@ -2,13 +2,13 @@
 
 #define INTP_STACK_SIZE	0x1000
 
-#define SCR_OPCODE	0x8000
-#define SCR_STRING	0x9001
-#define SCR_FSTRING	0x9801 // const ?
-#define SCR_FLOAT	0xA001
-#define SCR_INT		0xC001
-#define SCRTYPE( n )	((n) & ~0x0800)
-#define SCR_PTR		SCR_INT
+#define SCR_OPCODE	0x8000		// 1000
+#define SCR_STRING	0x9001		// 1001
+#define SCR_FSTRING	0x9801 		// 1001
+#define SCR_FLOAT	0xA001		// 1010
+#define SCR_INT		0xC001		// 1100
+#define SCRTYPE( n )	((n) & ~0x0800)	//
+#define SCR_PTR		0xE001		// ** added type **
 
 
 typedef struct	// size of 24, BE values!

@@ -170,7 +170,7 @@ void GdialogReply( char *str );
 void GdialogUnk08();
 void GdialogUnk09();
 int  GdialogUnk10( int a1, int a2, int a3 );
-int  GdialogUnk11( int a1, char *a2, int a3, int a4 );
+int  GdialogUnk11( int a1, char *a2, int a4 );
 int  GdialogUnk12( int a1, int a2, int a3, int a4 );
 int  GdialogUnk13( int a1, char *a2, int a3, int a4 );
 int  GdialogUnk14( Intp_t *a1, int a2, int a3 );

@@ -15,9 +15,11 @@ typedef struct
     ObjStack_t *Box;  // 14 box of stacked objects
 } ObjBox_t;
 
+#define OBJ_STAT_FLEE	0x04
+
 typedef struct 
 {
-    int 	Reaction;
+    int 	Reaction;	// bit2 - flee,
     int 	CurrentAP;
     int 	CombatResult;
     int 	DmgLastTurn;
