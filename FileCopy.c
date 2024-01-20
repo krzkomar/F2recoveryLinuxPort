@@ -59,7 +59,6 @@ int FileDeflate( char *SrcFileName, char *NewFileName ) // deflate
     zFile_t *zh;
     int a, b;
 
-//printf("=Def=>'%s'->'%s'\n", SrcFileName, NewFileName);
     if( !(fh = fopen( SrcFileName, "rb" )) ) return -1;
     a = fgetc( fh );
     b = fgetc( fh );
@@ -88,10 +87,8 @@ int FileInflateB( char *SrcFileName, char *NewFileName )
     b = fgetc( fh );
     fclose( fh );
     if( a == 31 && b == 139 ){
-//printf("=FileInflateB[Copy]=>'%s'->'%s'\n", SrcFileName, NewFileName);
         FileCopy( SrcFileName, NewFileName );
     } else {        
-//printf("=FileInflateB[Inflate]=>'%s'->'%s'\n", SrcFileName, NewFileName);
         if( !(zh = zOpenByFileName(SrcFileName, "rb")) ) return -1;
         if( !(fh = fopen( NewFileName, "wb" ) ) ){ zclose( zh ); return -1; }
         while ( (a = zgetc(zh)) != -1 ) fputc( a, fh );

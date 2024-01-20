@@ -81,9 +81,9 @@ void IfcMsgOut( char *str )
     Font = FontGetCurrent();
     FontSet( 101 );
     gFont.LineWidth( "*" );
-    if( (gCombatStatus & 1) == 0 ){
+    if( !IN_COMBAT ){
         Time = TimerGetTime();
-        if( TimerDiff(Time, gIfcMsgTime) >= 500 ){
+        if( TimerDiff( Time, gIfcMsgTime ) >= 500 ){
             gIfcMsgTime = Time;
             GSoundPlay( "monitor" );
         }

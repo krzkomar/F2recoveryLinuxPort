@@ -119,7 +119,7 @@ void CombatUnk08( int a1, int a2 );
 Obj_t *CombatUnk09( Obj_t *obj );
 int CombatUnk10( Obj_t *obj1, Obj_t *obj2 );
 Obj_t *CombatUnk11( Obj_t *obj );
-int CombatUnk12( Obj_t *obj1, Obj_t *obj2 );
+int CombatStopAttack( Obj_t *obj1, Obj_t *obj2 );
 Obj_t *CombatUnk13( Obj_t *obj );
 int CombatUnk14( Obj_t *obj );
 int CombatUnk15( Obj_t *obj );

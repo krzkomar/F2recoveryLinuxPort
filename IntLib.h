@@ -1,4 +1,4 @@
-#include "FrameWork.h"
+#pragma once
 
 #define INTP_STACK_SIZE	0x1000
 
@@ -10,6 +10,16 @@
 #define SCRTYPE( n )	((n) & ~0x0800)	//
 #define SCR_PTR		0xE001		// ** added type **
 
+// Intp_t.Flags
+#define SCR_FEXIT	0x01
+//#define SCR_		0x02
+#define SCR_FERROR	0x04
+//#define SCR_		0x08
+#define SCR_FEXEC	0x10
+#define SCR_FPROC_RUN	0x20
+//#define SCR_		0x40
+#define SCR_FCRITICAL	0x80
+#define SCR_FATTACH	0x100
 
 typedef struct	// size of 24, BE values!
 {
@@ -47,26 +57,26 @@ typedef struct // size of 4
 typedef struct _Intp_t
 {
     char *FileName;			// *.INT file name
-    char *IntpData;			// buffer of *.INT file, start of script initialiation code
+    char *Code;				// program data 
     struct _Intp_t *Parent;		//
     struct _Intp_t *ChildProcess;	//
-    int InstrPtr;			//
+    int CodePC;				// program counter
     int Base; 				// base
     int SaveStack;			//
     char *StackA;			//
     char *StackB;			//
     int StackApos;			//
     int StackIdxB;			// instruction stack
-    IntpOp_t *Floats;			//
-    IntpOp_t *Strings;			//
-    char *StringBase;			//
+    char *StringsConst;			// pointer to string constans
+    IntpOp_t *FString;			//
+    char *ProcVarNames;			// pointer to procedures and vars names
     IntpProc_t *ProcTable;		//
     jmp_buf EnvSave; 			// setjmp()/longjmp() buffer
     int Time;				//
     int TimeA;				//
     int TimeAtExec;			//
     int (*Func)(struct _Intp_t *); 	//
-    short Flags;			//
+    short Flags;			// 0 - exit, 7- critical, .. ?
     short Opcode;			//
     int i34;				//
     int i35;				//
@@ -85,7 +95,7 @@ typedef struct
   int i02;
 } IntpTask_t;
 
-extern int (**gIntpTasks)();
+extern void (**gIntpTasks)( Intp_t *);
 extern IntpTask_t gIntpList[ 256 ];
 extern int gIntpTaskListCnt;
 extern int gIntpTimeDiv;
@@ -104,7 +114,7 @@ int gIntpTimeDiv;
 int (*gIntpErrHandler)();
 */
 
-void IntpTaskAdd( int (*Cb)( Intp_t *) );
+void IntpTaskAdd( void (*Task)( Intp_t *) );
 void IntpTaskDel( void *Ptr );
 void IntpTaskFire( Intp_t *itp );
 int IntpGetSysTime();
@@ -119,8 +129,10 @@ char *IntpGetProcName( Intp_t *scr );
 void IntpError( char *fmt, ... );
 short IntpReadBew( char *Base, int Offset );
 int IntpReadBei( void *Base, int Offset );
+void *IntpReadBep( void *Base, int Offset );
 void IntpWriteBew( short wdata, char *Base, int Offset );
 void IntpWriteBei( int idata, char *Base, int Offset );
+void IntpWriteBep( void *pdata, void *Base, int Offset );
 void IntpPushShortStack( char *Base, int *pIdx, short wdata );
 void IntpPushPtrStack( char *Base, int *pIdx, void *pdata );
 void *IntpPopPtrStack( char *Base, int *pidx );

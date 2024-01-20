@@ -31,12 +31,14 @@ char gScpIfcUnk04[ 100 ];
 
 void ScpIfc_FillWin3x3( Intp_t *scr )
 {
+    SCP_DBG_VAR;
     short Type;
     int Arg,SrcH,SrcW;
     char *s, *data;
 
     GET_ARGi( scr, Arg, Type );
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to fillwin3x3" );
+    SCP_DBGA( "FILL_WIN3x3( [%x]%x )", Type, Arg );
     s = IntpMseHandler( IntpGetArg( scr, TYPEH( Type ), Arg ) );    
     if( !(data = DataFileGetArt( s, &SrcW, &SrcH ) ) ) IntpError("cannot load 3x3 file '%s'", s );
     WinFillRect( scr->i34 );

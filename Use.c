@@ -99,28 +99,29 @@ void UseLookMsg( Obj_t *crit, Obj_t *obj )
 void UseLook( Obj_t *crit, Obj_t *obj, void (*OutCb)(char *))
 {
     int i18;
-    char stmp[260];
+    char stmp[ 260 ];
     MsgLine_t msg;
     Scpt_t *scr;
     Proto_t *proto;
 
     i18 = 0;
-    if( !CritterIsDead( crit ) && OBJTYPE( obj->ImgId ) != TYPE_TILE && ProtoGetObj( obj->Pid, &proto ) != -1 ){
-        if( obj->ScrId != -1 ){
-            ScptUnk138( obj->ScrId, crit, obj );
-            ScptExecScriptProc( obj->ScrId, 21 );
-            if ( ScptPtr( obj->ScrId, &scr ) == -1 ) return;
-            i18 = scr->i18;
-        }
-        if( !i18 ){
-            if( OBJTYPE( obj->Pid ) == TYPE_CRIT && CritterIsDead( obj ) )
-                msg.Id = 491 + RandMinMax(0, 1);
-            else
-                msg.Id = 490;                   // look text
-            if( MessageGetMsg( &gProtoMessages, &msg ) == 1 ){
-                sprintf( stmp, msg.Text, ObjGetName( obj ) );
-                OutCb( stmp );
-            }
+    if( CritterIsDead( crit ) ) return;
+    if( OBJTYPE( obj->ImgId ) == TYPE_TILE ) return;
+    if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return;
+    if( obj->ScrId != -1 ){
+        ScptUseObject( obj->ScrId, crit, obj );
+        ScptExecScriptProc( obj->ScrId, 21 );
+        if( ScptPtr( obj->ScrId, &scr ) == -1 ) return;
+        i18 = scr->i18;
+    }
+    if( !i18 ){
+        if( OBJTYPE( obj->Pid ) == TYPE_CRIT && CritterIsDead( obj ) )
+            msg.Id = 491 + RandMinMax(0, 1);
+        else
+            msg.Id = 490;                   // look text
+        if( MessageGetMsg( &gProtoMessages, &msg ) == 1 ){
+            sprintf( stmp, msg.Text, ObjGetName( obj ) );
+            OutCb( stmp );
         }
     }
 }
@@ -157,7 +158,7 @@ DD
     if( CritterIsDead( critter ) ) return -1;
     if( OBJTYPE( obj->ImgId ) == TYPE_TILE ) return -1;
     if( obj->ScrId != -1 ){
-        ScptUnk138( obj->ScrId, critter, obj );
+        ScptUseObject( obj->ScrId, critter, obj );
         ScptExecScriptProc( obj->ScrId, 3 );
         if( ScptPtr( obj->ScrId, &script ) == -1 ) return -1;
         i18 = script->i18;
@@ -297,7 +298,7 @@ int UseUseOn( Obj_t *crit, Obj_t *obj )
 DD
     i18 = 0;
     if( obj->ScrId != -1 ){
-        ScptUnk138( obj->ScrId, crit, obj );
+        ScptUseObject( obj->ScrId, crit, obj );
         ScptExecScriptProc( obj->ScrId, 4 );
         if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
         i18 = scr->i18;
@@ -366,14 +367,14 @@ int UseDropObj( Obj_t *crit, Obj_t *obj )
     i18 = 0;
     if( !obj ) return -1;
     if( crit->ScrId != -1 ){
-        ScptUnk138( crit->ScrId, obj, 0 );
+        ScptUseObject( crit->ScrId, obj, 0 );
         ScptExecScriptProc( crit->ScrId, 25 );
         if( ScptPtr( crit->ScrId, &scr ) == -1 ) return -1;
         i18 = scr->i18;
     }
     if( !i18 ){
         if( obj->ScrId != -1 ){
-            ScptUnk138( obj->ScrId, crit, obj );
+            ScptUseObject( obj->ScrId, crit, obj );
             ScptExecScriptProc( obj->ScrId, 5 );
             if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
             i18 = scr->i18;
@@ -471,7 +472,7 @@ int UseRunScript( Obj_t *obj )
     Scpt_t *scr;
 
     if( obj->ScrId == -1 ) return -1;
-    ScptUnk138( obj->ScrId, gObjDude, obj );
+    ScptUseObject( obj->ScrId, gObjDude, obj );
     ScptExecScriptProc( obj->ScrId, 6 );
     if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
     return 0;    
@@ -559,7 +560,7 @@ int UseUseMisc( Obj_t *crit )
 	crit->Pid != PID_PIPBOYMEDENCHANCER // doctor skill +10%
     ) return -1;    
     if( ( ScrId = crit->ScrId ) == -1 ) return 1;
-    ScptUnk138( crit->ScrId, gObjDude, crit );
+    ScptUseObject( crit->ScrId, gObjDude, crit );
     ScptExecScriptProc( ScrId, 6 );
     if( ScptPtr( ScrId, &scr ) != -1 ) return -1;
     return 1;    
@@ -725,17 +726,17 @@ unsigned int UseUseHealSkill( Obj_t *crit, Obj_t *obj1, Obj_t *obj2 )
     if( SkillIdx == -1 ){
         if( obj2->ScrId == -1 ){
             if( obj1->ScrId == -1 ) return UseUnk16( crit, obj1, obj2 );
-            ScptUnk138( obj1->ScrId, crit, obj2 );
+            ScptUseObject( obj1->ScrId, crit, obj2 );
             ScptExecScriptProc( obj1->ScrId, 7 );
             if( ScptPtr( obj1->ScrId, &scr ) == -1 ) return -1;
             if( !scr->i18 ) return UseUnk16( crit, obj1, obj2 );
         } else {
-            ScptUnk138( obj2->ScrId, crit, obj1 );
+            ScptUseObject( obj2->ScrId, crit, obj1 );
             ScptExecScriptProc( obj2->ScrId, 7 );
             if( ScptPtr( obj2->ScrId, &scr ) == -1 ) return -1;
             if( !scr->i11 ){
                 if( obj1->ScrId == -1 ) return UseUnk16( crit, obj1, obj2 );
-                ScptUnk138( obj1->ScrId, crit, obj2 );
+                ScptUseObject( obj1->ScrId, crit, obj2 );
                 ScptExecScriptProc( obj1->ScrId, 7 );
                 if( ScptPtr( obj1->ScrId, &scr ) == -1 ) return -1;
                 if( !scr->i18 ) return UseUnk16( crit, obj1, obj2 );
@@ -756,7 +757,7 @@ unsigned int UseUseHealSkill( Obj_t *crit, Obj_t *obj1, Obj_t *obj2 )
     return 0;
 }
 
-int UseUnk18( Obj_t *obj, Obj_t *a2, Obj_t *a3 )
+int UseObjOnObj( Obj_t *obj, Obj_t *a2, Obj_t *a3 )
 {
     Obj_t *v7;
     int v5, n, t, v8;
@@ -826,7 +827,7 @@ int UseObject( Obj_t *crit, Obj_t *obj, Obj_t *objn )
 DD
     v3 = 0;
     if( obj->ScrId != -1 ){
-        ScptUnk138( obj->ScrId, crit, obj );
+        ScptUseObject( obj->ScrId, crit, obj );
         ScptExecScriptProc( obj->ScrId, 6 );
         if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
         v3 = scr->i18;
@@ -994,9 +995,9 @@ int UseDoor( Obj_t *Crit, Obj_t *obj, int a3 )
     int v18;
 
     v6 = 0;
-    if( UseObjLocked( obj ) ) GSoundPlay( GSoundProtoFname2( obj, 2 ) );
+    if( UseObjLocked( obj ) ) GSoundPlay( GSoundOpenFileName( obj, 2 ) );
     if( obj->ScrId != -1 ){
-        ScptUnk138( obj->ScrId, Crit, obj );
+        ScptUseObject( obj->ScrId, Crit, obj );
         ScptExecScriptProc( obj->ScrId, 6 );
         if( ScptPtr( obj->ScrId, &a2 ) == -1 ) return -1;
         v6 = a2->i18;
@@ -1023,12 +1024,12 @@ int UseDoor( Obj_t *Crit, Obj_t *obj, int a3 )
     for(; i != v10; i += v18 ){
         if( i ){ // close door
             if( !a3 ) AnimSetCallback11( obj, (AnimU_t)obj, (void *)UseDoorClose, -1 );
-            AnimUnk66( obj, GSoundProtoFname2( obj, 1 ), -1 );
-            AnimUnk49( obj, 0, 0 );
+            AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 1 ), -1 );
+            AnimRegAnimReverse( obj, 0, 0 );
         } else { // open door
             if( !a3 ) AnimSetCallback11(obj, (AnimU_t)obj, (void *)UseDoorOpen, -1);
-            AnimUnk66( obj, GSoundProtoFname2( obj, 0 ), -1 );
-            AnimUnk48( obj, 0, 0);
+            AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 0 ), -1 );
+            AnimRegAnim( obj, 0, 0);
         }
     }
     AnimSetFinish( obj, obj, (void *)UseDoorLock, -1 );
@@ -1048,7 +1049,7 @@ int UseContainer( Obj_t *dude, Obj_t *obj )
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return -1;
     if( proto->Critt.Type != 1 ) return -1;
     if( UseObjLocked( obj ) ){
-	GSoundPlay( GSoundProtoFname2( obj, 2 ) );
+	GSoundPlay( GSoundOpenFileName( obj, 2 ) );
 	if( dude != gObjDude ) return -1;
     	msg.Id = 487; // 'It is locked.'
     	if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ) return -1;
@@ -1059,7 +1060,7 @@ int UseContainer( Obj_t *dude, Obj_t *obj )
     i18 = 0;
     ScrId = obj->ScrId;
     if( (ScrId != -1) - 1 != -1 ){
-        ScptUnk138( obj->ScrId, dude, obj );
+        ScptUseObject( obj->ScrId, dude, obj );
         ScptExecScriptProc( ScrId, 6 );
         if( ScptPtr( ScrId, &res ) == -1 ) return -1;
         i18 = res->i18;
@@ -1067,11 +1068,11 @@ int UseContainer( Obj_t *dude, Obj_t *obj )
     if( i18 ) return -1;
     AnimStart( 2 );
     if( obj->FrameNo ){
-        AnimUnk66( obj, GSoundProtoFname2( obj, 1 ), 0 );
-        AnimUnk49( obj, 0, 0 );
+        AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 1 ), 0 );
+        AnimRegAnimReverse( obj, 0, 0 );
     } else {
-        AnimUnk66( obj, GSoundProtoFname2( obj, 0 ), 0 );
-        AnimUnk48( obj, 0, 0 );
+        AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 0 ), 0 );
+        AnimRegAnim( obj, 0, 0 );
     }
     AnimBegin();
     if( dude == gObjDude ){
@@ -1100,7 +1101,7 @@ int UseUseSkill( Obj_t *crit, Obj_t *obj, unsigned int SkillIdx )
     }
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return -1;
     if( obj->ScrId != -1 ){
-            ScptUnk138( obj->ScrId, crit, obj );
+            ScptUseObject( obj->ScrId, crit, obj );
             ScptUnk136( obj->ScrId, SkillIdx );
             ScptExecScriptProc( obj->ScrId, 8 );
             if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
@@ -1192,25 +1193,25 @@ int UseStartAnimation( Obj_t *obj )
     AnimStart( 2 );
     if( obj->FrameNo ){
         AnimSetCallback11( obj, (AnimU_t)obj, (void *)UseDoorClose, -1 );
-        AnimUnk66( obj, GSoundProtoFname2( obj, 1 ), -1 );
-        AnimUnk49( obj, 0, 0);
+        AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 1 ), -1 );
+        AnimRegAnimReverse( obj, 0, 0);
     } else {
         AnimSetCallback11( obj, (AnimU_t)obj, (void *)UseDoorOpen, -1 );
-        AnimUnk66( obj, GSoundProtoFname2( obj, 0 ), -1 );
-        AnimUnk48( obj, 0, 0 );
+        AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 0 ), -1 );
+        AnimRegAnim( obj, 0, 0 );
     }
     AnimSetFinish( obj, obj, (void *)UseDoorLock, -1 );
     AnimBegin();
     return 0;
 }
 
-int UseRunAnimation1( Obj_t *obj )
+int UseObjOpen( Obj_t *obj )
 {
     if( obj->FrameNo == 0 ) UseStartAnimation( obj );
     return 0;
 }
 
-int UseRunAnimation2( Obj_t *obj )
+int UseObjClose( Obj_t *obj )
 {
     if( obj->FrameNo != 0 ) UseStartAnimation( obj );
     return 0;

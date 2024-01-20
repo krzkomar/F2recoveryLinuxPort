@@ -1541,8 +1541,8 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
         tmp = ( ItemGetObjType(a2) == 3 ) ? Item58( a2 ) : 0;
         if( SelectedHand == a3 ){
             if( (a1->ImgId & 0xF000) >> 12 && a4 && !MapUnk21() ){
-                AnimUnk66( a1, GSoundProtoFname6( a1, 39, 0 ), 0 );
-                AnimUnk48( a1, 39, 0 );
+                AnimRegPlaySfx( a1, GSoundCharacterFileName( a1, 39, 0 ), 0 );
+                AnimRegAnim( a1, 39, 0 );
             }
             if( !a4 || MapUnk21() ){
                 AnimUnk24( a1, a1->Orientation, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, tmp, a1->Orientation + 1 ) );
@@ -1569,7 +1569,7 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
     return AnimBegin();
 }
 
-int InvUnk31( Obj_t *a1, int a2 )
+int InvUnwield( Obj_t *a1, int a2 )
 {
     return InvUnk30(a1, a2, 1);
 }
@@ -1586,8 +1586,8 @@ int InvUnk30( Obj_t *a1, int Lhand, int a3 )
     if( hand == Lhand && (a1->ImgId & 0xF000) >> 12 ){
         if( a3 && !MapUnk21() ){
             AnimStart( 2 );
-            AnimUnk66( a1, GSoundProtoFname6( a1, 39, 0 ), 0 );
-            AnimUnk48( a1, 39, 0 );
+            AnimRegPlaySfx( a1, GSoundCharacterFileName( a1, 39, 0 ), 0 );
+            AnimRegAnim( a1, 39, 0 );
             AnimUnk62( a1, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, 0, a1->Orientation + 1 ), -1 );
             return AnimBegin();
         }
@@ -1997,7 +1997,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     }
 
     if( gSkillUnk80 && UseGetScriptId( Obj2, &Id ) != -1 ){
-	ScptUnk138( Id, Critter, 0 );
+	ScptUseObject( Id, Critter, 0 );
 	ScptExecScriptProc( Id, 4 );
 	if( ScptPtr(Id, (Scpt_t **)&pScript) == -1 || pScript->Script[0].i18 ) return 0;
     }
@@ -2230,7 +2230,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     	InvMsgClose();
     	gInvArt[0].Xpos = 0;
         if( gSkillUnk80 && v76 && gSkillUnk60 > 0 && UseGetScriptId( Obj2, &Id ) != -1 ){
-    	    ScptUnk138( Id, Critter, 0 );
+    	    ScptUseObject( Id, Critter, 0 );
     	    ScptExecScriptProc( Id, 4 );
     	    ScptPtr( Id, &v68 );
 	}
@@ -2889,7 +2889,7 @@ int InvLoadAmmo( Obj_t *item0, Obj_t *item1, Obj_t **item2, int quantity, int se
     }
     if( n != -1 ) ItemAdd( gInvSelectedDude, item0, 1 );
     if( !v16 ) return -1;
-    GSoundPlay( GSoundProtoFname3( 0, item0, 2, 0 ) );
+    GSoundPlay( GSoundWeaponFileName( 0, item0, 2, 0 ) );
     return 0;
 }
 

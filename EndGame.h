@@ -32,7 +32,7 @@ typedef struct
 } EndGame_t;
 
 void EndGameRun();
-void EndGameUnk01();
+void EndGameMoviePlay();
 void EndGameUnk02();
 int  EndGameUnk03();
 void EndGameUnk04();

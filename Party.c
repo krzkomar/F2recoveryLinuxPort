@@ -449,7 +449,7 @@ int PartyUnk07()
     return 0;
 }
 
-int PartyUnk08( int a1 )
+int PartyHeal( int a1 )
 {
     int tmp, i;
 
@@ -461,14 +461,14 @@ int PartyUnk08( int a1 )
     return 1;    
 }
 
-Obj_t * PartyUnk09( int a1 )
+Obj_t * PartyMemberObj( int Pid )
 {
     int i;
     Obj_t *dude;
 
     for( i = 0; i < gPartyMembersCount; i++ ){
         dude = gParty[ i ].dude;
-        if( a1 == dude->Pid ) return dude;
+        if( Pid == dude->Pid ) return dude;
     }
     return NULL;
 }

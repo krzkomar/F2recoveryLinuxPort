@@ -1256,7 +1256,7 @@ void WinSetup( int VideoModeSel, int Flags )
     int i, k,j, err;
     char errmsg[ 256 ];
 
-    IntpTaskAdd( WinClean );
+    IntpTaskAdd( (void*)WinClean );
     gWinColorR = 0x1f;
     gWinColorG = 0x1f;
     gWinColorB = 0x1f;

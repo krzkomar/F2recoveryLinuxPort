@@ -45,7 +45,7 @@ void EndGameRun()
     EndGameUnk04();
 }
 
-void EndGameUnk01()
+void EndGameMoviePlay()
 {
     GSoundBgClose();
     MapUnk35();

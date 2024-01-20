@@ -167,6 +167,7 @@ int ItemGridLightInit();
 int ItemMapGetLight();
 void ItemMapModifyLight( int LightModifier, int TilesUpdate );
 void ItemMapSetLight( int Intensity, int TilesUpdateFlg );
+void ItemMapSetDark( int Darkening, int TileFlag );
 int ItemGridGetLightA( int MapLvl, int GridPos );
 int ItemGridGetLight( unsigned int MapLvl, unsigned int GridPos );
 void ItemGridSetLight( int MapLvl, int GridPos, int Intensity );

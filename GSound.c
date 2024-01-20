@@ -1,10 +1,6 @@
 #include "FrameWork.h"
 
 char gGSoundProtoFileName[13];
-
-//Sound_t *GSoundUnk43( char *fname, Sound02_t *pArg, int Vol );
-//void GSoundActiveSfxFire( void *ptr, int OneShot );
-
 int gGSoundDbgEn = 0;
 int gGSoundDbgLog = 0; // debug
 int gGSoundMusicOn = 0;
@@ -30,8 +26,6 @@ int gGSoundSfxVol = 0x7fff;
 int gGSoundUnk03 = -1;
 int gGSoundBgPlayTime = 0;
 char gGSoundBgFname[ 270 ];
-
-
 
 /*******************************************/
 
@@ -191,20 +185,20 @@ int GSoundSetMasterVolume( unsigned int Volume )
         GSLOG("Requested master volume out of range.\n");
         return -1;
     }
-//    if( gGSound_Unk61 && Volume && GSoundGetMusicVol() ){
+    if( gGSound_Unk61 && Volume && GSoundGetMusicVol() ){
         if( gGSoundDbgEn && !gGSoundMusicOn ){
-//            MveSetMusicVolume( lround( gGSoundMusicVol * 0.94 ) );
+            MveSetMusicVolume( lround( gGSoundMusicVol * 0.94 ) );
             gGSoundMusicOn = 1;
             GSoundRestartBg( 12 );
         }
         gGSound_Unk61 = 0;
-//    }
+    }
     if( SoundSetMasterVol( Volume ) ){ GSLOG("Error setting master sound volume.\n"); return -1; }
     gGSoundMasterVol = Volume;
     if( gGSoundMusicOn && (Volume == 0) ){
         if( gGSoundDbgEn && gGSoundMusicOn ){
             GSoundBgClose();
-//            MveSetMusicVolume(0);
+            MveSetMusicVolume(0);
             gGSoundMusicOn = 0;
         }
         gGSound_Unk61 = 1;
@@ -236,7 +230,7 @@ void GSoundOff()
 {
     if( !gGSoundDbgEn || !gGSoundMusicOn ) return;    
     GSoundBgClose();
-//    MveSetMusicVolume( 0 );
+    MveSetMusicVolume( 0 );
     gGSoundMusicOn = 0;
 }
 
@@ -255,7 +249,6 @@ int GSoundIsMusicEnabled()
 
 void GSoundSetMusicVolume( int Val )
 {
-DD
     if( !gGSoundDbgEn ) return;
     if( Val >= 0x8000 ){    
         GSLOG("Requested background volume out of range.\n");
@@ -264,17 +257,17 @@ DD
     gGSoundMusicVol = Val;
     if( gGSound_Unk61 ){
         if( gGSoundDbgEn && !gGSoundMusicOn ){
-//            MveSetMusicVolume( lround( Val * gSound_Unk60 ) );
+            MveSetMusicVolume( lround( Val * 0.94 ) );
             gGSoundMusicOn = 1;
             GSoundRestartBg( 12 );
         }
         gGSound_Unk61 = 0;
     }
     if( gGSoundMusicOn ){
-//        MveSetMusicVolume( lround( Val * gSound_Unk60 ) );
+        MveSetMusicVolume( lround( Val * 0.94 ) );
     }
     if( gGSoundMusicOn && gGSoundBgSound ){
-//        SoundSetSndVol( gGSoundBgSound, lround( gGSoundMusicVol * gSound_Unk60 ) );
+        SoundSetSndVol( gGSoundBgSound, lround( gGSoundMusicVol * 0.94 ) );
     }
     if( !gGSoundMusicOn ) return;
     if( Val ){
@@ -283,7 +276,7 @@ DD
     }
     if( gGSoundDbgEn && gGSoundMusicOn ){
         GSoundBgClose();
-//        MveSetMusicVolume( 0 );
+        MveSetMusicVolume( 0 );
         gGSoundMusicOn = 0;
     }
     gGSound_Unk61 = 1;        
@@ -727,7 +720,7 @@ int GSoundDistance( Obj_t *obj )
     return 0x2AAA;
 }
 
-char *GSoundProtoFname6( Obj_t *obj, int a2, int a3 )
+char *GSoundCharacterFileName( Obj_t *obj, int a2, int a3 )
 {
     char fname[ 8 ], Ext[ 3 ], id2;
 
@@ -751,21 +744,21 @@ char *GSoundProtoFname6( Obj_t *obj, int a2, int a3 )
     return gGSoundProtoFileName;
 }
 
-char *GSoundProtoFname5( const char *str )
+char *GSoundAmbientFileName( const char *str )
 {
     sprintf( gGSoundProtoFileName, "A%6s%1d", str, 1 );
     StrUpr( gGSoundProtoFileName );
     return gGSoundProtoFileName;
 }
 
-char *GSoundProtoFname4( const char *str )
+char *GSoundItemFileName( const char *str )
 {
     sprintf( gGSoundProtoFileName, "N%6s%1d", str, 1 );
     StrUpr( gGSoundProtoFileName );
     return gGSoundProtoFileName;
 }
 
-char *GSoundProtoFname3( int a1, Obj_t *obj, int a3, Obj_t *a4 )
+char *GSoundWeaponFileName( int a1, Obj_t *obj, int a3, Obj_t *a4 )
 {
     int d, Type;
     Proto_t *proto;
@@ -800,14 +793,14 @@ char *GSoundProtoFname3( int a1, Obj_t *obj, int a3, Obj_t *a4 )
     return gGSoundProtoFileName;
 }
 
-char *GSoundProtoFname1( int a1, int a2, const char *a3 )
+char *GSoundSceneryFileName( int a1, int a2, const char *a3 )
 {
     sprintf( gGSoundProtoFileName, "S%c%c%4s%1d", ( a1 ? 'P' :'A'), gGSoundCodeB[ a2 ], a3, 1 );
     StrUpr( gGSoundProtoFileName );
     return gGSoundProtoFileName;
 }
 
-char *GSoundProtoFname2( Obj_t *obj, int Idx )
+char *GSoundOpenFileName( Obj_t *obj, int Idx )
 {
     Proto_t *proto;
 
@@ -859,7 +852,6 @@ int GSoundPlayKnobRt()
 int GSoundPlay( char *fname )
 {
     Sound_t *AcmFile;
-printf(" ######## -> Ambient sound file='%s'\n", fname);
     if( !gGSoundDbgEn || !gGSoundOn ) return -1;
     if( !(AcmFile = GSoundLoadAcm( fname, 0 )) ) return -1;
     if( !gGSoundDbgEn || !gGSoundOn ) return -1;

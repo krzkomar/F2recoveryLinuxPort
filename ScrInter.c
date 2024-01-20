@@ -38,70 +38,65 @@ void SciUnk02( int a1 )
 
 void SciOpcodeExec( Intp_t *Scp, int Steps )
 {
-    Intp_t *tmp;
-    char errstr[256];
-    char stmp[276];
-    int err;
+    Intp_t *ScrSave;
+    char errstr[256], stmp[276];
 
-    tmp = gIntpCurScript;
-    if( !gScpUnk01 || gSciUnk03 || Scp->i35 || (Scp->Flags & 0x20) || (Scp->Flags & 0x100) ) return;
-    if( Scp->TimeAtExec == -1 ) Scp->TimeAtExec = 1000 * gIntpGetTime() / gIntpTimeDiv;
+    ScrSave = gIntpCurScript;
+    if( !gScpUnk01 || gSciUnk03 || Scp->i35 || ( Scp->Flags & 0x120 ) ) return;
+    if( Scp->TimeAtExec == -1 ) Scp->TimeAtExec = 1000 * (unsigned int)gIntpGetTime() / gIntpTimeDiv;
     gIntpCurScript = Scp;    
-    err = setjmp( Scp->EnvSave );
-    if( err ){ // catch errors from longjmp()
-printf("Error catched !\n");
-        gIntpCurScript = tmp;
-        Scp->Flags |= 0x05;
+    if( setjmp( Scp->EnvSave ) ){ // jumping target point, error handler
+        gIntpCurScript = ScrSave;
+        Scp->Flags |= ( SCR_FERROR | SCR_FEXIT );
         return;
     }
-    if( (Scp->Flags & 0x80) && Steps < 3 ) Steps = 3;
-    while( (( Scp->Flags & 0x80 ) || (--Steps != -1)) && !(Scp->Flags & 0x16D) && !Scp->i35 ){
-        if( Scp->Flags & 0x10 ){
+    if( (Scp->Flags & SCR_FCRITICAL ) && (Steps < 3) ) Steps = 3; // minimum 3 steps
+    while( ((Scp->Flags & SCR_FCRITICAL) || (--Steps != -1)) && !(Scp->Flags & 0x16D ) && !Scp->i35 ){
+        if( Scp->Flags & SCR_FEXEC ){
     	    gSciUnk03 = 1;
-    	    if( Scp->Func && Scp->Func( Scp ) ){
+    	    if( Scp->Func && Scp->Func( Scp ) ) {
         	gSciUnk03 = 0;
         	continue;
-    	    } else {
-        	Scp->Func = NULL;
-        	gSciUnk03 = 0;
-        	Scp->Flags &= ~0x10;
     	    }
+    	    Scp->Func = NULL;
+    	    gSciUnk03 = 0;
+    	    Scp->Flags &= ~SCR_FEXEC;
         }
-        // fetch opcode
-        Scp->InstrPtr += 2;
-        Scp->Opcode = IntpReadBew( Scp->IntpData, Scp->InstrPtr );
-        if( !(Scp->Opcode & 0x8000) ){
+        Scp->Opcode = IntpReadBew( Scp->Code, Scp->CodePC );
+        Scp->CodePC += 2;
+        if( (Scp->Opcode & 0x8000) == 0 ){
             sprintf( stmp, "Bad opcode %x %c %d.", Scp->Opcode, Scp->Opcode, Scp->Opcode );
-            IntpError( stmp );
+            IntpError( stmp ); // jump
         }
-        if( !gScpOpcodeTable[ Scp->Opcode & 0x3ff ] ){
+        if( gScpOpcodeTable[ Scp->Opcode & 0x3FF ] == 0 ){
             sprintf( errstr, "Undefined opcode %x.", Scp->Opcode );
-            IntpError( errstr );
+            IntpError( errstr ); // jump
         }
-        // execute instruction
-//DD
-//printf(">>>> Script opcode:[%i]\n", Scp->Opcode & 0x3FF );
-//        gScpOpcodeTable[ Scp->Opcode & 0x3FF ]( Scp );
+        gScpOpcodeTable[ Scp->Opcode & 0x3FF ]( Scp );  //  exec        
     }
-    if( (Scp->Flags & 0x01) && Scp->Parent && (Scp->Parent->Flags & 0x20) ){
-        Scp->Parent->Flags &= ~0x20;
-        Scp->Parent->ChildProcess = NULL;
-        Scp->Parent = NULL;
+    if( Scp->Flags & SCR_FEXIT ){
+        if( Scp->Parent ){
+            if( Scp->Parent->Flags & SCR_FPROC_RUN ){
+                Scp->Parent->Flags &= ~SCR_FPROC_RUN;
+                Scp->Parent->ChildProcess = 0;
+                Scp->Parent = NULL;
+            }
+        }
     }
     Scp->Flags &= ~0x40;
-    gIntpCurScript = tmp;
+    gIntpCurScript = ScrSave;
     IntpMergeString( Scp );
 }
 
 void SciUnk03( Intp_t *scr, int Idx, int Arg )
 {
-    IntpPushIntStack( scr->StackB, &scr->StackIdxB, scr->InstrPtr ); 	IntpPushwB( scr, SCR_INT );
+    IntpPushIntStack( scr->StackB, &scr->StackIdxB, scr->CodePC ); 	IntpPushwB( scr, SCR_INT );
     IntpPushIntStack( scr->StackB, &scr->StackIdxB, Arg ); 		IntpPushwB( scr, SCR_INT );
     IntpPushIntStack( scr->StackA, &scr->StackApos, scr->Flags ); 	IntpPushwA( scr, SCR_INT );
     IntpPushPtrStack( scr->StackA, &scr->StackApos, scr->Func );	IntpPushwA( scr, SCR_PTR );
     IntpPushIntStack( scr->StackA, &scr->StackApos, scr->i34 ); 	IntpPushwA( scr, SCR_INT );
     scr->Flags = 0;
-    scr->InstrPtr = Idx;
+    scr->CodePC = Idx;
 }
 
 void SciUnk04( Intp_t *scr, int Pos, int Arg )
@@ -113,7 +108,8 @@ void SciUnk04( Intp_t *scr, int Pos, int Arg )
 
 void SciUnk05( Intp_t *Scr1, Intp_t *Scr2, int Pos, int Arg )
 {
-    IntpPushIntStack( Scr2->StackB, &Scr2->StackIdxB, Scr2->InstrPtr ); IntpPushwB( Scr2, SCR_INT );
+DD
+    IntpPushIntStack( Scr2->StackB, &Scr2->StackIdxB, Scr2->CodePC ); IntpPushwB( Scr2, SCR_INT );
     IntpPushIntStack( Scr2->StackB, &Scr2->StackIdxB, Scr1->Flags );   	IntpPushwB( Scr2, SCR_INT );
     IntpPushPtrStack( Scr2->StackB, &Scr2->StackIdxB, Scr1->Func );    	IntpPushwB( Scr2, SCR_PTR );
     IntpPushIntStack( Scr2->StackB, &Scr2->StackIdxB, Scr1->i34 );    	IntpPushwB( Scr2, SCR_INT );
@@ -122,7 +118,7 @@ void SciUnk05( Intp_t *Scr1, Intp_t *Scr2, int Pos, int Arg )
     IntpPushPtrStack( Scr2->StackA, &Scr2->StackApos, Scr2->Func );    	IntpPushwA( Scr2, SCR_PTR );
     IntpPushIntStack( Scr2->StackA, &Scr2->StackApos, Scr2->i34 );    	IntpPushwA( Scr2, SCR_INT );
     Scr2->Flags = 0;
-    Scr2->InstrPtr = Pos;
+    Scr2->CodePC = Pos;
     Scr2->i34 = Scr1->i34;
     Scr1->Flags |= 0x20;
 }
@@ -153,6 +149,7 @@ void SciUnk07( Intp_t *a1, int a2, char *a3 )
     	    }
         } else {
     	    if( *v5 == 1 ){
+DD
 //        	IntpPushIntStack( a1->StackA, &a1->StackApos, IntrpretUnk02( a1, v5[1], v6 ) );
         	IntpPushwA( a1, 0x9801 );
     	    }
@@ -175,11 +172,11 @@ void SciUnk08( Intp_t *scr, int a2, int *a3, char *a4, int a5 )
     v35 = a3;
     if( (IntpReadBei( (char *)&scr->ProcTable[ a2 ].NameOfst, 4) & 4) ){
         Bei = IntpReadBei( (char *)&scr->ProcTable[ a2 ].NameOfst, 0 );
-        v9 = scr->StringBase + Bei;
+        v9 = scr->ProcVarNames + Bei;
         Scp = ExportGetProcedure( v9, &v321, &v320 );
         if( !Scp ){ IntpLog( "External procedure %s not found\n", v9 ); return; }
         if( v320 != a5 ){ IntpLog( "Wrong number of arguments given to %s\n", v9 ); return; }
-//        SciUnk05(scr, Scp, v321, 40);
+        SciUnk05(scr, Scp, v321, 40);
         SciUnk07(Scp, a5, a4);
         pIdx = &Scp->StackApos;
         IntpPushIntStack(Scp->StackA, &Scp->StackApos, a5);
@@ -194,8 +191,8 @@ void SciUnk08( Intp_t *scr, int a2, int *a3, char *a4, int a5 )
     } else {
 	if( IntpReadBei( (char *)&scr->ProcTable[a2].NameOfst, 20) != a5 ){
     	    v18 = IntpReadBei( (char *)&scr->ProcTable[a2].NameOfst, 0 );
-    	    eprintf( "Wrong number of args to procedure %s\n", scr->StringBase + v18 );
-    	    IntpLog( "Wrong number of args to procedure %s\n", scr ? scr->StringBase + v18 : 0 );
+    	    eprintf( "Wrong number of args to procedure %s\n", scr->ProcVarNames + v18 );
+    	    IntpLog( "Wrong number of args to procedure %s\n", scr ? scr->ProcVarNames + v18 : 0 );
     	    return;
 	}
 	v20 = IntpReadBei( (char *)&scr->ProcTable[ a2 ].NameOfst, 16 );
@@ -217,6 +214,7 @@ void SciUnk08( Intp_t *scr, int a2, int *a3, char *a4, int a5 )
     	    } else {
         	if( v22[ 0 ] == 1 ){
 v21 = 0;
+DD
 //        	    v21 = IntrpretUnk02( scr, v22[ 4 ], v21 );
             	    IntpPushIntStack( scr->StackA, p_StackApos, v21 );
             	    IntpPushwA( scr, 0x9801 );
@@ -249,6 +247,7 @@ v21 = 0;
     }
     if( v15 == 0x9001 ){
         v35[0] = 1;
+DD
 //        v35[1] = (v34 + scr->p12 + 4);
     }
 }
@@ -326,7 +325,7 @@ void SciUnk09( Intp_t *scr, int a2, int a3, char *ebx0 )
         return;
     }
     v7 = IntpReadBei((int *)((char *)&scr->ProcTable->NameOfst + k), 0);
-    scp = ExportGetProcedure((char *)scr->StringBase + v7, (char **)&a4, (short *)&nn);
+    scp = ExportGetProcedure((char *)scr->ProcVarNames + v7, (char **)&a4, (short *)&nn);
     if( !scp ){ sprintf(a1, "External procedure %s not found\n", v8);IntpLog(a1); return;}
     if( (char *)nn != ebx0 ){ sprintf( v27, "Wrong number of arguments given to %s\n", v8); IntpLog(v27); return; }
     v10 = a4;
@@ -403,7 +402,7 @@ void SciUnk10( Intp_t *scr, int a2, int a3, unsigned int ecx0 )
 
     if( IntpReadBei( &scr->ProcTable[ a2 ].NameOfst, 4) & 0x04 ){
         Bei = IntpReadBei( &scr->ProcTable[ a2 ].NameOfst, 0 );
-        Procedure = ExportGetProcedure( (char *)scr->StringBase + Bei, &a4, &nn );
+        Procedure = ExportGetProcedure( (char *)scr->ProcVarNames + Bei, &a4, &nn );
         if( !Procedure ){ sprintf( a1, "External procedure %s not found\n", v7 ); return IntpLog( a1 ); }
         if( nn != ecx0 ){ sprintf( v29, "Wrong number of arguments given to %s\n", v7 ); return IntpLog( v29 ); }
         v11 = a4;
@@ -497,11 +496,11 @@ void SciUnk11( Intp_t *scr, int a2 )
         return;
     }
     v5 = IntpReadBei( (char *)&scr->ProcTable[ a2 ].NameOfst, 0 );
-    v7 = scr->StringBase + v5;
+    v7 = scr->ProcVarNames + v5;
     Procedure = ExportGetProcedure( v7, &a4, &nn );
     if( !Procedure ){ sprintf( a1, "External procedure %s not found\n", v7 ); IntpLog( a1 ); return; }
     if( nn ){ IntpLog( "External procedure cannot take arguments in interrupt context" ); return; }
-//    SciUnk05( scr, Procedure, a4, 28 );
+    SciUnk05( scr, Procedure, a4, 28 );
     IntpPushiA( Procedure, 0 );
     IntpPushwA( Procedure, 0xC001 );
     if( (IntpReadBei( (char *)&Procedure->ProcTable[ a2 ].NameOfst, 4 ) & 0x10 ) ){
@@ -518,34 +517,36 @@ int SciGetProcedureIdx( Intp_t *itp, const char *ProcName )
     p = &itp->ProcTable->NameOfst;
     for( i = 0; i < cnt; i++, p += 6 ){
         idx = IntpReadBei( (char *)p, 0 );
-        if( !strcasecmp( ProcName, itp ? &itp->StringBase[ idx ] : "" ) ) return i;
+        if( !strcasecmp( ProcName, itp ? &itp->ProcVarNames[ idx ] : "" ) ) return i;
     }
     return -1;
 }
 
-void SciUnk13( Intp_t *itp, int a2 )
+void SciUnk13( Intp_t *itp, int ProcIdx )
 {
     char stmp[256], *a4, *procname;
     int ofs, tmp[ 13 ];
     short IntCtx;
-    Intp_t *v5;
+    Intp_t *p;
 
-    if( IntpReadBei( (char *)&itp->ProcTable[ a2 ].NameOfst, 4 ) & 0x04 ){
-        ofs = IntpReadBei( (char *)&itp->ProcTable[ a2 ].NameOfst, 0 );
-        procname = itp->StringBase + ofs;
-        v5 = ExportGetProcedure( procname, &a4, &IntCtx );
-        if( !v5 ){ sprintf( stmp, "External procedure %s not found\n", procname ); IntpLog( stmp ); return; }
+    if( IntpReadBei( (char *)itp->ProcTable + 24 * ProcIdx + 4, 4 ) & 0x04 ){
+        ofs = IntpReadBei( (char *)itp->ProcTable + 4, 0 );
+        procname = itp->ProcVarNames + ofs;
+        p = ExportGetProcedure( procname, &a4, &IntCtx );
+        if( !p ){ sprintf( stmp, "External procedure %s not found\n", procname ); IntpLog( stmp ); return; }
         if( IntCtx ){ IntpLog( "External procedure cannot take arguments in interrupt context" ); return; }
-//        SciUnk05( itp, v5, a4, 32 );
-        IntpPushiA( v5, 0 );
-        IntpPushwA( v5, 0xc001 );
+        SciUnk05( itp, p, a4, 32 );
+        IntpPushiA( p, 0 );
+        IntpPushwA( p, SCR_INT );
+	memcpy( tmp, p->EnvSave, sizeof( tmp ) );
     } else {
-        SciUnk03( itp, IntpReadBei( (char *)&itp->ProcTable[ a2 ].NameOfst, 16 ), 24 );
+        SciUnk03( itp, IntpReadBei( (char *)itp->ProcTable + 4, 16 ), 24 );
         IntpPushiA( itp, 0 );
-        IntpPushwA( itp, 0xc001 );
+        IntpPushwA( itp, SCR_INT );
+        p = itp;
+	memcpy( tmp, p->EnvSave, sizeof( tmp ) );
     }
-    memcpy( tmp, itp->EnvSave, sizeof( tmp ) );
-    SciOpcodeExec( itp, -1 );
+    SciOpcodeExec( p, -1 );
     memcpy( itp->EnvSave, tmp, sizeof( tmp ) );
 }
 
@@ -569,17 +570,17 @@ void SciUnk14()
             if( v2 & 0x02 ){
                 Itp = p->Itp;
                 SaveFlags = p->Itp->Flags;
-                InstrPtr = Itp->InstrPtr;
+                InstrPtr = Itp->CodePC;
                 memcpy( tmp, p->Itp->EnvSave, sizeof( jmp_buf ) );
                 p->Itp->Flags = 0;
-                p->Itp->InstrPtr = IntpReadBei( (char *)v1, 12 );
+                p->Itp->CodePC = IntpReadBei( (char *)v1, 12 );
                 SciOpcodeExec( p->Itp, -1 );
                 if( !(p->Itp->Flags & 0x04) ){
                     v8 = IntpPopShortStack( p->Itp->StackA, &p->Itp->StackApos );
                     v9 = IntpPopIntStack( p->Itp->StackA, &p->Itp->StackApos );
                     if( v8 == 0x9801 ) IntpStringDeRef( p->Itp, 0x9801, v9 );
                     p->Itp->Flags = SaveFlags;
-                    p->Itp->InstrPtr = InstrPtr;
+                    p->Itp->CodePC = InstrPtr;
                     if( v9 ){
                         IntpWriteBew( 0, (char *)v1, 4 );
                         IntpWriteBew( 0, (char *)v1, 6 );
@@ -608,7 +609,7 @@ void SciUnk15( IntpList_t *a1 )
     else
         gIntpQe = a1->Prev;
     IntpUnLoad( a1->Itp );
-    dbg_free( a1->Itp );
+    dbg_free( a1 );
 }
 
 void SciItpEqAdd( Intp_t *itp )
@@ -666,7 +667,7 @@ void SciAddOpcode( short Opcode, void (*Func)( Intp_t * ) )
 {
     Opcode &= 0x03ff;
     if( Opcode >= MAX_OPCODES ){ printf( "Too many opcodes!\n" ); exit( 1 ); }
-    gScpOpcodeTable[ Opcode ] = Func;
+    gScpOpcodeTable[ Opcode ] = (void *)Func;
 }
 
 void SciSetMseHandler( char *(*Cb)(void) )
@@ -723,12 +724,12 @@ void SciUnk27( char *fpath, Intp_t *a2, int cnt )
         v8 -= 6;
         Type = (v8[0] << 8) | v8[1];
 	switch( Type ){
-	    case SCR_STRING: fprintf( fh, "%s\n", &a2->Floats->Data[ Val ] ); break;
+	    case SCR_STRING: fprintf( fh, "%s\n", &a2->StringsConst[ Val + 4 ] ); break;
 	    case SCR_FSTRING: 
         	    if( Type & 0x800 )
-            		fprintf( fh, "%s\n", &a2->Strings->Data[ Val ] );
+            		fprintf( fh, "%s\n", &a2->FString->Data[ Val ] );
         	    else
-            		fprintf( fh, "%s\n", &a2->Floats->Data[ Val ] );
+            		fprintf( fh, "%s\n", &a2->StringsConst[ Val + 4 ] );
             	    break;	    
 	    case SCR_FLOAT: fprintf( fh, "%f\n", FLOAT( Val ) ); break;
 	    case SCR_INT: fprintf( fh, "%d\n", Val ); break;
@@ -747,7 +748,7 @@ void SciUnk28()
 
     for( p = gIntpQe; p; p = p->Prev ){
         if( !p->Itp ) continue;
-    	Strings = p->Itp->Strings;
+    	Strings = p->Itp->FString;
     	if( !Strings ){
             eprintf( "No string heap for program %s\n", p->Itp->FileName );
     	} else {    	        	    
@@ -758,7 +759,7 @@ void SciUnk28()
         	else
         	    eprintf( "Size: %d, ref: %d, string %s\n", str->Size, str->Ref, str->String );
     	    }
-    	    eprintf( "Total length of heap %d, stored length %d\n", heap, p->Itp->Strings->w01 );
+    	    eprintf( "Total length of heap %d, stored length %d\n", heap, p->Itp->FString->w01 );
     	}
     }    
 }

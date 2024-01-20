@@ -834,43 +834,42 @@ void PipDeleteLineRegions()
     gPipUnk12 = 0;
 }
 
-int PipWaitGameTime( int Hour, int Min, char party )
+int PipWaitGameTime( int Hour, int Min, char heal )
 {
-    unsigned int v9,v22;
-    double v4,v5,i,j,v56,v57,v58;
-    int err,SysTime,GameTime,v21,Hp,Val,v44,timea,time,hh,v59,GameDekaSeconds,v63,v64;
-DD
-return 0;
+    unsigned int EvT;
+    double v4,v5,Alarm,v58, tres;
+    int err,SysTime,Hp,HpPts,Wound,timea,time,Sec10,i;
+
     GmouseLoadCursor( 26 );
     err = 0;
-    if( party ){
-        if( party == 12 || party == 13 ){
+    if( heal ){
+        if( heal == 12 || heal == 13 ){
             Hp = CritterGetHp( gObjDude );
-            Val = FeatGetVal( gObjDude, 7 );
-            if( Hp == Val && (party != 13 || !PartyIsWounded()) ){
+            HpPts = FeatGetVal( gObjDude, FEAT_HP );
+            if( Hp == HpPts && (heal != 13 || !PartyIsWounded()) ){
 		GmouseLoadCursor( 1 );
 		return 0;
             }
-            hh = lround( (float)(Val - Hp) / FeatGetVal( gObjDude, 14 ) * 3.0);
-            while( hh && !err ){
-                if( hh <= 24 ){
-                    err = PipWaitGameTime( hh, 0, 0 );
-                    hh = 0;
+            time = lround( (float)(HpPts - Hp) / FeatGetVal( gObjDude, FEAT_HEALING ) * 3.0);
+            while( time && !err ){
+                if( time <= 24 ){
+                    err = PipWaitGameTime( time, 0, 0 );
+                    time = 0;
                 } else {
                     err = PipWaitGameTime( 24, 0, 0 );
-                    hh -= 24;
+                    time -= 24;
                 }
             }
-            v44 = FeatGetVal( gObjDude, 7 ) - CritterGetHp( gObjDude );
-            if( party == 13 ){
-//                v46 = PartyMostWound();
-//                if( v46 > v44 ) v44 = v46;
+            Wound = FeatGetVal( gObjDude, FEAT_HP ) - CritterGetHp( gObjDude );
+            if( heal == 13 ){
+                Hp = PartyMostWound();
+                if( Hp > Wound ) Wound = Hp;
             }
-            while( !err && v44 ){
-                v44 = FeatGetVal( gObjDude, 7 ) - CritterGetHp(gObjDude);
-                if( party == 13 ){
-//                    v46 = PartyMostWound();
-//                    if( v46 > v44 ) v44 = v46;
+            while( !err && Wound ){
+                Wound = FeatGetVal( gObjDude, FEAT_HP ) - CritterGetHp( gObjDude );
+                if( heal == 13 ){
+                    Hp = PartyMostWound();
+                    if( Hp > Wound ) Wound = Hp;
                 }
                 err = PipWaitGameTime( 3, 0, 0 );
             }
@@ -880,33 +879,34 @@ return 0;
         v5 = v4 * 0.0006944444444444445 * 3.5 + 0.25;
         v58 = (double)Min / v4 * v5;
         if( Min ){
-            GameDekaSeconds = ScptGetGameDekaSeconds();            
-            v57 = v58 * 20.0;
-            for( v64 = 0, i = lround( v57 ); 0.0 < i && !err; i = lround( v57 ), v64++ ){
+            Sec10 = ScptGetGameDekaSeconds();            
+            Alarm = v58 * 20.0;
+            tres = Alarm * (Min * 600.0) + Sec10;
+            for( i = 0; i < lround( Alarm ) && !err; i++ ){
                 SysTime = TimerGetSysTime();
-                timea = lround( v64 / v57 * (Min * 600.0) + GameDekaSeconds );
-                v9 = EvQeGetTime();
-                if( timea >= v9 ){
-                    ScptSetGameTime( v9 + 1 );                    
+                timea = lround( i / tres );
+                EvT = EvQeGetTime();
+                if( timea >= EvT ){
+                    ScptSetGameTime( EvT + 1 );                    
                     if( EvQeTrig() ){ err = 1;  eprintf( "PIPBOY: Returning from Queue trigger...\n" ); gPipExit = 1; break; }
                     if( gMenuEscape ) err = 1;
                 }
                 if( !err ){
                     ScptSetGameTime( timea );
-                    if( InpUpdate() == 27 || gMenuEscape ) err = 1;
-                    GameTime = ScptGetGameTime();
-                    PipPrintCounter( GameTime, 4, 155, 17 );
+                    if( InpUpdate() == KEY_ESC || gMenuEscape ) err = 1;
+                    PipPrintCounter( ScptGetGameTime(), 4, 155, 17 );
                     PipPrintDate();
                     WinUpdate( gPipWin );
-                    while( TimerCurrDiff( SysTime ) < 0x32 );
+                    while( TimerCurrDiff( SysTime ) < 50 );
                 }                
             }
+        
             if( !err ){
-                ScptSetGameTime( GameDekaSeconds + 600 * Min );
-                if ( PipAddHealth( Min ) ){
-//                    PartyUnk08( 3 );
+                ScptSetGameTime( Sec10 + 600 * Min );
+                if( PipAddHealth( Min ) ){
+                    PartyHeal( 3 );
                     CritterGetHp( gObjDude );
-                    FeatGetVal( gObjDude, 7 );
+                    FeatGetVal( gObjDude, FEAT_HP );
                 }
             }
             PipPrintCounter( ScptGetGameTime(), 4, 155, 17 );
@@ -915,35 +915,34 @@ return 0;
             WinUpdate( gPipWin );
         }
         if( Hour && !err ){
-            v59 = ScptGetGameDekaSeconds();
-            v63 = 0;
-            v56 = (v5 - v58) * 20.0;
-            for( j = lround( v56 ); 0.0 < j && !err; j = lround( v56 ) ){
-                v21 = TimerGetSysTime();
-                if( InpUpdate() == 27 || gMenuEscape ) err = 1;
-                time = lround( v63 / v56 * (Hour * 36000.0) + v59 );
-                v22 = EvQeGetTime();
-                if( !err && time >= v22 ){
-                    ScptSetGameTime( v22 + 1 );
+            Sec10 = ScptGetGameDekaSeconds();            
+            Alarm = (v5 - v58) * 20.0;
+            tres = Alarm * (Hour * 36000.0) + Sec10;
+            for( i = 0; i < lround( Alarm ) && !err; i++ ){
+                SysTime = TimerGetSysTime();
+                if( InpUpdate() == KEY_ESC || gMenuEscape ) err = 1;
+                time = lround( i / tres );
+                EvT = EvQeGetTime();
+                if( !err && time >= EvT ){
+                    ScptSetGameTime( EvT + 1 );
                     if( EvQeTrig() ){ err = 1; eprintf( "PIPBOY: Returning from Queue trigger...\n" ); gPipExit = 1; break; }
                     if( gMenuEscape ) err = 1;
                 }
                 if( !err ){
                     ScptSetGameTime( time );
-                    if( PipAddHealth( lround( (60 * Hour) / v56 ) ) ){
-//                        PartyUnk08( 3 );
+                    if( PipAddHealth( lround( (60 * Hour) / Alarm ) ) ){
+                        PartyHeal( 3 );
                         CritterGetHp( gObjDude );
-                        FeatGetVal( gObjDude, 7 );
+                        FeatGetVal( gObjDude, FEAT_HP );
                     }
                     PipPrintCounter( ScptGetGameTime(), 4, 155, 17 );
                     PipPrintDate();
                     PipHpPoints();
                     WinUpdate( gPipWin );
-                    while( TimerCurrDiff( v21 ) < 50 );
-                }
-                v63++;
+                    while( TimerCurrDiff( SysTime ) < 50 );
+                }                
             }
-            if( !err ) ScptSetGameTime( v59 + 36000 * Hour );
+            if( !err ) ScptSetGameTime( Sec10 + 36000 * Hour );
             PipPrintCounter( ScptGetGameTime(), 4, 155, 17 );
             PipPrintDate();
             PipHpPoints();
@@ -971,7 +970,7 @@ int PipAddHealth( int a1 )
 
 int PipHealed()
 {
-//    PartyUnk08( 3 );
+    PartyHeal( 3 );
     return CritterGetHp( gObjDude ) == FeatGetVal( gObjDude, FEAT_HP );
 }
 

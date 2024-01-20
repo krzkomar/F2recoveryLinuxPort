@@ -289,7 +289,7 @@ void ExportVarsLoad ( xFile_t *fh )
     p = dbg_malloc( sizeof( Export_t ) );
     for( i = 0; i < buffer; i++ ){
         dbread( &v13, 4, 1, fh );
-//        Unk674( v5 );
+        WinDlgProcess();
         memset( p, 0, sizeof( Export_t ) );
         dbread( &p->Flags, 2, 1, fh );
         Flags = p->Flags & ~0x800;

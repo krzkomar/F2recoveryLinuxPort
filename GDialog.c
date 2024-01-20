@@ -26,7 +26,7 @@ int   gDlgUnk16 = 0;
 Obj_t *gDlgUnk15 = NULL;
 Obj_t *gDlgUnk20 = NULL;
 Obj_t *gDlgUnk21 = NULL;
-int   gDlgUnk14 = 0;
+int   gDlgBarterModifier = 0;
 int   gDlgBackWindow = -1;
 int   gDlgSurface = -1;
 VidRect_t gDlgUnk22[ 8 ] = { 
@@ -178,7 +178,7 @@ void GdialogEnter( Obj_t *target, int flg )
         }
     }
     gDlgUnk12 = gTileCentIdx;
-    gDlgUnk14 = 0;
+    gDlgBarterModifier = 0;
     gDlgUnk11 = gObjDude->GridId;
     MapUnk35();
     gDlgUnk06 = 1;
@@ -383,7 +383,7 @@ void GdialogReply( char *str )
     WinUpdate( gDlgBoxTitle );
 }
 
-void GdialogUnk08()
+void GdialogStart()
 {
     gDlgReviewCount = 0;
     gDlgOption = 0;
@@ -392,7 +392,7 @@ void GdialogUnk08()
 void GdialogUnk09()
 {
     MseDrawCursor();
-    GdialogUnk16();
+    GdialogEnd();
     gDlgOption = 0;
     gDlgUnk137 = -1;
 }
@@ -445,7 +445,7 @@ int GdialogUnk15( Intp_t *a1, char *a2 )
     return 0;
 }
 
-int GdialogUnk16()
+int GdialogEnd()
 {
     int v0;
 
@@ -848,7 +848,7 @@ int GdialogUnk34() // xxxxx
         switch( gDlgUnk08 ){
             case 3:
                 gDlgUnk09 = 4;
-                InvMenuBarter( gDlgSurface, gDlgUnk44, gDlgUnk20, gDlgUnk15, gDlgUnk14 );
+                InvMenuBarter( gDlgSurface, gDlgUnk44, gDlgUnk20, gDlgUnk15, gDlgBarterModifier );
                 GdialogUnk62();
                 v7 = gDlgUnk09;
                 GdialogUnk61();
@@ -1686,16 +1686,16 @@ int GdialogDisplayMsg( char *Surf, VidRect_t *Area, char *Text, int *pPosition, 
     return Area->tp;
 }
 
-int GdialogUnk57( int a1 )
+int GdialogSetBarterModifier( int mod )
 {
-    gDlgUnk14 = a1;
+    gDlgBarterModifier = mod;
     return 0;
 }
 
-int GdialogUnk58( int a1 )
+int GdialogBarterMenu( int BarterMod )
 {
     if( !gDlgUnk06 ) return -1;
-    gDlgUnk14 = a1;
+    gDlgBarterModifier = BarterMod;
     GdialogBarter();
     gDlgUnk09 = 4;
     gDlgUnk08 = 2;
@@ -2011,7 +2011,7 @@ void GdialogUnk69()
     		if( MseCursorCenterInArea( 441, 451, 540, 470 ) ){ AiUnk06( gDlgUnk44, 0 ); gDlgUnk09 = 13; gDlgUnk08 = 11; ext = 1; }
     		break;
     	    case 'w':
-        	InvUnk31( gDlgUnk44, 1 );
+        	InvUnwield( gDlgUnk44, 1 );
         	if( (obj = AiUnk29( gDlgUnk44, 0, 0 )) ){ InvUnk28( gDlgUnk44, obj, 1 ); AiUnk45( gDlgUnk44, 0 ); }
     		GdialogReply( MessageGetMessage( &gProtoMessages, &msg, GdialogUnk67( gDlgUnk44 ) ) );
     		GdialogUnk65();

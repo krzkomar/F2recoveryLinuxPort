@@ -412,12 +412,12 @@ void ScrGame_DestroyMultObjs( Intp_t *scr );
 	This could be used to have a critter use a Stimpack on the player, for instance, or to use a key on a door.
 */
 void ScrGame_UseObjOnObj( Intp_t *scr );
-void ScrGame_Unk11( Intp_t *scr );
+void ScrGame_EndGameSlideShow( Intp_t *scr );
 /*
     void move_obj_inven_to_obj( ObjectPtr srcObj, ObjectPtr destObj ); - moves the inventory object in the inventory object srcObj destObj
 */
-void ScrGame_oveObjInvenToObj( Intp_t *scr );
-void ScrGame_Unk12( Intp_t *scr );
+void ScrGame_MoveObjInvenToObj( Intp_t *scr );
+void ScrGame_EndGameMovie( Intp_t *scr );
 /*
     ObjectPtr obj_art_fid( ObjectPtr obj ); - Returns the fid # (used to index art); of a given object (obj);. 
 */
@@ -463,9 +463,11 @@ void ScrGame_CritterIsFleeing( Intp_t *scr );
 */
 void ScrGame_CritterSetFleeState( Intp_t *scr );
 /*
-    ?
+    terminate_combat void Combat 
+    Tells the combat system to terminate prematurely. 
+    USE WITH CAUTION. This doesn’t prevent another (or even the SAME) script from re-starting combat, so make sure you turn off any hostile flags, etc.
 */
-void ScrGame_Unk13( Intp_t *scr );
+void ScrGame_TerminateCombat( Intp_t *scr );
 /*
     void debug_msg( string text ); - displays a message box debug message
 */

@@ -7,7 +7,7 @@ typedef struct
 	char *Fname;	// file name
 	Intp_t *Itp;	// interpreter script
     };
-    short Flags;	// variable type
+    short Flags;	// variable type -> !0 - interrupt context
     union{
 	char *ValStr;
 	float ValFloat;

@@ -993,8 +993,8 @@ void IfcAnimateSlot( int a1, int a2 )
     AnimStart( 2 );
     AnimChangeItemStart( gObjDude, 4, 0 );
     if( a1 ){
-        AnimUnk66( gObjDude, GSoundProtoFname6( gObjDude, 39, 0 ), 0 );
-        AnimUnk48( gObjDude, 39, 0 );
+        AnimRegPlaySfx( gObjDude, GSoundCharacterFileName( gObjDude, 39, 0 ), 0 );
+        AnimRegAnim( gObjDude, 39, 0 );
     }
     AnimSetFinish( 0, 0, (void *)IfaceRenderHandSlotCb, -1 );
     obj = gIfcHandSlot[ gIfcHandSlotState ].obj;
@@ -1118,7 +1118,7 @@ int IfaceUnk36()
     IfaceUnk17();
     IfaceHandSlotUpdate( 0, -1, -1 );
     if( !err ) return -1;
-    GSoundPlay( GSoundProtoFname3( 0, gIfcHandSlot[ gIfcHandSlotState ].obj, 2, 0 ) );
+    GSoundPlay( GSoundWeaponFileName( 0, gIfcHandSlot[ gIfcHandSlotState ].obj, 2, 0 ) );
     return 0;
 }
 

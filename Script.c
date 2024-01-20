@@ -300,14 +300,13 @@ int ScptGetActionSource( Intp_t *a1 )
     return ( a1 == j->Script[ a2 ].i07 ) ? j->Script[ a2 ].Id : -1;
 }
 
-Obj_t *ScptUnk140( Intp_t *a1 )
+Obj_t *ScptGetSelfObj( Intp_t *a1 )
 {
-    unsigned int v3; // esi
-    int v6; // ebx
-    Scpt_t *v7; // eax
-    Obj_t *obj; // [esp+0h] [ebp-1Ch] BYREF
-    Scpt_t *a2; // [esp+4h] [ebp-18h] BYREF
-    Scpt_t *scr; // [esp+8h] [ebp-14h] OVERLAPPED BYREF
+    unsigned int v3;
+    int v6;
+    Scpt_t *v7;
+    Obj_t *obj;
+    Scpt_t *a2, *scr;
 
     obj = 0;
     v3 = ScptGetActionSource( a1 );
@@ -342,7 +341,7 @@ char *ScptUnk139( int a1 )
     return ( ScptGetScriptFname( v4->LocVarId & 0xFFFFFF, gScptUnk104 ) == -1 ) ? "<INVALID>" : gScptUnk104;
 }
 
-int ScptUnk138( int Pids, Obj_t *critter, Obj_t *item )
+int ScptUseObject( int Pids, Obj_t *critter, Obj_t *item )
 {
     Scpt_t *scr;
 
@@ -432,8 +431,7 @@ int ScptUnk133()
 
 void ScptUnk132()
 {
-    int Time; // ebx
-    int v1; // ecx
+    int Time, v1;
 
     Time = TimerGetTime();
     v1 = 0;
@@ -466,6 +464,7 @@ int ScptUnk130( int a1, Scpt_t *a2 )
 
 int ScptAddTimerEvent( int ScrId, int a1, int a2 )
 {
+DD
 /*
     int *p;
     Scpt_t *scr;
@@ -598,7 +597,7 @@ void ScptProcess()
         }
         if( gScptUnk02 & 0x10 ){ gScptUnk02 &= ~0x10; ActionExplode( gScptUnk121, gScptUnk122, gScptUnk116, gScptUnk117, 0, 1 ); }
         if( gScptUnk02 & 0x20 ){ gScptUnk02 &= ~0x20; GdialogEnter( gScptUnk102, 0 ); }
-        if( gScptUnk02 & 0x80 ){ gScptUnk02 &= ~0x80; EndGameRun(); EndGameUnk01(); }
+        if( gScptUnk02 & 0x80 ){ gScptUnk02 &= ~0x80; EndGameRun(); EndGameMoviePlay(); }
         if( gScptUnk02 & 0x100 ){ gScptUnk02 &= ~0x100; InvMenuSteal( gScptUnk100, gScptUnk101 ); }
         if( gScptUnk02 & 0x200 ){ gScptUnk02 &= ~0x200; InvStealAttempt( gScptUnk119, gScptUnk120 ); }
     }
@@ -680,7 +679,7 @@ int ScptUnk119()
     return 0;
 }
 
-int ScptUnk118()
+int ScptWorldMap()
 {
     if( IN_COMBAT ) gMenuEscape = 1;
     gScptUnk02 |= 0x04;
@@ -729,7 +728,7 @@ void ScptUnk115( Obj_t *a1 )
     gScptUnk02 |= 0x20;
 }
 
-void ScptUnk114()
+void ScptSlideShow()
 {
     gScptUnk02 |= 0x80;
 }
@@ -793,7 +792,7 @@ int ScptExecScriptProc( int ScriptId, int arg )
     }
     scr->i12 = arg;
     SciUnk13( scr->i07, tmp );
-    scr->crit = 0;
+    scr->crit = NULL;
     return 0;
 }
 
@@ -1011,9 +1010,13 @@ int ScptGameReset()
 DD
 return 0;
     ScptReset();
+DD
     ScptGameInit();
+DD
     PartyUnk06();
+DD
     ScptDeleteAll();
+DD
     return (ScptSetDudeScript() != -1) - 1;
 }
 
@@ -1183,14 +1186,10 @@ int ScptSavePage( ScptCache_t *scr, xFile_t *fh )
 
 int ScptSaveScript( xFile_t *fh )
 {
-    int i, j, n, k;
-    ScptCache_t *Current;
-    ScptCache_t *p;
-    ScptCache_t *r;
-    Scpt_t tmp;
+    ScptCache_t *Current, *p, *r, *q;
+    Scpt_t tmp, *scp;
     ScptBook_t *dir;
-    Scpt_t *scp;
-    ScptCache_t *q;
+    int i, j, n, k;
 
     dir = gScrScripts;    
     for( j = 0; j < 5; j++, dir++ ){
@@ -1351,7 +1350,6 @@ int ScptPtr( int Pid, Scpt_t **pScript )
     }
     for( spt = gScrScripts[ SCRT( Pid ) ].First; spt; spt = spt->Next ){
         for( i = 0; i < spt->ScptUsed; i++ ){
-//printf( "Search script [%x] -> %x\n", Pid, spt->Script[ i ].Id, spt->ScptUsed );
     	    if( Pid == spt->Script[ i ].Id ){ // found script !
 		*pScript = &spt->Script[ i ];
 		return 0;
@@ -1493,7 +1491,6 @@ int ScptRemove( int Pid )
     if( !qq ) return -1;    
     if( ( qq->Script[ i ].Flags & SCR_02 ) && qq->Script[ i ].i07 ) qq->Script[ i ].i07 = 0;
     if( qq->Script[ i ].Flags & SCR_NOTREMOVE ) return 0;
-printf("Remove script %x\n", Pid);
     if( (gScptUnk02 & 0x01) && (gScptUnk15.obj == qq->Script[ i ].TimeEv) ) gScptUnk02 &= ~0x401;
     if( ScptRemoveLocalVars( &qq->Script[ i ] ) == -1 ) eprintf( "\nERROR Removing local vars on scr_remove!!\n" );
     if( EvQeDelB( qq->Script[ i ].TimeEv, 3 ) == -1 ) eprintf( "\nERROR Removing Timed Events on scr_remove!!\n" );
@@ -1529,40 +1526,25 @@ printf("Remove script %x\n", Pid);
 
 int ScptFlush()
 {
-    ScptBook_t *scp; // edi
-    ScptCache_t *qq; // ecx
-    ScptCache_t *p; // edx
-    int i; // ebx
-    Scpt_t *scr; // eax
-DD
-return 0;
-    scp = gScrScripts;
+    ScptBook_t *scp;
+    ScptCache_t *p;
+    int i, k;
+    
     EvQeRun( 3, 0 );
     ScptMsgFree();
-    do{
-        qq = scp->First;
-        p = scp->First;
-        while( p ){
-            i = 0;
-            while( p ){
-                if( i >= p->ScptUsed ) break;
-                scr = &p->Script[ i ];
-                if( scr->Flags & SCR_NOTREMOVE ){
-                    i++;
-                 } else if( i || p->ScptUsed != 1 ){
-                    ScptRemove( scr->Id );
-                } else {
-                    ScptRemove( qq->Script[ 0 ].Id );
-                    qq = p;
-                }
-            }
-            if( qq ){
-                p = qq->Next;
-                qq = p;
+    for( k = 0; k < SCR_TYPES; k++ ){
+	scp = &gScrScripts[ k ];        
+        for( p = scp->First; p; p = p->Next ){    	    
+            for( i = 0; i < p->ScptUsed; i++ ){
+        	if( p->Script[ i ].Flags & SCR_NOTREMOVE ) continue;
+        	if( i || ( p->ScptUsed != 1 ) ){
+            	    ScptRemove( p->Script[ i ].Id );
+        	} else {
+            	    ScptRemove( p->Script[ 0 ].Id );
+        	}
             }
         }
-        scp++;
-    }while( scp != &gScrScripts[ 5 ] );
+    }
     gScptUnk10 = 0;
     gScptUnk50 = 0;
     gScptUnk51 = 0;
@@ -1929,19 +1911,9 @@ int ScptUnk39()
 
 int ScptUnk40( Obj_t *a1, int edx0,int a3, int a4 )
 {
-    int err; // eax
-    int v6; // esi
-    int v7; // ebp
-    int v14; // ebp
-    int *v19; // edi
-    int v21; // ecx
-    Scpt_t *Scr; // [esp+0h] [ebp-34h] BYREF
-    Scpt_t *a2; // [esp+4h] [ebp-30h] BYREF
-    ScptCache_t *i; // [esp+Ch] [ebp-28h]
-    ScptCache_t *j; // [esp+10h] [ebp-24h]
-    int *n; // [esp+1Ch] [ebp-18h]
-    int v30; // [esp+20h] [ebp-14h]
-    int v31; // [esp+24h] [ebp-10h]
+    Scpt_t *Scr, *a2;
+    ScptCache_t *i, *j;
+    int err,v6,v7,v14,*v19,v21,*n,v30,v31;
 
     err = 16 * (gScrScripts[1].Blocks + gScrScripts[3].Blocks);
     v6 = 0;

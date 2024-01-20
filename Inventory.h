@@ -131,7 +131,7 @@ Obj_t *InvSearchObjByPid( Obj_t *Obj, int ObjPid );
 Obj_t *InvUnk27( Obj_t *a1, int a2 );
 int InvUnk28( Obj_t *a1, Obj_t *a2, int a3);
 int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 );
-int InvUnk31( Obj_t *a1, int a2 );
+int InvUnwield( Obj_t *a1, int a2 );
 int InvUnk30( Obj_t *a1, int a2, int a3 );
 // returns current quantity of item in inventory
 int InvPickItem( int sel, Obj_t **PickedItem, Obj_t **BoxObj, Obj_t ***PickPtrObj );

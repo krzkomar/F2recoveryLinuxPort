@@ -419,7 +419,7 @@ void AiUnk07( Obj_t *obj1, Obj_t *obj2, int TextId )
     MsgLine_t msg;
 
     AnimStart( 2 );
-    AnimUnk48( obj1, 11, 0 );
+    AnimRegAnim( obj1, 11, 0 );
     if( !AnimBegin() && (gCombatStatus & 0x01) ) CombatUpdate();
     if( TextId == -1 ) return;
     msg.Id = TextId;
@@ -882,7 +882,7 @@ int AiFindAmmo( Obj_t *Critter, Obj_t *Weapon, Obj_t **pAmmo )
             if( pAmmo ) *pAmmo = p;
             return 1;
         }
-        if( !Item58( Weapon ) || ItemGetRange( Critter, 2 ) < 3 ) InvUnk31( Critter, 1 );
+        if( !Item58( Weapon ) || ItemGetRange( Critter, 2 ) < 3 ) InvUnwield( Critter, 1 );
     }
     return 0;
 }
@@ -1400,7 +1400,7 @@ LABEL_9:
                     v9 = Item51( a2, *p_TimeEv );
                     if( !v9 && p_TimeEv ) UseUnk06( *p_TimeEv );
                     if( v9 != -1 ){
-                        GSoundUnk42( GSoundProtoFname3( 0, a2, v36, 0 ), GSoundDistance( a1 ) );
+                        GSoundUnk42( GSoundWeaponFileName( 0, a2, v36, 0 ), GSoundDistance( a1 ) );
                         AiUnk07( a1, a2, 5002 );
                         a1->Critter.State.CurrentAP = ( a1->Critter.State.CurrentAP >= 2 ) ? ( a1->Critter.State.CurrentAP - 2 ) : 0;
                         break;
@@ -1414,15 +1414,15 @@ LABEL_9:
                         if( *p_TimeEv ){
                             if( !( v17 = Item51( a2, *p_TimeEv ) ) ) UseUnk06( *p_TimeEv );
                             if( v17 != -1 ){
-                                GSoundUnk42( GSoundProtoFname3( 0, a2, v36, 0 ), GSoundDistance( a1 ) );
+                                GSoundUnk42( GSoundWeaponFileName( 0, a2, v36, 0 ), GSoundDistance( a1 ) );
                                 AiUnk07( a1, a2, 5002 );
                                 a1->Critter.State.CurrentAP = ( a1->Critter.State.CurrentAP >= 2 ) ? (a1->Critter.State.CurrentAP - 2) : 0;
                             }
                         }
                     } else {
-                        GSoundUnk42( GSoundProtoFname3( 2, a2, v36, 0 ), GSoundDistance( a1 ) );
+                        GSoundUnk42( GSoundWeaponFileName( 2, a2, v36, 0 ), GSoundDistance( a1 ) );
                         AiUnk07( a1, a2, 5001 );
-                        if( !InvUnk31( a1, 1 ) ) CombatUpdate();
+                        if( !InvUnwield( a1, 1 ) ) CombatUpdate();
                         AiUnk40( a1, &v36, &a2, edx0 );
                     }
                 }
@@ -1470,7 +1470,7 @@ void AiUnk45( Obj_t *a1, int a2 )
     if( !(v9 = Item51( RhObj, v13 )) ) UseUnk06( v13 );
     if( v9 == -1 ) return;
     if( !PartyMembRdy( a1 ) ) return;    
-    GSoundUnk42( GSoundProtoFname3( 0, RhObj, 2, 0 ), GSoundDistance( a1 ) );
+    GSoundUnk42( GSoundWeaponFileName( 0, RhObj, 2, 0 ), GSoundDistance( a1 ) );
     if( a2 ) AiUnk07( a1, RhObj, 5002 );        
 }
 
@@ -1613,7 +1613,7 @@ int AiUnk51( Obj_t *obj )
     if( obj->Critter.State.CombatResult & 0x81 ) return 0;
     if( obj->Critter.State.DmgLastTurn > 0 ) return 1;
     if( obj->ScrId != -1 ){
-        ScptUnk138( obj->ScrId, 0, 0 );
+        ScptUseObject( obj->ScrId, NULL, NULL );
         ScptSetArg( obj->ScrId, 5 );
         ScptExecScriptProc( obj->ScrId, 13 );
     }
@@ -1654,7 +1654,7 @@ int AiUnk53( Obj_t *obj, int Group )
         GroupId = WhoHitMe->Critter.State.GroupId;
         if( Group == GroupId ) CritterUnk45( obj, 0 );
     }
-    CombatUnk12( obj, 0 );
+    CombatStopAttack( obj, 0 );
     if( IN_COMBAT ){
         cf = obj->OutlineColor && obj->OutlineColor >= 0;
         ObjGetRadius( obj, NULL );

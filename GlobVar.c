@@ -35,7 +35,7 @@ int GlobVarLoadFile( char *fname, char *SecName, int *pCount, int **pData )
     char *p;
     char buf[ 260 ];
 
-//    ScpUnk200();
+    InvSelectMain();
     if( !(fh = dbOpen( fname, "rt" )) ) return -1;
     if( *pCount ){
         Free( *pData );

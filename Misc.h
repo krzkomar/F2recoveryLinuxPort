@@ -1,10 +1,15 @@
 #pragma once
+#include <stdint.h>
 
 #define SIZE_MB( n )	((n) << 20)
 #define SIZE_KB( n )	((n) << 10)
 // converts be to le and le to be
 #define BSWAP32( n )	__builtin_bswap32( n )
 #define PERCENT( percents, x )	((percents) * (x) / 100)
+
+#define ARCH_64 UINTPTR_MAX == 0xffffffffffffffff
+#define ARCH_32 UINTPTR_MAX == 0xffffffff
+
 
 typedef union{
     int i;

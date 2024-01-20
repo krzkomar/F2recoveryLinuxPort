@@ -434,7 +434,7 @@ int AnimUnk47( Obj_t *obj, int a2 )
     return 0;
 }
 
-int AnimUnk48( Obj_t *obj, int a2, int a3 )
+int AnimRegAnim( Obj_t *obj, int a2, int a3 )
 {
     Anim01_t *anim;
 
@@ -452,7 +452,7 @@ int AnimUnk48( Obj_t *obj, int a2, int a3 )
     return 0;
 }
 
-int AnimUnk49( Obj_t *a1, int a2, int a3 )
+int AnimRegAnimReverse( Obj_t *a1, int a2, int a3 )
 {
     Anim01_t *anim;
 
@@ -679,7 +679,7 @@ int AnimUnk63( Obj_t *a1, int a2, int a3 )
 {
     Anim01_t *anim;
 
-    if( AnimUnk66( a1, GSoundProtoFname6( a1, 38, a2 ), a3 ) == -1 ) return -1;
+    if( AnimRegPlaySfx( a1, GSoundCharacterFileName( a1, 38, a2 ), a3 ) == -1 ) return -1;
     if( AnimCancel(a1) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 18;
@@ -725,7 +725,7 @@ int AnimUnk65( Obj_t *obj, int TargetPos, int a3 )
     return 0;
 }
 
-int AnimUnk66( Obj_t *a1, char *a2, int a3 )
+int AnimRegPlaySfx( Obj_t *a1, char *a2, int a3 )
 {
     Anim01_t *anim;
 
@@ -747,18 +747,18 @@ int AnimUnk66( Obj_t *a1, char *a2, int a3 )
     return 0;
 }
 
-int AnimUnk67( Obj_t *a1, int a2, int a3 )
+int AnimRegAnimate( Obj_t *what, int animId, int delay )
 {
     Anim01_t *anim;
 
-    if( AnimCancel( a1 ) == -1 ){ AnimStop(); return -1; }
+    if( AnimCancel( what ) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 25;
-    anim->Target.Obj = a1;
-    anim->Silence = a2;
-    anim->i07 = a3;
+    anim->Target.Obj = what;
+    anim->Silence = animId;
+    anim->i07 = delay;
     anim->ImgObj = NULL;
-    if( !ArtLoadImg( ArtMakeId( OBJTYPE( a1->ImgId ), a1->ImgId & 0xFFF, anim->Silence, (a1->ImgId & 0xF000) >> 12, a1->Orientation + 1), &anim->ImgObj ) ){ AnimStop(); return -1; }
+    if( !ArtLoadImg( ArtMakeId( OBJTYPE( what->ImgId ), what->ImgId & 0xFFF, anim->Silence, (what->ImgId & 0xF000) >> 12, what->Orientation + 1), &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
     anim->ImgObj = NULL;
     gAnimSubIdx++;
@@ -1845,8 +1845,8 @@ void AnimAmbient()
         	if( ObjGetDistance( obj, gObjDude ) <= 2 * FeatGetVal( gObjDude, FEAT_PERCEPTION ) ) v7 = 1;
     	    }
         }
-        if( v7 ) AnimUnk66( obj, GSoundProtoFname6( obj, 0, 0 ), 0 );        
-        AnimUnk48( obj, 0, 0 );
+        if( v7 ) AnimRegPlaySfx( obj, GSoundCharacterFileName( obj, 0, 0 ), 0 );        
+        AnimRegAnim( obj, 0, 0 );
         AnimBegin();
         Speed = 20 / ObjCount;
         if( 20 / ObjCount < 1 ){ 
@@ -1907,7 +1907,7 @@ int AnimUnk25( Obj_t *obj )
     int n;
 
     AnimStart( 2 );
-    AnimUnk48( obj, ( (obj->ImgId & 0xFF0000) >> 16 == 20 ) ? 37 : 36, 0 );
+    AnimRegAnim( obj, ( (obj->ImgId & 0xFF0000) >> 16 == 20 ) ? 37 : 36, 0 );
     n = AnimBegin();
     obj->Scenery.i07 &= ~0x02;
     return n;

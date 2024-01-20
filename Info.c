@@ -19,7 +19,7 @@ void InfoLook( Obj_t *crit, Obj_t *obj, void (*OutCb)(char *))
     if( !CritterIsDead( crit ) && OBJTYPE( obj->ImgId ) != TYPE_TILE && ProtoGetObj( obj->Pid, &proto ) != -1 ){
         ScrId = obj->ScrId;
         if( ScrId != -1 ){
-            ScptUnk138( obj->ScrId, crit, obj );
+            ScptUseObject( obj->ScrId, crit, obj );
 //            ScptExecScriptProc( ScrId );
 //            if ( ScptPtr(ScrId, &scr) == -1 ) return;
 //            i18 = scr->i18;
@@ -73,7 +73,7 @@ return 0;
     if( OBJTYPE( obj->ImgId ) == TYPE_TILE ) return -1;
 //    ScrId = obj->ScrId;
 //    if( ScrId != -1 ){
-//        ScptUnk138( obj->ScrId, critter, obj );
+//        ScptUseObject( obj->ScrId, critter, obj );
 //        ScptExecScriptProc( ScrId );
 //        if( ScptPtr( ScrId, &script ) == -1 ) return -1;
 //        i18 = script->i18;

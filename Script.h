@@ -1,6 +1,11 @@
 #pragma once
 
 #define SCRT( n )	((((unsigned int)(n)) >> 24) & 0xff)
+#define SCP_DBG( s, n, m... )	printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s->FileName, s->Opcode & 0xffff, s->CodePC - 2, ##m )
+#define SCP_DBG_VAR		Intp_t *s_dbg = scr;
+#define SCP_DBGA( n, m... )	printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s_dbg->FileName, s_dbg->Opcode & 0xffff, s_dbg->CodePC - 2, ##m )
+//#define SCP_DBG( n, m... )
+
 enum{
     SCR_TYPE_SYS,	// 0 system
     SCR_TYPE_SPT,	// 1 spatial
@@ -34,14 +39,14 @@ typedef struct
     int i08;
   int LocVarsIdx;
   int LocVarsCnt;
-  int i11;
+  int i11; 	// ret value
   int i12;
   int ArgVal;
   Obj_t *TimeEv; // ptr ?
-    Obj_t *crit;
-    Obj_t *item;
+    Obj_t *crit; // source obj
+    Obj_t *item; // target obj
   int i17;	// action being used flag
-  int i18;
+  int i18;	// override
   int i19;
   int i20;
   int i21;
@@ -217,9 +222,9 @@ int ScptUnk144();
 int ScptNewObjId();
 Obj_t *ScptUnk142( int a1 );
 int ScptGetActionSource( Intp_t *a1 );
-Obj_t *ScptUnk140( Intp_t *a1 );
+Obj_t *ScptGetSelfObj( Intp_t *a1 );
 char *ScptUnk139( int a1 );
-int ScptUnk138( int Pids, Obj_t *critter, Obj_t *item );
+int ScptUseObject( int Pids, Obj_t *critter, Obj_t *item );
 int ScptSetArg( int ScriptId, int ArgVal );
 int ScptUnk136( int a1, int a2 );
 Intp_t *ScptLoad( char *fname );
@@ -239,11 +244,11 @@ void ScptUnk122();
 int ScptUnk121( Scpt01_t *a1 );
 int ScptUnk120( Scpt01_t *scr );
 int ScptUnk119();
-int ScptUnk118();
+int ScptWorldMap();
 int ScptRequestElevator( Scpt_t *a1, int Reaction );
 void ScptExplosion( unsigned int tilenum, int a2, int a3, int a4 );
 void ScptUnk115( Obj_t *a1 );
-void ScptUnk114();
+void ScptSlideShow();
 int ScptUnk113( void *a1, void *a2 );
 void ScptUnk112( Obj_t *a1, Obj_t *a2 );
 void ScptUnk111( char *a1 );

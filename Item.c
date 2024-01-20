@@ -1,5 +1,7 @@
 #include "FrameWork.h"
 
+#define ITEM_NIGHT_VISION_MODIFIER 	0x3333
+
 int gItemUnk03[ 9 ] = { -1, 3, 3, 4, 4, 5, 0, 0, 0 };
 int gItemUnk678[ 9 ] = { 0, 16, 17, 42, 41, 18, 45, 46, 47 };
 int gItemClass[ 9 ] = { 0, 1, 1, 2, 2, 3, 4, 4, 4 };
@@ -2151,24 +2153,28 @@ int ItemMapGetLight()
     return gItemLightLvl;
 }
 
-void ItemMapModifyLight( int LightModifier, int TilesUpdate )
+void ItemMapModifyLight( int LightModifier, int TilesUpdateFlg )
 {
-    ItemMapSetLight( gItemLightLvl + LightModifier, TilesUpdate );
+    ItemMapSetLight( gItemLightLvl + LightModifier, TilesUpdateFlg );
 }
 
 void ItemMapSetLight( int Intensity, int TilesUpdateFlg )
 {
-    int LightLvl;
-    int PrevLightLvl;
+    uint32_t LightLvl, tmp;
 
-    LightLvl = 0x3333 * PerkLvl( gObjDude, PERK_NIGHT_VISION ) + Intensity;
+    LightLvl = ITEM_NIGHT_VISION_MODIFIER * PerkLvl( gObjDude, PERK_NIGHT_VISION ) + Intensity;
     if( LightLvl < 0x4000 ) LightLvl = 0x4000;
     if( LightLvl > 0x10000 ) LightLvl = 0x10000;
-    PrevLightLvl = gItemLightLvl;
+printf("..>[%i] %i\n", LightLvl, Intensity );
+    tmp = gItemLightLvl;
     gItemLightLvl = LightLvl;
-    if( TilesUpdateFlg ){
-        if( PrevLightLvl != LightLvl ) TileUpdate();
-    }
+    if( !TilesUpdateFlg ) return;
+    if( tmp != LightLvl ) TileUpdate();
+}
+
+void ItemMapSetDark( int Darkening, int TileFlag )
+{
+    ItemMapSetLight( gItemLightLvl - Darkening, TileFlag );
 }
 
 int ItemGridGetLightA( int MapLvl, int GridPos )

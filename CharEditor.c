@@ -427,12 +427,12 @@ int CharEditMenu( int mode )
     }
     if( !ExCode && mode == 1 ){
         ProtoDudeImgInit();
-//        FadeStep(gFadePaletteC);
+        FadeStep(gFadePaletteC);
     }
     CharEditClose();
     if( ExCode == 1 ) CharEditRestoreObj();
     if( CritterUsingSkill( 3 ) ) CritterUnk36( 3 );
-//    Unk8004();
+    IfaceRenderHP( 0 );
     return ExCode;
 }
 
@@ -467,7 +467,7 @@ int CharEditMenuCreate()
     }
     gChrEditOptionalTraitsCnt = i; // optioned traits
 
-//    if( gChrEditMenuMode == 0 ) gChrEditUnk13 = MapUnk35();
+    if( gChrEditMenuMode == 0 ) gChrEditUnk13 = MapUnk35();
 
     CycleColorStop();
     GmouseLoadCursor( 1 );
@@ -489,7 +489,7 @@ int CharEditMenuCreate()
         }
         ArtClose( gChrEditWpImg );
         MessageClose( &gChrEditMsg );
-//        if( gChrEditUnk13 ) MapUnk34();
+        if( gChrEditUnk13 ) MapUnk34();
         CycleColorStart(); GmouseLoadCursor( 1 ); return -1;
     }
     SoundUpdateAll();
@@ -515,7 +515,7 @@ int CharEditMenuCreate()
         }
         ArtClose( gChrEditWpImg );
         MessageClose( &gChrEditMsg );
-//        if( gChrEditUnk13 ) MapUnk34();
+        if( gChrEditUnk13 ) MapUnk34();
         CycleColorStart(); GmouseLoadCursor( 1 ); return -1;
     }
 
@@ -528,7 +528,7 @@ int CharEditMenuCreate()
         }
         ArtClose( gChrEditWpImg );
         MessageClose( &gChrEditMsg );
-//        if( gChrEditUnk13 ) MapUnk34();
+        if( gChrEditUnk13 ) MapUnk34();
         CycleColorStart(); GmouseLoadCursor( 1 ); return -1;
     }
     gChrEditSurface = WinGetSurface( win );
@@ -650,7 +650,7 @@ int CharEditMenuCreate()
     bt = WinCreateButton(gChrEditWin, 455, 454, gChrEditImgGeo[23].Width, gChrEditImgGeo[23].Height, -1, -1, -1, 500, gChrEditPix[23], gChrEditPix[24], 0, 32);
     if( bt != -1 )WinSetClickSound(bt, GSoundPlayPushBt, GSoundPlayReleaseBt);
     WinUpdate( gChrEditWin );
-//    Unk8005();
+    IfaceIndicatorBoxHide();
     return 0;
 }
 
@@ -671,8 +671,8 @@ void CharEditClose()
     if( gCharEditKarma ){ Free( gCharEditKarma ); gCharEditKarma = NULL; }
     gChrEditMsgKarmaCount = 0;
     MessageClose( &gChrEditMsg );
-//    Unk8006( v3, 0 );
-//    if( gChrEditUnk13 ) MapUnk34();
+    IfaceUnk09();
+    if( gChrEditUnk13 ) MapUnk34();
     CycleColorStart();
     GmouseLoadCursor( 1 );
     FontSet( gChrEditFontSave );
@@ -682,12 +682,12 @@ void CharEditClose()
         gChrEditSelected = 0;
         CritterHeal( gObjDude, 1000 );
     }
-//    Unk8009( v4 );
+    IfaceIndicatorBoxShow();
 }
 
 void CharEditClean()
 {
-//    if( gChrEditUnk13 ) MapUnk34();
+    if( gChrEditUnk13 ) MapUnk34();
     CycleColorStart();
     GmouseLoadCursor(1);
 }

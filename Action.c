@@ -32,10 +32,10 @@ int ActionUnk40( Obj_t *obj, int *a2, int a3, int a4, int a5 )
     for( i = 1; i <= a3; i++ ){
         if( ObjReach( obj, TileGetTileNumInDir( obj->GridId, a4, i ), obj->Elevation) ) break;
     }
-    AnimUnk66( obj, GSoundProtoFname6( obj, *a2, 1 ), a5 );
+    AnimRegPlaySfx( obj, GSoundCharacterFileName( obj, *a2, 1 ), a5 );
     if( i <= 0 ){
         GridId = obj->GridId;
-        AnimUnk48( obj, *a2, 0 );
+        AnimRegAnimate( obj, *a2, 0 );
     } else {
         GridId = TileGetTileNumInDir( obj->GridId, a4, i );
         AnimUnk45( obj, GridId, obj->Elevation, *a2, 0 );
@@ -56,7 +56,7 @@ int ActionAnimGore( Obj_t *obj, int a2, int a3 )
         if( a2 != 21 ) return a2;
         n = 35;
     }
-    if( ArtFileExist( ArtMakeId( 1, obj->ImgId & 0xFFF, n, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ) ) ) AnimUnk48( obj, n, a3 );
+    if( ArtFileExist( ArtMakeId( 1, obj->ImgId & 0xFFF, n, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ) ) ) AnimRegAnimate( obj, n, a3 );
     return n;
 }
 
@@ -131,18 +131,18 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
         if( obj3 >= 0 ){
             if( obj3 & 0x03 ){
                 a2 = (a5 == 0) + 20;
-                AnimUnk66( obj1, GSoundProtoFname6( obj1, a2, 1 ), a10 );
+                AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, a2, 1 ), a10 );
                 if( a6 ){
                     result = ActionUnk40( obj1, &a2, a6, a7, 0 );
                 } else {
             	    a2 = ActionUnk14( obj1, a2 );
-    		    result = AnimUnk48( obj1, a2, 0 );
+    		    result = AnimRegAnimate( obj1, a2, 0 );
     		}
     		goto LABEL_47;
             }
             if( obj3 & 0x400 ){
                 if( ArtFileExist( ArtMakeId( 1, obj1->ImgId & 0xFFF, 33, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ) ) ){
-                    AnimUnk48( obj1, 33, a10 );
+                    AnimRegAnimate( obj1, 33, a10 );
                     result = AnimUnk62( obj1, ArtMakeId( 1, obj1->ImgId & 0xFFF, 0, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ), -1 );
                     goto LABEL_47;
                 }
@@ -150,22 +150,22 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
             if( a6 ){
                 a2 = (a5 == 0) + 20;
                 ActionUnk40( obj1, &a2, a6, a7, a10 );
-    		result = AnimUnk48( obj1, ( a2 == 20 ) ? 37 : 36, -1 );
+    		result = AnimRegAnimate( obj1, ( a2 == 20 ) ? 37 : 36, -1 );
     		goto LABEL_47;
             }
             if( a5 ){
-                AnimUnk66( obj1, GSoundProtoFname6( obj1, 14, 0 ), a10 );
+                AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, 14, 0 ), a10 );
                 v21 = 14;
             } else {
         	if( !ArtFileExist( ArtMakeId( 1, obj1->ImgId & 0xFFF, 15, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ) ) ){
-        	    AnimUnk66( obj1, GSoundProtoFname6( obj1, 14, 0 ), a10 );
+        	    AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, 14, 0 ), a10 );
             	    v21 = 14;
         	} else {
-            	    AnimUnk66( obj1, GSoundProtoFname6( obj1, 15, 0 ), a10 );
+            	    AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, 15, 0 ), a10 );
             	    v21 = 15;
         	}
             }
-    	    result = AnimUnk48( obj1, v21, 0 );
+    	    result = AnimRegAnimate( obj1, v21, 0 );
     	    goto LABEL_47;
         } else {        
             if( ArtMakeId( 5, 10, 0, 0, 0 ) == obj4->ImgId ){
@@ -183,9 +183,9 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
                     result = ActionAnimGore( obj1, a2, -1 );
                     a2 = result;
                 } else {
-                    AnimUnk66( obj1, GSoundProtoFname6( obj1, a2, 3 ), a10 );
+                    AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, a2, 3 ), a10 );
                     a2 = ActionUnk14( obj1, a2 );
-                    result = AnimUnk48( obj1, a2, 0 );
+                    result = AnimRegAnimate( obj1, a2, 0 );
                     if( a2 == 21 || a2 == 20 ){
                         result = ActionAnimGore( obj1, a2, -1 );
                         a2 = result;
@@ -194,8 +194,8 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
                 goto LABEL_47;
             }
             if( ArtFileExist( ArtMakeId( 1, obj1->ImgId & 0xFFF, 33, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ) ) ){
-                AnimUnk66( obj1, GSoundProtoFname6( obj1, a2, 0 ), a10 );
-                AnimUnk48( obj1, a2, 0 );                
+                AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, a2, 0 ), a10 );
+                AnimRegAnimate( obj1, a2, 0 );                
                 v39 = RandMinMax( 0, 5 );
                 for( v18 = RandMinMax( 2, 5 ); v18 > 0; v18-- ){
                     v19 = TileGetTileNumInDir( obj1->GridId, v39, v18 );
@@ -209,8 +209,8 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
                 }
             }
             a2 = 29;
-            AnimUnk66( obj1, GSoundProtoFname6( obj1, 29, 0 ), -1 );
-    	    result = AnimUnk48( obj1, a2, 0 );
+            AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, 29, 0 ), -1 );
+    	    result = AnimRegAnimate( obj1, a2, 0 );
     	    goto LABEL_47;
         }
     }
@@ -226,7 +226,7 @@ LABEL_47:
     	    AnimSetFinish( obj1, a4, UseDropObj, -1 );
     	    AnimUnk62( a4, ArtMakeId( 5, 10, 0, 0, 0 ), 0 );
     	    AnimUnk50( a4, 0, 0 );
-    	    AnimUnk66( a4, GSoundProtoFname3( 4, a4, 2, obj1 ), 0 );
+    	    AnimRegPlaySfx( a4, GSoundWeaponFileName( 4, a4, 2, obj1 ), 0 );
     	    result = AnimUnk55( a4 );
         } else {
     	    if( obj3 & 0x2000 ){
@@ -346,39 +346,39 @@ int ActionUnk29( Combat_t *cmbt, int a2 )
     TileGetTileNumInDir( cmbt->Dude->GridId, cmbt->Dude->Orientation, 1 );
     AnimUnk51( cmbt->Dude, cmbt->Comp->GridId );
     if( a2 == 16 || a2 == 17 ){
-        strcpy( stmp, GSoundProtoFname6( cmbt->Dude, a2, 0 ) );
+        strcpy( stmp, GSoundCharacterFileName( cmbt->Dude, a2, 0 ) );
     } else {
-        strcpy( stmp, GSoundProtoFname3( 1, cmbt->HandEq, cmbt->Hand, cmbt->Comp ) );
+        strcpy( stmp, GSoundWeaponFileName( 1, cmbt->HandEq, cmbt->Hand, cmbt->Comp ) );
     }    
     AiCombatTaunts( cmbt->Dude, cmbt, 2, 0 );
     if( cmbt->DudeInjuries & 0x300 ){
-        AnimUnk66( cmbt->Dude, stmp, 0 );
+        AnimRegPlaySfx( cmbt->Dude, stmp, 0 );
         if( a2 == 16 || a2 == 17 ){
-    	    strcpy( stmp, GSoundProtoFname6( cmbt->Dude, a2, 4 ) );
+    	    strcpy( stmp, GSoundCharacterFileName( cmbt->Dude, a2, 4 ) );
         } else {
-    	    strcpy( stmp, GSoundProtoFname3( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ) );
+    	    strcpy( stmp, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ) );
         }
-        AnimUnk48( cmbt->Dude, a2, 0 );
-        AnimUnk66( cmbt->Dude, stmp, ActionFrame );
+        AnimRegAnimate( cmbt->Dude, a2, 0 );
+        AnimRegPlaySfx( cmbt->Dude, stmp, ActionFrame );
         ActionUnk31( cmbt, a2, 0 );
     } else {
         if( cmbt->Comp->Critter.State.CombatResult & 0x03 ){
-            AnimUnk66( cmbt->Dude, stmp, -1 );
-            AnimUnk48( cmbt->Dude, a2, 0 );
+            AnimRegPlaySfx( cmbt->Dude, stmp, -1 );
+            AnimRegAnimate( cmbt->Dude, a2, 0 );
         } else {
             if( (Img = ArtLoadImg( ArtMakeId( 1, cmbt->Comp->ImgId & 0xFFF, 13, (cmbt->Comp->ImgId & 0xF000) >> 12, cmbt->Comp->Orientation + 1 ), &ImgObj ) ) ){
                 Frame = ArtGetActionFrame( Img );
                 ArtClose( ImgObj );
                 if( Frame <= ActionFrame ){
-                    AnimUnk66( cmbt->Dude, stmp, -1 );
-                    AnimUnk48( cmbt->Dude, a2, 0 );
-                    AnimUnk66( cmbt->Comp, GSoundProtoFname6( cmbt->Comp, 13, 0 ), ActionFrame - Frame );
-                    AnimUnk48( cmbt->Comp, 13, 0 );
+                    AnimRegPlaySfx( cmbt->Dude, stmp, -1 );
+                    AnimRegAnimate( cmbt->Dude, a2, 0 );
+                    AnimRegPlaySfx( cmbt->Comp, GSoundCharacterFileName( cmbt->Comp, 13, 0 ), ActionFrame - Frame );
+                    AnimRegAnimate( cmbt->Comp, 13, 0 );
                 } else {
-                    AnimUnk66( cmbt->Comp, GSoundProtoFname6( cmbt->Comp, 13, 0 ), -1 );
-                    AnimUnk48( cmbt->Comp, 13, 0 );
-                    AnimUnk66( cmbt->Dude, stmp, Frame - ActionFrame );
-                    AnimUnk48( cmbt->Dude, a2, 0 );
+                    AnimRegPlaySfx( cmbt->Comp, GSoundCharacterFileName( cmbt->Comp, 13, 0 ), -1 );
+                    AnimRegAnimate( cmbt->Comp, 13, 0 );
+                    AnimRegPlaySfx( cmbt->Dude, stmp, Frame - ActionFrame );
+                    AnimRegAnimate( cmbt->Dude, a2, 0 );
                 }
             }
         }
@@ -430,21 +430,21 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
     if( a2 == 18 ){
         if( WeaponBase == 6 || WeaponBase == 3 || WeaponBase == 5 ) v50 = 1;
     } else {
-        AnimUnk48( cmbt->Dude, 43, -1 );
+        AnimRegAnimate( cmbt->Dude, 43, -1 );
     }
     AiCombatTaunts( cmbt->Dude, cmbt, 2, 0 );
     if( (cmbt->Dude->ImgId & 0xF000) >> 12 ){
-	AnimUnk66( cmbt->Dude, GSoundProtoFname3( 1, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), -1 );
+	AnimRegPlaySfx( cmbt->Dude, GSoundWeaponFileName( 1, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), -1 );
     } else {
-	AnimUnk66( cmbt->Dude, GSoundProtoFname6( cmbt->Dude, a2, 0 ), -1 );
+	AnimRegPlaySfx( cmbt->Dude, GSoundCharacterFileName( cmbt->Dude, a2, 0 ), -1 );
     }
-    AnimUnk48( cmbt->Dude, a2, 0 );
+    AnimRegAnimate( cmbt->Dude, a2, 0 );
     if( a2 != 47 ){
         if( ( cmbt->DudeInjuries & 0x100 ) || !( cmbt->DudeInjuries & 0x200 ) ){
             if( ProtoGetObj( Item59( cmbt->HandEq ), &proto ) == -1 || proto->ImgId == -1 ){
                 if( !( cmbt->DudeInjuries & 0x100 ) ){
                     if( !( cmbt->Comp->Critter.State.CombatResult & 0x03 ) ){
-                        AnimUnk48( cmbt->Comp, 13, ActionFrame );
+                        AnimRegAnimate( cmbt->Comp, 13, ActionFrame );
                         goto LABEL_57;
                     }
                 }
@@ -478,7 +478,7 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
                 ObjMoveToTile( obj, tmp, cmbt->Dude->Elevation, NULL );
                 ObjSetRotation( obj, TileTurnAt( cmbt->Dude->GridId, cmbt->Comp->GridId ), 0 );
                 AnimUnk60( obj, 1, ActionFrame );
-                AnimUnk66( obj, GSoundProtoFname3( 3, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), 0 );
+                AnimRegPlaySfx( obj, GSoundWeaponFileName( 3, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), 0 );
                 if( (cmbt->DudeInjuries & 0x100) != 0 ){
                     AnimUnk44( obj, cmbt->Comp->GridId, cmbt->Comp->Elevation, 1, 0 );
                     ActionFrame = AnimUnk06( obj, tmp, cmbt->Comp->GridId, 0, 0, 32 ) - 1;
@@ -502,7 +502,7 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
                     if( v50 ) AnimUnk62( obj, ImgId, -1 );
                     tmp = ArtMakeId( 5, tmp, 0, 0, 0 );
                     AnimUnk62( obj, tmp, -1 );
-                    AnimUnk66( obj, GSoundProtoFname3( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), 0 );
+                    AnimRegPlaySfx( obj, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), 0 );
                     AnimUnk50( obj, 0, 0 );
                     for( i = 0; i < 6; ++i ){
                         if( ObjCreate( a1 + i, tmp, -1 ) == -1 ) continue;
@@ -515,7 +515,7 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
                 }
                 if( a2 != 18 ) AnimUnk55( obj );
             }
-            AnimUnk66( cmbt->HandEq, GSoundProtoFname3( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), ActionFrame );
+            AnimRegPlaySfx( cmbt->HandEq, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), ActionFrame );
 LABEL_57:
             ActionFrame = 0;
         }
@@ -547,7 +547,7 @@ LABEL_58:
         	}
             }
         } else {
-            AnimUnk48( cmbt->Dude, 44, -1 );
+            AnimRegAnimate( cmbt->Dude, 44, -1 );
         }
     }
     if( AnimBegin() == -1 ){
@@ -602,11 +602,11 @@ int ActionLadderClimb( Obj_t *obj1, Obj_t *obj2 )
     AnimUnk51( obj1, obj2->GridId );
     AnimSetCallback11( obj1, (AnimU_t)obj2, (void *)UseApUpdate, -1 );
     if( (tmp = (obj1->ImgId & 0xF000) >> 12) ){
-        AnimUnk66( obj1, GSoundProtoFname6( obj1, 39, 0 ), -1 );
-        AnimUnk48( obj1, 39, 0 );
+        AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, 39, 0 ), -1 );
+        AnimRegAnimate( obj1, 39, 0 );
     }
-    AnimUnk66( obj1, GSoundProtoFname6( obj1, 4, 0 ), -1 );
-    AnimUnk48( obj1, 4, 0 );
+    AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, 4, 0 ), -1 );
+    AnimRegAnimate( obj1, 4, 0 );
     AnimSetCallback11( obj1, (AnimU_t)obj2, (void *)UseObject, -1 );
     if( tmp ) AnimUnk63( obj1, tmp, -1 );
     return AnimBegin();
@@ -644,8 +644,8 @@ DD
     if( !ap ) AnimSetCallback11(dude, (AnimU_t)object, (void *)UseApUpdate, -1);
     v15 = (dude->ImgId & 0xF000) >> 12;
     if( v15 ){
-        AnimUnk66( dude, GSoundProtoFname6(dude, 39, 0), -1 );
-        AnimUnk48( dude, 39, 0 );
+        AnimRegPlaySfx( dude, GSoundCharacterFileName(dude, 39, 0), -1 );
+        AnimRegAnimate( dude, 39, 0 );
     }
     v9 = OBJTYPE( object->ImgId );
     if( v9 == TYPE_CRIT && CritterUnk31( object ) ){
@@ -655,9 +655,9 @@ DD
     } else {
         v13 = 11;
     }
-    if( Type != PR_SCN_STAIRS && !ap ) AnimUnk48( dude, v13, -1 );
+    if( Type != PR_SCN_STAIRS && !ap ) AnimRegAnimate( dude, v13, -1 );
     if( ap )
-        AnimSetCallback12( dude, object, (AnimU_t)ap, (void *)UseUnk18, -1 );
+        AnimSetCallback12( dude, object, (AnimU_t)ap, (void *)UseObjOnObj, -1 );
     else
         AnimSetCallback11( dude, (AnimU_t)object, (void *)UseObject, -1 );
     if( v15 ) AnimUnk63( dude, v15, -1 );
@@ -702,7 +702,7 @@ int ActionPickupItem( Obj_t *Critter, Obj_t *Item )
     ProtoGetObj( Item->Pid, &proto );
 
     if( proto->Critt.Type != PR_ITEM_CONTAINER || ProtoItemAccessible( Item->Pid ) ){
-        AnimUnk48( Critter, 10, 0 );
+        AnimRegAnimate( Critter, 10, 0 );
         if( (Img = ArtLoadImg( ArtMakeId(1, Critter->ImgId & 0xFFF, 10, (Critter->ImgId & 0xF000) >> 12, Critter->Orientation + 1 ), &ImgObj ) ) ){
             ActionFrame = ArtGetActionFrame( Img );
             ArtClose( ImgObj );
@@ -713,7 +713,7 @@ int ActionPickupItem( Obj_t *Critter, Obj_t *Item )
             tmp = strlen( &stmp[ 4 ] );
             if( tmp >= 4 ){
                 stmp[ tmp ] = '\0';
-                AnimUnk66( Item, &stmp[ 4 ], ActionFrame );
+                AnimRegPlaySfx( Item, &stmp[ 4 ], ActionFrame );
                 ActionFrame = 0;
             }
         }
@@ -721,10 +721,10 @@ int ActionPickupItem( Obj_t *Critter, Obj_t *Item )
     } else { // container
 DD
         if( (tmp = (Critter->ImgId & 0xF000) >> 12) ){
-            AnimUnk66( Critter, GSoundProtoFname6( Critter, 39, 0 ), -1 );
-            AnimUnk48( Critter, 39, -1 );
+            AnimRegPlaySfx( Critter, GSoundCharacterFileName( Critter, 39, 0 ), -1 );
+            AnimRegAnimate( Critter, 39, -1 );
         }
-        AnimUnk48( Critter, ((proto->Critt.BaseStat[1] & 1) == 0) + 10, 0 );
+        AnimRegAnimate( Critter, ((proto->Critt.BaseStat[1] & 1) == 0) + 10, 0 );
         if( (Img = ArtLoadImg( ArtMakeId( 1, Critter->ImgId & 0xFFF, ((proto->Critt.BaseStat[1] & 1) == 0) + 10, 0, Critter->Orientation + 1 ), &ImgObj )) ){
             ArtGetActionFrame( Img );
             ArtClose( ImgObj );
@@ -893,7 +893,7 @@ printf("=Target=>0x%x %i\n", target->Pid, target->Pid );
         ArtGetActionFrame( Img );
         ArtClose( ImgObj );
     }
-    AnimUnk48( v4, v11, -1 );
+    AnimRegAnimate( v4, v11, -1 );
     AnimSetCallback12( v4, target, (AnimU_t)SkillNo, (void *)UseUseSkill, -1 );
     return AnimBegin();
 }
@@ -1059,7 +1059,7 @@ int ActionExplode( int GridPos, int MapLvl, int DmgMin, int DmgMax, Obj_t *Targe
         gActionUnk06 = 1;
         AnimStart( 2 );
         AnimUnk33( 1 );
-        AnimUnk66( TmpObj, "whn1xxx1", 0 );
+        AnimRegPlaySfx( TmpObj, "whn1xxx1", 0 );
         AnimUnk60( TmpObj, 1, 0 );
         AnimUnk50( TmpObj, 0, 0 );        
         ActionUnk31( cmbt, 0, 1 );
@@ -1223,7 +1223,7 @@ void ActionUnk05( int a1, int edx0, int a3, int a4, int a5, int a6, int a7 )
     CombatKillUpdate( cmbt );
     if( a6 ){
         AnimStart( 2 );
-        AnimUnk66( TmpObj, "whc1xxx1", 0 );
+        AnimRegPlaySfx( TmpObj, "whc1xxx1", 0 );
         ActionUnk31( cmbt, gActionUnk03[a5], 0 );
         AnimSetFinish( cmbt, 0, (void *)ActionUnk100, 0 );
         AnimUnk55( TmpObj );
@@ -1294,7 +1294,7 @@ int ActionUnk02( Obj_t *a1, Obj_t *a2 )
 
     if( !ActionUnk03( a1, a2 ) ) return -1;
     if( UseGetScriptId( a2, &Id ) != -1 ){
-        ScptUnk138( Id, a1, a2 );
+        ScptUseObject( Id, a1, a2 );
         ScptExecScriptProc( Id, 24 );
         if( ScptPtr( Id, &scr ) != -1 ) i18 = scr->i18;
         if( i18 ) return -1;

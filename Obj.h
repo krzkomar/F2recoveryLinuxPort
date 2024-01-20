@@ -15,7 +15,8 @@ typedef struct
     ObjStack_t *Box;  // 14 box of stacked objects
 } ObjBox_t;
 
-#define OBJ_STAT_FLEE	0x04
+#define OBJ_STAT_FLEE		0x04
+#define OBJ_STAT_HOSTILE	0x02 // ??
 
 typedef struct 
 {

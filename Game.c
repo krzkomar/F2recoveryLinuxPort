@@ -112,12 +112,12 @@ DD
     AnimInit_00();
     LsgDeleteMapFiles();
     CritterReset();
-//    Unk587();
+    AiReset();
     InvSelectMain();
     GSoundReset(); // !! wywalka
-//    Unk588();
-//    Unk589();
-//    Unk590();
+    MveAbort();
+    MveUnk37();
+    GMovieClose();
     MapIsoReset();
     GmouseReset();
     ProtoFreePremade();
@@ -138,6 +138,7 @@ DD
 
 void GameExit()
 {
+DD
 /*
     eprintf( "\nGame Exit\n" );
     TileUpdateDisable();
@@ -151,14 +152,14 @@ void GameExit()
         gGVals = NULL;
     }
     ScptClose();
-//    sub_413AB8();
+    AnimClose();
     ProtoClose();
     GmouseClose();
     MapIsoClose();
-//    sub_487D30();
-//    sub_48711C();
+    MveUnk38();
+    MveClose();
     GSoundClose();
-//    sub_4279FC();
+    AiClose();
     CritterClose();
     ItemClose();
     EvQeClose();
@@ -168,13 +169,13 @@ void GameExit()
     TraitClose();
     RandFSave();
     MessageBadWordsClear();
-//    sub_41B81C(v2);
+    AutomapClose();
     WmClose();
     PartyClose();
-//    sub_440BA8();
+    EndGameClose();
     FontMgrClose();
     DbgInit();
-//    sub_4B947C(v3);
+    WinDlgClose();
     dbFree();
     SysUnloadConfiguration(1);
 */

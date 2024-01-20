@@ -1523,7 +1523,7 @@ int WmMenu1( int UnusedArg )
                 }
     	    }  
             WmDrawMapScreen();
-            if( TimerDiff( SysTime, Time ) > 1000 && PartyUnk08( 3 ) ){ IfaceRenderHP( 0 ); Time = SysTime; }
+            if( TimerDiff( SysTime, Time ) > 1000 && PartyHeal( 3 ) ){ IfaceRenderHP( 0 ); Time = SysTime; }
             WmUnk69( gWmWorldPosX, gWmWorldPosY );
             if( gWmSteps <= 0 ){ // stop
         	gWmUnk13 = 0; 
@@ -1885,7 +1885,7 @@ int WmSetupRandomEncounter()
             }
             if( PartyUnk12() > 2 ) RandMin += 2;
             if( !RandMin ) continue;
-            if( WmSetupCritter( enc->Enc[ i ].i03, &a1, RandMin ) == -1 ){ ScptUnk118(); return -1; }
+            if( WmSetupCritter( enc->Enc[ i ].i03, &a1, RandMin ) == -1 ){ ScptWorldMap(); return -1; }
             if( i > 0 ){
                 if( obj2 ){
                     if( obj2 != a1 ){

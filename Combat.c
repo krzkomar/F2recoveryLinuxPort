@@ -325,7 +325,7 @@ Obj_t *CombatUnk11( Obj_t *obj )
     return gCombat03[ obj->CritterIdx ].i02;
 }
 
-int CombatUnk12( Obj_t *obj1, Obj_t *obj2 )
+int CombatStopAttack( Obj_t *obj1, Obj_t *obj2 )
 {
     if( !IN_COMBAT ) return 0;    
     if( !obj1 ) return -1;
@@ -404,7 +404,7 @@ void CombatUnk17( Obj_t *a1 )
             obj->Critter.State.CurrentAP = 0;
             obj->CritterIdx = i;
             if( (gCombatStatus & 0x100) != 0 && obj && i != -1 ) gCombat03[ i ].i04 = 0;
-            ScptUnk138( obj->ScrId, 0, 0 );
+            ScptUseObject( obj->ScrId, 0, 0 );
             ScptSetArg( obj->ScrId, 0 );
             if( obj->Pid == 0x1000098 && !CritterIsDead( obj ) ) v1 = obj;
         }
@@ -421,7 +421,7 @@ void CombatUnk17( Obj_t *a1 )
             id = ArtMakeId( (v1->ImgId & 0xF000000) >> 24, 100, (v1->ImgId & 0xFF0000u) >> 16, (v1->ImgId & 0xF000) >> 12, (v1->ImgId & 0x70000000) >> 28);
             AnimClear( v1 );
             AnimStart( 2 );
-            AnimUnk48( v1, 6, -1 );
+            AnimRegAnim( v1, 6, -1 );
             AnimUnk62( v1, id, -1 );
             AnimBegin();
             while( AnimUnk39( v1 ) ) InpWinUpdate();
@@ -520,13 +520,13 @@ int CombatUnk20()
         obj->Critter.State.CurrentAP = 0;
         ObjGetRadius( obj, 0 );
         obj->Critter.State.WhoHitMe = 0;
-        ScptUnk138( obj->ScrId, 0, 0 );
+        ScptUseObject( obj->ScrId, 0, 0 );
         ScptSetArg( obj->ScrId, 0 );
         if( obj->Pid == 0x1000098 && !CritterIsDead( obj ) && !LsgGetUnk02() ){
             Id = ArtMakeId( OBJTYPE( obj->ImgId ), 99, (obj->ImgId & 0xFF0000u) >> 16, (obj->ImgId & 0xF000) >> 12, (obj->ImgId & 0x70000000) >> 28);
             AnimClear( obj );
             AnimStart( 2 );
-            AnimUnk48( obj, 6, -1 );
+            AnimRegAnim( obj, 6, -1 );
             AnimUnk62( obj, Id, -1 );
             AnimBegin();
             while( AnimUnk39( obj ) ) InpWinUpdate();
@@ -833,7 +833,7 @@ int CombatUnk33( Obj_t *obj, int edx0 )
             SoundUpdateAll();
         }
         if( obj->ScrId != -1 ){
-            ScptUnk138( obj->ScrId, 0, 0 );
+            ScptUseObject( obj->ScrId, 0, 0 );
             ScptSetArg( obj->ScrId, 4 );
             ScptExecScriptProc( obj->ScrId, 13  );
             if( ScptPtr( obj->ScrId, &scr ) != -1 ) flg = scr->i18;
@@ -908,7 +908,6 @@ int CombatUnk34()
 
 void CombatStart( Combat02_t *pObj )
 {
-/*
     int j, i;
 
     if( pObj ){
@@ -960,7 +959,6 @@ void CombatStart( Combat02_t *pObj )
     }
     gCombatTacticMode = 0;
     if( gMenuEscape == 1 ) gMenuEscape = 0;        
-*/
 }
 
 void CombatSetUp( Combat_t *cmbt, Obj_t *Critt, Obj_t *a3, int Hand, int a5 )
@@ -1017,7 +1015,7 @@ int CombatAttack( Obj_t *Critter, Obj_t *a2, int a3, int a4 )
     }
     gCombat08 = 1;
     gCombat12 = 1;
-    CombatUnk12( Critter, a2 );
+    CombatStopAttack( Critter, a2 );
     eprintf( "running attack...\n" );
     return 0;            
 }
@@ -1710,7 +1708,7 @@ void CombatUnk54( Combat_t *cmbt, int a2 )
     if( !v20 && !v5 && (!PartyMembRdy( cmbt->Comp ) || !PartyMembRdy( cmbt->Dude ) ) ){
         if( cmbt->Comp && cmbt->Comp->ScrId != -1 ){
             ScptSetArg( cmbt->Comp->ScrId, cmbt->DudeDmg );
-            ScptUnk138( cmbt->Comp->ScrId, cmbt->Dude, cmbt->HandEq );
+            ScptUseObject( cmbt->Comp->ScrId, cmbt->Dude, cmbt->HandEq );
             ScptExecScriptProc( cmbt->Comp->ScrId, 14 );
         }
     }
@@ -1723,11 +1721,11 @@ void CombatUnk54( Combat_t *cmbt, int a2 )
                 AiUnk59( cmbt->Comp, cmbt->Dude );
             }
         }
-        ScptUnk138( cmbt->Comp->ScrId, cmbt->Dude, cmbt->HandEq );
+        ScptUseObject( cmbt->Comp->ScrId, cmbt->Dude, cmbt->HandEq );
         CombatDealDamage( cmbt->Comp, cmbt->CompDmg, a2, cmbt->Comp != cmbt->i15, cmbt->Dude );
         if( v20 ) AiUnk63( cmbt->Comp );
         if( cmbt->CompDmg >= 0 && ( cmbt->DudeInjuries & CMBT_TARGET) ){
-            ScptUnk138( cmbt->Dude->ScrId, 0, cmbt->Comp );
+            ScptUseObject( cmbt->Dude->ScrId, 0, cmbt->Comp );
             ScptSetArg( cmbt->Dude->ScrId, 2 );
             ScptExecScriptProc( cmbt->Dude->ScrId, 13 );
         }
@@ -1743,11 +1741,11 @@ void CombatUnk54( Combat_t *cmbt, int a2 )
                 AiUnk59( obj, cmbt->Dude );
             }
         }
-        ScptUnk138( cmbt->obj[ i ]->ScrId, cmbt->Dude, cmbt->HandEq );
+        ScptUseObject( cmbt->obj[ i ]->ScrId, cmbt->Dude, cmbt->HandEq );
         CombatDealDamage( cmbt->obj[ i ], cmbt->Damage[ i ], a2, cmbt->Comp != cmbt->i15, cmbt->Dude );
         AiUnk63( cmbt->obj[ i ] );
         if( cmbt->Damage[ i ] >= 0 && ( cmbt->DudeInjuries & CMBT_TARGET ) ){
-            ScptUnk138( cmbt->Dude->ScrId, 0, cmbt->obj[ i ] );
+            ScptUseObject( cmbt->Dude->ScrId, 0, cmbt->obj[ i ] );
             ScptSetArg( cmbt->Dude->ScrId, 2 );
             ScptExecScriptProc( cmbt->Dude->ScrId, 13 );
         }                    
@@ -1803,7 +1801,7 @@ void CombatDealDamage( Obj_t *obj, int damage, int UpdateHpFlag, int a4, Obj_t *
         ScptExecScriptProc( obj->ScrId, 14 );
     }
     if( state->CombatResult & 0x80 ){ // dead condition
-        ScptUnk138( obj->ScrId, state->WhoHitMeObj, 0 );
+        ScptUseObject( obj->ScrId, state->WhoHitMeObj, 0 );
         ScptExecScriptProc( obj->ScrId, 18 );
         Item17( obj );
         if( obj != gObjDude ){
@@ -2272,7 +2270,7 @@ void CombatStartAttack( Obj_t *Target )
         case 1:
             msg.Id = 101; // 'Out of Ammo'
             if( MessageGetMsg( &gCombatMsg, &msg ) == 1 ) IfcMsgOut( msg.Text );
-            GSoundPlay( GSoundProtoFname3( 2, ItemGetSlotItem( gObjDude, HandSlot ), HandSlot, 0 ) );
+            GSoundPlay( GSoundWeaponFileName( 2, ItemGetSlotItem( gObjDude, HandSlot ), HandSlot, 0 ) );
             return;
         case 2:
             msg.Id = 102; // 'Target out of range.'
