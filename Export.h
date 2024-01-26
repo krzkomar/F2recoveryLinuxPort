@@ -9,9 +9,10 @@ typedef struct
     };
     short Flags;	// variable type -> !0 - interrupt context
     union{
-	char *ValStr;
+	char *ValStr;	
 	float ValFloat;
 	int   ValInt;
+	void  *ValPtr;
     };
 } Export_t;
 
@@ -22,14 +23,15 @@ Export_t *ExportSearchVar( char *Name );
 int ExportGetVar( char *Name, short *pType, char **pStr );
 Export_t *ExportUndefVar( char *Name );
 int ExporSetFVar( char *Name, char *FloatStr );
-int ExportSetVarArg( Intp_t *intp, char *Name, short Type, int ArgIdx );
+int ExportSetVarArg( Intp_t *intp, char *Name, short Type, int Val );
+int ExportSetVarArgP( Intp_t *intp, char *Name, void *Val );
 int ExportSetVar( char *Name, short Type, char *Str );
 int ExportGetVarArg( Intp_t *intp, char *Name, short *pFlags, int *pArg );
 int ExportCreateIVar( char **a1, char *Name );
 int ExportDeleteProc( Intp_t *Itp );
 void ExportFlushProc();
 void ExportFlushVars();
-Intp_t *ExportGetProcedure( char *Name, char **pStr, short *IntCtx );
+Intp_t *ExportGetProcedure( char *Name, int *pStr, short *IntCtx );
 int ExportSetProcedure( Intp_t *itp, char *Name, void *Procedure, short Type );
 char **ExportCreateListOfVariables( int *pNum );
 void ExportFreeList( char **List, int cnt );

@@ -9,6 +9,15 @@
 #define SCP_FSTRDEREF( type, val, scr ) if( (type) == SCR_FSTRING ) IntpStringDeRef( scr, SCR_FSTRING, val );
 #define SCP_GETARG( type, ArgsCnt, scr ) SCP_GETARG_A( type, ArgsCnt, scr ); SCP_FSTRDEREF( type, ArgsCnt, scr );
 #define SCP_GETARGF( type, Argi, Argf, scr)   SCP_GETARG( type, Argi, scr ); Argf = *((float *)(&Argi));
+#define SCP_GETARGX( type, val, ptr, p )	\
+    type = IntpPopShortStack( (p)->StackA, &(p)->StackApos ); \
+    if( type == SCR_PTR ){ \
+	ptr = IntpPopPtrStack( (p)->StackA, &(p)->StackApos );\
+    } else {\
+	val = IntpPopIntStack( (p)->StackA, &(p)->StackApos );\
+	SCP_FSTRDEREF( type, val, p );\
+    }
+#define SCP_GETARGFX( type, Argi, Argf, ptr, scr)   SCP_GETARGX( type, Argi, ptr, scr ); Argf = *((float *)(&Argi));
 
 //int gScpUnk01;
 extern int gSciUnk01;

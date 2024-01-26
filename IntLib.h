@@ -21,15 +21,23 @@
 #define SCR_FCRITICAL	0x80
 #define SCR_FATTACH	0x100
 
+#define INTP_VNAME( scr, Idx )	(&((char *)scr->ProcVarNames)[ Idx ])
+
+#define INTP_P_TIMED		0x01
+#define INTP_P_CONDITIONAL	0x02
+#define INTP_P_IMPORT		0x04
+#define INTP_P_EXPORT		0x08
+#define INTP_P_CRITICAL		0x10
+
 typedef struct	// size of 24, BE values!
 {
-    int		Count;
-    int		NameOfst;
-    int		Flags;
-    int		Delay;
-    int		CntOfst;
-    int		BodyOfst;
-    int		ArgsCnt;
+    int		Count;		// 0
+    int		NameOfst;	// 4
+    int		Flags; 		// 8 INTP_P_* flags
+    int		Delay;		// 12
+    int		CntOfst;	// 16
+    int		BodyOfst;	// 20
+    int		ArgsCnt;	// 24
 } IntpProc_t;
 
 typedef struct // size of 6
@@ -38,12 +46,12 @@ typedef struct // size of 6
     int	  Var;
 } __attribute__ (( packed )) IntpArg_t;
 
-typedef struct // size of 4
-{
-    short w01; // size
-    short w02; // length
-    char  Data[]; // string
-} IntpOp_t;
+//typedef struct // size of 4
+//{
+//    short w01; // size
+//    short w02; // length
+//    char  Data[]; // string
+//} IntpOp_t;
 
 typedef struct // size of 4
 {
@@ -52,7 +60,27 @@ typedef struct // size of 4
     char  String[];
 } IntpString_t;
 
+/*
+typedef struct // size of 4
+{
+    uint16_t 	Len;		// string length, have to be even
+    union{
+	uint16_t Wrd;    	// 
+	char     Str[ 2 ];	// 
+    };
+    char Data[];
+} IntpPos_t;
 
+typedef struct // size of 8
+{
+    uint32_t 	TotalSize;
+    IntpPos_t	Entry; 
+} IntpStr_t;
+*/
+
+#define INTP_STR_TOT( str )		(((uint32_t *)(str))[0])
+#define INTP_STR_LEN( str )		(((uint16_t *)(str))[0])
+#define INTP_STR_REF( str )		(((uint16_t *)(str))[1])
 
 typedef struct _Intp_t
 {
@@ -63,12 +91,12 @@ typedef struct _Intp_t
     int CodePC;				// program counter
     int Base; 				// base
     int SaveStack;			//
-    char *StackA;			//
-    char *StackB;			//
+    char *StackA;			// data stack
+    char *StackB;			// address stack
     int StackApos;			//
     int StackIdxB;			// instruction stack
     char *StringsConst;			// pointer to string constans
-    IntpOp_t *FString;			//
+    char *Strings;			// pointer to message strings list
     char *ProcVarNames;			// pointer to procedures and vars names
     IntpProc_t *ProcTable;		//
     jmp_buf EnvSave; 			// setjmp()/longjmp() buffer
@@ -76,8 +104,8 @@ typedef struct _Intp_t
     int TimeA;				//
     int TimeAtExec;			//
     int (*Func)(struct _Intp_t *); 	//
-    short Flags;			// 0 - exit, 7- critical, .. ?
-    short Opcode;			//
+    uint16_t Flags;			// 0 - exit, 7- critical, .. ?
+    uint16_t Opcode;			//
     int i34;				//
     int i35;				//
 } Intp_t;
@@ -156,13 +184,13 @@ void IntpTaskRun( Intp_t *scr );
 void IntpUnLoad( Intp_t *scr );
 Intp_t *IntpLoad( const char *fname );
 int IntpGetOpcodeW( Intp_t *scr );
-char *IntpGetArg( Intp_t *scr, char Type, int Ref );
-char *IntpGetString( Intp_t *scr, int Idx );
+char *IntpGetString( Intp_t *scr, char Type, int Ref );
+char *IntpGetName( Intp_t *scr, int Idx );
 void IntpNegArg( Intp_t *scr, char *Str );
 void IntpValidate( Intp_t *scr );
 void IntpValidateAll();
 void IntpMergeString( Intp_t *Itp );
-int IntpDbgStr( Intp_t *intp, char *a2, unsigned int Line );
-void IntpGetOpcodeI( Intp_t *a1 );
+int IntpAddString( Intp_t *intp, char *Msg );
+void IntpGetOpcodeI( Intp_t *intp );
 
 

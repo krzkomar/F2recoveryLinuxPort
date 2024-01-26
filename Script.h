@@ -1,10 +1,26 @@
 #pragma once
 
+#define SCP_DEBUG
+
 #define SCRT( n )	((((unsigned int)(n)) >> 24) & 0xff)
-#define SCP_DBG( s, n, m... )	printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s->FileName, s->Opcode & 0xffff, s->CodePC - 2, ##m )
-#define SCP_DBG_VAR		Intp_t *s_dbg = scr;
-#define SCP_DBGA( n, m... )	printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s_dbg->FileName, s_dbg->Opcode & 0xffff, s_dbg->CodePC - 2, ##m )
 //#define SCP_DBG( n, m... )
+
+#ifdef SCP_DEBUG
+extern int scp_dbg;
+#define SCP_DBG( s, n, m... )	if( scp_dbg ){ printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s->FileName, s->Opcode & 0xffff, s->CodePC - 2, ##m ); }
+#define SCP_DBG_VAR		Intp_t *s_dbg = scr;
+#define SCP_DBGA( n, m... )	if( scp_dbg ){ printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s_dbg->FileName, s_dbg->Opcode & 0xffff, s_dbg->CodePC - 2, ##m ); }
+#define SCP_DNAME( Idx )	INTP_VNAME( s_dbg, Idx )
+#define SCP_DECHO( str )	if( scp_dbg ){ printf( "%s\n", str ); }
+#define SCP_DBGP( fmt, m... )	if( scp_dbg ){ printf( fmt, ##m ); }
+#else
+#define SCP_DBG( s, n, m... )
+#define SCP_DBG_VAR
+#define SCP_DBGA( n, m... )
+#define SCP_DNAME( Idx )
+#define SCP_DECHO( str )
+#define SCP_DBGP( fmt, m... )
+#endif
 
 enum{
     SCR_TYPE_SYS,	// 0 system
@@ -22,6 +38,40 @@ enum{
 #define	SCR_04		0x04
 #define	SCR_08		0x08
 
+// Action Event handler procedure names in scripts
+enum{
+    SCPT_AEV_NO_P_PROC,			// 0
+    SCPT_AEV_START,			// 1
+    SCPT_AEV_SPATIAL_P_PROC,		// 2
+    SCPT_AEV_DESCRIPTION_P_PROC,	// 3
+    SCPT_AEV_PICKUP_P_PROC,		// 4
+    SCPT_AEV_DROP_P_PROC,		// 5
+    SCPT_AEV_USE_P_PROC,		// 6
+    SCPT_AEV_USE_OBJ_ON_P_PROC,		// 7
+    SCPT_AEV_USE_SKILL_ON_P_PROC,	// 8
+    SCPT_AEV_NONE_X_BAD1,		// 9
+    SCPT_AEV_NONE_X_BAD2,		// 10
+    SCPT_AEV_TALK_P_PROC,		// 11
+    SCPT_AEV_CRITTER_P_PROC,		// 12
+    SCPT_AEV_COMBAT_P_PROC,		// 13
+    SCPT_AEV_DAMAGE_P_PROC,		// 14
+    SCPT_AEV_MAP_ENTER_P_PROC,		// 15
+    SCPT_AEV_MAP_EXIT_P_PROC,		// 16
+    SCPT_AEV_CREATE_P_PROC,		// 17
+    SCPT_AEV_DESTROY_P_PROC,		// 18
+    SCPT_AEV_NONE_X_BAD3,		// 19
+    SCPT_AEV_NONE_X_BAD4,		// 20
+    SCPT_AEV_LOOK_AT_P_PROC,		// 21
+    SCPT_AEV_TIMED_EVENT_P_PROC,	// 22
+    SCPT_AEV_MAP_UPDATE_P_PROC,		// 23
+    SCPT_AEV_PUSH_P_PROC,		// 24
+    SCPT_AEV_IS_DROPPING_P_PROC,	// 25
+    SCPT_AEV_COMBAT_IS_STARTING_P_PROC,	// 26
+    SCPT_AEV_COMBAT_IS_OVER_P_PROC,	// 27
+    SCPT_AEV_ALL
+};
+
+
 extern int gGValCount;
 #define SCPT_UNSETID	0xCCCCCCCC
 #define MAX_SCPTID	32000
@@ -35,22 +85,22 @@ typedef struct
   int Radius;	  // spatial radius
   int Flags;
   int LocVarId;
-    Intp_t *i07;
+    Intp_t *Intp;
     int i08;
   int LocVarsIdx;
   int LocVarsCnt;
   int i11; 	// ret value
-  int i12;
+  int ActionEventId;	// proc id
   int ArgVal;
   Obj_t *TimeEv; // ptr ?
-    Obj_t *crit; // source obj
-    Obj_t *item; // target obj
+    Obj_t *SourceObj; // source obj
+    Obj_t *TargetObj; // target obj
   int i17;	// action being used flag
-  int i18;	// override
+  int OverrideFlag;	// override
   int i19;
   int i20;
   int i21;
-  int PprocIdx[ 28 ];
+  int ActionEventsIdx[ SCPT_AEV_ALL ];	// prototype procedures 'Action Events'
   int i23;
   int i24;
   int i25;
@@ -224,7 +274,10 @@ Obj_t *ScptUnk142( int a1 );
 int ScptGetActionSource( Intp_t *a1 );
 Obj_t *ScptGetSelfObj( Intp_t *a1 );
 char *ScptUnk139( int a1 );
-int ScptUseObject( int Pids, Obj_t *critter, Obj_t *item );
+/*
+    Set source and target objects for script execution
+*/
+int ScptSetup( int Pids, Obj_t *SourceObj, Obj_t *TargetObj );
 int ScptSetArg( int ScriptId, int ArgVal );
 int ScptUnk136( int a1, int a2 );
 Intp_t *ScptLoad( char *fname );
@@ -252,7 +305,7 @@ void ScptSlideShow();
 int ScptUnk113( void *a1, void *a2 );
 void ScptUnk112( Obj_t *a1, Obj_t *a2 );
 void ScptUnk111( char *a1 );
-int ScptExecScriptProc( int ScriptId, int arg );
+int ScptRun( int ScriptId, int ProcId );
 void ScptIndexPproc( Scpt_t *scr );
 int ScptUnk108( int Pid, int idx );
 int ScptAppendFileToList( char *fname );

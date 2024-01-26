@@ -1,15 +1,4 @@
 #include "FrameWork.h"
-/*
-#define SCP_GETARG_A( type, val, p ) 	type = IntpPopShortStack( (p)->StackA, &(p)->StackApos ); val = IntpPopIntStack( (p)->StackA, &(p)->StackApos );
-#define SCP_GETARG_B( type, val, p )    type = IntpPopwB( (p) ); val = IntpPopIntStack( (p)->StackB, &(p)->StackIdxB );
-#define SCP_PUSHARG_A( type, val, p )	IntpPushIntStack( (p)->StackA, &(p)->StackApos, val ); IntpPushwA( (p), type );
-#define SCP_PUSHARG_B( type, val, p )  	IntpPushIntStack( (p)->StackB, &(p)->StackIdxB, val ); IntpPushwB( (p), type );
-#define SCP_ERRTYPE( cond, str )  if( cond ) IntpError( str )
-#define SCP_ERRTYPEF( cond, s, fmt, m... )  if( cond ){ sprintf( s, fmt, ##m ); IntpError( s ); }
-#define SCP_FSTRDEREF( type, val, scr ) if( (type) == SCR_FSTRING ) IntpStringDeRef( scr, SCR_FSTRING, val );
-#define SCP_GETARG( type, ArgsCnt, scr ) SCP_GETARG_A( type, ArgsCnt, scr ); SCP_FSTRDEREF( type, ArgsCnt, scr );
-#define SCP_GETARGF( type, Argi, Argf, scr)   SCP_GETARG( type, Argi, scr ); Argf = *((float *)(&Argi));
-*/
 
 int gScpUnk01 = 1;
 extern int gSciUnk01;
@@ -28,19 +17,20 @@ void ScpA_Nop( Intp_t *scr )
 
 /*
     name: ?
-    code 0x8001
+    code 0x8001, 0xC001, 0x9001, 0x9801, 0xa001
     ret: ?
     dsc: ?
 */
-void ScpA_8001( Intp_t *scr ) // Fetch INT from Code and push it on to stack A
+void ScpA_PushConst( Intp_t *scr ) // Fetch INT from Code and push it on to stack A
 {
+    SCP_DBG_VAR;
     uint32_t addr;
-    
+
     addr = IntpReadBei( scr->Code, scr->CodePC );
-    SCP_DBG( scr, "PUSHA_CONST( %x )", addr );
     IntpPushIntStack( scr->StackA, &scr->StackApos, addr );
+    IntpPushwA( scr, scr->Opcode ); // copy constant type
     scr->CodePC += 4;
-    IntpPushwA( scr, scr->Opcode );
+    SCP_DBGA( "  PUSHD( [%x]%x )", scr->Opcode, addr );
 }
 
 void ScpA_802B( Intp_t *scr ) // 802B push_base( ArgsCnt ) ?
@@ -50,7 +40,7 @@ void ScpA_802B( Intp_t *scr ) // 802B push_base( ArgsCnt ) ?
     int ArgsCnt;
 
     SCP_GETARG( type, ArgsCnt, scr );
-    SCP_DBGA( "PUSHB_BASE( [%x]%x )", type, ArgsCnt );
+    SCP_DBGA( "  PUSHA_BASE( [%x]%x base:%d )", type, ArgsCnt, scr->Base );
     SCP_PUSHARG_B( SCR_INT, scr->Base, scr );
     scr->Base = scr->StackApos - 6 * ArgsCnt;
 }
@@ -63,17 +53,18 @@ void ScpA_PopBase( Intp_t *scr ) // 8029 'pop_base( base )'
     char stmp[ 256 ];
 
     SCP_GETARG_B( type, base, scr );
-    SCP_DBG( scr, "POP_BASE( [%x]%x )", type, base );
+    SCP_DBGA( "  POPA_BASE( [%x]%d )", type, base );
     SCP_ERRTYPEF( type != SCR_INT, stmp, "Invalid type given to pop_base: %x", type );
     scr->Base = base;
 }
 
 void ScpA_Ret( Intp_t *scr ) // 802A 'Ret( ... )
 {
+    SCP_DBG_VAR;
     short Type;
     int val;
 
-    SCP_DBG( scr, "RET" );
+    SCP_DBGA( "  LEAVE_FRM" );
     while( scr->StackApos != scr->Base ){
         SCP_GETARG( Type, val, scr );
     }    
@@ -81,7 +72,9 @@ void ScpA_Ret( Intp_t *scr ) // 802A 'Ret( ... )
 
 void ScpA_802C( Intp_t *scr ) // 802C save_stack() ?
 {
-    SCP_DBG( scr, "SAVE_STACK_POS" );
+    SCP_DBG_VAR;
+
+    SCP_DBGA( "  ENTER_FRM" );
     scr->SaveStack = scr->StackApos;
 }
 
@@ -93,7 +86,7 @@ void ScpA_Dump( Intp_t *scr ) // 802E dump( arg_cnt, ... )
     char stmp[ 256 ];
 
     SCP_GETARG_A( type, arg_cnt, scr );
-    SCP_DBGA( scr, "DUMP( [%x]%x )", type, arg_cnt );
+    SCP_DBGA( "DUMP( [%x]%x )", type, arg_cnt );
     SCP_ERRTYPEF( type != SCR_INT, stmp, "Invalid type given to dump, %x", type );
     while( --arg_cnt != -1 ){
 	SCP_GETARG( type, argn, scr );
@@ -109,7 +102,7 @@ void ScpA_Call( Intp_t *scr ) // 8006 'call( procedure, procedure_time )
     SCP_GETARG( type1, addr, scr );
     SCP_ERRTYPE( SCRTYPE( type1 ) != SCR_INT, "Invalid procedure type given to call" );
     SCP_GETARG( type2, time, scr );
-    SCP_DBG( scr, "CALL(( [%x]%x, [%x]%x )", type2, addr, type1, time );
+    SCP_DBGA( "CALL(( [%x]%x, [%x]%x )", type2, addr, type1, time );
     SCP_ERRTYPE( SCRTYPE( time ) != SCR_INT, "Invalid time given to call" );
     NameIdx = IntpReadBei( (char *)&scr->ProcTable[ addr ].NameOfst, 4 ) | 0x01;
     time = 1000 * time;
@@ -145,7 +138,7 @@ void ScpA_Wait( Intp_t *scr ) // 8047 'wait( time )'
     int time;
 
     SCP_GETARG( type, time, scr );
-    SCP_DBGA( scr, "WAIT( [%x]%x )", type, time );
+    SCP_DBGA( "WAIT( [%x]%x )", type, time );
     SCP_ERRTYPE( SCRTYPE( type ) != SCR_INT, "Invalid type given to wait\n" );
     scr->TimeA = 1000 * gIntpGetTime() / gIntpTimeDiv;
     scr->Time = scr->TimeA + time;
@@ -176,7 +169,7 @@ void ScpA_CancelAll( Intp_t *scr ) // 8049 'CancelAll()'
     SCP_DBG_VAR;
     int i, Arg1;
     
-    SCP_DBGA( scr, "CANCEL_ALL()" );
+    SCP_DBGA( "CANCEL_ALL()" );
     Arg1 = IntpReadBei( (char *)&scr->ProcTable->Count, 0 );
     for( i = 0; i < Arg1; i++ ){
         IntpWriteBew( 0, (char *)&scr->ProcTable[ i ].Flags, 0 );
@@ -193,11 +186,16 @@ void ScpA_If( Intp_t *scr ) // 802F ifcon( skip_addr, cond ) -> 'if( Cond == 0 )
     SCP_DBG_VAR;
     uint16_t type[ 2 ];
     int Cond, addr;
+    void *ptr;
 
-    SCP_GETARG( type[ 0 ], Cond, scr );
+    SCP_GETARGX( type[ 0 ], Cond, ptr, scr );
     SCP_GETARG( type[ 1 ], addr, scr );
     SCP_DBGA( "IF( [%x]%x == 0 ) GOTO [%x]%x", type[ 0 ], Cond, type[ 1 ], addr );
-    if( !Cond ) scr->CodePC = addr;    
+    if( type[ 0 ] == SCR_PTR ){
+	if( !ptr ) scr->CodePC = addr;    
+    } else {
+	if( !Cond ) scr->CodePC = addr;    
+    }
 }
 
 void ScpA_WhileDo( Intp_t *scr ) // 8030 while( Cond, SkipAddress ) -> 'while( Cond ) do begin'
@@ -226,7 +224,7 @@ void ScpA_8031( Intp_t *scr ) // 8031 ?( arg1, arg2 )
 
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
-    SCP_DBGA( scr, "8031( [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "8031( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
     k = IntpReadBei( scr->StackA, 6 * Arg1 + scr->Base );
     if( *(&scr->StackA[3 * Arg1 + 2] + scr->Base) == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, k );
     IntpWriteBew( Arg2 >> 16, scr->StackA, 6 * Arg1 + scr->Base );
@@ -234,7 +232,7 @@ void ScpA_8031( Intp_t *scr ) // 8031 ?( arg1, arg2 )
     stack = &scr->StackA[ 3 * Arg1 + 2 ] + scr->Base;
     stack[ 0 ] = Type2 >> 16;
     stack[ 1 ] = Type2;
-    if( Type2 == SCR_FSTRING ) ++scr->FString->Data[ Arg2 - 2 ];
+    if( Type2 == SCR_FSTRING ) INTP_STR_REF( scr->Strings + Arg2 )++;
 }
 
 void ScpA_Fetch( Intp_t *scr ) // 8032
@@ -245,7 +243,7 @@ void ScpA_Fetch( Intp_t *scr ) // 8032
     char stmp[264];
 
     SCP_GETARG( Type1, Arg1, scr );
-    SCP_DBGA( scr, "FETCH( [%x]%x )", Type1, Arg1 );
+    SCP_DBGA( "FETCH( [%x]%x )", Type1, Arg1 );
     SCP_ERRTYPEF( Type1 != SCR_INT, stmp, "Invalid type given to fetch, %x", Type1 );
     k = IntpReadBei( scr->StackA, 6 * Arg1 + scr->Base );
     SCP_PUSHARG_A( (*(&scr->StackA[3 * Arg1 + 2] + scr->Base) << 8) | *(&scr->StackA[3 * Arg1 + 2] + scr->Base + 1), k, scr );
@@ -258,9 +256,27 @@ void ScpA_CmpNE( Intp_t *scr ) // 8034 'stack:=p2<>p1'
     float Arg1f, Arg2f;
     int Arg2i,Arg1i;
     char *s, stmp1[80], stmp2[80], stmp3[80], stmp4[80];
+    void *ptr1, *ptr2;
 
-    SCP_GETARGF( Type1, Arg1i, Arg1f, scr );
-    SCP_GETARGF( Type2, Arg2i, Arg2f, scr );
+    SCP_GETARGFX( Type1, Arg1i, Arg1f, ptr1, scr );
+    SCP_GETARGFX( Type2, Arg2i, Arg2f, ptr2, scr );
+    if( ( Type1 == SCR_PTR ) || ( Type2 == SCR_PTR ) ){ // ptr
+	if( Type1 == SCR_INT || Type2 == SCR_INT ){ // ptr vs int
+	    Arg1i = (Type1 == SCR_INT) ? Arg1i: Arg2i;
+	    ptr1 = (Type1 == SCR_PTR) ? ptr1: ptr2;
+	    IntpPushIntStack( scr->StackA, &scr->StackApos, (ptr1 && !Arg1i) ? 1:0 );	    
+	    SCP_DBGA( "( %p != %x )", ptr1, Arg1i );
+	} else {
+	    if( ( Type1 == SCR_PTR ) && ( Type2 == SCR_PTR ) ){
+		IntpPushIntStack( scr->StackA, &scr->StackApos, ptr1 == ptr2 );	    
+		SCP_DBGA( "( %p != %p )", ptr1, ptr2 );
+	    } else {
+		SCP_DBGA( "( ! != ! )" );
+		IntpPushIntStack( scr->StackA, &scr->StackApos, 0 );
+	    }
+	}
+	goto LABEL_55;
+    }
     SCP_DBGA( "( [%x]%x != [%x]%x )", Type2, Arg2i, Type1, Arg1i );
     if( ( Type2 == SCR_FSTRING ) || ( Type2 == SCR_STRING ) ){ // int
         if( Type1 < SCR_FSTRING ) {
@@ -269,20 +285,20 @@ void ScpA_CmpNE( Intp_t *scr ) // 8034 'stack:=p2<>p1'
             if( Type1 < SCR_FLOAT ) goto LABEL_55;
             if( Type1 == SCR_FLOAT ){
                 sprintf( stmp1, "%.05f", Arg1f );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp1, IntpGetArg( scr, Type2 >>8, Arg2i ) ) != 0);
+                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp1, IntpGetString( scr, Type2 >>8, Arg2i ) ) != 0);
             } else {
                 if( Type1 == SCR_INT ){
             	    if( Arg1f == 0.0 ){
         		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2i != 0 );
         	    } else {
             		sprintf( stmp3, "%d", Arg1i );
-            		IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp3, IntpGetArg(scr, Type2 >> 8, Arg2i )) != 0);
+            		IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp3, IntpGetString(scr, Type2 >> 8, Arg2i )) != 0);
             	    }
                 }
             }
         } else {
-    	    s = ( (Type2 & 0x800) != 0 ) ? scr->FString[ Arg2i ].Data : scr->StringsConst[ Arg2i + 4 ];
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetArg(scr, Type1 >> 8, Arg1i )) != 0 );
+    	    s = ( Type2 & 0x800 ) ? &scr->Strings[ Arg2i + 4 ] : &scr->StringsConst[ Arg2i + 4 ];
+    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString(scr, Type1 >> 8, Arg1i )) != 0 );
         }
         goto LABEL_55;
     }
@@ -296,7 +312,7 @@ void ScpA_CmpNE( Intp_t *scr ) // 8034 'stack:=p2<>p1'
             if( Type1 == SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f != Arg2f );
         } else {
     	    sprintf( stmp2, "%.05f", Arg2f );
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetArg( scr, Type1 >> 8 , Arg1i ) ) != 0);
+    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString( scr, Type1 >> 8 , Arg1i ) ) != 0);
     	}
     } else {
 	if( Type2 == SCR_INT ){
@@ -305,7 +321,7 @@ void ScpA_CmpNE( Intp_t *scr ) // 8034 'stack:=p2<>p1'
         	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1i != 0 );
     		} else {
     		    sprintf( stmp4, "%d", Arg2i );
-    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetArg( scr, Type1 >> 8, Arg1i ) ) != 0 );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString( scr, Type1 >> 8, Arg1i ) ) != 0 );
     		}
 	    } else {
 		if( Type1 == SCR_FLOAT ){
@@ -345,20 +361,20 @@ LABEL_37:
             if( Type1 < SCR_FLOAT ) goto LABEL_55;
             if( Type1 <= SCR_FLOAT ){
                 sprintf( stmp1, "%.05f", *&Idx );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp1, IntpGetArg( scr, Type2 >> 8, Arg2f )) == 0 );
+                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp1, IntpGetString( scr, Type2 >> 8, Arg2f )) == 0 );
             } else {
                 if( Type1 != SCR_INT ) goto LABEL_55;
                 if( Idx == 0.0 ){
         	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f == 0 );
                 } else {
         	    sprintf( stmp3, "%d", Arg1 );
-            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp3, IntpGetArg( scr, Type2 >> 8, Arg2f ) ) == 0 );
+            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp3, IntpGetString( scr, Type2 >> 8, Arg2f ) ) == 0 );
                 }
             }            
             goto LABEL_55;
         }
-        s = ( (Type2 & 0x800) != 0 ) ? scr->FString[ Arg2 ].Data : scr->StringsConst[ Arg2 + 4 ];
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetArg( scr, Type1 >> 8, Idx )) == 0 );
+        s = ( (Type2 & 0x800) != 0 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
+        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString( scr, Type1 >> 8, Idx )) == 0 );
         goto LABEL_55;
     }
     if( Type2 < SCR_FLOAT ) goto LABEL_55;
@@ -375,7 +391,7 @@ LABEL_37:
             goto LABEL_55;
         }
         sprintf( stmp2, "%.05f", Arg2f );
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetArg( scr, Type1 >> 8, Idx )) == 0 );
+        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString( scr, Type1 >> 8, Idx )) == 0 );
         goto LABEL_55;
     }
     if( Type2 != SCR_INT ){
@@ -403,7 +419,7 @@ LABEL_37:
         IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 == 0 );
     } else {
     	sprintf( stmp4, "%d", Arg2 );
-	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetArg( scr, Type1 >> 8, Arg1 ) ) == 0 );
+	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString( scr, Type1 >> 8, Arg1 ) ) == 0 );
     }
     IntpPushwA( scr, SCR_INT );
     return;    
@@ -434,20 +450,20 @@ LABEL_37:
             if( Type1 < SCR_FLOAT ) goto LABEL_55;
             if( Type1 <= SCR_FLOAT ){
                 sprintf( stmp1, "%.05f", Arg1f );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetArg( scr, Type2 >> 8, Arg2 ) ) <= 0 );
+                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetString( scr, Type2 >> 8, Arg2 ) ) <= 0 );
             } else {
                 if( Type1 != SCR_INT ) goto LABEL_55;
                 if( Arg1 == 0.0 ){
         	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 <= 0 );
                 } else {
             	    sprintf( stmp3, "%d", Arg1 );
-            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetArg( scr, Type2 >> 8, Arg2 )) <= 0 );
+            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetString( scr, Type2 >> 8, Arg2 )) <= 0 );
                 }                
             }    	    
     	    goto LABEL_55;
         }
-        s = ( (Type2 & 0x800) != 0 ) ? scr->FString[ Arg2 ].Data :  scr->StringsConst[ Arg2 + 4 ];
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetArg( scr, Type1 > 8, Arg1 )) <= 0 );
+        s = ( (Type2 & 0x800) != 0 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
+        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString( scr, Type1 > 8, Arg1 )) <= 0 );
         goto LABEL_55;
     }
     if( Type2 < SCR_FLOAT ) goto LABEL_55;
@@ -465,7 +481,7 @@ LABEL_37:
 	    goto LABEL_55;
         }
         sprintf( stmp2, "%.05f", Arg2f );
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetArg(scr, Type1 >> 8, Arg1 ) ) <= 0 );
+    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString(scr, Type1 >> 8, Arg1 ) ) <= 0 );
     	goto LABEL_55;
     }
     if( Type2 != SCR_INT ) goto LABEL_55;
@@ -479,7 +495,7 @@ LABEL_23:
             IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 <= 0 );
         } else {
     	    sprintf( stmp4, "%d", Arg2 );
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetArg(scr, Type1 >> 8, Arg1 ) ) <= 0 );
+    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString(scr, Type1 >> 8, Arg1 ) ) <= 0 );
     	}
 	IntpPushwA(scr, SCR_INT);
 	return;
@@ -519,20 +535,20 @@ LABEL_37:
             if( Type1 < SCR_FLOAT ) goto LABEL_55;
             if( Type1 <= SCR_FLOAT ){
                 sprintf( stmp1, "%.05f", Arg1f );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetArg( scr, Type2 >> 8, Arg2f ) ) >= 0 );
+                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetString( scr, Type2 >> 8, Arg2f ) ) >= 0 );
             } else {
                 if( Type1 != SCR_INT ) goto LABEL_55;
                 if( Arg1 == 0.0 ){
         	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f >= 0);
                 } else {
             	    sprintf( stmp3, "%d", Arg1 );
-            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetArg(scr, Type2 >> 8, Arg2f)) >= 0 );
+            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetString(scr, Type2 >> 8, Arg2f)) >= 0 );
                 }
             }    	    
     	    goto LABEL_55;
         }
-        s = ( (Type2 & 0x800) != 0 ) ? scr->FString[ Arg2 ].Data : scr->StringsConst[ Arg2 + 4 ];
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetArg(scr, Type1 >> 8, Arg1)) >= 0 );
+        s = ( (Type2 & 0x800) != 0 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
+    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString(scr, Type1 >> 8, Arg1)) >= 0 );
         goto LABEL_55;
     }
     if( Type2 < SCR_FLOAT ) goto LABEL_55;
@@ -550,7 +566,7 @@ LABEL_37:
             goto LABEL_55;
         }
         sprintf( stmp2, "%.05f", Arg2f );
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp2, IntpGetArg(scr, Type1 >> 8, Arg1)) >= 0 );
+    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp2, IntpGetString(scr, Type1 >> 8, Arg1)) >= 0 );
     	goto LABEL_55;
     }
     if( Type2 != SCR_INT ) goto LABEL_55;
@@ -564,7 +580,7 @@ LABEL_23:
             IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 >= 0 );
         } else {
     	    sprintf( stmp4, "%d", Arg2 );
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp4, IntpGetArg(scr, Type1 >> 8, Arg1)) >= 0 );
+    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp4, IntpGetString(scr, Type1 >> 8, Arg1)) >= 0 );
     	}
     	goto LABEL_55;
     }
@@ -603,7 +619,7 @@ LABEL_37:
             if( Type1 < SCR_FLOAT ) goto LABEL_55;
             if( Type1 <= SCR_FLOAT ){
                 sprintf( stmp1, "%.05f", Arg1f );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetArg( scr, Type2 >> 8, Arg2 ) ) < 0 );
+                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetString( scr, Type2 >> 8, Arg2 ) ) < 0 );
             } else {
                 if( Type1 != SCR_INT ) goto LABEL_55;
                 if( Arg1f == 0.0 ){
@@ -611,12 +627,12 @@ LABEL_37:
         	    goto LABEL_55;
                 }
                 sprintf( stmp3, "%d", Arg1 );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetArg( scr, Type2 >> 8, Arg2 ) ) < 0 );
+                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetString( scr, Type2 >> 8, Arg2 ) ) < 0 );
             }
     	    goto LABEL_55;
         }
-        s = ( (Type2 & 0x800) != 0 ) ? scr->FString[ Arg2 ].Data : scr->StringsConst[ Arg2 + 4 ];
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetArg(scr, Type1 >> 8, Arg1) ) < 0 );
+        s = ( (Type2 & 0x800) != 0 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
+    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString(scr, Type1 >> 8, Arg1) ) < 0 );
         goto LABEL_55;
     }
     if( Type2 < SCR_FLOAT ) goto LABEL_55;
@@ -634,7 +650,7 @@ LABEL_37:
             goto LABEL_55;
         }
         sprintf( stmp2, "%.05f", *&Arg2f );
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetArg( scr, Type1 >> 8, Arg1 ) ) < 0 );
+    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString( scr, Type1 >> 8, Arg1 ) ) < 0 );
         goto LABEL_55;
     }
     if( Type2 != SCR_INT ) goto LABEL_55;
@@ -649,7 +665,7 @@ LABEL_23:
             goto LABEL_55;
         }
         sprintf( stmp4, "%d", Arg2 );
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetArg(scr, Type1 >> 8, Arg1) ) < 0);
+    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString(scr, Type1 >> 8, Arg1) ) < 0);
         goto LABEL_55;
     }
     if( Type1 >= SCR_FLOAT ){
@@ -687,20 +703,20 @@ LABEL_37:
             if( Type1 < SCR_FLOAT ) goto LABEL_55;
             if( Type1 <= SCR_FLOAT ){
                 sprintf( stmp1, "%.05f", Arg1f );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetArg( scr, Type2 >> 8, Arg2 ) ) > 0);
+                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetString( scr, Type2 >> 8, Arg2 ) ) > 0);
             } else {
                 if( Type1 != SCR_INT ) goto LABEL_55;
                 if( Arg1f == 0.0 ){
         	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 > 0 );
                 } else {
             	    sprintf( stmp3, "%d", Arg1 );
-            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetArg( scr, Type2 >> 8, Arg2 ) ) > 0);
+            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetString( scr, Type2 >> 8, Arg2 ) ) > 0);
                 }
             }    	    
     	    goto LABEL_55;
         }  
-        s = ( (Type2 & 0x800) != 0 ) ? scr->FString[ Arg2 ].Data : scr->StringsConst[ Arg2 + 4 ];
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetArg( scr, Type1 >> 8, Arg1 ) ) > 0);
+        s = ( Type2 & 0x800 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
+        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString( scr, Type1 >> 8, Arg1 ) ) > 0 );
         IntpPushwA( scr, SCR_INT );
         return;
     }
@@ -719,7 +735,7 @@ LABEL_37:
             }            
         } else {
     	    sprintf( stmp2, "%.05f", Arg2f );
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetArg(scr, Type1 >> 8, Arg1 ) ) > 0);
+    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString(scr, Type1 >> 8, Arg1 ) ) > 0);
     	    IntpPushwA( scr, SCR_INT );
         }
         return;
@@ -753,7 +769,7 @@ LABEL_37:
 	return;
     }
     sprintf( stmp4, "%d", Arg2 );
-    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetArg( scr, Type1 >> 8, Arg1 ) ) > 0); IntpPushwA( scr, SCR_INT );
+    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString( scr, Type1 >> 8, Arg1 ) ) > 0); IntpPushwA( scr, SCR_INT );
     return;
 
 LABEL_55:
@@ -777,7 +793,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
     if( t2 < SCR_FLOAT ){
         if( t2 != SCR_STRING ) return;
         if( (Type2 & 0x800) != 0 ){
-            s2 = &scr->FString->Data[ Arg2 ];
+            s2 = &scr->Strings[ Arg2 + 4 ];
         } else if( (Type2 & 0x1000) != 0 ){
             s2 = &scr->StringsConst[ Arg2 + 4 ];
         } else {
@@ -787,7 +803,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
         if( t1 < SCR_FLOAT ){
             if( t1 == SCR_STRING ){
                 if( Type1 & 0x800 ){
-                    pd = &scr->FString->Data[ Arg1 ];
+                    pd = &scr->Strings[ Arg1 + 4 ];
                 } else if( Type1 & 0x1000 ){
                     pd = &scr->StringsConst[ Arg1 + 4 ];
                 } else {
@@ -806,7 +822,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
         p = dbg_malloc( strlen( s2 ) + 1 + strlen( q ) );
         strcpy( p, s2 );
         strcpy( p + strlen( p ), q );
-        IntpPushIntStack( scr->StackA, &scr->StackApos, IntpDbgStr( scr, p, __LINE__ ) ); IntpPushwA( scr, SCR_FSTRING );
+        IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
         dbg_free( q );
         dbg_free( p );
         return;
@@ -828,7 +844,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
         }
         if( t1 != SCR_STRING ) return;
         if( (Type1 & 0x800) != 0 ){
-            pd = &scr->FString->Data[ Arg1 ];
+            pd = &scr->Strings[ Arg1 + 4 ];
         } else if( (Type1 & 0x1000) != 0 ){
             pd = &scr->StringsConst[ Arg1 + 4 ];
         } else {
@@ -837,7 +853,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
         p = dbg_malloc( strlen(pd) + 80 );
         sprintf( p, "%d", Arg2 );
         strcpy( p + strlen( p ), pd );
-        IntpPushIntStack( scr->StackA, &scr->StackApos, IntpDbgStr( scr, p, __LINE__ ) ); IntpPushwA( scr, SCR_FSTRING );
+        IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
         dbg_free( p );
         return;
     }
@@ -845,7 +861,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
     if( t1 < SCR_FLOAT ){
         if( t1 != SCR_STRING ) return;
         if( Type1 & 0x800 ){
-            pd = &scr->FString->Data[ Arg1 ];
+            pd = &scr->Strings[ Arg1 + 4 ];
         } else if( Type1 & 0x1000  ){
             pd = &scr->StringsConst[ Arg1 + 4 ];
         } else {
@@ -854,7 +870,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
         p = dbg_malloc( strlen( pd ) + 80 );
         sprintf( p, "%.5f", Arg2f );
         strcpy( p + strlen( p ), pd );
-        IntpPushIntStack(scr->StackA, &scr->StackApos, IntpDbgStr( scr, p, __LINE__ ) ); IntpPushwA( scr, SCR_FSTRING );
+        IntpPushIntStack(scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
         dbg_free( p );
         return;
     }
@@ -951,7 +967,7 @@ void ScpA_Mod( Intp_t *scr ) // 803D
 
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
-    SCP_DBGA( "( [%x]%x % [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "( [%x]%x %% [%x]%x )", Type2, Arg2, Type1, Arg1 );
     if( Type2 < SCR_FLOAT ) return;
     if( Type2 <= SCR_FLOAT ){
         IntpError( "Trying to MOD a float" );        
@@ -1159,7 +1175,7 @@ void ScpA_LogNot( Intp_t *scr ) // 8045 !( arg )
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
-    SCP_DBGA( scr, "!( [%x]%x )", Type, Arg );
+    SCP_DBGA( "!( [%x]%x )", Type, Arg );
     SCP_PUSHARG_A( SCR_INT, Arg == 0, scr );
 }
 
@@ -1170,7 +1186,7 @@ void ScpA_Neg( Intp_t *scr ) // 8046 -( arg )
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
-    SCP_DBGA( scr, "-( [%x]%x )", Type, Arg );
+    SCP_DBGA( "-( [%x]%x )", Type, Arg );
     SCP_PUSHARG_A( SCR_INT, -Arg, scr );
 }
 
@@ -1181,7 +1197,7 @@ void ScpA_BinNot( Intp_t *scr ) // 8043 ~( arg )
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
-    SCP_DBGA( scr, "~( [%x]%x )", Type, Arg );
+    SCP_DBGA( "~( [%x]%x )", Type, Arg );
     SCP_PUSHARG_A( SCR_INT, ~Arg, scr );
 }
 
@@ -1192,7 +1208,7 @@ void ScpA_Floor( Intp_t *scr ) // 8044 floor( float arg )
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
-    SCP_DBGA( scr, "FLOOR( [%x]%x )", Type, Arg );
+    SCP_DBGA( "FLOOR( [%x]%x )", Type, Arg );
     if( Type < SCR_FLOAT ){
         SCP_ERRTYPE( Type == SCR_STRING, "Invalid arg given to floor()" );
     } else if( Type == SCR_FLOAT ){
@@ -1291,20 +1307,21 @@ void ScpA_Swap( Intp_t *scr ) // 8019 <->( p1, p2 )
 
     Type1 = IntpPopwB( scr ); Arg1 = IntpPopIntStack( scr->StackB, &scr->StackIdxB );
     Type2 = IntpPopwB( scr ); Arg2 = IntpPopIntStack( scr->StackB, &scr->StackIdxB );
-    SCP_DBGA( "SWAPB( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+
+    SCP_DBGA( "  SWAPA: [%x]%d <-> [%x]%d", Type2, Arg2, Type1, Arg1 );
     IntpPushIntStack( scr->StackB, &scr->StackIdxB, Arg1 ); IntpPushwB( scr, Type1 );
     IntpPushIntStack( scr->StackB, &scr->StackIdxB, Arg2 ); IntpPushwB( scr, Type2 );
 }
 
 void ScpA_EndCritical( Intp_t *scr ) // 8003, 804B
 {
-    SCP_DBG( scr, "O_CRITICAL_END" );
+    SCP_DBG( scr, "CRITICAL END" );
     scr->Flags &= ~SCR_FCRITICAL;
 }
 
 void ScpA_StartCritical( Intp_t *scr ) // 8002, 804A O_CRITICAL_START
 {
-    SCP_DBG( scr, "O_CRITICAL_START" );
+    SCP_DBG( scr, "CRITICAL START" );
     scr->Flags |= SCR_FCRITICAL;
 }
 
@@ -1317,35 +1334,42 @@ void ScpA_Jump( Intp_t *scr ) // 8004 jmp()
 
     SCP_GETARG( Type, Arg, scr );
     SCP_DBGA( "JUMP [%x]%x", Type, Arg );
+    SCP_DECHO( "\n" );
     Type &= ~0x800;
     SCP_ERRTYPEF( Type != SCR_INT, stmp, "Invalid type given to jmp, %x", Type );
     scr->CodePC = Arg;
 }
 
-void ScpA_CallExt( Intp_t *scr ) // 8005 call( adres, arguments_cnt, )
+void ScpA_CallExt( Intp_t *scr ) // 8005 call( adres ) or call( ?, adres )
 {
     SCP_DBG_VAR;
-    unsigned short Type;
-    char b, *ExtName, stmp[256], *s;
-    int Arg,i,ArgL, tmp, ArgC_got;
-    short TypeL, ArgC_expected, v9;    
+    unsigned short Type, Type1;
+    char *ExtName, stmp[256], *s;
+    int Arg,i,ArgL, ArgC_got, flags;
+    short TypeL, ArgC_expected;    
     Intp_t LocalScr;
-    char *ArgV;
+    int ArgV;
 
     SCP_GETARG( Type, Arg, scr );
-    SCP_DBGA( "CALL( [%x]%x )", Type, Arg );
     SCP_ERRTYPE( SCRTYPE( Type ) != SCR_INT, "Invalid address given to call" );
     // get procedure name
-    b = IntpReadBei( &scr->ProcTable[ Arg ].NameOfst, 4 );
-    if( !(b & 0x04) ){
-        scr->CodePC = IntpReadBei( &scr->ProcTable[ Arg ].NameOfst, 16 );
-        if( b & 0x10 ) scr->Flags |= SCR_FCRITICAL;
+    flags = IntpReadBei( (char *)scr->ProcTable + 24 * Arg + 8, 0 );
+    if( !(flags & INTP_P_IMPORT )){ // not imported procedure
+	SCP_DBGA( "CALL( [%x]%x )", Type, Arg );
+        scr->CodePC = IntpReadBei( (char *)scr->ProcTable + 24 * Arg + 20, 0 ); // BodyOffst
+        if( flags & INTP_P_CRITICAL ) scr->Flags |= SCR_FCRITICAL;
         return;
     }
-    ExtName = scr->ProcVarNames + IntpReadBei( &scr->ProcTable[ Arg ].NameOfst, 0 );
+    // Imported procedure
+    flags = IntpReadBei( (char *)scr->ProcTable + 24 * Arg + 4, 0 );
+    ExtName = scr->ProcVarNames + flags;
+DD
+printf("=>%p, %x\n", ExtName, flags );
+printf("==>%s\n", ExtName );
     SCP_ERRTYPEF( !ExportGetProcedure( ExtName, &ArgV, &ArgC_expected ), "External procedure %s not found", ExtName );
-    SCP_GETARG( v9, ArgC_got, scr );
-    SCP_ERRTYPEF( SCRTYPE( v9 ) != SCR_INT || ArgC_got != ArgC_expected, stmp, "Wrong number of arguments to external procedure %s.Expecting %d, got %d.", ExtName, ArgC_expected, ArgC_got );
+    SCP_GETARG( Type1, ArgC_got, scr );
+    SCP_ERRTYPEF( SCRTYPE( Type1 ) != SCR_INT || ArgC_got != ArgC_expected, stmp, "Wrong number of arguments to external procedure %s.Expecting %d, got %d.", ExtName, ArgC_expected, ArgC_got );
+    SCP_DBGA( "CALL_EXT( [%x]%x, %s )", Type1, ArgC_got, ExtName );
     // save context
     IntpPushIntStack( scr->StackB, &scr->StackIdxB, scr->CodePC ); IntpPushwB( scr, SCR_INT );
     IntpPushIntStack( scr->StackB, &scr->StackIdxB, scr->Flags );    IntpPushwB( scr, SCR_INT );
@@ -1366,13 +1390,13 @@ void ScpA_CallExt( Intp_t *scr ) // 8005 call( adres, arguments_cnt, )
         SCP_GETARG( TypeL, ArgL, &LocalScr );
         if( SCRTYPE( TypeL ) == SCR_STRING ){
             if( TypeL & 0x800 ){
-                s = &scr->FString->Data[ ArgL ];
+                s = &scr->Strings[ ArgL + 4 ];
             } else if( TypeL & 0x1000 ){
                 s = &scr->StringsConst[ ArgL + 4 ];
             } else {
                 s = NULL;
             }
-            IntpPushIntStack( scr->StackA, &scr->StackApos, IntpDbgStr( scr, s, (tmp & 0x00ff) | (TypeL & 0x00ff) ) ); IntpPushwA( scr, SCR_FSTRING );
+            IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, s ) ); IntpPushwA( scr, SCR_FSTRING );
         } else {
             IntpPushIntStack( scr->StackA, &scr->StackApos, ArgL ); IntpPushwA( scr, TypeL );
         }
@@ -1383,40 +1407,44 @@ void ScpA_CallExt( Intp_t *scr ) // 8005 call( adres, arguments_cnt, )
     scr->Flags = 0;
     i = IntpReadBei( &scr->ProcTable[ 3 * Arg ].NameOfst, 4 );
     scr->CodePC = ArgV;
+printf("==>%x\n", ArgV);
     if( (i & 0x10) || (scr->Flags & SCR_FCRITICAL) ) scr->Flags |= SCR_FCRITICAL;
 }
 
-void ScpA_801F( Intp_t *scr ) // 801F ?( arg1, arg2, arg3 )
+void ScpA_ExitProc( Intp_t *scr ) // 801F ?( arg1, arg2, arg3 )
 {
     SCP_DBG_VAR;
     unsigned short Type1, Type2, Type3;
     int Arg1, Arg3;
-    void *Arg2;
 
     SCP_GETARG( Type1, Arg1, scr ); scr->i34 = Arg1; // window
     Type2 = IntpPopShortStack( scr->StackA, &scr->StackApos);
     if( Type2 == 0x9801 ){
 	Arg1 = IntpPopIntStack( scr->StackA, &scr->StackApos);
 	IntpStringDeRef( scr, 0x9801, Arg1 );
-	scr->Func = NULL; // ???
+	scr->Func = NULL;
+	SCP_DBGA( "EXIT_PROC( [%x]%x )", Type2, Arg1 );
     } else {
-	Arg2 = IntpPopPtrStack( scr->StackA, &scr->StackApos);
-	scr->Func = Arg2;
+	scr->Func = IntpPopPtrStack( scr->StackA, &scr->StackApos);
+	SCP_DBGA( "EXIT_PROC( [%x]%p )", Type2, scr->Func );
     }    
-    SCP_DBGA( "?801F?( [%x]%p, [%x]%x )", Type2, Arg2, Type1, Arg1 );
     SCP_GETARG( Type3, Arg3, scr ); scr->Flags = Arg3;
+    SCP_DECHO( "---------------------------------------------------\n\n" );
 }
 
 void ScpA_RetA( Intp_t *scr ) // 801C
 {
-    SCP_DBG( scr, "RET A" );
+    SCP_DBG_VAR;
+
+    SCP_DBGA( "RET" );
     IntpPopwB( scr );
     scr->CodePC = IntpPopIntStack( scr->StackB, &scr->StackIdxB );
+    SCP_DECHO( "\n" );
 }
 
 void ScpA_RetB( Intp_t *scr ) // 801D
 {
-    SCP_DBG( scr, "RET B" );
+    SCP_DBG( scr, "RET F" );
     IntpPopwB( scr );
     scr->CodePC = IntpPopIntStack( scr->StackB, &scr->StackIdxB );
     scr->Flags |= 0x40;
@@ -1425,14 +1453,15 @@ void ScpA_RetB( Intp_t *scr ) // 801D
 void ScpA_8020( Intp_t *scr ) // 8020 O_POP_FLAGS_RETURN
 {
     SCP_DBG( scr, "O_POP_FLAGS_RETURN()" );
-    ScpA_801F( scr );
-    IntpPopwB( scr ); scr->CodePC = IntpPopiB( scr );
+    ScpA_ExitProc( scr );
+    IntpPopwB( scr ); 
+    scr->CodePC = IntpPopiB( scr );
 }
 
 void ScpA_8021( Intp_t *scr ) // 8021 O_POP_FLAGS_EXIT
 {
     SCP_DBG( scr, "O_POP_FLAGS_EXIT()" );
-    ScpA_801F( scr );
+    ScpA_ExitProc( scr );
     IntpPopwB( scr ); scr->CodePC = IntpPopiB( scr );
     scr->Flags |= 0x40;
 }
@@ -1445,7 +1474,7 @@ void ScpA_8025( Intp_t *scr ) // 8025 O_POP_FLAGS_RETURN_VAL_EXIT
 
     SCP_GETARG( Type, Arg, scr );
     SCP_DBGA( "O_POP_FLAGS_RETURN_VAL_EXIT( [%x]%x )", Type, Arg );
-    ScpA_801F( scr );
+    ScpA_ExitProc( scr );
     IntpPopwB( scr ); scr->CodePC = IntpPopiB( scr );
     scr->Flags |= 0x40;
     IntpPushIntStack( scr->StackA, &scr->StackApos, Arg ); IntpPushwA( scr, Type );
@@ -1460,7 +1489,7 @@ void ScpA_8026( Intp_t *scr ) // 8026 O_POP_FLAGS_RETURN_VAL_EXIT_EXTERN
 
     SCP_GETARG( Type, Arg, scr );
     SCP_DBGA( "O_POP_FLAGS_RETURN_VAL_EXIT_EXTERN( [%x]%x )", Type, Arg );
-    ScpA_801F( scr );
+    ScpA_ExitProc( scr );
     IntpPopwB( scr ); p = IntpPopPtrStack( scr->StackB, &scr->StackIdxB );
     IntpPopwB( scr ); p->Func = IntpPopPtrStack( scr->StackB, &scr->StackIdxB );
     IntpPopwB( scr ); p->Flags = IntpPopIntStack( scr->StackB, &scr->StackIdxB );
@@ -1475,7 +1504,7 @@ void ScpA_8022( Intp_t *scr ) // 8022 O_POP_FLAGS_RETURN_EXTERN
     Intp_t *p;
 
     SCP_DBG( scr, "O_POP_FLAGS_RETURN_EXTERN()" );
-    ScpA_801F( scr );
+    ScpA_ExitProc( scr );
     IntpPopwB( scr ); p = IntpPopPtrStack( scr->StackB, &scr->StackIdxB );
     IntpPopwB( scr ); p->Func = IntpPopPtrStack( scr->StackB, &scr->StackIdxB );
     IntpPopwB( scr ); p->Flags = IntpPopIntStack( scr->StackB, &scr->StackIdxB ); IntpPopwB( scr );
@@ -1487,7 +1516,7 @@ void ScpA_8023( Intp_t *scr ) // 8023 O_POP_FLAGS_EXIT_EXTERN
     Intp_t *p;
 
     SCP_DBG( scr, "O_POP_FLAGS_EXIT_EXTERN()" );
-    ScpA_801F( scr );
+    ScpA_ExitProc( scr );
     IntpPopwB( scr ); p = IntpPopPtrStack( scr->StackB, &scr->StackIdxB );
     IntpPopwB( scr ); p->Func = IntpPopPtrStack(scr->StackB, &scr->StackIdxB );
     IntpPopwB( scr ); p->Flags = IntpPopIntStack(scr->StackB, &scr->StackIdxB );
@@ -1505,19 +1534,19 @@ void ScpA_8024( Intp_t *scr ) // 8024 O_POP_FLAGS_RETURN_VAL_EXTERN
 
     SCP_GETARG( Type, Arg, scr );
     SCP_DBGA( "O_POP_FLAGS_RETURN_VAL_EXTERN( [%x]%x )", Type, Arg );
-    ScpA_801F( scr );
+    ScpA_ExitProc( scr );
     IntpPopwB( scr ); p = IntpPopPtrStack( scr->StackB, &scr->StackIdxB );
     IntpPopwB( scr ); p->Func = IntpPopPtrStack( scr->StackB, &scr->StackIdxB );
     IntpPopwB( scr ); p->Flags = IntpPopIntStack( scr->StackB, &scr->StackIdxB );
     if( SCRTYPE( Type ) == SCR_STRING ){
         if( Type & 0x800 ){
-            s = &scr->FString->Data[ Arg ];
+            s = &scr->Strings[ Arg + 4 ];
         } else if( Type & 0x1000 ){
-            s = &scr->StringsConst[ Arg + 4];
+            s = &scr->StringsConst[ Arg + 4 ];
         } else {
             s = NULL;
         }
-        IntpPushIntStack( p->StackA, &p->StackApos, IntpDbgStr( p, s, scr->StackIdxB ) ); 
+        IntpPushIntStack( p->StackA, &p->StackApos, IntpAddString( p, s ) ); 
 	IntpPushwA( p, SCR_FSTRING );
     } else {
         IntpPushIntStack( p->StackA, &p->StackApos, Arg ); 
@@ -1541,7 +1570,7 @@ void ScpA_800C( Intp_t *scr ) // 800C
     int Arg;
 
     SCP_GETARG_B( Type, Arg, scr );
-    SCP_DBGA( "PUSHA_ARG( [%x]%x )", Type, Arg );
+    SCP_DBGA( "  ADR To DAT -> [%x]%x", Type, Arg );
     IntpPushIntStack( scr->StackA, &scr->StackApos, Arg ); IntpPushwA( scr, Type );
 }
 
@@ -1552,7 +1581,7 @@ void ScpA_800D( Intp_t *scr ) // 800D O_D_TO_A
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
-    SCP_DBGA( "PUSHB_ARG( [%x]%x )", Type, Arg );
+    SCP_DBGA( "  DAT To ADR -> [%x]%x", Type, Arg );
     IntpPushIntStack( scr->StackB, &scr->StackIdxB, Arg ); IntpPushwB( scr, Type );
 }
 
@@ -1560,6 +1589,7 @@ void ScpA_8010( Intp_t *scr ) // 8010 O_EXIT_PROG
 {
     SCP_DBG( scr, "O_EXIT_PROG()" );
     scr->Flags |= SCR_FEXIT;
+    SCP_DECHO( "--->" );
 }
 
 void ScpA_8011( Intp_t *scr ) // 8011
@@ -1590,12 +1620,12 @@ void ScpA_8013( Intp_t *scr ) // 8013
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
     SCP_DBGA( "?8013?( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( scr->StackA[3 * Arg1 + 2 + scr->SaveStack] == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, IntpReadBei(scr->StackA, 6 * Arg1 + scr->SaveStack) );
+    if( scr->StackA[3 * Arg1 + 2 + scr->SaveStack] == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, IntpReadBei( scr->StackA, 6 * Arg1 + scr->SaveStack ) );
     IntpWriteBew( Arg2 >> 16, scr->StackA, 6 * Arg1 + scr->SaveStack );
     IntpWriteBew( Arg2, scr->StackA, 6 * Arg1 + scr->SaveStack + 2 );
     scr->StackA[ 3 * Arg1 + 2 + scr->SaveStack + 0 ] = Type2 >> 24;
     scr->StackA[ 3 * Arg1 + 2 + scr->SaveStack + 1 ] = Type2;
-    if( Type2 == SCR_FSTRING ) ++scr->FString->Data[ Arg2 - 2 ];
+    if( Type2 == SCR_FSTRING ) INTP_STR_REF( scr->Strings + Arg2 )++;
 }
 
 void ScpA_8018( Intp_t *scr ) // 8018
@@ -1649,16 +1679,25 @@ void ScpA_801B( Intp_t *scr ) // 801B
 void ScpA_SetExportedVar( Intp_t *scr ) // 8015
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     char stmp[ 256 ];
     int Arg1, Arg2;
+    void *ptr;
 
     SCP_GETARG( Type1, Arg1, scr );
-    SCP_GETARG( Type2, Arg2, scr );
-    SCP_DBGA( "SET_EXPORTED_VAR( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( ExportSetVarArg( scr, (char *)scr->ProcVarNames + Arg1, Type2, Arg2 ) ){
-        sprintf( stmp, "External variable %s does not exist\n", IntpGetString( scr, Arg1 ) );
-        IntpError( stmp );
+    SCP_GETARGX( Type2, Arg2, ptr, scr );
+    if( Type2 != SCR_PTR ){
+	SCP_DBGA( "SET_EXPORTED_VAR: %s = {[%x]%x}", SCP_DNAME( Arg1 ), Type2, Arg2 );
+	if( ExportSetVarArg( scr, (char *)scr->ProcVarNames + Arg1, Type2, Arg2 ) ){
+    	    sprintf( stmp, "External variable %s does not exist\n", IntpGetName( scr, Arg1 ) );
+    	    IntpError( stmp );
+	}
+    } else {
+	SCP_DBGA( "SET_EXPORTED_VAR: %s = %p", SCP_DNAME( Arg1 ), ptr );
+	if( ExportSetVarArgP( scr, (char *)scr->ProcVarNames + Arg1, ptr ) ){
+    	    sprintf( stmp, "External variable %s does not exist\n", IntpGetName( scr, Arg1 ) );
+    	    IntpError( stmp );
+	}
     }
 }
 
@@ -1667,15 +1706,18 @@ void ScpA_GetExportedVar( Intp_t *scr ) // 8014
     SCP_DBG_VAR;
     short Type;
     char stmp[ 256 ];
-    int Arg, tmp;
+    int Arg, tmp[ sizeof( void *) / 4 ];
 
     SCP_GETARG( Type, Arg, scr );
-    SCP_DBGA( "GET_EXPORTED_VAR( [%x]%x )", Type, Arg );
-    if( ExportGetVarArg( scr, (char *)scr->ProcVarNames + Arg, &Type, &tmp ) ){
-        sprintf( stmp, "External variable %s does not exist\n", IntpGetString( scr, Arg ) );
+    SCP_DBGA( "GET_EXPORTED_VAR( %s )", SCP_DNAME( Arg ) );
+    if( ExportGetVarArg( scr, (char *)scr->ProcVarNames + Arg, &Type, tmp ) ){
+        sprintf( stmp, "External variable %s does not exist\n", IntpGetName( scr, Arg ) );
         IntpError( stmp );
     }
-    IntpPushIntStack( scr->StackA, &scr->StackApos, tmp ); 
+    if( Type == SCR_PTR )
+	IntpPushPtrStack( scr->StackA, &scr->StackApos, *((void **)tmp) ); 		
+    else
+	IntpPushIntStack( scr->StackA, &scr->StackApos, *tmp ); 
     IntpPushwA( scr, Type );
 }
 
@@ -1689,7 +1731,7 @@ void ScpA_ExportProcedure( Intp_t *scr ) // 8017
 
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
-    SCP_DBGA( "EXPORT_PROCEDURE( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "EXPORT_PROCEDURE: [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
     tmp = &scr->ProcVarNames[ IntpReadBei( &scr->ProcTable[ 6 * Arg1 ].NameOfst, 0 ) ];
     n = IntpReadBep( &scr->ProcTable[ 6 * Arg1 ].NameOfst, 16 );
     SCP_ERRTYPEF( ExportSetProcedure( scr, tmp,  n, Arg2 ),stmp, "Error exporting procedure %s", tmp );
@@ -1703,9 +1745,9 @@ void ScpA_ExportVariable( Intp_t *scr ) // 8016
     int Arg;
     
     SCP_GETARG( Type, Arg, scr );
-    SCP_DBGA( "EXPORT_VARIABLE( [%x]%x )", Type, Arg );
+    SCP_DBGA( "EXPORT_VARIABLE: %s", SCP_DNAME( Arg ) );
     if( ExportCreateIVar( &scr->FileName, (char *)scr->ProcVarNames + Arg ) ){
-        sprintf( stmp, "External variable %s already exists", IntpGetString( scr, Arg ) );
+        sprintf( stmp, "External variable %s already exists", IntpGetName( scr, Arg ) );
         IntpError( stmp );
     }
 }
@@ -1743,7 +1785,7 @@ void ScpA_CallStart( Intp_t *scr ) // 8008 callstart()
     SCP_ERRTYPE( SCRTYPE( Type ) != SCR_STRING , "Invalid type given to callstart" );
     scr->Flags |= SCR_FPROC_RUN;
     if( Type & 0x800 ){
-        v10 = &scr->FString->Data[ Arg ];
+        v10 = &scr->Strings[ Arg + 4 ];
     } else if( Type & 0x1000 ){
         v10 = &scr->StringsConst[ Arg + 4 ];
     } else {
@@ -1755,7 +1797,7 @@ void ScpA_CallStart( Intp_t *scr ) // 8008 callstart()
         SciOpcodeExec( LocScr, 24 );
     }
     scr->ChildProcess = LocScr;
-    SCP_ERRTYPEF( !LocScr, stmp, "Error spawning child %s", IntpGetArg( scr, Type >> 8, Arg ) );
+    SCP_ERRTYPEF( !LocScr, stmp, "Error spawning child %s", IntpGetString( scr, Type >> 8, Arg ) );
     scr->ChildProcess->Parent = scr;
     scr->ChildProcess->i34 = scr->i34;
 }
@@ -1774,7 +1816,7 @@ void ScpA_Spawn( Intp_t *scr ) // 800A
     SCP_ERRTYPE( SCRTYPE( Type ) != SCR_STRING, "Invalid type given to spawn" );
     scr->Flags |= 0x0100;
     if( (Type & 0x800) != 0 ){
-        v10 = &scr->FString->Data[Arg];
+        v10 = &scr->Strings[ Arg + 4 ];
     } else if ( (Type & 0x1000) != 0 ){
         v10 = &scr->StringsConst[ Arg + 4 ];
     } else {
@@ -1786,7 +1828,7 @@ void ScpA_Spawn( Intp_t *scr ) // 800A
         SciOpcodeExec( LocScr, 24 );
     }
     scr->ChildProcess = LocScr;
-    SCP_ERRTYPEF( !LocScr, stmp, "Error spawning child %s", IntpGetArg( scr, Type >> 8, Arg ) );
+    SCP_ERRTYPEF( !LocScr, stmp, "Error spawning child %s", IntpGetString( scr, Type >> 8, Arg ) );
     scr->ChildProcess->Parent = scr;
     scr->ChildProcess->i34 = scr->i34;
     if( scr->Flags & SCR_FCRITICAL ){
@@ -1817,7 +1859,7 @@ void ScpA_Fork( Intp_t *scr ) // 800B fork()
         SciItpEqAdd( LocScr );
         SciOpcodeExec( LocScr, 24 );
     }
-    SCP_ERRTYPEF( !LocScr, stmp, "couldn't fork script '%s'", IntpGetArg( scr, Type >> 8, Arg ) );
+    SCP_ERRTYPEF( !LocScr, stmp, "couldn't fork script '%s'", IntpGetString( scr, Type >> 8, Arg ) );
     LocScr->i34 = scr->i34;
 }
 
@@ -1850,7 +1892,7 @@ void ScpA_8027( Intp_t *scr ) // 8027 ?( arg1, arg2 )
     SCP_GETARG( Type2, Arg2, scr );
     SCP_DBGA( "PROCEDURE[?]( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
     if( IntpReadBei( &scr->ProcTable->NameOfst + 6 * Arg2, 20 ) != Arg1 ){
-        sprintf( stmp, "Wrong number of args to procedure %s\n", IntpGetString( scr, IntpReadBei( &scr->ProcTable->NameOfst + 6 * Arg2, 0 ) ) );
+        sprintf( stmp, "Wrong number of args to procedure %s\n", IntpGetName( scr, IntpReadBei( &scr->ProcTable->NameOfst + 6 * Arg2, 0 ) ) );
         IntpError( stmp );
     }
 }
@@ -1868,7 +1910,7 @@ void ScpA_LookupStringProc( Intp_t *scr ) // 8028
     SCP_ERRTYPE( SCRTYPE( Type ) != SCR_STRING, "Wrong type given to lookup_string_proc\n" );
 
     if( Type & 0x800 ){
-        s = &scr->FString->Data[ Arg ];
+        s = &scr->Strings[ Arg + 4 ];
     } else if( Type & 0x1000 ){
         s = &scr->StringsConst[ Arg + 4 ];
     } else {
@@ -1899,7 +1941,7 @@ void ScpAInitCommands()
     SciAddOpcode( 0x8009, ScpA_8009 );
     SciAddOpcode( 0x800B, ScpA_Fork );
     SciAddOpcode( 0x8000, ScpA_Nop );
-    SciAddOpcode( 0x8001, ScpA_8001 );
+    SciAddOpcode( 0x8001, ScpA_PushConst );
     SciAddOpcode( 0x8002, ScpA_StartCritical );
     SciAddOpcode( 0x8003, ScpA_EndCritical );
     SciAddOpcode( 0x8004, ScpA_Jump );
@@ -1922,7 +1964,7 @@ void ScpAInitCommands()
     SciAddOpcode( 0x801C, ScpA_RetA );
     SciAddOpcode( 0x801D, ScpA_RetB );
     SciAddOpcode( 0x801E, ScpA_801E );
-    SciAddOpcode( 0x801F, ScpA_801F );
+    SciAddOpcode( 0x801F, ScpA_ExitProc );
     SciAddOpcode( 0x8021, ScpA_8021 );
     SciAddOpcode( 0x8020, ScpA_8020 );
     SciAddOpcode( 0x8022, ScpA_8022 );

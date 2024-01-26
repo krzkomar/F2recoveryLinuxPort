@@ -152,7 +152,7 @@ short IntpReadBew( char *Base, int Offset )
 
 int IntpReadBei( void *Base, int Offset )
 {
-    return BSWAP32( *((int *)((char *)Base + Offset )) );
+    return BSWAP32( *((uint32_t *)((unsigned char *)Base + Offset )) );
 }
 
 
@@ -249,19 +249,20 @@ short IntpPopShortStack( char *Base, int *pIdx )
     return Base[ *pIdx + 1] | (Base[ *pIdx + 0 ] << 8);
 }
 
-void IntpUnk02( Intp_t *r, short opcode, int a3 )
+void IntpUnk02( Intp_t *intp, short opcode, int Idx )
 {
-    if( opcode == SCR_FSTRING ) r->FString->Data[ a3 - 2 ]++;
+    if( opcode == SCR_FSTRING ) INTP_STR_REF( intp->Strings + Idx )++;
 }
 
 void IntpStringDeRef( Intp_t *scr, short type, int Idx )
 {
     if( type != SCR_FSTRING ) return;
-    if( scr->FString->Data[ Idx - 1 ] ) // short
-        scr->FString->Data[ Idx - 2 ] = scr->FString->Data[ Idx - 1 ] - 1;
-    else
-        eprintf( "Reference count zero for %s!\n", &scr->FString->Data[ Idx ] );
-    if( scr->FString->Data[ Idx - 2 ] < 0 ) eprintf( "String ref went negative, this shouldn't ever happen\n" );
+    if( INTP_STR_REF( scr->Strings + Idx ) ){
+        INTP_STR_REF( scr->Strings + Idx )--;
+    } else {
+        eprintf( "Reference count zero for %s!\n", &scr->Strings[ Idx + 4 ] );
+    }
+    if( INTP_STR_REF( scr->Strings + Idx ) < 0 ) eprintf( "String ref went negative, this shouldn't ever happen\n" );
 }
 
 void IntpPushwA( Intp_t *scr, short wdata )
@@ -269,7 +270,7 @@ void IntpPushwA( Intp_t *scr, short wdata )
     IntpPushShortStack( scr->StackA, &scr->StackApos, wdata );
     if( wdata != SCR_FSTRING ) return;
     if( scr->StackApos < 6 )  return;
-    scr->FString->Data[ IntpReadBei( scr->StackA, scr->StackApos - 6 ) - 2 ]++;
+    INTP_STR_REF( scr->Strings + IntpReadBei( scr->StackA, scr->StackApos - 6 ) )++;
 }
 
 void IntpPushiA( Intp_t *scr, int idata )
@@ -302,7 +303,7 @@ void IntpPushwB( Intp_t *scr, short opcode )
     IntpPushShortStack( scr->StackB, &scr->StackIdxB, opcode );
     if( opcode != SCR_FSTRING ) return;
     if( scr->StackApos < 6 ) return;
-    scr->FString->Data[ IntpReadBei( scr->StackB, scr->StackIdxB - 6 ) - 2 ]++;
+    INTP_STR_REF( scr->Strings[ IntpReadBei( scr->StackB, scr->StackIdxB - 6 ) ] )++;
 }
 
 void IntpPushiB( Intp_t *scr, int idata )
@@ -362,7 +363,7 @@ void IntpUnLoad( Intp_t *scr )
         IntpTaskFire( scr );
         scr->i35 = 1;
     }
-    if( scr->FString ) dbg_free( scr->FString );
+    if( scr->Strings ) dbg_free( scr->Strings );
     if( scr->Code ) dbg_free( scr->Code );
     if( scr->FileName ) dbg_free( scr->FileName );
     if( scr->StackA ) dbg_free( scr->StackA );
@@ -419,14 +420,14 @@ int IntpGetOpcodeW( Intp_t *scr )
     return (n1 << 8) | n2;
 }
 
-char *IntpGetArg( Intp_t *scr, char Type, int Ref )
+char *IntpGetString( Intp_t *scr, char Type, int Ref )
 {
-    if( Type & 0x08 ) return &scr->FString->Data[ Ref ]; // number string
+    if( Type & 0x08 ) return &scr->Strings[ Ref + 4 ]; // local var string
     if( Type & 0x10 ) return &scr->StringsConst[ Ref + 4 ]; // string
     return NULL;
 }
 
-char *IntpGetString( Intp_t *scr, int Idx )
+char *IntpGetName( Intp_t *scr, int Idx )
 {
     if( scr ) return NULL;
     return &scr->ProcVarNames[ Idx ];
@@ -434,37 +435,31 @@ char *IntpGetString( Intp_t *scr, int Idx )
 
 void IntpNegArg( Intp_t *scr, char *Str )
 {
-    Str[ scr->FString->w01 ] = -Str[ scr->FString->w01 ];
-    Str[ scr->FString->w02 ] = 0;
+    INTP_STR_LEN( scr->Strings ) = INTP_STR_LEN( scr->Strings );
+    INTP_STR_REF( scr->Strings ) = 0;
 }
 
-void IntpValidate( Intp_t *scr )
-{
-/*
-    IntpOp_t *Strings, i, *p;
-    char *v7;
-    int ref, v8, v9;
+void IntpValidate( Intp_t *intp )
+{    
+    char *p;
+    short ofst;
 
-    Strings = scr->FString;
-    if( !Strings ) return;    
-    p = (IntpOp_t *)FString->Data;
-    for( i = *Strings; p->w01 != 0x8000;  ){
-        ref = p->w01;
-        if( ref < 0 ){
-            ref = -ref;
-            if( p->w02 ) eprintf( "Warning, reference count on invalid string is not zero!\n" );
+    if( !intp->Strings ) return;    
+    for( p = intp->Strings + 4; INTP_STR_LEN( p ) != 0x8000; p += ofst + 4 ){
+        ofst = INTP_STR_LEN( p );
+        if( ofst < 0 ){
+            ofst = -ofst;
+            if( INTP_STR_REF( p ) ) eprintf( "Warning, reference count on invalid string is not zero!\n" );
         }
-        p = (IntpOp_t *)(p->Data + ref);
-        if( p > &scr->Strings->Data[ i->w01 ] ){
-//            SciUnk28();
-//            eprintf( 
+        if( p > intp->Strings + INTP_STR_LEN( p ) + 4  ){
+            SciUnk28();
+            eprintf( "Program ? string table trashed, got length ?\nnext ?, table end is ?\n"
 //        	"Program %s string table trashed, got length %d(%x)\nnext %d(%x), table end is %d(%x)\n", 
-//        	v7, v7, p - scr->FString - 4, p - scr->FString - 4, v8, v8, v9
-//    	    );
-//            exit( 1 );
+//        	v7, v7, p - scr->Strings - 4, p - scr->Strings - 4, v8, v8, v9
+    	    );
+            exit( 1 );
         }
     }    
-*/
 }
 
 void IntpValidateAll()
@@ -474,81 +469,88 @@ void IntpValidateAll()
     for( p = gIntpQe; p; p = p->Prev ) IntpValidate( p->Itp );    
 }
 
-void IntpMergeString( Intp_t *Itp )
+void IntpMergeString( Intp_t *intp )
 {
-    short *opcode, Len2;
-    int Len1, tmp;
-    
-    if( !Itp->FString ) return;        
-    for( opcode = (short *)Itp->FString->Data; *opcode != 0x8000; opcode += Len1 + 4 ){
-        Len1 = opcode[ 0 ];
-        if( Len1 <= 0 ){
-            Len1 = -Len1; // abs
-            Len2 = opcode[ Len1 + 4 ];
-            if( Len2 == 0x8000 ) continue; // end marker
-            if( Len2 >= 0 ) continue;
-            tmp = 4 - Len2;
-            if( tmp + Len1 >= (0x8000 - 2) ){
-                eprintf( "merged string would be too long, size %d %d\n", tmp, Len1 );
+    char *p;
+    short len, ofst;
+    int tmp;
+
+    if( !intp->Strings ) return;        
+    for( p = intp->Strings + 4; INTP_STR_LEN( p ) != 0x8000; p += ofst + 4 ){
+        ofst = INTP_STR_LEN( p );
+        if( ofst <= 0 ){
+            ofst = -ofst; // abs
+            len = INTP_STR_LEN( p + ofst + 4 );
+            if( len == 0x8000 ) continue; // end marker
+            if( len >= 0 ) continue;
+            tmp = 4 - len;
+            if( tmp + ofst >= (0x8000 - 2) ){
+                eprintf( "merged string would be too long, size %d %d\n", tmp, ofst );
             } else {
-                Len1 += tmp;
-                opcode[ 0 ] += Len2 - 4;
+                ofst += tmp;
+                INTP_STR_LEN( p ) += len - 4;
             }
-        } else if( opcode[ 1 ] == 0 ){
-            opcode[ 0 ] = -Len1;
+        } else if( INTP_STR_REF( p ) == 0 ){
+    	    INTP_STR_REF( p ) = 0;
+    	    INTP_STR_LEN( p ) = -ofst;
         }        
     }
 }
 
-int IntpDbgStr( Intp_t *intp, char *a2, unsigned int Line )
+int IntpAddString( Intp_t *intp, char *msg )
 {
-    int v27;
-    short *v8, *v20;
+    char *p;
+    int len; 
+    short ofst;
     
-    v27 = strlen( a2 ) + 1;
+    len = strlen( msg ) + 1;
     if( !intp ) return 0;
-    if( v27 & 0x01 ) v27++;
-    if( intp->FString ){
-        for( v8 = (short *)intp->FString->Data; v8[ 0 ] != SCR_OPCODE; v8 += Line + 4 ){
-            Line = v8[ 0 ];
-            if( Line >= 0 ){
-                if( Line == v27 ){
-                    if( !strcmp( a2, (char *)v8 + 4 ) ) return v8 - (short *)intp->FString->Data + 2;
+    if( len & 0x01 ) len++; // adjust to even size
+
+    if( !intp->Strings ){ // first element
+        intp->Strings = dbg_malloc( 8 );
+        INTP_STR_LEN( intp->Strings + 4 ) = 0x8000;
+        INTP_STR_REF( intp->Strings + 4 ) = 1;
+        INTP_STR_TOT( intp->Strings ) = 0;
+    } else {
+        for( p = intp->Strings + 4; INTP_STR_LEN( p ) != SCR_OPCODE; p += ofst + 4 ){
+            ofst = INTP_STR_LEN( p );
+            if( ofst < 0 ){  // 0x8000
+                ofst = -ofst;
+                if( ofst <= len ) continue;
+                if( ofst - len <= 4 ){
+                    INTP_STR_LEN( p ) = ofst;
+                } else {
+                    INTP_STR_REF( p + len + 4 ) = 0;
+                    INTP_STR_LEN( p + len + 4 ) = (len - ofst) + 4;
+                    INTP_STR_LEN( p ) = len;
                 }
+                INTP_STR_REF( p ) = 0;
+                strcpy( p + 4, msg );
+                p[ len + 3 ] = 0;
+                return p - intp->Strings;
             } else {
-                Line = -Line; // abs()
-                if( Line > v27 ){
-                    if( Line - v27 <= 4 ){
-                        v8[ 0 ] = Line;
-                    } else {
-                        v8[ v27 + 6 ] = 0;
-                        v8[ v27 + 4 ] = 4 - Line - v27;
-                        v8[ 0 ] = v27;
-                    }
-                    v8[ 1 ] = 0;
-                    strcpy( (char *)v8 + 4, a2 );
-                    v8[ v27 + 3 ] = 0;
-                    return v8 - (short *)intp->FString->Data + 2;
-                }
+                if( INTP_STR_LEN( p ) != len ) continue;
+                if( !strcmp( msg, p + 4 ) ) return p - intp->Strings;
             }            
         }        
-    } else {
-        intp->FString = dbg_malloc( 8 );
-        ((IntpArg_t *)intp->FString->Data)->Type = SCR_OPCODE;
-        ((IntpArg_t *)intp->FString->Data)->Var = 1;
-        intp->FString->w01 = 0;
     }
-    intp->FString = dbg_realloc( intp->FString, v27 + intp->FString->w01 + 8 + 4 );
-    v20 = (short *)&intp->FString->Data[ intp->FString->w01 ];
-    if( v20[ 0 ] != SCR_OPCODE ) IntpError( "Internal consistancy error, string table mangled" );
-    intp->FString->w01 += v27 + 4;
-    v20[ 1 ] = 0;
-    v20[ 0 ] = v27;
-    strcpy( (char *)v20 + 4, a2 );
-    *((char *)&v20[ v27 + 3 ] ) = 0;
-    v20[ v27 + 2 ] = SCR_OPCODE;
-    v20[ v27 + 3 ] = 1;
-    return v20 - (short *)intp->FString->Data + 2;
+    intp->Strings = dbg_realloc( intp->Strings, INTP_STR_TOT( intp->Strings ) + len + 8 + 4 ); // 
+    p = intp->Strings + INTP_STR_TOT( intp->Strings ); // pointer to end of current string list
+    // check end guard
+    if( INTP_STR_LEN( p ) != 0x8000 ) IntpError( "Internal consistancy error, string table mangled" );
+    INTP_STR_TOT( intp->Strings ) += len + 4; // update total size
+    // -- create new entry --
+    // start header, 4 bytes
+    INTP_STR_REF( p ) = 0;
+    INTP_STR_LEN( p ) = len;
+    // copy data
+    strcpy( p + 4, msg );
+    p[ len + 3 ] = 0;
+    // end guard
+    INTP_STR_LEN( p + len + 4 ) = 0x8000;
+    INTP_STR_REF( p + len + 4 ) = 1;
+    return p - intp->Strings; // return offset
 }
 
 void IntpGetOpcodeI( Intp_t *itp )

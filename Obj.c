@@ -2469,7 +2469,7 @@ int ObjDelete( ObjList_t *obl1, ObjList_t *obl2 )
     if( !obj || (obj->Flags & 0x400) ) return -1;
     ObjBoxDelete( &obj->Container ); // remove object container
     if( obl1->object->ScrId != -1 ){ // remove scripts
-        ScptExecScriptProc( obl1->object->ScrId, 18 );
+        ScptRun( obl1->object->ScrId, SCPT_AEV_DESTROY_P_PROC );
         ScptRemove( obl1->object->ScrId );
     }
     if( obl2 != obl1 ){

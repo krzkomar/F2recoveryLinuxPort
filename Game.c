@@ -50,46 +50,46 @@ int GameSysInit( char *ProgName, int flag1, int Font, int Flags, int argc, char 
     AiLoadCfg();
     InvSelectMain();
     if( GSoundInit() ) eprintf("Sound initialization failed.\n"); 
-    eprintf(">gsound_init\t");
+    eprintf(">gsound_init\t\n");
     MveInit(); 
-    eprintf( ">initMovie\t\t" );
+    eprintf( ">initMovie\t\t\n" );
     if( GMovieInit() ){ eprintf("Failed on gmovie_init\n"); return -1; } 
-    eprintf(">gmovie_init\t");
+    eprintf(">gmovie_init\t\n");
     if( MveFxInit() ){ eprintf("Failed on moviefx_init\n"); return -1; } 
-    eprintf(">moviefx_init\t");
+    eprintf(">moviefx_init\t\n");
     if( MapIsoInit() ){ eprintf("Failed on iso_init\n"); return -1; }  
-    eprintf(">iso_init\t\t");
+    eprintf(">iso_init\t\t\n");
     if( GmouseInit() ){ eprintf("Failed on gmouse_init\n"); return -1; }  
-    eprintf(">gmouse_init\t");
+    eprintf(">gmouse_init\t\n");
     if( ProtoInit() ){ eprintf("Failed on proto_init\n"); return -1; }
-    eprintf(">proto_init\t\t");
-    AnimInit(); eprintf(">anim_init\t\t");
+    eprintf(">proto_init\t\t\n");
+    AnimInit(); eprintf(">anim_init\t\t\n");
     if( ScptInit() ){ eprintf("Failed on scpt_init\n"); return -1; }
-    eprintf(">scpt_init\t\t");
+    eprintf(">scpt_init\t\t\n");
     if( GlobVarLoad() ){ eprintf("Failed on game_load_info\n"); return -1; }
-    eprintf(">game_load_info\t");
+    eprintf(">game_load_info\t\n");
     if( ScptGameInit() ){ eprintf("Failed on scr_game_init\n"); return -1; }
-    eprintf(">scr_game_init\t");
+    eprintf(">scr_game_init\t\n");
     if( WmWorldMapInit() ){ eprintf("Failed on wmWorldMap_init\n"); return -1; }
-    eprintf(">wmWorldMap_init\t");
-    CharEditInit(); eprintf(">CharEditInit\t");
-    PipInit();  eprintf(">pip_init\t\t");
+    eprintf(">wmWorldMap_init\t\n");
+    CharEditInit(); eprintf(">CharEditInit\t\n");
+    PipInit();  eprintf(">pip_init\t\t\n");
     LsgClean();
     LsgDeleteMapFiles(); 
-    eprintf( ">InitLoadSave\t" );
+    eprintf( ">InitLoadSave\t\n" );
     if( GdialogInit() ){ eprintf("Failed on gdialog_init\n"); return -1; }
-    eprintf(">gdialog_init\t");
+    eprintf(">gdialog_init\t\n");
     if( CombatInit() ){ eprintf("Failed on combat_init\n"); return -1; }
-    eprintf(">combat_init\t");
+    eprintf(">combat_init\t\n");
     if( AutomapInit() ){ eprintf("Failed on automap_init\n"); return -1; }
-    eprintf(">automap_init\t");
+    eprintf(">automap_init\t\n");
     if( MessageInit( &gMessage ) != 1 ){ eprintf("Failed on message_init\n"); return -1; }
-    eprintf(">message_init\t");
+    eprintf(">message_init\t\n");
     sprintf(stmp, "%s%s", gGamePath, "misc.msg");
     if( MessageLoad( &gMessage, stmp ) != 1 ){ eprintf("Failed on message_load\n"); return -1; }
-    eprintf(">message_load\t");
+    eprintf(">message_load\t\n");
     if( ScptDisable() ){ eprintf("Failed on scr_disable\n"); return -1; }
-    eprintf(">scr_disable\t");
+    eprintf(">scr_disable\t\n");
     if( OptMenuInit() ){ eprintf("Failed on init_options_menu\n"); return -1; }
     eprintf( ">init_options_menu\n" );
     if( EndGameDeathEndingInit() ){ eprintf("Failed on endgameDeathEndingInit"); return -1; }
@@ -101,7 +101,6 @@ int GameSysInit( char *ProgName, int flag1, int Font, int Flags, int argc, char 
 
 void GameReset()
 {
-DD
     TileUpdateDisable();
     RandFSave();
     SkillClear();
@@ -114,7 +113,7 @@ DD
     CritterReset();
     AiReset();
     InvSelectMain();
-    GSoundReset(); // !! wywalka
+    GSoundReset();
     MveAbort();
     MveUnk37();
     GMovieClose();
@@ -124,15 +123,15 @@ DD
     ScptUnk01();
     GlobVarLoad();
     ScptGameReset();
-    WmUnk108();//!
+    WmUnk108();
     PartyUnk01();
     CharEditInit();
     PipInit();
     LsgPurgeFiles();
-//    CloseLipsynch();
+    GdialogClose();
     CombatReset();
     gMenuEscape = 0;
-//    AutomapUnk01();
+    AutomapReset();
     OptMenuInit();
 }
 
@@ -188,7 +187,7 @@ int GameProcess( int sel, int a2 )
     int tmp, mx, my, month, day, year;
     char stmp1[128], stmp2[128], stmp[100], Version[32];
 
-    if( gGlobUnk01 == 5 ){ DD/*GdialogUnk02();*/}
+    if( gGlobUnk01 == 5 ) GdialogUnk02();
     if( sel == -1 ) return 0; // no event
     if( sel == -2 ){
         tmp = MseGetButtons();

@@ -1613,9 +1613,9 @@ int AiUnk51( Obj_t *obj )
     if( obj->Critter.State.CombatResult & 0x81 ) return 0;
     if( obj->Critter.State.DmgLastTurn > 0 ) return 1;
     if( obj->ScrId != -1 ){
-        ScptUseObject( obj->ScrId, NULL, NULL );
+        ScptSetup( obj->ScrId, NULL, NULL );
         ScptSetArg( obj->ScrId, 5 );
-        ScptExecScriptProc( obj->ScrId, 13 );
+        ScptRun( obj->ScrId, SCPT_AEV_COMBAT_P_PROC );
     }
     if( ( obj->Critter.State.Reaction & 0x01 ) != 0 ) return 1;
     if( ( obj->Critter.State.Reaction & 0x02 ) != 0 ) return 0;

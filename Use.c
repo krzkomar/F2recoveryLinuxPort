@@ -98,23 +98,26 @@ void UseLookMsg( Obj_t *crit, Obj_t *obj )
 
 void UseLook( Obj_t *crit, Obj_t *obj, void (*OutCb)(char *))
 {
-    int i18;
+    int Override;
     char stmp[ 260 ];
     MsgLine_t msg;
     Scpt_t *scr;
     Proto_t *proto;
 
-    i18 = 0;
+    Override = 0;
     if( CritterIsDead( crit ) ) return;
     if( OBJTYPE( obj->ImgId ) == TYPE_TILE ) return;
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return;
     if( obj->ScrId != -1 ){
-        ScptUseObject( obj->ScrId, crit, obj );
-        ScptExecScriptProc( obj->ScrId, 21 );
+DD
+scp_dbg = 1;
+        ScptSetup( obj->ScrId, crit, obj );
+        ScptRun( obj->ScrId, SCPT_AEV_LOOK_AT_P_PROC );
         if( ScptPtr( obj->ScrId, &scr ) == -1 ) return;
-        i18 = scr->i18;
+        Override = scr->OverrideFlag;
+scp_dbg = 0;
     }
-    if( !i18 ){
+    if( !Override ){
         if( OBJTYPE( obj->Pid ) == TYPE_CRIT && CritterIsDead( obj ) )
             msg.Id = 491 + RandMinMax(0, 1);
         else
@@ -158,10 +161,10 @@ DD
     if( CritterIsDead( critter ) ) return -1;
     if( OBJTYPE( obj->ImgId ) == TYPE_TILE ) return -1;
     if( obj->ScrId != -1 ){
-        ScptUseObject( obj->ScrId, critter, obj );
-        ScptExecScriptProc( obj->ScrId, 3 );
+        ScptSetup( obj->ScrId, critter, obj );
+        ScptRun( obj->ScrId, SCPT_AEV_DESCRIPTION_P_PROC );
         if( ScptPtr( obj->ScrId, &script ) == -1 ) return -1;
-        i18 = script->i18;
+        i18 = script->OverrideFlag;
     }
     if( !i18 ){
         Dsc = ObjGetDsc( obj );
@@ -298,10 +301,10 @@ int UseUseOn( Obj_t *crit, Obj_t *obj )
 DD
     i18 = 0;
     if( obj->ScrId != -1 ){
-        ScptUseObject( obj->ScrId, crit, obj );
-        ScptExecScriptProc( obj->ScrId, 4 );
+        ScptSetup( obj->ScrId, crit, obj );
+        ScptRun( obj->ScrId, SCPT_AEV_PICKUP_P_PROC );
         if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
-        i18 = scr->i18;
+        i18 = scr->OverrideFlag;
     }
     if( !i18 ){
         if( obj->Pid == PID_MONEY ){
@@ -367,17 +370,17 @@ int UseDropObj( Obj_t *crit, Obj_t *obj )
     i18 = 0;
     if( !obj ) return -1;
     if( crit->ScrId != -1 ){
-        ScptUseObject( crit->ScrId, obj, 0 );
-        ScptExecScriptProc( crit->ScrId, 25 );
+        ScptSetup( crit->ScrId, obj, 0 );
+        ScptRun( crit->ScrId, SCPT_AEV_IS_DROPPING_P_PROC );
         if( ScptPtr( crit->ScrId, &scr ) == -1 ) return -1;
-        i18 = scr->i18;
+        i18 = scr->OverrideFlag;
     }
     if( !i18 ){
         if( obj->ScrId != -1 ){
-            ScptUseObject( obj->ScrId, crit, obj );
-            ScptExecScriptProc( obj->ScrId, 5 );
+            ScptSetup( obj->ScrId, crit, obj );
+            ScptRun( obj->ScrId, SCPT_AEV_DROP_P_PROC );
             if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
-            i18 = scr->i18;
+            i18 = scr->OverrideFlag;
         }
         if( !i18 && !UseUnk04( crit, obj ) ){
             if( !(Owner = ObjGetOwner( crit ) ) ) Owner = crit;
@@ -472,8 +475,8 @@ int UseRunScript( Obj_t *obj )
     Scpt_t *scr;
 
     if( obj->ScrId == -1 ) return -1;
-    ScptUseObject( obj->ScrId, gObjDude, obj );
-    ScptExecScriptProc( obj->ScrId, 6 );
+    ScptSetup( obj->ScrId, gObjDude, obj );
+    ScptRun( obj->ScrId, SCPT_AEV_USE_P_PROC );
     if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
     return 0;    
 }
@@ -560,8 +563,8 @@ int UseUseMisc( Obj_t *crit )
 	crit->Pid != PID_PIPBOYMEDENCHANCER // doctor skill +10%
     ) return -1;    
     if( ( ScrId = crit->ScrId ) == -1 ) return 1;
-    ScptUseObject( crit->ScrId, gObjDude, crit );
-    ScptExecScriptProc( ScrId, 6 );
+    ScptSetup( crit->ScrId, gObjDude, crit );
+    ScptRun( ScrId, SCPT_AEV_USE_P_PROC );
     if( ScptPtr( ScrId, &scr ) != -1 ) return -1;
     return 1;    
 }
@@ -726,20 +729,20 @@ unsigned int UseUseHealSkill( Obj_t *crit, Obj_t *obj1, Obj_t *obj2 )
     if( SkillIdx == -1 ){
         if( obj2->ScrId == -1 ){
             if( obj1->ScrId == -1 ) return UseUnk16( crit, obj1, obj2 );
-            ScptUseObject( obj1->ScrId, crit, obj2 );
-            ScptExecScriptProc( obj1->ScrId, 7 );
+            ScptSetup( obj1->ScrId, crit, obj2 );
+            ScptRun( obj1->ScrId, SCPT_AEV_USE_OBJ_ON_P_PROC );
             if( ScptPtr( obj1->ScrId, &scr ) == -1 ) return -1;
-            if( !scr->i18 ) return UseUnk16( crit, obj1, obj2 );
+            if( !scr->OverrideFlag ) return UseUnk16( crit, obj1, obj2 );
         } else {
-            ScptUseObject( obj2->ScrId, crit, obj1 );
-            ScptExecScriptProc( obj2->ScrId, 7 );
+            ScptSetup( obj2->ScrId, crit, obj1 );
+            ScptRun( obj2->ScrId, SCPT_AEV_USE_OBJ_ON_P_PROC );
             if( ScptPtr( obj2->ScrId, &scr ) == -1 ) return -1;
             if( !scr->i11 ){
                 if( obj1->ScrId == -1 ) return UseUnk16( crit, obj1, obj2 );
-                ScptUseObject( obj1->ScrId, crit, obj2 );
-                ScptExecScriptProc( obj1->ScrId, 7 );
+                ScptSetup( obj1->ScrId, crit, obj2 );
+                ScptRun( obj1->ScrId, SCPT_AEV_USE_OBJ_ON_P_PROC );
                 if( ScptPtr( obj1->ScrId, &scr ) == -1 ) return -1;
-                if( !scr->i18 ) return UseUnk16( crit, obj1, obj2 );
+                if( !scr->OverrideFlag ) return UseUnk16( crit, obj1, obj2 );
             }
         }
         return scr->i11;
@@ -827,10 +830,10 @@ int UseObject( Obj_t *crit, Obj_t *obj, Obj_t *objn )
 DD
     v3 = 0;
     if( obj->ScrId != -1 ){
-        ScptUseObject( obj->ScrId, crit, obj );
-        ScptExecScriptProc( obj->ScrId, 6 );
+        ScptSetup( obj->ScrId, crit, obj );
+        ScptRun( obj->ScrId, SCPT_AEV_USE_P_PROC );
         if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
-        v3 = scr->i18;
+        v3 = scr->OverrideFlag;
     }
     if( !v3 && OBJTYPE( obj->Pid ) == TYPE_SCEN ){ // no script
         switch( proto->Critt.Type ){
@@ -997,10 +1000,10 @@ int UseDoor( Obj_t *Crit, Obj_t *obj, int a3 )
     v6 = 0;
     if( UseObjLocked( obj ) ) GSoundPlay( GSoundOpenFileName( obj, 2 ) );
     if( obj->ScrId != -1 ){
-        ScptUseObject( obj->ScrId, Crit, obj );
-        ScptExecScriptProc( obj->ScrId, 6 );
+        ScptSetup( obj->ScrId, Crit, obj );
+        ScptRun( obj->ScrId, SCPT_AEV_USE_P_PROC );
         if( ScptPtr( obj->ScrId, &a2 ) == -1 ) return -1;
-        v6 = a2->i18;
+        v6 = a2->OverrideFlag;
     }
     if( v6 ) return 0;
 
@@ -1060,10 +1063,10 @@ int UseContainer( Obj_t *dude, Obj_t *obj )
     i18 = 0;
     ScrId = obj->ScrId;
     if( (ScrId != -1) - 1 != -1 ){
-        ScptUseObject( obj->ScrId, dude, obj );
-        ScptExecScriptProc( ScrId, 6 );
+        ScptSetup( obj->ScrId, dude, obj );
+        ScptRun( ScrId, SCPT_AEV_USE_P_PROC );
         if( ScptPtr( ScrId, &res ) == -1 ) return -1;
-        i18 = res->i18;
+        i18 = res->OverrideFlag;
     }
     if( i18 ) return -1;
     AnimStart( 2 );
@@ -1101,11 +1104,11 @@ int UseUseSkill( Obj_t *crit, Obj_t *obj, unsigned int SkillIdx )
     }
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return -1;
     if( obj->ScrId != -1 ){
-            ScptUseObject( obj->ScrId, crit, obj );
+            ScptSetup( obj->ScrId, crit, obj );
             ScptUnk136( obj->ScrId, SkillIdx );
-            ScptExecScriptProc( obj->ScrId, 8 );
+            ScptRun( obj->ScrId, SCPT_AEV_USE_SKILL_ON_P_PROC );
             if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
-            i18 = scr->i18;
+            i18 = scr->OverrideFlag;
     }
     if( !i18 ) SkillAttempt( crit, obj, SkillIdx, 0 );
     return 0;    

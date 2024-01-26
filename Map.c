@@ -239,9 +239,8 @@ int MapVarsAdd( int VarNum )
     int *p, id;
 
     id = gMapLocalVarsCnt;
-    gMapLocalVarsCnt += VarNum;
-    p = (int *)Realloc( gMapLocalVars, gMapLocalVarsCnt * sizeof( int ) );
-    if( p ){ eprintf( "\nError: Ran out of memory!" ); return -1; }
+    gMapLocalVarsCnt += VarNum;    
+    if( !(p = (int *)Realloc( gMapLocalVars, gMapLocalVarsCnt * sizeof( int ) )) ){ eprintf( "\nError: Ran out of memory!" ); return -1; }
     gMapLocalVars = p;
     memset( p + gMapLocalVarsCnt - VarNum, 0, VarNum * sizeof( int ) );
     return id;
@@ -608,7 +607,9 @@ int MapLoadMapFile( xFile_t *fh )
     scr->i08 = p->TimeEv;
     scr->TimeEv = p;
     ScptUnk23();
-    ScptExecScriptProc( gMapScriptId, 15 );
+scp_dbg = 1;
+    ScptRun( gMapScriptId, SCPT_AEV_MAP_ENTER_P_PROC );
+scp_dbg = 0;
     ScptUnk22();
     if( WmSetupRandomEncounter() == -1 ) errmsg = "Error Setting up random encounter";
 Error:
@@ -632,7 +633,6 @@ Error:
     ScptUnk29();
     ScptUnk30();
     TileUpdateEnable();
-
     if( gMapCurrentPos.MapId > 0 ){
 
         if( gMapCurrentPos.Orientation >= 0 ) ObjSetRotation( gObjDude, gMapCurrentPos.Orientation, 0 );
@@ -640,7 +640,6 @@ Error:
 
         TileUpdate();
     }
-
     ScptClockInit();
     if( GSoundMapInit() == -1 ) err = -1;
     WmUnk41(gMap.MapId);
@@ -655,6 +654,7 @@ Error:
     gMapIsoUnk05 = -1;
     GMovieFade();
     gMap.Version = 20;
+
     return err;
 }
 

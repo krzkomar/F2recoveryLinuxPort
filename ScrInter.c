@@ -313,7 +313,7 @@ void SciUnk09( Intp_t *scr, int a2, int a3, char *ebx0 )
     		}
             } else {
         	if( v22 == 1 ){
-            	    v19 = IntpDbgStr(scr, *(char **)(v20 + 4), v19);
+            	    v19 = IntpAddString(scr, *(char **)(v20 + 4), v19);
             	    IntpPushIntStack((char *)scr->StackA, v23, v19);
             	    IntpPushwA(scr, 0x9801);
         	}
@@ -350,7 +350,7 @@ void SciUnk09( Intp_t *scr, int a2, int a3, char *ebx0 )
     		}    		
             } else {
         	if( v13 == 1 ){
-            	    v10 = IntpDbgStr(scp, *(char **)(v11 + 4), v10);
+            	    v10 = IntpAddString(scp, *(char **)(v11 + 4), v10);
             	    IntpPushIntStack((char *)scp->StackA, v14, v10);
             	    IntpPushwA(scp, 0x9801);
         	}
@@ -425,7 +425,7 @@ void SciUnk10( Intp_t *scr, int a2, int a3, unsigned int ecx0 )
         	}        	    
             } else {
         	if( v14 == 1 ){
-            	    v15 = IntpDbgStr(Procedure, *(char **)(v12 + 4), v11);
+            	    v15 = IntpAddString(Procedure, *(char **)(v12 + 4), v11);
         	    StackA = Procedure->StackA;
             	    v11 = v15;
         	    IntpPushIntStack(StackA, p_StackApos, v15);
@@ -462,7 +462,7 @@ void SciUnk10( Intp_t *scr, int a2, int a3, unsigned int ecx0 )
     		    }                
         	} else {
         	    if( *(int *)v22 == 1 ){
-            		v21 = IntpDbgStr(scr, *(char **)(v22 + 4), v21 );
+            		v21 = IntpAddString(scr, *(char **)(v22 + 4), v21 );
             		IntpPushIntStack((char *)scr->StackA, v25, v21 );
             		IntpPushwA( scr, 0x9801 );
         	    }
@@ -509,45 +509,46 @@ void SciUnk11( Intp_t *scr, int a2 )
     }
 }
 
-int SciGetProcedureIdx( Intp_t *itp, const char *ProcName )
+int SciLookupProcedure( Intp_t *itp, const char *ProcName )
 {
-    int *p, i, cnt, idx;
+    int i, cnt, idx;
 
     cnt = IntpReadBei( (char *)itp->ProcTable, 0 );
-    p = &itp->ProcTable->NameOfst;
-    for( i = 0; i < cnt; i++, p += 6 ){
-        idx = IntpReadBei( (char *)p, 0 );
+    for( i = 0; i < cnt; i++ ){
+        idx = IntpReadBei( (char *)itp->ProcTable + i*24 + 4, 0 );
         if( !strcasecmp( ProcName, itp ? &itp->ProcVarNames[ idx ] : "" ) ) return i;
     }
     return -1;
 }
 
-void SciUnk13( Intp_t *itp, int ProcIdx )
+void SciRunProcedure( Intp_t *scr, int ProcIdx )
 {
+    SCP_DBG_VAR;
     char stmp[256], *a4, *procname;
     int ofs, tmp[ 13 ];
     short IntCtx;
     Intp_t *p;
 
-    if( IntpReadBei( (char *)itp->ProcTable + 24 * ProcIdx + 4, 4 ) & 0x04 ){
-        ofs = IntpReadBei( (char *)itp->ProcTable + 4, 0 );
-        procname = itp->ProcVarNames + ofs;
+    SCP_DBGP( "Run script procedure: %x\n", ProcIdx );
+    if( IntpReadBei( (char *)&scr->ProcTable->Flags + 24 * ProcIdx, 0 ) & INTP_P_IMPORT ){ // Imported procedure
+        ofs = IntpReadBei( (char *)&scr->ProcTable->NameOfst + 24 * ProcIdx, 0 );
+        procname = scr->ProcVarNames + ofs;
+printf("import procedure '%s'\n", procname );
         p = ExportGetProcedure( procname, &a4, &IntCtx );
         if( !p ){ sprintf( stmp, "External procedure %s not found\n", procname ); IntpLog( stmp ); return; }
         if( IntCtx ){ IntpLog( "External procedure cannot take arguments in interrupt context" ); return; }
-        SciUnk05( itp, p, a4, 32 );
+        SciUnk05( scr, p, a4, 32 );
         IntpPushiA( p, 0 );
         IntpPushwA( p, SCR_INT );
-	memcpy( tmp, p->EnvSave, sizeof( tmp ) );
-    } else {
-        SciUnk03( itp, IntpReadBei( (char *)itp->ProcTable + 4, 16 ), 24 );
-        IntpPushiA( itp, 0 );
-        IntpPushwA( itp, SCR_INT );
-        p = itp;
-	memcpy( tmp, p->EnvSave, sizeof( tmp ) );
+    } else { // 
+        SciUnk03( scr, IntpReadBei( (char *)&scr->ProcTable->BodyOfst + 24 * ProcIdx, 0 ), 24 );
+        IntpPushiA( scr, 0 );
+        IntpPushwA( scr, SCR_INT );
+        p = scr;
     }
+    memcpy( tmp, p->EnvSave, sizeof( tmp ) );
     SciOpcodeExec( p, -1 );
-    memcpy( itp->EnvSave, tmp, sizeof( tmp ) );
+    memcpy( scr->EnvSave, tmp, sizeof( tmp ) );
 }
 
 void SciUnk14()
@@ -710,6 +711,7 @@ int SciUnk26()
 
 void SciUnk27( char *fpath, Intp_t *a2, int cnt )
 {
+/*
     FILE *fh;
     char *v8, *v6;
     int Val;
@@ -727,7 +729,7 @@ void SciUnk27( char *fpath, Intp_t *a2, int cnt )
 	    case SCR_STRING: fprintf( fh, "%s\n", &a2->StringsConst[ Val + 4 ] ); break;
 	    case SCR_FSTRING: 
         	    if( Type & 0x800 )
-            		fprintf( fh, "%s\n", &a2->FString->Data[ Val ] );
+            		fprintf( fh, "%s\n", &a2->Strings->Data[ Val ] );
         	    else
             		fprintf( fh, "%s\n", &a2->StringsConst[ Val + 4 ] );
             	    break;	    
@@ -737,10 +739,12 @@ void SciUnk27( char *fpath, Intp_t *a2, int cnt )
 	}
     }
     fclose( fh );
+*/
 }
 
 void SciUnk28()
 {
+/*
     IntpList_t *p;
     IntpOp_t *Strings;
     IntpString_t *str;
@@ -748,7 +752,7 @@ void SciUnk28()
 
     for( p = gIntpQe; p; p = p->Prev ){
         if( !p->Itp ) continue;
-    	Strings = p->Itp->FString;
+    	Strings = p->Itp->Strings;
     	if( !Strings ){
             eprintf( "No string heap for program %s\n", p->Itp->FileName );
     	} else {    	        	    
@@ -759,9 +763,10 @@ void SciUnk28()
         	else
         	    eprintf( "Size: %d, ref: %d, string %s\n", str->Size, str->Ref, str->String );
     	    }
-    	    eprintf( "Total length of heap %d, stored length %d\n", heap, p->Itp->FString->w01 );
+    	    eprintf( "Total length of heap %d, stored length %d\n", heap, p->Itp->Strings->w01 );
     	}
     }    
+*/
 }
 
 

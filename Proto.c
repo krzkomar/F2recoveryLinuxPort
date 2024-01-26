@@ -812,7 +812,7 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
     err = 1;
     if( ProtoGetObj(Pid, &proto) == -1 ) return -1;
     switch( Pid >> 24 ){
-        case 0:
+        case TYPE_ITEM:
     	    switch( MembId ){        	
         	case 0: *DataMember = proto; return 1;
         	case 1: *DataMember = ( proto->Pid == 0x1000000 ) ? CritterGetName( gObjDude ) : ProtoGetMsg( proto->Pid, 0 ); return 2;
@@ -836,7 +836,7 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
                 return 1;
             }            
             break;
-        case 1:
+        case TYPE_CRIT:
             switch( MembId ){
                 case 0: *DataMember = proto; return 1;
                 case 1: *DataMember = ( proto->Pid == 0x1000000 ) ? CritterGetName( gObjDude ) : ProtoGetMsg( proto->Pid, 0 ); return 2;
@@ -851,7 +851,7 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
                 case 11: *DataMember = &proto->Critt.ProtoID; return 1;
                 default: eprintf("\n\tError: Unimp'd data member in proto_data_member!"); return 1;
             }
-        case 2:
+        case TYPE_SCEN:
             switch( MembId ){
                 case 0: *DataMember = proto; return 1;
                 case 1: *DataMember = ( proto->Pid == 0x1000000 ) ? CritterGetName( gObjDude ) : ProtoGetMsg( proto->Pid, 0 ); return 2;
@@ -866,7 +866,7 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
                 case 11:*DataMember = &proto->Critt.BaseStat[2]; return 1;
                 default: eprintf("\n\tError: Unimp'd data member in proto_data_member!"); return 1;
             }
-        case 3:
+        case TYPE_WALL:
             switch( MembId ){
                 case 0: *DataMember = proto; return 1;
                 case 1: *DataMember = ( proto->Pid == 0x1000000 ) ? CritterGetName( gObjDude ) : ProtoGetMsg( proto->Pid, 0 ); return 2;
@@ -880,8 +880,8 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
                 case 9: *DataMember = &proto->Critt; return 1;
                 default: eprintf("\n\tError: Unimp'd data member in proto_data_member!"); return 1;
             }
-        case 4: eprintf("\n\tError: Unimp'd data member in proto_data_member!"); return 1;
-        case 5:
+        case TYPE_TILE: eprintf("\n\tError: Unimp'd data member in proto_data_member!"); return 1;
+        case TYPE_MISC:
             switch( MembId ){
                 case 0: *DataMember = proto; return 1;
                 case 1: *DataMember = ( proto->Pid == 0x1000000 ) ? CritterGetName(gObjDude) : ProtoGetMsg( proto->Pid, 0 ); return 2;

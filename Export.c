@@ -112,7 +112,7 @@ int ExportSetVarArg( Intp_t *intp, char *Name, short Type, int ArgIdx )
     FREE_VALSTR( exp );
     if( TYPE_STRING( Type ) ){
         if( !intp ) return 0;
-        Arg = IntpGetArg( intp, Type >> 8, ArgIdx );
+        Arg = IntpGetString( intp, Type >> 8, ArgIdx );
         exp->Flags = SCR_FSTRING;
         exp->ValStr = dbg_malloc( strlen( Arg ) + 1 );
         strcpy( exp->ValStr, Arg );        
@@ -122,6 +122,18 @@ int ExportSetVarArg( Intp_t *intp, char *Name, short Type, int ArgIdx )
     }
     return 0;
 }
+
+int ExportSetVarArgP( Intp_t *intp, char *Name, void *ArgIdx )
+{
+    Export_t *exp;
+
+    if( !( exp = ExportSearchVar( Name ) ) ) return 1;
+    FREE_VALSTR( exp );
+    exp->ValPtr = ArgIdx;
+    exp->Flags = SCR_PTR;
+    return 0;
+}
+
 
 int ExportSetVar( char *Name, short Type, char *Str )
 {
@@ -146,12 +158,17 @@ int ExportGetVarArg( Intp_t *intp, char *Name, short *pFlags, int *pArg )
     
     if( !(exp = ExportSearchVar( Name )) ) return 1;
     *pFlags = exp->Flags;
+    if( exp->Flags == SCR_PTR ){
+	*((void **)pArg) = exp->ValPtr;
+	return 0;
+    }
     if( TYPE_STRING( exp->Flags ) )
-        *pArg = IntpDbgStr( intp, exp->ValStr, *pFlags );
+        *pArg = IntpAddString( intp, exp->ValStr ); // string index
     else
         *pArg = exp->ValInt;
     return 0;
 }
+
 
 int ExportCreateIVar( char **pFname, char *Name )
 {
@@ -199,13 +216,13 @@ void ExportFlushVars()
     }
 }
 
-Intp_t *ExportGetProcedure( char *ProcName, char **pStr, short *IntCtx )
+Intp_t *ExportGetProcedure( char *ProcName, int *pStr, short *IntCtx )
 {
     Export_t *exp;
 
     exp = ExportSearchProc( ProcName );
     if( !exp || !exp->Itp ) return NULL;
-    *pStr = exp->ValStr;
+    *pStr = exp->ValInt;
     *IntCtx = exp->Flags;
     return exp->Itp;
 }

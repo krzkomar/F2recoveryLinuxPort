@@ -362,7 +362,7 @@ int PartyRecoverLoadInstance( Party_t *party )
     }
     memcpy( scr, party->Script, sizeof( Scpt_t ) );
     scr->Id = party->dude->ScrId = (type << 24) | ((party->dude->Pid & 0xFFFFFF) + 18000 );
-    scr->i07 = 0;
+    scr->Intp = NULL;
     scr->Flags &= ~0x05;
     Free( party->Script );
     party->Script = 0;
@@ -629,7 +629,7 @@ void PartyItemRecover( Party_t *party )
     memcpy( scr, party->Script, sizeof( Scpt_t ) );
     party->dude->ScrId = gPartyPlayerId | 0x3000000;
     scr->Id = gPartyPlayerId | 0x3000000;
-    scr->i07 = 0;
+    scr->Intp = NULL;
     scr->Flags &= ~0x1D;
     Script = party->Script;
     gPartyPlayerId++;

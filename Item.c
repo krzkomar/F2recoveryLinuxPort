@@ -2165,7 +2165,6 @@ void ItemMapSetLight( int Intensity, int TilesUpdateFlg )
     LightLvl = ITEM_NIGHT_VISION_MODIFIER * PerkLvl( gObjDude, PERK_NIGHT_VISION ) + Intensity;
     if( LightLvl < 0x4000 ) LightLvl = 0x4000;
     if( LightLvl > 0x10000 ) LightLvl = 0x10000;
-printf("..>[%i] %i\n", LightLvl, Intensity );
     tmp = gItemLightLvl;
     gItemLightLvl = LightLvl;
     if( !TilesUpdateFlg ) return;

@@ -1,6 +1,10 @@
 #include "FrameWork.h"
 #include "GVars.h"
 
+#ifdef SCP_DEBUG
+int scp_dbg = 0;
+#endif
+
 int gScptUnk02;
 Scpt01_t gScptUnk15;
 Combat02_t gScptUnk114;
@@ -290,14 +294,14 @@ int ScptGetActionSource( Intp_t *a1 )
         for( j = gScrScripts[ i ].First; j; j = j->Next ){
             a2 = 0;
             for(; a2 < j->ScptUsed; a2++ ){
-                if( a1 == j->Script[ a2 ].i07 ) break;
+                if( a1 == j->Script[ a2 ].Intp ) break;
             }
-            if( a2 < j->ScptUsed && a1 == j->Script[ a2 ].i07 ) break;
+            if( a2 < j->ScptUsed && a1 == j->Script[ a2 ].Intp ) break;
         }
-        if( j && a1 == j->Script[ a2 ].i07 ) break;
+        if( j && a1 == j->Script[ a2 ].Intp ) break;
     }
     if( !j ) return -1;
-    return ( a1 == j->Script[ a2 ].i07 ) ? j->Script[ a2 ].Id : -1;
+    return ( a1 == j->Script[ a2 ].Intp ) ? j->Script[ a2 ].Id : -1;
 }
 
 Obj_t *ScptGetSelfObj( Intp_t *a1 )
@@ -336,18 +340,18 @@ char *ScptUnk139( int a1 )
     Scpt_t *v4;
 
     if( ScptPtr( a1, &v4 ) == -1 ) return "<INVALID>";
-    if( v4->i07 ) return v4->i07->FileName;
+    if( v4->Intp ) return v4->Intp->FileName;
     gScptUnk104[ 0 ] = '\0';
     return ( ScptGetScriptFname( v4->LocVarId & 0xFFFFFF, gScptUnk104 ) == -1 ) ? "<INVALID>" : gScptUnk104;
 }
 
-int ScptUseObject( int Pids, Obj_t *critter, Obj_t *item )
+int ScptSetup( int Pids, Obj_t *SourceObj, Obj_t *TargetObj )
 {
     Scpt_t *scr;
 
     if( ScptPtr( Pids, &scr ) == -1 ) return -1;
-    scr->crit = critter;
-    scr->item = item;
+    scr->SourceObj = SourceObj;
+    scr->TargetObj = TargetObj;
     return 0;
 }
 
@@ -404,9 +408,9 @@ void ScptTaskCb( int arg )
 int ScptUnk133()
 {
     ScptCache_t *p;
-    int result, v1, ScrCnt, v5;
+    int result, proc, ScrCnt, v5;
 
-    v1 = 12;
+    proc = SCPT_AEV_CRITTER_P_PROC;
     if( GdialogUnk01() || IN_COMBAT ) return 1;
     ScrCnt = 0;
     for( p = gScrScripts[ SCR_TYPE_CRT ].First; p; p = p->Next ) ScrCnt += p->ScptUsed;
@@ -415,14 +419,14 @@ int ScptUnk133()
     gScptUnk109 = v5;
 
     if( v5 >= ScrCnt ) return ScrCnt;    
-    if( IN_COMBAT ) v1 = 13;
+    if( IN_COMBAT ) proc = SCPT_AEV_COMBAT_P_PROC;
     result = v5 / 16;
     for( p = gScrScripts[ SCR_TYPE_CRT ].First; p; p = p->Next ){
         if( --result <= 0 ) break;
     }
     if( p ){
         gScptUnk109 = v5;
-        result = ScptExecScriptProc( p->Script[ v5 % 16 ].Id, v1 );
+        result = ScptRun( p->Script[ v5 % 16 ].Id, proc );
         v5 = gScptUnk109;
     }
     gScptUnk109 = v5;        
@@ -464,18 +468,15 @@ int ScptUnk130( int a1, Scpt_t *a2 )
 
 int ScptAddTimerEvent( int ScrId, int a1, int a2 )
 {
-DD
-/*
     int *p;
     Scpt_t *scr;
 
-    p = Malloc(8u);
+    p = Malloc( 8 );
     if( !p ) return -1;
-    *p = a1;
+    p[0] = a1;
     p[1] = a2;
-    if( ScptPtr(a1, &scr) != -1 && EvQeSchedule(a1, scr->TimeEv, p, 3) != -1 ) return 0;
-    Free(p);
-*/
+//    if( ScptPtr( a1, &scr ) != -1 && EvQeSchedule( a1, scr->TimeEv, p, 3 ) != -1 ) return 0;
+    Free( p );
     return -1;
 }
 
@@ -503,7 +504,7 @@ int ScptUnk126( int Unused, Obj_t *obj )
 
     if( ScptPtr( obj->TimeEv, &scr ) != -1 ){
         scr->ArgVal = obj->GridId;
-        ScptExecScriptProc( obj->TimeEv, 22 );
+        ScptRun( obj->TimeEv, SCPT_AEV_TIMED_EVENT_P_PROC );
     }
     return 0;
 }
@@ -754,45 +755,46 @@ void ScptUnk111( char *a1 )
     strcpy( &a1[ strlen( a1 ) ], gScptPath );
 }
 
-int ScptExecScriptProc( int ScriptId, int arg )
+int ScptRun( int ScriptId, int ActionEventId )
 {
-    int flg, tmp;
+    int flg, ActionEvent;
     char *s, stmp[ 16 ];
     Scpt_t *scr;
 
     flg = 0;
     if( !gScptEnable ) return -1;
     if( ScptPtr( ScriptId, &scr ) == -1 ) return -1;
-    scr->i18 = 0;
-    if( !(scr->Flags & SCR_01) ){
+    scr->OverrideFlag = 0;
+    if( !(scr->Flags & SCR_FEXIT ) ){
 	TimerThrGetTime();
         stmp[ 0 ] = '\0';
         if( ScptGetScriptFname( scr->LocVarId & 0xFFFFFF, stmp ) == -1 ) return -1;
         if( ( s = strchr( stmp, '.' ) ) ) *s = '\0';
-        scr->i07 = ScptLoad( stmp );
-        if( !scr->i07 ){ eprintf( "\nError: ScptExecScriptProc: script load failed '%s'!", stmp ); return -1; }
+        scr->Intp = ScptLoad( stmp );
+        if( !scr->Intp ){ eprintf( "\nError: ScptRun: script load failed '%s'!", stmp ); return -1; }
         flg = 1;
         scr->Flags |= SCR_01;
     }
 
-    if( !scr->i07 ) return -1;    
-    if( scr->i07->Flags & 0x124  ) return 0;    
-    tmp = scr->PprocIdx[ arg ];
-    if( !tmp ) tmp = 1;
-    if( tmp == -1 ) return -1;        
-    if( !scr->item ) scr->item = scr->TimeEv;
+    if( !scr->Intp ) return -1;    
+    if( scr->Intp->Flags & 0x124  ) return 0;    
+    ActionEvent = scr->ActionEventsIdx[ ActionEventId ];
+    if( !ActionEvent ) ActionEvent = 1;
+    if( ActionEvent == -1 ) return -1;        
+    if( !scr->TargetObj ) scr->TargetObj = scr->TimeEv;
     scr->Flags |= SCR_04;
     if( flg == 1 ){
+	SCP_DECHO( "Run Script" );
         ScptIndexPproc( scr );
-        tmp = scr->PprocIdx[ arg ];
-        if( !tmp ) tmp = 1;
-        scr->i12 = 0;
-        SciItpEqAdd( scr->i07 );
-        SciOpcodeExec( scr->i07, -1 );
+        ActionEvent = scr->ActionEventsIdx[ ActionEventId ];
+        if( !ActionEvent ) ActionEvent = 1;
+        scr->ActionEventId = 0;
+        SciItpEqAdd( scr->Intp );
+        SciOpcodeExec( scr->Intp, -1 );
     }
-    scr->i12 = arg;
-    SciUnk13( scr->i07, tmp );
-    scr->crit = NULL;
+    scr->ActionEventId = ActionEventId;
+    SciRunProcedure( scr->Intp, ActionEvent );
+    scr->SourceObj = NULL;
     return 0;
 }
 
@@ -801,9 +803,9 @@ void ScptIndexPproc( Scpt_t *scr )
     int i, idx;
 
     for( i = 0; i < P_PROC_COUNT; i++ ){
-        idx = SciGetProcedureIdx( scr->i07, gScptP_proc[ i ] );
+        idx = SciLookupProcedure( scr->Intp, gScptP_proc[ i ] );
         if( idx == -1 ) idx = 0;
-        scr->PprocIdx[ i ] = idx;
+        scr->ActionEventsIdx[ i ] = idx;
     }
 }
 
@@ -811,7 +813,7 @@ int ScptUnk108( int Pid, int idx )
 {
     Scpt_t *scr;
 
-    return ScptPtr( Pid, &scr ) != -1 && scr->PprocIdx[ idx ] != 0;
+    return ScptPtr( Pid, &scr ) != -1 && scr->ActionEventsIdx[ idx ] != 0;
 }
 
 int ScptAppendFileToList( char *fname )
@@ -1006,17 +1008,11 @@ int ScptGameInit()
 
 int ScptGameReset()
 {
-    eprintf( "\nScripts: [Game Reset]" );
-DD
-return 0;
+    eprintf( "\nScripts: [Game Reset]\n" );
     ScptReset();
-DD
     ScptGameInit();
-DD
     PartyUnk06();
-DD
     ScptDeleteAll();
-DD
     return (ScptSetDudeScript() != -1) - 1;
 }
 
@@ -1161,10 +1157,10 @@ int ScptSaveScpt( Scpt_t *scr, xFile_t *fh )
     if( dbputBei( fh, scr->LocVarsIdx ) == -1 ) return -1; 
     if( dbputBei( fh, scr->LocVarsCnt ) == -1 ) return -1; 
     if( dbputBei( fh, scr->i11 ) == -1 ) return -1; 
-    if( dbputBei( fh, scr->i12 ) == -1 ) return -1; 
+    if( dbputBei( fh, scr->ActionEventId ) == -1 ) return -1; 
     if( dbputBei( fh, scr->ArgVal ) == -1 ) return -1; 
     if( dbputBei( fh, scr->i17 ) == -1 ) return -1; 
-    if( dbputBei( fh, scr->i18 ) == -1 ) return -1; 
+    if( dbputBei( fh, scr->OverrideFlag ) == -1 ) return -1; 
     if( dbputBei( fh, scr->i19 ) == -1 ) return -1; 
     if( dbputBei( fh, scr->i20 ) == -1 ) return -1;
     if( dbputBei( fh, scr->i21 ) == -1 ) return -1;
@@ -1263,18 +1259,18 @@ int ScptLoadScpt( Scpt_t *scp, xFile_t *fh )
     if( dbgetBei( fh, &scp->LocVarsIdx ) == -1 ) return -1; // local var offset
     if( dbgetBei( fh, &scp->LocVarsCnt ) == -1 ) return -1; // local vars num
     if( dbgetBei( fh, &scp->i11 ) == -1 ) return -1; // unk 9
-    if( dbgetBei( fh, &scp->i12 ) == -1 ) return -1; // unk 10
+    if( dbgetBei( fh, &scp->ActionEventId ) == -1 ) return -1; // unk 10
     if( dbgetBei( fh, &scp->ArgVal ) == -1 ) return -1; // unk 11
     if( dbgetBei( fh, &scp->i17 ) == -1 ) return -1; // unk 12
-    if( dbgetBei( fh, &scp->i18 ) == -1 ) return -1; // unk 13
+    if( dbgetBei( fh, &scp->OverrideFlag ) == -1 ) return -1; // unk 13
     if( dbgetBei( fh, &scp->i19 ) == -1 ) return -1; // unk 14
     if( dbgetBei( fh, &scp->i20 ) == -1 ) return -1; // unk 15
     if( dbgetBei( fh, &scp->i21 ) == -1 ) return -1; // unk 16
-    scp->i07 = 0;
+    scp->Intp = 0;
     scp->TimeEv = 0;
-    scp->crit = 0;
-    scp->item = 0;
-    memset( scp->PprocIdx, 0, 28 * 4 );
+    scp->SourceObj = NULL;
+    scp->TargetObj = NULL;
+    memset( scp->ActionEventsIdx, 0, SCPT_AEV_ALL * sizeof( int ) );
     if( !(gScptUnk18 & 1) ) scp->LocVarsCnt = 0;
     return 0;
 }
@@ -1318,9 +1314,9 @@ int ScptLoadScript( xFile_t *fh )
             if( ScptLoadScriptPage( NewPage, fh ) ) return -1;
             for( j = 0; j < 16; j++ ){
                 NewPage->Script[ j ].TimeEv = NULL;
-                NewPage->Script[ j ].crit = NULL;
-                NewPage->Script[ j ].item = NULL;
-                NewPage->Script[ j ].i07 = 0;
+                NewPage->Script[ j ].SourceObj = NULL;
+                NewPage->Script[ j ].TargetObj = NULL;
+                NewPage->Script[ j ].Intp = 0;
                 NewPage->Script[ j ].Flags &= ~0x01;
             }
             NewPage->Next = NULL;
@@ -1415,21 +1411,21 @@ int ScptNewScript( int *pNewId, int Category )
     scp->HexOrTimer = -1;
     scp->Flags = 0;
     scp->LocVarId = -1;
-    scp->i07 = 0;
+    scp->Intp = NULL;
     scp->LocVarsIdx = -1;
     scp->LocVarsCnt = 0;
     scp->i11 = 0;
-    scp->i12 = 0;
+    scp->ActionEventId = 0;
     scp->ArgVal = 0;
     scp->TimeEv = 0;
-    scp->crit = NULL;
-    scp->item = NULL;
+    scp->SourceObj = NULL;
+    scp->TargetObj = NULL;
     scp->i17 = -1;
-    scp->i18 = 0;
+    scp->OverrideFlag = 0;
     scp->i19 = 0;
     scp->i20 = 0;
     scp->i21 = 0;
-    memset( scp->PprocIdx, 0, 28 * 4 );
+    memset( scp->ActionEventsIdx, 0, SCPT_AEV_ALL * sizeof( int ) );
     return 0;
 }
 
@@ -1489,7 +1485,7 @@ int ScptRemove( int Pid )
         if( i < qq->ScptUsed ) break;
     }
     if( !qq ) return -1;    
-    if( ( qq->Script[ i ].Flags & SCR_02 ) && qq->Script[ i ].i07 ) qq->Script[ i ].i07 = 0;
+    if( ( qq->Script[ i ].Flags & SCR_02 ) && qq->Script[ i ].Intp ) qq->Script[ i ].Intp = 0;
     if( qq->Script[ i ].Flags & SCR_NOTREMOVE ) return 0;
     if( (gScptUnk02 & 0x01) && (gScptUnk15.obj == qq->Script[ i ].TimeEv) ) gScptUnk02 &= ~0x401;
     if( ScptRemoveLocalVars( &qq->Script[ i ] ) == -1 ) eprintf( "\nERROR Removing local vars on scr_remove!!\n" );
@@ -1657,17 +1653,17 @@ int ScptUnk24( Obj_t *a1, int a2, int a3 )
         HexOrTimer = p->HexOrTimer;
         if( i == HexOrTimer ){
             if( ScptPtr( p->Id, &Script ) != -1 ){
-                Script->crit = a1;
-                Script->item = 0;
+                Script->SourceObj = a1;
+                Script->TargetObj = NULL;
             }
         } else {
             if( !p->Radius || TileGetDistance( HexOrTimer & 0x3FFFFFF, a2 ) > p->Radius ) continue;
             if( ScptPtr( p->Id, &res ) != -1 ){
-                res->crit = a1;
-                res->item = 0;
+                res->SourceObj = a1;
+                res->TargetObj = NULL;
             }
         }
-        ScptExecScriptProc( p->Id, 2 );
+        ScptRun( p->Id, SCPT_AEV_SPATIAL_P_PROC );
     }
     gScptUnk52 = 1;
     return 1;
@@ -1705,7 +1701,7 @@ int ScptLoadAllScripts()
     for( i = 1; i < 5; i++ ){
         for( scr = gScrScripts[ i ].First; scr; scr = scr->Next ){
             for( j = 0; j < scr->ScptUsed; j++ ){
-                ScptExecScriptProc( scr->Script[ j ].Id, 1 );
+                ScptRun( scr->Script[ j ].Id, SCPT_AEV_START );
             }
         }
     }
@@ -1722,20 +1718,20 @@ void ScptUnk30()
     ScptExecMapUpdateScripts( 23 );
 }
 
-void ScptExecMapUpdateScripts( int a1 )
+void ScptExecMapUpdateScripts( int ProcIdx )
 {
     ScptCache_t *p;
     Scpt_t *scr;
     int v1,v5,j,*v9,i,*v11,v15,v16,*n;
 
-    v16 = a1;
+    v16 = ProcIdx;
     v1 = 0;
     v15 = 0;
     gScptUnk52 = 0;
-    if( a1 == 15 )
+    if( ProcIdx == SCPT_AEV_MAP_ENTER_P_PROC )
         v15 = (gMap.MapFlags & 1) == 0;
     else
-        ScptExecScriptProc( gMapScriptId, 0 );
+        ScptRun( gMapScriptId, SCPT_AEV_NO_P_PROC );
     for( i = 0; i < 5; i++ ){
         for( p = gScrScripts[ i ].First; p; p = p->Next ) v1 += p->ScptUsed;
     }
@@ -1746,20 +1742,20 @@ void ScptExecMapUpdateScripts( int a1 )
     for( i = 0; i < 5; i++ ){
         for( p = gScrScripts[ i ].First; p; p = p->Next ){
             for( j = 0; j < p->ScptUsed; j++ ){
-                if( p->Script[ j ].Id != gScptUnk14 && p->Script[ j ].PprocIdx[ v16 ] > 0 ) n[ v5++ ] = p->Script[ j ].Id;
+                if( p->Script[ j ].Id != gScptUnk14 && p->Script[ j ].ActionEventsIdx[ v16 ] > 0 ) n[ v5++ ] = p->Script[ j ].Id;
             }            
         }        
     }
     
-    if( v16 == 15 ){
+    if( v16 == SCPT_AEV_MAP_ENTER_P_PROC ){
         v11 = n;
         for( i = 0; i < v5; i++, v11++ ){
             if( ScptPtr( *v11, &scr ) != -1 ) scr->ArgVal = v15;
-            ScptExecScriptProc( *v11, a1 );
+            ScptRun( *v11, ProcIdx );
         }
     } else {
     	v9 = n;
-    	for( i = 0; i < v5; i++, v9++ ) ScptExecScriptProc( *v9, a1 );
+    	for( i = 0; i < v5; i++, v9++ ) ScptRun( *v9, ProcIdx );
     }
     Free( n );
     gScptUnk52 = 1;
@@ -1806,24 +1802,23 @@ void ScptPrintScriptUsage()
     Free( alc );
 }
 
-int ScptGetMsgStr( int MsgIdx, Msg_t **Msg )
+int ScptGetMsgStr( int MsgPage, Msg_t **Msg )
 {
-    char *p, stmp[260], tt[28];
-    int k;
+    char *p, stmp[ 260 ], fname[ 28 ];
 
     *Msg = NULL;
-    if ( MsgIdx == -1 ) return -1;
-    k = MsgIdx - 1;
-    if( !gScptMsgBook[ MsgIdx - 1 ].Count == 0 ){
-	tt[0] = '\0';
-	ScptGetScriptFname( k & 0xFFFFFF, tt );
-	p = strchr(tt, '.');
+    if ( MsgPage == -1 ) return -1;
+    MsgPage--;
+    if( gScptMsgBook[ MsgPage ].Count == 0 ){
+	fname[0] = '\0';
+	ScptGetScriptFname( MsgPage & 0xFFFFFF, fname );
+	p = strchr( fname, '.' );
 	if( p ) *p = '\0';
-	sprintf(stmp, "dialog/%s.msg", tt);
-	if( MessageLoad( gScptMsgBook, stmp ) != 1 ){ eprintf( "\nError loading script dialog message file!" ); return -1; }
+	sprintf( stmp, "dialog/%s.msg", fname );
+	if( MessageLoad( &gScptMsgBook[ MsgPage ], stmp ) != 1 ){ eprintf( "\nError loading script dialog message file!" ); return -1; }
 	if( MessageLangFilter( gScptMsgBook ) != 1 ){ eprintf( "\nError filtering script dialog message file!" ); return -1; }
     }
-    *Msg = &gScptMsgBook[ k ];
+    *Msg = &gScptMsgBook[ MsgPage ];
     return 0;
 }
 
@@ -1835,15 +1830,16 @@ char *ScptGetDialogA( int a1, int a2 )
 char *ScptGetDialog( int MsgPage, int MsgId, int SpkFlg )
 {
     MsgLine_t MsgList;
-    Msg_t *Msg;
+    Msg_t *Message;
 
     if( !MsgPage && !MsgId ) return NULL;
     if( MsgPage == -1 && MsgId == -1 ) return NULL;
-    if( MsgPage == -2 && MsgId == -2 ) return MessageGetMessage( &gProtoMessages, &MsgList, 650 );
-    if( ScptGetMsgStr( MsgPage, &Msg ) == -1 ){ eprintf( "\nERROR: message_str: can't find message file: List: %d!", MsgPage ); return 0; }
+    if( MsgPage == -2 && MsgId == -2 ) return MessageGetMessage( &gProtoMessages, &MsgList, 650 ); // '[Done]'
+    if( ScptGetMsgStr( MsgPage, &Message ) == -1 ){ eprintf( "\nERROR: message_str: can't find message file: List: %d!", MsgPage ); return 0; }
     if( ( gDlgUnk46 & 0xF000000 ) >> 24 != 8 ) SpkFlg = 0;
+
     MsgList.Id = MsgId;
-    if( MessageGetMsg( Msg, &MsgList ) != 1 ){ eprintf( "\nError: can't find message: List: %d, Num: %d!", MsgPage, MsgId ); return "Error"; }
+    if( MessageGetMsg( Message, &MsgList ) != 1 ){ eprintf( "\nError: can't find message: List: %d, Num: %d!", MsgPage, MsgId ); return "Error"; }
     if( !SpkFlg || !GdialogUnk01() ) return MsgList.Text;
     if( !( MsgList.Audio && *MsgList.Audio ) ){ eprintf( "Missing speech name: %d\n", MsgList.Id ); return MsgList.Text; }
     GdialogLipsyncStart( ( MsgList.Unk & 0x01 ) ? 0 : MsgList.Audio );
@@ -1905,8 +1901,8 @@ int ScptUnk39()
     if( !gMapScriptId || gMapScriptId == -1 ) return 0;    
     if( ( gid = CombatGetGroupId() ) == -1 ) return 0;
     if( ScptPtr( gMapScriptId, &scr ) != -1 ) scr->ArgVal = gid;
-    ScptExecScriptProc( gMapScriptId, 13 );
-    return ScptPtr( gMapScriptId, &scr ) != -1 && scr->i18;
+    ScptRun( gMapScriptId, SCPT_AEV_COMBAT_P_PROC );
+    return ScptPtr( gMapScriptId, &scr ) != -1 && scr->OverrideFlag;
 }
 
 int ScptUnk40( Obj_t *a1, int edx0,int a3, int a4 )
@@ -1924,8 +1920,8 @@ int ScptUnk40( Obj_t *a1, int edx0,int a3, int a4 )
     for( i = gScrScripts[3].First; i; i = i->Next ){                
     	v31 = v6;
     	for( v7 = 0; v7 < i->ScptUsed; v7++, v31++, v6++ ){
-    	    if( i->Script[ v7 ].PprocIdx[ 14 ] <= 0 && !i->Script[ v7 ].i07 ) ScptExecScriptProc( i->Script[ v7 ].Id, 1 );
-    	    if( i->Script[ v7 ].PprocIdx[ 14 ] <= 0 ) continue;    
+    	    if( i->Script[ v7 ].ActionEventsIdx[ 14 ] <= 0 && !i->Script[ v7 ].Intp ) ScptRun( i->Script[ v7 ].Id, SCPT_AEV_START );
+    	    if( i->Script[ v7 ].ActionEventsIdx[ 14 ] <= 0 ) continue;    
     	    if( !i->Script[ v7 ].TimeEv ) continue;            	    
             if( i->Script[ v7 ].TimeEv->Elevation != a4 ) continue;
             if( TileGetDistance(i->Script[ v7 ].TimeEv->GridId, edx0) > a3 ) continue;            
@@ -1935,8 +1931,8 @@ int ScptUnk40( Obj_t *a1, int edx0,int a3, int a4 )
     for( j = gScrScripts[ SCR_TYPE_SPT ].First; j; j = j->Next ){                
         v14 = v6;
         for( v30 = 0; v30 < j->ScptUsed; v30++ ){
-            if( j->Script[ v30 ].PprocIdx[ 14 ] <= 0 && !j->Script[ v30 ].i07 ) ScptExecScriptProc( j->Script[ v30 ].Id, 1 );
-            if( j->Script[ v30 ].PprocIdx[ 14 ] <= 0 ) continue;
+            if( j->Script[ v30 ].ActionEventsIdx[ 14 ] <= 0 && !j->Script[ v30 ].Intp ) ScptRun( j->Script[ v30 ].Id, SCPT_AEV_START );
+            if( j->Script[ v30 ].ActionEventsIdx[ 14 ] <= 0 ) continue;
             if( (j->Script[ v30 ].HexOrTimer & 0xE0000000) >> 29 != a4 ) continue;
             if( TileGetDistance( j->Script[ v30 ].HexOrTimer & 0x3FFFFFF, edx0 ) > a3 ) continue;
             v6++, v14++;
@@ -1947,10 +1943,10 @@ int ScptUnk40( Obj_t *a1, int edx0,int a3, int a4 )
     for( v21 = 0; v21 < v6; v19++, v21++ ){
         if( ScptPtr( *v19, &Scr ) != -1 ) Scr->ArgVal = 20;
         if( ScptPtr( *v19, &a2 ) != -1 ){
-            a2->crit = NULL;
-            a2->item = a1;
+            a2->SourceObj = NULL;
+            a2->TargetObj = a1;
         }
-        ScptExecScriptProc( *v19, 14 );
+        ScptRun( *v19, SCPT_AEV_DAMAGE_P_PROC );
     }
     if( n ) Free( n );
     gScptUnk52 = 1;

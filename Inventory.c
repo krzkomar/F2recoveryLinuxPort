@@ -1997,9 +1997,9 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     }
 
     if( gSkillUnk80 && UseGetScriptId( Obj2, &Id ) != -1 ){
-	ScptUseObject( Id, Critter, 0 );
-	ScptExecScriptProc( Id, 4 );
-	if( ScptPtr(Id, (Scpt_t **)&pScript) == -1 || pScript->Script[0].i18 ) return 0;
+	ScptSetup( Id, Critter, 0 );
+	ScptRun( Id, SCPT_AEV_PICKUP_P_PROC );
+	if( ScptPtr(Id, (Scpt_t **)&pScript) == -1 || pScript->Script[0].OverrideFlag ) return 0;
     }
 
     if( InvInit() == -1 ) return 0;
@@ -2230,8 +2230,8 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     	InvMsgClose();
     	gInvArt[0].Xpos = 0;
         if( gSkillUnk80 && v76 && gSkillUnk60 > 0 && UseGetScriptId( Obj2, &Id ) != -1 ){
-    	    ScptUseObject( Id, Critter, 0 );
-    	    ScptExecScriptProc( Id, 4 );
+    	    ScptSetup( Id, Critter, 0 );
+    	    ScptRun( Id, SCPT_AEV_PICKUP_P_PROC );
     	    ScptPtr( Id, &v68 );
 	}
     	return 0;

@@ -1294,9 +1294,9 @@ int ActionUnk02( Obj_t *a1, Obj_t *a2 )
 
     if( !ActionUnk03( a1, a2 ) ) return -1;
     if( UseGetScriptId( a2, &Id ) != -1 ){
-        ScptUseObject( Id, a1, a2 );
-        ScptExecScriptProc( Id, 24 );
-        if( ScptPtr( Id, &scr ) != -1 ) i18 = scr->i18;
+        ScptSetup( Id, a1, a2 );
+        ScptRun( Id, SCPT_AEV_PUSH_P_PROC );
+        if( ScptPtr( Id, &scr ) != -1 ) i18 = scr->OverrideFlag;
         if( i18 ) return -1;
     }
     v6 = TileTurnAt( a1->GridId, a2->GridId );

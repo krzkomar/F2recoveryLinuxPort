@@ -25,8 +25,11 @@ void SciUnk09( Intp_t *scr, int a2, int a3, char *ebx0 );
 void SciUnk10( Intp_t *scr, int a2, int a3, unsigned int ecx0 );
 */
 void SciUnk11( Intp_t *scr, int a2 );
-int SciGetProcedureIdx( Intp_t *itp, const char *ProcName );
-void SciUnk13( Intp_t *itp, int a2 );
+/*
+    if found returns procedure index, else -1
+*/
+int SciLookupProcedure( Intp_t *itp, const char *ProcName );
+void SciRunProcedure( Intp_t *itp, int ProcIdx );
 void SciUnk14();
 void SciUnk15( IntpList_t *a1 );
 void SciItpEqAdd( Intp_t *itp );

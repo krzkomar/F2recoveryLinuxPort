@@ -39,7 +39,7 @@ typedef struct
   int MsgPage;
   int MsgId;
   int Reaction;
-    int i04;
+    int i04;	// procedure index
   int Button;
   int Top;
   char Text[900];

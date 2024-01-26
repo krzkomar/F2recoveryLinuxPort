@@ -608,7 +608,7 @@ int DialogUnk28( int a1 )
     }
     gSayDialog[ gSayModeLvl ].i07++;
     v12 = gSayDialog[ gSayModeLvl ].Cnt3;
-    SciUnk13( gSayDialog[ gSayModeLvl ].Itp, gSayDialog[ gSayModeLvl ].Dlgs[ gSayDialog[ gSayModeLvl ].Cnt3 ].Option[ a1 ].iVal );
+    SciRunProcedure( gSayDialog[ gSayModeLvl ].Itp, gSayDialog[ gSayModeLvl ].Dlgs[ gSayDialog[ gSayModeLvl ].Cnt3 ].Option[ a1 ].iVal );
     gSayDialog[ gSayModeLvl ].i07--;
     return v12 == gSayDialog[ gSayModeLvl ].Cnt3;
 }

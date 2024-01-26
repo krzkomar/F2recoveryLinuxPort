@@ -141,7 +141,7 @@ void ScrGame_PlaySfx( Intp_t *scr )
 
     GETARGS( scr, type, val, 0, "play_sfx" );
     SCP_DBGA( "play_sfx( [%x]%x )", type, val );
-    GSoundPlay( IntpGetArg( scr, type >> 8, val ) );
+    GSoundPlay( IntpGetString( scr, type >> 8, val ) );
 }
 
 /*
@@ -625,7 +625,7 @@ void ScrGame_DisplayMsg( Intp_t *scr )
 
     GETARGS( scr, type, val, 0, "display_msg" );
     SCP_DBGA( "display_msg( [%x]%x )", type, val );
-    IfcMsgOut( IntpGetArg( scr, type >> 8, val ) );
+    IfcMsgOut( IntpGetString( scr, type >> 8, val ) );
     CfgGetInteger( &gConfiguration, "debug", "show_script_messages", &dbg );
 }
 
@@ -641,7 +641,7 @@ void ScrGame_ScriptOverrides( Intp_t *scr )
     if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 )
         ScrGameErrorMsg( scr, "script_overrides", 2 );
     else
-        script->i18 = 1;
+        script->OverrideFlag = 1;
 }
 
 /*
@@ -712,7 +712,7 @@ void ScrGame_SourceObj( Intp_t *scr )
     if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 )
         ScrGameErrorMsg( scr, "source_obj", 2 );
     else
-        crit = script->crit;
+        crit = script->SourceObj;
     RETPTR( scr, crit );
 }
 
@@ -732,7 +732,7 @@ void ScrGame_TargetObj( Intp_t *scr )
     if( ScptPtr( ActionSource, &script ) == -1 )
         ScrGameErrorMsg( scr, "target_obj", 2 );
     else
-        obj = script->item;
+        obj = script->TargetObj;
     RETPTR( scr, obj );
 }
 
@@ -761,7 +761,7 @@ void ScrGame_ObjBeingUsedWith( Intp_t *scr )
     if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 )
         ScrGameErrorMsg( scr, "obj_being_used_with", 2 );
     else
-        obj = script->item;
+        obj = script->TargetObj;
     RETPTR( scr, obj );
 }
 
@@ -876,7 +876,7 @@ void ScrGame_ScriptAction( Intp_t *scr )
     if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 )
         ScrGameErrorMsg( scr, "script_action", 2 );
     else
-        v4 = script->i12;
+        v4 = script->ActionEventId;
     RETINT( scr, v4 );
 }
 
@@ -1218,8 +1218,8 @@ void ScrGame_PickupObj( Intp_t *scr )
     if( obj ){
         if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 ){
             ScrGameErrorMsg( scr, "pickup_obj", 2 );
-        } else if( script->item ){
-            ActionPickupItem( script->item, obj );
+        } else if( script->TargetObj ){
+            ActionPickupItem( script->TargetObj, obj );
         } else {
             ScrGameErrorMsg( scr, "pickup_obj", 1 );
         }
@@ -1241,8 +1241,8 @@ void ScrGame_DropObj( Intp_t *scr )
     if( obj ){
         if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 ){
             ScrGameErrorMsg( scr, "drop_obj", 1 );
-        } else if( script->item ){
-            UseDropObj( script->item, obj );
+        } else if( script->TargetObj ){
+            UseDropObj( script->TargetObj, obj );
         } else {
             ScrGameErrorMsg( scr, "drop_obj", 2 );
         }
@@ -1362,10 +1362,10 @@ void ScrGame_UseObj( Intp_t *scr )
     SCP_DBGA( "use_obj( [%x]%p )", type, obj );
     if( !obj ) goto err;
     if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 ) goto err;
-    if( script->item ){
+    if( script->TargetObj ){
         item = ScptGetSelfObj( scr );
         if( OBJTYPE( item->Pid ) == 1 )
-            ActionUseOnScenery( script->item, obj );
+            ActionUseOnScenery( script->TargetObj, obj );
         else
             UseObject( item, obj, obj );
     } else {
@@ -1720,7 +1720,7 @@ void ScrGame_SetMapMusic( Intp_t *scr )
     GETARGS( scr, type[ 0 ], val[ 0 ], 0, "set_map_music" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "set_map_music" );
     SCP_DBGA( "set_map_music( [%x]%x, [%x]%x )", type[1], val[1], type[0], val[0] );
-    s = IntpGetArg( scr, type[0] >> 8, val[ 0 ] );
+    s = IntpGetString( scr, type[0] >> 8, val[ 0 ] );
     eprintf( "\nset_map_music: %d, %s", val[ 1 ], s );
     WmSetMapMusic( val[ 1 ], s );
 }
@@ -1789,7 +1789,7 @@ void ScrGame_LoadMap( Intp_t *scr )
     Arg = 0;
     if( type2 != SCR_INT ){
         if( (type2 & 0xF7FF) == SCR_STRING )
-            Arg = IntpGetArg( scr, type2 >> 8, val2 );
+            Arg = IntpGetString( scr, type2 >> 8, val2 );
         else
             IntpError( "script error: %s: invalid arg 1 to load_map", scr->FileName );
     }
@@ -2554,18 +2554,18 @@ void ScrGame_CritterRmTrait( Intp_t *scr )
 void ScrGame_ProtoData( Intp_t *scr )
 {
     SCP_DBG_VAR;
-    int *p;
-    int MembId[ 2 ];
+    char *p;
+    int pid, data_member;
     uint16_t type[ 2 ];
 
-    GETARGI( scr, type[ 0 ], MembId[0], 0, "proto_data" );
-    GETARGI( scr, type[ 1 ], MembId[1], 1, "proto_data" );
-    SCP_DBGA( "message_str( [%x]%x, [%x]%x )", type[1], MembId[1], type[0], MembId[0] );
-    switch( ProtoDataMember( MembId[1], MembId[0], (void **)&p ) ){
-	case 1: RETINT( scr, *p );return;
-//	case 2: RETFTR( scr, IntpDbgStr( scr, p, p ) ); return;
-	default: RETINT( scr, 0 ); return;
+    GETARGI( scr, type[ 0 ], data_member, 0, "proto_data" );
+    GETARGI( scr, type[ 1 ], pid, 1, "proto_data" );
+    SCP_DBGA( "proto_data( [%x]%x, [%x]%x )", type[1], pid, type[0], data_member );
+    switch( ProtoDataMember( pid, data_member, (void **)&p ) ){
+	case 1: RETPTR( scr, p );return;
+	case 2: RETFTR( scr, IntpAddString( scr, p ) ); return;
     }
+    RETINT( scr, 0 ); return;
 }
 
 /*
@@ -2574,23 +2574,24 @@ void ScrGame_ProtoData( Intp_t *scr )
 void ScrGame_MessageStr( Intp_t *scr )
 {
     SCP_DBG_VAR;
-    unsigned int line, Idx;
+    unsigned int msg_num, msg_list;
     char *msg;
     uint16_t type[ 2 ];
 
-    GETARGI( scr, type[ 0 ], line, 0, "message_str" );
-    GETARGI( scr, type[ 1 ], Idx, 1, "message_str" );
-    SCP_DBGA( "message_str( [%x]%x, [%x]%x )", type[1], Idx, type[0], line );
-    if( Idx ){
-        msg = ScptGetDialog( Idx, line, 1 );
+    GETARGI( scr, type[ 0 ], msg_num, 0, "message_str" );
+    GETARGI( scr, type[ 1 ], msg_list, 1, "message_str" );
+    SCP_DBGA( "message_str( [%x]%x, [%x]%x )", type[1], msg_list, type[0], msg_num );
+    if( msg_list ){
+        msg = ScptGetDialog( msg_list, msg_num, 1 );
+printf("==>'%s'\n", msg );
         if( !msg ){
-            eprintf( "\nError: No message file EXISTS!: index %d, line %d", Idx, line );
+            eprintf( "\nError: No message file EXISTS!: index %d, line %d", msg_list, msg_num );
             msg = "Error";
         }
     } else {
         msg = "Error";
     }
-    RETFTR( scr, IntpDbgStr( scr, msg, line ) );
+    RETFTR( scr, IntpAddString( scr, msg ) );
 }
 
 /*
@@ -2711,7 +2712,7 @@ void ScrGame_FloatMsg( Intp_t *scr )
         Idx[ i ] = IntpPopiA( scr );
         if( type[ i ] == 0x9801 ) IntpStringDeRef( scr, type[ i ], Idx[ i ] );
         if( i == 1 ){
-            if( (type[ i ] & 0xF7FF) == 0x9001 ) Text = IntpGetArg( scr, type[ i ] >> 8, Idx[ i ]);
+            if( (type[ i ] & 0xF7FF) == 0x9001 ) Text = IntpGetString( scr, type[ i ] >> 8, Idx[ i ]);
         } else {
             if( (type[ i ] & 0xF7FF) != 0xC001 ) IntpError("script error: %s: invalid arg %d to float_msg", scr->FileName, i );
         }
@@ -2763,196 +2764,117 @@ void ScrGame_FloatMsg( Intp_t *scr )
 */
 void ScrGame_MetaRule( Intp_t *scr ) 
 {
-//    SCP_DBG_VAR;
-DD
-/*
-    int v2; // ebp
-    int v3; // edi
-    __int16 v4; // ax
-    int v5; // ecx
-    Obj_t *v6; // eax
-    int v7; // ecx
-    __int16 v8; // dx
-    unsigned __int16 v9; // ax
-    Intp_t *v10; // eax
-    int Unk02; // edx
-    Obj_t *v12; // eax
-    unsigned int v13; // edx
+    SCP_DBG_VAR;
     int v14; // ecx
     int v15; // edx
     int v16; // edi
-    int v17; // ecx
-    Obj_t *LHandObj; // eax
-    Obj_t *v19; // edx
-    Obj_t *v20; // edi
+    int meta_par;
     Obj_t *obj; // [esp+0h] [ebp-38h]
     int sel; // [esp+4h] [ebp-34h]
     int EntryValue; // [esp+8h] [ebp-30h] BYREF
-    __int16 type[2]; // [esp+Ch] [ebp-2Ch]
+    uint16_t type[2]; // [esp+Ch] [ebp-2Ch]
     Proto_t *proto; // [esp+10h] [ebp-28h] BYREF
     Proto_t *pObj; // [esp+14h] [ebp-24h] BYREF
-    Proto_t *v27; // [esp+18h] [ebp-20h] BYREF
     int WeaponBase; // [esp+1Ch] [ebp-1Ch]
-
-    v2 = 0;
-    v3 = 0;
+    
     WeaponBase = 0;
-    do
-    {
-        v4 = IntpPopwA(scr);
-        *(__int16 *)((char *)type + v5) = v4;
-        v6 = (Obj_t *)IntpPopiA(scr);
-        v8 = *(__int16 *)((char *)type + v7);
-        *(Obj_t **)((char *)&obj + v3) = v6;
-        if ( v8 == (__int16)0x9801 )
-            IntpStringDeRef(scr, *(__int16 *)((char *)type + v7), (int)v6);
-        v9 = *(__int16 *)((char *)type + v7);
-        HIBYTE(v9) &= ~8u;
-        if ( v9 != 0xC001 )
-            IntpError("script error: %s: invalid arg %d to metarule", scr->FileName, v2);
-        ++v2;
-        v3 += 4;
+    type[ 0 ] = IntpPopwA( scr );    
+    if( type[ 0 ] == SCR_PTR ){
+        obj = IntpPopPtrA( scr );
+	if( type[ 0 ] == 0x9801 ) IntpStringDeRef( scr, type[ 0 ], 0 );
+	if( (type[ 0 ] & ~0x800) != 0xC001 ) IntpError( "script error: %s: invalid arg %d to metarule", scr->FileName, 0 );
+	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
+	SCP_DBGA( "metarule( [%x]%x, [%x]%p )", type[1], sel, type[0], obj );
+    } else {
+        meta_par = IntpPopiA( scr );
+	if( type[ 0 ] == 0x9801 ) IntpStringDeRef( scr, type[ 0 ], meta_par );
+	if( (type[ 0 ] & ~0x800) != 0xC001 ) IntpError( "script error: %s: invalid arg %d to metarule", scr->FileName, 0 );
+	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
+	SCP_DBGA( "metarule( [%x]%x, [%x]%x )", type[1], sel, type[0], meta_par );
     }
-    while ( v2 < 2 );
-    if ( sel != 13 )
-    {
-        switch ( sel )
-        {
-            case 14:
-                Unk02 = (gMap.MapFlags & 1) == 0;
-LABEL_76:
-                v10 = scr;
-                goto LABEL_77;
-            case 15:
-                v12 = ScptGetSelfObj(scr);
-                ScptRequestElevator((Scpt_t *)v12, v13);
-                v10 = scr;
-                Unk02 = 0;
-                goto LABEL_77;
-            case 16:
-                Unk02 = PartyUnk12();
-                goto LABEL_76;
-            case 17:
-                Unk02 = WmLocKarma((int)obj);
-                goto LABEL_76;
-            case 18:
-                Unk02 = EvQeEnqueued(&obj->TimeEv, 0);
-                goto LABEL_76;
-            case 19:
-                Unk02 = WmUnk03((int)obj);
-                goto LABEL_76;
-            case 22:
-                Unk02 = LsgGetUnk02();
-                goto LABEL_76;
-            case 30:
-                Unk02 = WmUnk90();
-                goto LABEL_76;
-            case 31:
-                Unk02 = WmUnk91();
-                goto LABEL_76;
-            case 32:
-                Unk02 = WmCarRefuel((int)obj);
-                goto LABEL_76;
-            case 40:
-                Unk02 = SkillIsSpecial((int)obj);
-                goto LABEL_76;
-            case 42:
-                v14 = Item18(obj, obj->GridId);
-                if ( gObjDude == obj )
-                {
-                    IfaceHandSlotUpdate(0, -1, -1);
-                    IfaceResetAC(0);
-                }
-                Unk02 = v14;
-                goto LABEL_76;
-            case 43:
-                v15 = 1;
-                if ( obj == gObjDude && !IfaceGetSelectedHand() )
-                    v15 = 0;
-                v16 = InvUnk30(obj, v15, 0);
-                if ( obj == gObjDude )
-                {
-                    v17 = GameIfaceStat() == 0;
-                    IfaceHandSlotUpdate(v17, -1, -1);
-                }
-                else
-                {
-                    LHandObj = InvGetLHandObj(obj);
-                    if ( ItemGetObjType(LHandObj) == 3 )
-                        HIBYTE(v19->Flags) &= ~1u;
-                }
-                Unk02 = v16;
-                goto LABEL_76;
-            case 44:
-                WmGetWorldPos(&EntryValue, 0);
-                Unk02 = EntryValue;
-                goto LABEL_76;
-            case 45:
-                WmGetWorldPos(0, &EntryValue);
-                Unk02 = EntryValue;
-                goto LABEL_76;
-            case 46:
-                if ( WmGetCurrentLocation(&EntryValue) == -1 )
-                    eprintf("\nIntextra: Error: metarule: current_town");
-                Unk02 = EntryValue;
-                goto LABEL_76;
-            case 47:
-                CfgGetInteger(&gConfiguration, "preferences", "language_filter", &EntryValue);
-                Unk02 = EntryValue;
-                goto LABEL_76;
-            case 48:
-                CfgGetInteger(&gConfiguration, "preferences", "violence_level", &EntryValue);
-                Unk02 = EntryValue;
-                goto LABEL_76;
-            case 49:
-                v20 = obj;
-                if ( HIBYTE(obj->Pid) )
-                {
-                    if ( ArtMakeId(5, 10, 0, 0, 0) == v20->ImgId )
-                    {
-                        WeaponBase = 6;
-                        break;
-                    }
-                }
-                else if ( ItemGetObjType(obj) == 3 )
-                {
-                    WeaponBase = (int)ItemGetWeaponBase(0, v20);
-                    break;
-                }
-                ScrGameErrorMsg(scr, "metarule:w_damage_type", 3);
-                eprintf("Not a weapon!");
-                break;
-            case 50:
-                if ( OBJTYPE( obj->Pid ) == TYPE_CRIT ){
-                    ProtoGetObj(obj->Pid, &proto);
-                    proto = (Proto_t *)((char *)proto + 32);
-                    if( (proto->Pid & 2) != 0 ) WeaponBase = 1;
-                }
-                break;
-            case 51:
-                Unk02 = CritterGetGender(obj);
-                goto LABEL_76;
-            case 52:
-                if( ProtoGetObj( 455, &pObj ) != -1 ){
-                    WeaponBase = 1;
-                    pObj->Critt.BaseStat[0] = (int)obj;
-                }
-                break;
-            case 53:
-                if( ProtoGetObj(455, &v27) != -1 ) WeaponBase = v27->Critt.BaseStat[0];
-                break;
-            default:
-                return;
-        }
-        Unk02 = WeaponBase;
-        goto LABEL_76;
-    }
-    v10 = scr;
-    Unk02 = 0;
-    gMenuEscape = 2;
-LABEL_77:
-    RETINT( scr, Unk02 );
-*/
+
+    switch( sel ){
+	case 13: gMenuEscape = 2; RETINT( scr, 0 ); break;	    
+        case 14: RETINT( scr, (gMap.MapFlags & 0x01) == 0 ); break;
+        case 15: ScptRequestElevator( ScptGetSelfObj( scr ), meta_par ); RETINT( scr, 0 ); break;
+        case 16: RETINT( scr, PartyUnk12() ); break;
+        case 17: RETINT( scr, WmLocKarma( meta_par ) ); break;
+        case 18: RETINT( scr, EvQeEnqueued( obj, 0 ) ); break;
+        case 19: RETINT( scr, WmUnk03( meta_par ) ); break;
+        case 22: RETINT( scr, LsgGetUnk02() ); break;
+        case 30: RETINT( scr, WmUnk90() ); break;
+        case 31: RETINT( scr, WmUnk91() ); break;
+        case 32: RETINT( scr, WmCarRefuel( meta_par ) ); break;
+        case 40: RETINT( scr, SkillIsSpecial( meta_par ) ); break;
+        case 42:
+            v14 = Item18( obj, obj->GridId );
+            if( gObjDude == obj ){
+                IfaceHandSlotUpdate( 0, -1, -1 );
+                IfaceResetAC( 0 );
+            }
+	    RETINT( scr, v14 );
+	    break;
+        case 43:
+            v15 = 1;
+            if( obj == gObjDude && !IfaceGetSelectedHand() ) v15 = 0;
+            v16 = InvUnk30( obj, v15, 0 );
+            if( obj == gObjDude ){
+                IfaceHandSlotUpdate( GameIfaceStat() == 0, -1, -1 );
+            } else {
+                if( ItemGetObjType( InvGetLHandObj( obj ) ) == 3 ) obj->Flags &= ~0x1000000;
+            }
+	    RETINT( scr, v16 );
+	    break;
+        case 44: 
+    	    WmGetWorldPos( &EntryValue, NULL ); RETINT( scr, EntryValue ); 
+    	    break;
+        case 45: 
+    	    WmGetWorldPos( NULL, &EntryValue ); RETINT( scr, EntryValue ); 
+    	    break;
+        case 46:
+            if( WmGetCurrentLocation( &EntryValue ) == -1 ) eprintf( "\nIntextra: Error: metarule: current_town" );
+	    RETINT( scr, EntryValue );
+	    break;
+        case 47:
+            CfgGetInteger( &gConfiguration, "preferences", "language_filter", &EntryValue );
+	    RETINT( scr, EntryValue );
+	    break;
+        case 48:
+            CfgGetInteger( &gConfiguration, "preferences", "violence_level", &EntryValue );
+	    RETINT( scr, EntryValue );
+	    break;
+        case 49:
+            if( OBJTYPE( obj->Pid ) == TYPE_ITEM ){
+        	if( ItemGetObjType( obj ) == PR_ITEM_WEAPON ){ RETINT( scr, ItemGetWeaponBase( NULL, obj ) ); break; }
+            } else { 
+                if( ArtMakeId( 5, 10, 0, 0, 0 ) == obj->ImgId ){ RETINT( scr, 6 ); break; }
+            }
+            ScrGameErrorMsg( scr, "metarule:w_damage_type", PR_ITEM_WEAPON );
+            eprintf( "Not a weapon!" );
+	    RETINT( scr, WeaponBase );
+	    break;
+        case 50:
+            if( OBJTYPE( obj->Pid ) == TYPE_CRIT ){
+                ProtoGetObj( obj->Pid, &proto );
+                if( proto->Critt.Type & CRITT_RADIATED ) WeaponBase = 1;
+            }
+	    RETINT( scr, WeaponBase );
+	    break;
+        case 51:
+	    RETINT( scr, CritterGetGender( obj ) );
+	    break;
+        case 52:
+            if( ProtoGetObj( PID_CARTRUCK, &pObj ) != -1 ){
+                WeaponBase = 1;
+                pObj->Critt.BaseStat[0] = meta_par;
+            }                
+	    RETINT( scr, WeaponBase );
+	    break;
+        case 53:
+            if( ProtoGetObj( PID_CARTRUCK, &proto ) != -1 ) WeaponBase = proto->Critt.BaseStat[ 0 ];
+	    RETINT( scr, WeaponBase );
+	    break;
+    }    
 }
 
 /*
@@ -3401,7 +3323,7 @@ void ScrGame_GsayReply( Intp_t *scr )
             if( i ){
                 IntpError("script error: %s: invalid arg %d to gsay_reply", scr->FileName, i );
             } else if( type[ i ] == 0x9001 ){
-                s = IntpGetArg( scr, type[1], val[0] );
+                s = IntpGetString( scr, type[1], val[0] );
             } else {
                 IntpError( "script error: %s: invalid arg %d to gsay_reply", scr->FileName, 0 );
             }
@@ -3420,91 +3342,58 @@ void ScrGame_GsayReply( Intp_t *scr )
 */
 void ScrGame_GsayOption( Intp_t *scr )
 {
-//    SCP_DBG_VAR;
-DD
-/*
-    char *v2; // edx
-    int v3; // eax
-    int v4; // eax
-    int v5; // edi
-    int v6; // ebp
-    int v7; // ecx
-    unsigned __int16 v8; // ax
-    int v9; // edx
-    int v10; // edx
-    char *Arg; // eax
-    int Idx; // [esp+0h] [ebp-34h]
-    int a2; // [esp+4h] [ebp-30h]
-    int v14; // [esp+8h] [ebp-2Ch]
-    int a1; // [esp+Ch] [ebp-28h]
-    __int16 type[4]; // [esp+10h] [ebp-24h]
-    char *a3; // [esp+18h] [ebp-1Ch]
+    SCP_DBG_VAR;
+    int i;
+    int Idx[ 4 ];
+    uint16_t type[ 4 ];
+    char *s;
 
-    LOBYTE(scr->Flags) |= 0x20u;
-    type[0] = IntpPopwA(scr);
-    a3 = v2;
-    v3 = IntpPopiA(scr);
-    Idx = v3;
-    if ( type[0] == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, v3);
-    type[1] = IntpPopwA(scr);
-    v4 = IntpPopiA(scr);
-    a2 = v4;
-    if ( type[1] == (__int16)0x9801 )
-        IntpStringDeRef(scr, 0x9801, v4);
-    v5 = 2;
-    v6 = 8;
-    do
-    {
-        type[v5] = IntpPopwA(scr);
-        *(int *)((char *)&Idx + v6) = IntpPopiA(scr);
-        if ( type[v5] == (__int16)0x9801 )
-            IntpStringDeRef(scr, 0x9801, *(int *)((char *)&Idx + v6));
-        v8 = type[v5];
-        v9 = v8;
-        BYTE1(v9) = HIBYTE(v8) & 0xF7;
-        if ( v9 != 0xC001 )
-        {
-            if ( v7 == 2 )
-            {
-                if ( v9 == 0x9001 )
-                    a3 = IntpGetArg(scr, SHIBYTE(v8), *(int *)((char *)&Idx + v6));
+    scr->Flags |= 0x20;
+    s = NULL;
+
+    type[ 0 ] = IntpPopwA( scr );
+    Idx[ 0 ] = IntpPopiA( scr );
+    if( type[ 0 ] == 0x9801 ) IntpStringDeRef( scr, 0x9801, Idx[ 0 ] );
+
+    type[ 1 ] = IntpPopwA( scr );
+    Idx[ 1 ] = IntpPopiA( scr );
+    if( type[ 1 ] == 0x9801 ) IntpStringDeRef( scr, 0x9801, Idx[ 1 ] );
+
+    for( i = 2; i < 4; i++ ){
+        type[ i ] = IntpPopwA( scr );
+        Idx[ i ] = IntpPopiA( scr );
+        if( type[ i ] == 0x9801 ) IntpStringDeRef( scr, 0x9801, Idx[ i ] );
+        if( (type[ i ] & 0xF7FF) != 0xC001 ){
+            if( i == 2 ){
+                if( (type[ i ] & 0xF7FF) == 0x9001 )
+                    s = IntpGetString( scr, type[ i ] >> 8, Idx[ i + 2 ] );
                 else
-                    IntpError("script error: %s: invalid arg %d to gsay_option", scr->FileName, 2);
-            }
-            else
-            {
-                IntpError("script error: %s: invalid arg %d to gsay_option", scr->FileName, v7);
+                    IntpError( "script error: %s: invalid arg %d to gsay_option", scr->FileName, 2 );
+            } else {
+                IntpError( "script error: %s: invalid arg %d to gsay_option", scr->FileName, i );
             }
         }
-        v6 += 4;
-        ++v5;
     }
-    while ( v7 + 1 < 4 );
-    v10 = (unsigned __int16)type[1];
-    BYTE1(v10) = HIBYTE(type[1]) & 0xF7;
-    if ( v10 == 0x9001 )
-    {
-        Arg = IntpGetArg(scr, SHIBYTE(type[1]), a2);
-        if ( a3 )
-            GdialogUnk11(a1, (int)a3, Idx);
+    SCP_DBGA( "gsay_option( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], Idx[3], type[2], Idx[2], type[1], Idx[1], type[0], Idx[0] );
+    if( (type[ 1 ] & 0xF7FF) == 0x9001 ){
+        IntpGetString( scr, type[ 1 ] >> 8, Idx[ 1 ] );
+        if( s )
+            GdialogUnk11( Idx[ 3 ], s, Idx[ 0 ] );
         else
-            GdialogUnk10(a1, v14, Idx);
-        goto LABEL_25;
-    }
-    if ( v10 != 0xC001 )
-    {
-        IntpError("Invalid arg 3 to sayOption");
-LABEL_25:
-        LOBYTE(scr->Flags) &= ~0x20u;
+            GdialogUnk10( Idx[ 3 ], Idx[ 2 ], Idx[ 0 ] );
+        scr->Flags &= ~0x20;
         return;
     }
-    if ( a3 )
-        GdialogUnk13(a1, (int)a3, (const char *)a2, Idx);
+    if( (type[ 1 ] & 0xF7FF) != 0xC001 ){
+        IntpError( "Invalid arg 3 to sayOption" );
+        scr->Flags &= ~0x20;
+        return;
+    }
+    if( s )
+        GdialogUnk13( Idx[ 3 ], s, Idx[ 1 ], Idx[ 0 ] );
     else
-        GdialogUnk12(a1, v14, a2, Idx);
-    LOBYTE(scr->Flags) &= ~0x20u;
-*/
+        GdialogUnk12( Idx[ 3 ], Idx[ 2 ], Idx[ 1 ], Idx[ 0 ] );
+    scr->Flags &= ~0x20;
 }
 
 /*
@@ -3526,7 +3415,7 @@ void ScrGame_GsayMessage( Intp_t *scr )
         if( ( type[ i ] & 0xF7FF ) != 0xC001 ){
             if( i == 1 ){
                 if( (type[ i ] & 0xF7FF) == 0x9001 )
-                    Arg = IntpGetArg( scr, type[ i ] >> 8, val[ i ] );
+                    Arg = IntpGetString( scr, type[ i ] >> 8, val[ i ] );
                 else
                     IntpError( "script error: %s: invalid arg %d to gsay_message", scr->FileName, 1 );
             } else {
@@ -3567,7 +3456,7 @@ void ScrGame_GigOption( Intp_t *scr )
         if( (type[ i ] & 0xF7FF) != 0xC001 ){
             if( i == 2 ){
                 if( type[ i ] == 0x9001 )
-                    a3 = IntpGetArg( scr, type[ i ] >> 8, val[ i ] );
+                    a3 = IntpGetString( scr, type[ i ] >> 8, val[ i ] );
                 else
                     IntpError( "script error: %s: invalid arg %d to giq_option", scr->FileName, 2 );
             } else {
@@ -3590,7 +3479,7 @@ void ScrGame_GigOption( Intp_t *scr )
         return;
     }
     if( (type[ 1 ] & 0xF7FF) == 0x9001 ){
-//	Arg = IntpGetArg( scr, type[ 1 ] >> 8, val[ 1 ] );
+//	Arg = IntpGetString( scr, type[ 1 ] >> 8, val[ 1 ] );
         if( a3 )
             GdialogUnk11( val[3], a3, val[0] );
         else
@@ -4069,7 +3958,7 @@ void ScrGame_RegAnimPlaySfx( Intp_t *scr )
     GETARGS( scr, type[ 1 ], sfx_name, 1, "reg_anim_play_sfx" );
     GETARGP( scr, type[ 2 ], who, 2, "reg_anim_play_sfx" );    
     SCP_DBGA( "reg_anim_play_sfx( [%x]%p, [%x]%x, [%x]%x )", type[2], who, type[1], sfx_name, type[0], delay );
-    if( !(s = IntpGetArg( scr, type[1], sfx_name ) ) ){
+    if( !(s = IntpGetString( scr, type[1], sfx_name ) ) ){
         ScrGameErrorMsg( scr, "reg_anim_play_sfx", 3 );
         eprintf( " Can't match string!" );
     }
@@ -4138,7 +4027,7 @@ void ScrGame_SfxBuildCharName( Intp_t *scr )
     SCP_DBGA( "sfx_build_char_name( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], val1, type[0], val0 );
     if( obj ){
         strcpy( stmp, GSoundCharacterFileName( obj, val1, val0 ) );
-        err = IntpDbgStr( scr, stmp, val0 );
+        err = IntpAddString( scr, stmp );
     } else {
         ScrGameErrorMsg( scr, "sfx_build_char_name", 1 );
     }
@@ -4157,8 +4046,8 @@ void ScrGame_SfxBuildAmbientName( Intp_t *scr )
 
     GETARGI( scr, type, val, 0, "sfx_build_ambient_name" );
     SCP_DBGA( "sfx_build_ambient_name( [%x]%x )", type, val );
-    strcpy( stmp, GSoundAmbientFileName( IntpGetArg( scr, type >> 8, val ) ) );
-    RETFTR( scr, IntpDbgStr( scr, stmp, val ) );
+    strcpy( stmp, GSoundAmbientFileName( IntpGetString( scr, type >> 8, val ) ) );
+    RETFTR( scr, IntpAddString( scr, stmp ) );
 }
 
 /*
@@ -4173,8 +4062,8 @@ void ScrGame_SfxBuildInterfaceName( Intp_t *scr )
 
     GETARGI( scr, type, val, 0, "sfx_build_interface_name" );
     SCP_DBGA( "sfx_build_interface_name( [%x]%x )", type, val );
-    strcpy( stmp, GSoundItemFileName( IntpGetArg( scr, type >> 8, val ) ) );
-    RETFTR( scr, IntpDbgStr( scr, stmp, val ) );
+    strcpy( stmp, GSoundItemFileName( IntpGetString( scr, type >> 8, val ) ) );
+    RETFTR( scr, IntpAddString( scr, stmp ) );
 }
 
 /*
@@ -4189,8 +4078,8 @@ void ScrGame_SfxBuildItemName( Intp_t *scr )
 
     GETARGI( scr, type, val, 0, "sfx_build_item_name" );
     SCP_DBGA( "sfx_build_item_name( [%x]%x )", type, val );
-    strcpy( stmp, GSoundItemFileName( IntpGetArg( scr, type >> 8, val ) ) );
-    RETFTR( scr, IntpDbgStr( scr, stmp, val ) );
+    strcpy( stmp, GSoundItemFileName( IntpGetString( scr, type >> 8, val ) ) );
+    RETFTR( scr, IntpAddString( scr, stmp ) );
 }
 
 /*
@@ -4210,7 +4099,7 @@ void ScrGame_SfxBuildWeaponName( Intp_t *scr )
     GETARGI( scr, type[ 3 ], action_type, 3, "sfx_build_weapon_name" );
     SCP_DBGA( "sfx_build_weapon_name( [%x]%x, [%x]%p, [%x]%x, [%x]%p )", type[3], action_type, type[2], what, type[1], hit_mode, type[0], who );
     strcpy( stmp, GSoundWeaponFileName( action_type, what, hit_mode, who ) );
-    RETFTR( scr, IntpDbgStr( scr, stmp, hit_mode ) );
+    RETFTR( scr, IntpAddString( scr, stmp ) );
 }
 
 /*
@@ -4227,8 +4116,8 @@ void ScrGame_SfxBuildSceneryName( Intp_t *scr )
     GETARGI( scr, type[ 1 ], val1, 1, "sfx_build_scenery_name" );
     GETARGI( scr, type[ 2 ], val2, 2, "sfx_build_scenery_name" );
     SCP_DBGA( "sfx_build_scenery_name( [%x]%x, [%x]%x, [%x]%x )", type[2], val2, type[1], val1, type[0], val0 );
-    strcpy( stmp, GSoundSceneryFileName( val2, val1, IntpGetArg( scr, type[ 1 ], val0 ) ) );
-    RETFTR( scr, IntpDbgStr( scr, stmp, val1 ) );
+    strcpy( stmp, GSoundSceneryFileName( val2, val1, IntpGetString( scr, type[ 1 ], val0 ) ) );
+    RETFTR( scr, IntpAddString( scr, stmp ) );
 }
 
 /*
@@ -4248,7 +4137,7 @@ void ScrGame_SfxBuildOpenName( Intp_t *scr )
     SCP_DBGA( "sfx_build_open_name( [%x]%p, [%x]%x )", type[1], obj, type[0], val );
     if( obj ){
         strcpy( stmp, GSoundOpenFileName( obj, val ) );
-        n = IntpDbgStr( scr, stmp, val );
+        n = IntpAddString( scr, stmp );
     } else {
         ScrGameErrorMsg( scr, "sfx_build_open_name", 1 );
     }
@@ -4652,7 +4541,7 @@ void ScrGame_DebugMsg( Intp_t *scr )
     debug_en = 0;
     GETARGS( scr, type, val, 0, "debug_msg" );    
     SCP_DBGA( "debug_msg( text:[%x]%x )", type, val );
-    if( (s = IntpGetArg( scr, type >> 8, val )) ){
+    if( (s = IntpGetString( scr, type >> 8, val )) ){
         CfgGetInteger( &gConfiguration, "const", "show_script_messages", &debug_en );
         if( debug_en ) eprintf( "\n%s", s );
     }
@@ -4708,7 +4597,6 @@ void ScrGame_TileContainsPidObj( Intp_t *scr )
 void ScrGame_ObjName( Intp_t *scr )
 {
     SCP_DBG_VAR;
-    int n = 0;
     uint16_t type;
     Obj_t *obj;
 
@@ -4717,10 +4605,9 @@ void ScrGame_ObjName( Intp_t *scr )
     if( obj ){
         gScrGamePlayerName = ObjGetName( obj );
     } else {
-        n = 1;
         ScrGameErrorMsg( scr, "obj_name", 1 );
     }
-    RETFTR( scr, IntpDbgStr( scr, gScrGamePlayerName, n ) );
+    RETFTR( scr, IntpAddString( scr, gScrGamePlayerName ) );
 }
 
 /*

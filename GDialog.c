@@ -185,7 +185,7 @@ void GdialogEnter( Obj_t *target, int flg )
     gDlgUnk44 = target;
     gDlgUnk45 = PartyMembRdy( target );
     gDlgUnk10 = 1;
-    if( target->ScrId != -1 ) ScptExecScriptProc( target->ScrId, 11 );
+    if( target->ScrId != -1 ) ScptRun( target->ScrId, SCPT_AEV_TALK_P_PROC );
     if( ScptPtr(target->ScrId, &scr) == -1 ){
         GmouseIsoEnter();
         MapUnk34();
@@ -193,7 +193,7 @@ void GdialogEnter( Obj_t *target, int flg )
         gDlgUnk06 = 0;
         return;
     }
-    if( scr->i18 || gDlgUnk09 != 4 ){
+    if( scr->OverrideFlag || gDlgUnk09 != 4 ){
         gDlgUnk10 = 0;
         MapUnk34();
         ScptUnk30();
@@ -970,7 +970,7 @@ int GdialogUnk35( int a1 )
     GdialogReaction( reaction );
     gDlgOption = 0;
     if( gDlgUnk17 < 2 ){
-        if( gDlgOptions[ a1 ].i04 ) SciUnk13( gDlgUnk136, gDlgOptions[ a1 ].i04 );
+        if( gDlgOptions[ a1 ].i04 ) SciRunProcedure( gDlgUnk136, gDlgOptions[ a1 ].i04 );
     }
     MseDrawCursor();
     if( !gDlgOption ) return -1;

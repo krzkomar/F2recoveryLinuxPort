@@ -1147,7 +1147,7 @@ int LsgUnk47( xFile_t *fh )
     IfaceUnk09();
     IfaceIndicatorBoxUpdate();
     TileUpdate();
-//    if( (gCombatStatus & 1) != 0 ) ScptUnk121(0);
+    if( IN_COMBAT ) ScptUnk121( 0 );
     return 0;
 }
 
