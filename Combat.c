@@ -417,7 +417,7 @@ void CombatUnk17( Obj_t *a1 )
         AiUnk23( gCombatCritters, gCombatCritCnt );
         IfaceCombatOpen( 1 );
         GmouseScrollEnable();
-        if( v1 && !LsgGetUnk02() ){
+        if( v1 && !LsgPending() ){
             id = ArtMakeId( (v1->ImgId & 0xF000000) >> 24, 100, (v1->ImgId & 0xFF0000u) >> 16, (v1->ImgId & 0xF000) >> 12, (v1->ImgId & 0x70000000) >> 28);
             AnimClear( v1 );
             AnimStart( 2 );
@@ -522,7 +522,7 @@ int CombatUnk20()
         obj->Critter.State.WhoHitMe = 0;
         ScptSetup( obj->ScrId, 0, 0 );
         ScptSetArg( obj->ScrId, 0 );
-        if( obj->Pid == 0x1000098 && !CritterIsDead( obj ) && !LsgGetUnk02() ){
+        if( obj->Pid == 0x1000098 && !CritterIsDead( obj ) && !LsgPending() ){
             Id = ArtMakeId( OBJTYPE( obj->ImgId ), 99, (obj->ImgId & 0xFF0000u) >> 16, (obj->ImgId & 0xF000) >> 12, (obj->ImgId & 0x70000000) >> 28);
             AnimClear( obj );
             AnimStart( 2 );

@@ -249,7 +249,7 @@ short IntpPopShortStack( char *Base, int *pIdx )
     return Base[ *pIdx + 1] | (Base[ *pIdx + 0 ] << 8);
 }
 
-void IntpUnk02( Intp_t *intp, short opcode, int Idx )
+void IntpStrRefInc( Intp_t *intp, short opcode, int Idx )
 {
     if( opcode == SCR_FSTRING ) INTP_STR_REF( intp->Strings + Idx )++;
 }
@@ -303,7 +303,7 @@ void IntpPushwB( Intp_t *scr, short opcode )
     IntpPushShortStack( scr->StackB, &scr->StackIdxB, opcode );
     if( opcode != SCR_FSTRING ) return;
     if( scr->StackApos < 6 ) return;
-    INTP_STR_REF( scr->Strings[ IntpReadBei( scr->StackB, scr->StackIdxB - 6 ) ] )++;
+    INTP_STR_REF( &scr->Strings[ IntpReadBei( scr->StackB, scr->StackIdxB - 6 ) ] )++;
 }
 
 void IntpPushiB( Intp_t *scr, int idata )
@@ -316,9 +316,9 @@ int IntpPopwB( Intp_t *scr )
     short tmp;
 
     tmp = IntpPopShortStack( scr->StackB, &scr->StackIdxB );
-    if( tmp == SCR_FSTRING && scr->StackApos >= 4 ){
-        IntpStringDeRef( scr, SCR_FSTRING, IntpReadBei( scr->StackB, scr->StackIdxB - 4 ) );
-    }
+    if( tmp != SCR_FSTRING ) return tmp;
+    if( scr->StackApos < 4 ) return tmp;
+    IntpStringDeRef( scr, SCR_FSTRING, IntpReadBei( scr->StackB, scr->StackIdxB - 4 ) );
     return tmp;
 }
 
@@ -412,7 +412,7 @@ Intp_t *IntpLoad( const char *fname )
 
 int IntpGetOpcodeW( Intp_t *scr )
 {
-    int n1, n2;
+    uint32_t n1, n2;
 
     n1 = scr->Code[ scr->CodePC + 0 ];
     n2 = scr->Code[ scr->CodePC + 1 ];
@@ -420,10 +420,10 @@ int IntpGetOpcodeW( Intp_t *scr )
     return (n1 << 8) | n2;
 }
 
-char *IntpGetString( Intp_t *scr, char Type, int Ref )
+char *IntpGetString( Intp_t *scr, char Type, int Idx )
 {
-    if( Type & 0x08 ) return &scr->Strings[ Ref + 4 ]; // local var string
-    if( Type & 0x10 ) return &scr->StringsConst[ Ref + 4 ]; // string
+    if( Type & 0x08 ) return &scr->Strings[ Idx + 4 ]; // local var string
+    if( Type & 0x10 ) return &scr->StringsConst[ Idx + 4 ]; // string
     return NULL;
 }
 
@@ -435,7 +435,7 @@ char *IntpGetName( Intp_t *scr, int Idx )
 
 void IntpNegArg( Intp_t *scr, char *Str )
 {
-    INTP_STR_LEN( scr->Strings ) = INTP_STR_LEN( scr->Strings );
+    INTP_STR_LEN( scr->Strings ) = -INTP_STR_LEN( scr->Strings );
     INTP_STR_REF( scr->Strings ) = 0;
 }
 
@@ -471,17 +471,17 @@ void IntpValidateAll()
 
 void IntpMergeString( Intp_t *intp )
 {
-    char *p;
     short len, ofst;
     int tmp;
+    char *p;
 
     if( !intp->Strings ) return;        
     for( p = intp->Strings + 4; INTP_STR_LEN( p ) != 0x8000; p += ofst + 4 ){
         ofst = INTP_STR_LEN( p );
         if( ofst <= 0 ){
-            ofst = -ofst; // abs
+            ofst = -ofst;
             len = INTP_STR_LEN( p + ofst + 4 );
-            if( len == 0x8000 ) continue; // end marker
+            if( len == (short)0x8000 ) continue; // end marker
             if( len >= 0 ) continue;
             tmp = 4 - len;
             if( tmp + ofst >= (0x8000 - 2) ){
@@ -492,7 +492,7 @@ void IntpMergeString( Intp_t *intp )
             }
         } else if( INTP_STR_REF( p ) == 0 ){
     	    INTP_STR_REF( p ) = 0;
-    	    INTP_STR_LEN( p ) = -ofst;
+    	    INTP_STR_LEN( p ) = -ofst; // flag it as merged
         }        
     }
 }
@@ -502,22 +502,22 @@ int IntpAddString( Intp_t *intp, char *msg )
     char *p;
     int len; 
     short ofst;
-    
+
     len = strlen( msg ) + 1;
     if( !intp ) return 0;
     if( len & 0x01 ) len++; // adjust to even size
-
     if( !intp->Strings ){ // first element
         intp->Strings = dbg_malloc( 8 );
         INTP_STR_LEN( intp->Strings + 4 ) = 0x8000;
         INTP_STR_REF( intp->Strings + 4 ) = 1;
         INTP_STR_TOT( intp->Strings ) = 0;
     } else {
-        for( p = intp->Strings + 4; INTP_STR_LEN( p ) != SCR_OPCODE; p += ofst + 4 ){
+        for( p = intp->Strings + 4; INTP_STR_LEN( p ) != 0x8000; p += ofst + 4 ){
             ofst = INTP_STR_LEN( p );
-            if( ofst < 0 ){  // 0x8000
-                ofst = -ofst;
-                if( ofst <= len ) continue;
+            if( ofst < 0 ){  // 0x8000 is set, -> string is merged
+                ofst = -ofst; // make it positive
+                if( ofst <= len ) continue; // not fit, go next
+                // replace string
                 if( ofst - len <= 4 ){
                     INTP_STR_LEN( p ) = ofst;
                 } else {
@@ -529,14 +529,15 @@ int IntpAddString( Intp_t *intp, char *msg )
                 strcpy( p + 4, msg );
                 p[ len + 3 ] = 0;
                 return p - intp->Strings;
-            } else {
+            } else { // check if string is already in list
                 if( INTP_STR_LEN( p ) != len ) continue;
-                if( !strcmp( msg, p + 4 ) ) return p - intp->Strings;
+                if( !strcmp( msg, p + 4 ) ) return p - intp->Strings; // return just an index
             }            
         }        
     }
+    // extend strings
     intp->Strings = dbg_realloc( intp->Strings, INTP_STR_TOT( intp->Strings ) + len + 8 + 4 ); // 
-    p = intp->Strings + INTP_STR_TOT( intp->Strings ); // pointer to end of current string list
+    p = intp->Strings + INTP_STR_TOT( intp->Strings ) + 4; // pointer to end of current string list
     // check end guard
     if( INTP_STR_LEN( p ) != 0x8000 ) IntpError( "Internal consistancy error, string table mangled" );
     INTP_STR_TOT( intp->Strings ) += len + 4; // update total size

@@ -78,7 +78,7 @@ int (*gLsgLoadAction[ 27 ])( xFile_t *) = {
     LsgUnk47			// 26
 };
 
-int gLsgUnk02 = 0;
+int gLsgLoadSaveInProcess = 0;
 
 Geo_t 	gLsgGeo[9];
 Msg_t 	gLsgMsg;
@@ -727,9 +727,9 @@ int LsgSaveGame()
     return 0;        
 }
 
-int LsgGetUnk02()
+int LsgPending()
 {
-    return gLsgUnk02;
+    return gLsgLoadSaveInProcess;
 }
 
 int LsgLoad( int SlotNo )
@@ -737,7 +737,7 @@ int LsgLoad( int SlotNo )
     int i, PrevPos;
 
 printf("*********************** LOAD SAVE ******************************* \n");
-    gLsgUnk02 = 1;
+    gLsgLoadSaveInProcess = 1;
     if( IN_COMBAT ){
         IfaceCombatClose( 0 );
         CombatUnk21();
@@ -749,7 +749,7 @@ printf("*********************** LOAD SAVE ******************************* \n");
     gLsgFileHandler = dbOpen(gLsgFileName, "rb");
     if( !gLsgFileHandler ){
         eprintf( "\nLOADSAVE: ** Error opening load game file for reading! **\n" );
-        gLsgUnk02 = 0;
+        gLsgLoadSaveInProcess = 0;
         return -1;
     }
     PrevPos = dbtell( gLsgFileHandler );
@@ -757,7 +757,7 @@ printf("*********************** LOAD SAVE ******************************* \n");
         eprintf( "\nLOADSAVE: ** Error reading save game header! **\n" );
         dbClose( gLsgFileHandler );
         GameReset();
-        gLsgUnk02 = 0;
+        gLsgLoadSaveInProcess = 0;
         return -1;
     }
     eprintf( "LOADSAVE: Load file header size read: %d bytes.\n", dbtell( gLsgFileHandler ) - PrevPos );
@@ -768,7 +768,7 @@ printf("*********************** LOAD SAVE ******************************* \n");
             eprintf( "LOADSAVE: Load function #%d data size read: %d bytes.\n", i, dbtell( gLsgFileHandler ) - PrevPos );
             dbClose( gLsgFileHandler );
             GameReset();
-            gLsgUnk02 = 0;
+            gLsgLoadSaveInProcess = 0;
             return -1;
         }
         eprintf( "LOADSAVE: Load function #%d data size read: %d bytes.\n", i, dbtell( gLsgFileHandler ) - PrevPos );
@@ -783,7 +783,7 @@ printf("*********************** LOAD SAVE ******************************* \n");
         IfcMsgOut( gLsgMsgLine.Text );
     else
         eprintf( "\nError: Couldn't find LoadSave Message!" );
-    gLsgUnk02 = 0;    
+    gLsgLoadSaveInProcess = 0;    
     return 0;
 }
 

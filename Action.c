@@ -863,7 +863,7 @@ printf("=Target=>0x%x %i\n", target->Pid, target->Pid );
 	}
 	if( v8 ){
 	    v11 = ObjGetDistance( gObjDude, target ) <= 1;
-    	    if( !TextObjCreate( v8, SkillUseTryWantMsg( v11 ), 101, gPalColorCubeRGB[31][31][11], gPalColorCubeRGB[0][0][0], &Area) ) TileUpdateArea( &Area, gCurrentMapLvl );
+    	    if( !TextFloatMessage( v8, SkillUseTryWantMsg( v11 ), 101, gPalColorCubeRGB[31][31][11], gPalColorCubeRGB[0][0][0], &Area) ) TileUpdateArea( &Area, gCurrentMapLvl );
     	    if( v11 ){
         	v4 = gObjDude;
     		v8 = NULL;

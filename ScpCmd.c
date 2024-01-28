@@ -226,10 +226,10 @@ void ScpA_8031( Intp_t *scr ) // 8031 ?( arg1, arg2 )
     SCP_GETARG( Type2, Arg2, scr );
     SCP_DBGA( "8031( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
     k = IntpReadBei( scr->StackA, 6 * Arg1 + scr->Base );
-    if( *(&scr->StackA[3 * Arg1 + 2] + scr->Base) == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, k );
+    if( *(&scr->StackA[6 * Arg1 + 4] + scr->Base) == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, k );
     IntpWriteBew( Arg2 >> 16, scr->StackA, 6 * Arg1 + scr->Base );
     IntpWriteBew( Arg2, scr->StackA, 6 * Arg1 + scr->Base + 2 );
-    stack = &scr->StackA[ 3 * Arg1 + 2 ] + scr->Base;
+    stack = &scr->StackA[ 6 * Arg1 + 4 ] + scr->Base;
     stack[ 0 ] = Type2 >> 16;
     stack[ 1 ] = Type2;
     if( Type2 == SCR_FSTRING ) INTP_STR_REF( scr->Strings + Arg2 )++;
@@ -241,12 +241,15 @@ void ScpA_Fetch( Intp_t *scr ) // 8032
     unsigned short Type1;
     int Arg1, k;
     char stmp[264];
-
+    uint8_t *p;
+    
     SCP_GETARG( Type1, Arg1, scr );
     SCP_DBGA( "FETCH( [%x]%x )", Type1, Arg1 );
     SCP_ERRTYPEF( Type1 != SCR_INT, stmp, "Invalid type given to fetch, %x", Type1 );
-    k = IntpReadBei( scr->StackA, 6 * Arg1 + scr->Base );
-    SCP_PUSHARG_A( (*(&scr->StackA[3 * Arg1 + 2] + scr->Base) << 8) | *(&scr->StackA[3 * Arg1 + 2] + scr->Base + 1), k, scr );
+    k = IntpReadBei( scr->StackA, scr->Base + 6 * Arg1 );
+    
+    p = &scr->StackA[ 6 * Arg1 + 4 ];
+    SCP_PUSHARG_A( (((uint16_t)p[ scr->Base + 0 ] << 8) | (uint16_t)p[ scr->Base + 1 ]), k, scr );
 }
 
 void ScpA_CmpNE( Intp_t *scr ) // 8034 'stack:=p2<>p1'
@@ -783,101 +786,107 @@ void ScpA_Add( Intp_t *scr ) // 8039
     unsigned short Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f;
-    unsigned int t2, t1;
+    unsigned int t2;
     char *s2, *pd, *p, *q;
 
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x + [%x]%x )", Type2, Arg2, Type1, Arg1 );
+
     t2 = Type2 & 0xF7FF;
     if( t2 < SCR_FLOAT ){
-        if( t2 != SCR_STRING ) return;
-        if( (Type2 & 0x800) != 0 ){
-            s2 = &scr->Strings[ Arg2 + 4 ];
-        } else if( (Type2 & 0x1000) != 0 ){
-            s2 = &scr->StringsConst[ Arg2 + 4 ];
-        } else {
-            s2 = 0;
+        if( t2 == SCR_STRING ){
+    	    if( (Type2 & 0x800) != 0 ){
+        	s2 = &scr->Strings[ Arg2 + 4 ];
+    	    } else if( (Type2 & 0x1000) != 0 ){
+        	s2 = &scr->StringsConst[ Arg2 + 4 ];
+    	    } else {
+        	s2 = 0;
+    	    }
+	    q = NULL;
+	    switch( Type1 & 0xF7FF ){
+    		case SCR_STRING:
+        	    if( Type1 & 0x800 ){
+            		pd = &scr->Strings[ Arg1 + 4 ];
+        	    } else if( Type1 & 0x1000 ){
+            		pd = &scr->StringsConst[ Arg1 + 4 ];
+        	    } else {
+            		pd = NULL;
+        	    }
+        	    q = dbg_malloc( strlen( pd ) + 1 );
+        	    strcpy( q, pd );    	    
+    		    break;
+    		case SCR_FLOAT:
+    		    q = dbg_malloc( 80 );
+    		    sprintf( q, "%.5f", Arg1f );
+    		    break;
+    		case SCR_INT:
+    		    q = dbg_malloc( 80 );
+    		    sprintf( q, "%d", Arg1 );
+    		    break;
+    	    }
+    	    p = dbg_malloc( strlen( s2 ) + strlen( q ) + 1 );
+    	    strcpy( p, s2 );
+    	    strcpy( p + strlen( p ), q );
+    	    IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); 
+    	    IntpPushwA( scr, SCR_FSTRING );
+    	    dbg_free( q );
+    	    dbg_free( p );
         }
-        t1 = Type1 & 0xF7FF;
-        if( t1 < SCR_FLOAT ){
-            if( t1 == SCR_STRING ){
-                if( Type1 & 0x800 ){
-                    pd = &scr->Strings[ Arg1 + 4 ];
-                } else if( Type1 & 0x1000 ){
-                    pd = &scr->StringsConst[ Arg1 + 4 ];
-                } else {
-                    pd = 0;
-                }
-                q = dbg_malloc( strlen( pd ) + 1 );
-                strcpy( q, pd );
-            }
-        } else if ( t1 <= SCR_FLOAT ) {
-            q = dbg_malloc( 80 );
-            sprintf( q, "%.5f", Arg1f );
-        } else if ( t1 == SCR_INT ){
-            q = dbg_malloc( 80 );
-            sprintf( q, "%d", Arg1 );
-        }
-        p = dbg_malloc( strlen( s2 ) + 1 + strlen( q ) );
-        strcpy( p, s2 );
-        strcpy( p + strlen( p ), q );
-        IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
-        dbg_free( q );
-        dbg_free( p );
         return;
     }
     if( t2 > SCR_FLOAT ){
-        if( t2 != SCR_INT ) return;
-        t1 = Type1 & 0xF7FF;
-        if( t1 >= SCR_FLOAT ){
-            if( t1 <= SCR_FLOAT ){
-                IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1 ); IntpPushwA( scr, SCR_FLOAT );
-            } else if( t1 == SCR_INT ){
-                if( (Arg1 <= 0 || 0x7FFFFFFF - Arg1 >= Arg2) && (Arg1 >= 0 || (0x80000001 - Arg1) <= Arg2) ){
-                    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 + Arg2 ); IntpPushwA( scr, SCR_INT );
-                } else {
-                    IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1 ); IntpPushwA( scr, SCR_FLOAT );
-                }
-            }
-            return;
+        if( t2 == SCR_INT ){
+    	    switch( Type1 & 0xF7FF ){
+        	case SCR_FLOAT:
+            	    IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1 ); IntpPushwA( scr, SCR_FLOAT );
+        	    break;
+        	case SCR_INT:
+            	    if( (Arg1 <= 0 || 0x7FFFFFFF - Arg1 >= Arg2) && (Arg1 >= 0 || (0x80000001 - Arg1) <= Arg2) ){
+                	IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 + Arg2 ); IntpPushwA( scr, SCR_INT );
+            	    } else {
+                	IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1 ); IntpPushwA( scr, SCR_FLOAT );
+            	    }        	
+            	    break;
+    		case SCR_STRING:
+    		    if( Type1 & 0x800 ){
+        		pd = &scr->Strings[ Arg1 + 4 ];
+    		    } else if( (Type1 & 0x1000) != 0 ){
+        		pd = &scr->StringsConst[ Arg1 + 4 ];
+    		    } else {
+        		pd = NULL;
+    		    }
+    		    p = dbg_malloc( strlen(pd) + 80 );
+    		    sprintf( p, "%d", Arg2 );
+    		    strcpy( p + strlen( p ), pd );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
+    		    dbg_free( p );
+    	    	    break;
+    	    }
         }
-        if( t1 != SCR_STRING ) return;
-        if( (Type1 & 0x800) != 0 ){
-            pd = &scr->Strings[ Arg1 + 4 ];
-        } else if( (Type1 & 0x1000) != 0 ){
-            pd = &scr->StringsConst[ Arg1 + 4 ];
-        } else {
-            pd = NULL;
-        }
-        p = dbg_malloc( strlen(pd) + 80 );
-        sprintf( p, "%d", Arg2 );
-        strcpy( p + strlen( p ), pd );
-        IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
-        dbg_free( p );
         return;
     }
-    t1 = Type1 & 0xF7FF;
-    if( t1 < SCR_FLOAT ){
-        if( t1 != SCR_STRING ) return;
-        if( Type1 & 0x800 ){
-            pd = &scr->Strings[ Arg1 + 4 ];
-        } else if( Type1 & 0x1000  ){
-            pd = &scr->StringsConst[ Arg1 + 4 ];
-        } else {
-            pd = NULL;
-        }
-        p = dbg_malloc( strlen( pd ) + 80 );
-        sprintf( p, "%.5f", Arg2f );
-        strcpy( p + strlen( p ), pd );
-        IntpPushIntStack(scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
-        dbg_free( p );
-        return;
-    }
-    if( t1 <= SCR_FLOAT ){
-        IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1 ); IntpPushwA(scr, SCR_FLOAT);
-    } else if( t1 == SCR_INT ){
-        IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 + Arg2 ); IntpPushwA( scr, SCR_FLOAT );
+    switch( Type1 & 0xF7FF ){
+        case SCR_STRING:
+    	    if( Type1 & 0x800 ){
+        	pd = &scr->Strings[ Arg1 + 4 ];
+    	    } else if( Type1 & 0x1000  ){
+        	pd = &scr->StringsConst[ Arg1 + 4 ];
+    	    } else {
+        	pd = NULL;
+    	    }
+    	    p = dbg_malloc( strlen( pd ) + 80 );
+    	    sprintf( p, "%.5f", Arg2f );
+    	    strcpy( p + strlen( p ), pd );
+    	    IntpPushIntStack(scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
+    	    dbg_free( p );
+    	    break;
+	case SCR_FLOAT:
+    	    IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1f ); IntpPushwA(scr, SCR_FLOAT);
+    	    break;
+	case SCR_INT:
+    	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 + Arg2 ); IntpPushwA( scr, SCR_FLOAT );
+    	    break;
     }
 }
 
@@ -939,6 +948,7 @@ void ScpA_Div( Intp_t *scr ) // 803C
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x / [%x]%x )", Type2, Arg2, Type1, Arg1 );
+
     if( Type2 < SCR_FLOAT ) return;
     if( Type2 == SCR_FLOAT ){
         tmp = ( Type1 == SCR_FLOAT ) ? Arg1f : (float)Arg1;
@@ -1405,7 +1415,7 @@ printf("==>%s\n", ExtName );
     IntpPushIntStack( scr->StackA, &scr->StackApos, ArgC_expected ); IntpPushwA( scr, SCR_INT );
     scr->Flags |= 0x20;
     scr->Flags = 0;
-    i = IntpReadBei( &scr->ProcTable[ 3 * Arg ].NameOfst, 4 );
+    i = IntpReadBei( &scr->ProcTable[ 6 * Arg ].NameOfst, 4 );
     scr->CodePC = ArgV;
 printf("==>%x\n", ArgV);
     if( (i & 0x10) || (scr->Flags & SCR_FCRITICAL) ) scr->Flags |= SCR_FCRITICAL;
@@ -1598,34 +1608,39 @@ void ScpA_8011( Intp_t *scr ) // 8011
     scr->Flags |= 0x08;
 }
 
-void ScpA_8012( Intp_t *scr ) // 8012
+void ScpA_8012( Intp_t *scr ) // 8012 GetLocVar() ?
 {
     SCP_DBG_VAR;
     unsigned short Type;
-    int Arg, k;
+    int Arg, val;
 
     SCP_GETARG( Type, Arg, scr );
     SCP_DBGA( "?8012?( [%x]%x )",Type, Arg );
-    k = *( &scr->StackA[ 3 * Arg + 2 ] + scr->SaveStack );
-    k = ((k & 0x00ff) << 8) | ( (k & 0xff00) >> 8 );
-    SCP_PUSHARG_A( k, IntpReadBei( scr->StackA, 3 * Arg * 2 + scr->SaveStack ), scr );
+    Type = *( (uint16_t *)&scr->StackA[ 6 * Arg + 4 + scr->SaveStack ] );
+    Type = ((Type & 0x00ff) << 8) | ( (Type & 0xff00) >> 8 );
+    val = IntpReadBei( scr->StackA, 6 * Arg + scr->SaveStack );
+    SCP_PUSHARG_A( Type, val, scr );
 }
 
-void ScpA_8013( Intp_t *scr ) // 8013
+void ScpA_8013( Intp_t *scr ) // 8013 SetLocVar( )?
 {
     SCP_DBG_VAR;
-    int Arg1,Arg2;
+    int Arg1,Arg2, tmp;
     unsigned short Type1, Type2;
     
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
     SCP_DBGA( "?8013?( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( scr->StackA[3 * Arg1 + 2 + scr->SaveStack] == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, IntpReadBei( scr->StackA, 6 * Arg1 + scr->SaveStack ) );
-    IntpWriteBew( Arg2 >> 16, scr->StackA, 6 * Arg1 + scr->SaveStack );
+
+    tmp = IntpReadBei( scr->StackA, 6 * Arg1 + scr->SaveStack );
+    if( *(uint16_t *)&scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack ] == 0x0198 ) IntpStringDeRef( scr, 0x9801, tmp );
+
+    IntpWriteBew( Arg2 >> 8, scr->StackA, 6 * Arg1 + scr->SaveStack );
     IntpWriteBew( Arg2, scr->StackA, 6 * Arg1 + scr->SaveStack + 2 );
-    scr->StackA[ 3 * Arg1 + 2 + scr->SaveStack + 0 ] = Type2 >> 24;
-    scr->StackA[ 3 * Arg1 + 2 + scr->SaveStack + 1 ] = Type2;
-    if( Type2 == SCR_FSTRING ) INTP_STR_REF( scr->Strings + Arg2 )++;
+    scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 0 ] = Type2 >> 8;
+    scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 1 ] = Type2;
+    if( Type2 == (uint16_t)0x9801 ) (*(uint16_t *)&scr->Strings[ Arg2 + 2 ] )++;
+
 }
 
 void ScpA_8018( Intp_t *scr ) // 8018

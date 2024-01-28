@@ -187,7 +187,7 @@ void ScrGame_OverrideMapStart( Intp_t *scr )
     GETARGI( scr, type[ 3 ], Val[ 3 ], 3, "override_map_start" );
     SCP_DBGA( "override_map_start( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], Val[3], type[2], Val[2], type[1], Val[1], type[0], Val[0] );
     sprintf( stmp, "OVERRIDE_MAP_START: x: %d, y: %d", Val[ 3 ], Val[ 2 ] );
-    eprintf( "%s", stmp );
+    eprintf( "%s\n", stmp );
     
     GridPos = 200 * Val[ 2 ] + Val[ 3 ];
     if( GridPos != -1 ){
@@ -526,7 +526,7 @@ void ScrGame_CreateObject( Intp_t *scr )
     GETARGI( scr, type[ 2 ], tile_num, 2, "create_object" );
     GETARGI( scr, type[ 3 ], pid, 3, "create_object" );
     SCP_DBGA( "create_object( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], pid, type[2], tile_num, type[1], lvl, type[0], sid );    
-    if( LsgGetUnk02() ){
+    if( LsgPending() ){
         eprintf( "\nError: attempt to Create critter in load/save-game: %s!", scr->FileName );
     } else if( pid ){
         if( ProtoGetObj( pid, &proto ) != -1 ){
@@ -586,7 +586,7 @@ void ScrGame_DestroyObject( Intp_t *scr )
         scr->Flags &= ~0x20;
         return;
     }
-    if( OBJTYPE( obj->Pid ) == 1 && LsgGetUnk02() ){
+    if( OBJTYPE( obj->Pid ) == 1 && LsgPending() ){
         eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
         scr->Flags &= ~0x20;
         return;
@@ -1743,24 +1743,24 @@ void ScrGame_SetObjVisibility( Intp_t *scr )
         ScrGameErrorMsg( scr, "set_obj_visibility", 1 );
         return;
     }
-    if( LsgGetUnk02() ){
-        eprintf( "\nError: attempt to set_obj_visibility in load/save-game: %s!", scr->FileName );
+    if( LsgPending() ){
+        eprintf( "\nError: attempt to set_obj_visibility in load/save-game: %s!\n", scr->FileName );
         return;
     }
-    if( val ){
-        if( !(obj->Flags & 0x01) ){
+    if( val ){ // set visibility
+        if( !(obj->Flags & OBJ_FLG_UNK01 ) ){
             if( IN_COMBAT ){
                 ObjUnk35( obj, 0 );
                 ObjGetRadius( obj, 0 );
             }
             if( ObjUnk33( obj, &Area ) != -1 ){
-                if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) obj->Flags |= 0x10;
+                if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) obj->Flags |= OBJ_FLG_VISIBLE;
                 TileUpdateArea( &Area, obj->Elevation );
             }
         }
-    } else {
-        if( obj->Flags & 0x01 ){
-            if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) obj->Flags &= ~0x10;
+    } else { // unset visibility
+        if( obj->Flags & OBJ_FLG_UNK01 ){
+            if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) obj->Flags &= ~OBJ_FLG_VISIBLE;
             if( ObjUnk32( obj, &Area ) != -1 ) TileUpdateArea( &Area, obj->Elevation );            
         }
     }
@@ -1978,7 +1978,7 @@ void ScrGame_KillCritter( Intp_t *scr )
     GETARGP( scr, type[ 1 ], obj, 1, "kill_critter" );
     SCP_DBGA( "kill_critter( [%x]%p, [%x]%x )", type[1], obj, type[0], val );
     if( obj ){
-        if( LsgGetUnk02() ){
+        if( LsgPending() ){
             eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
         } else {
             scr->Flags |= 0x20;
@@ -2050,7 +2050,7 @@ DD
 
     GETARGI( scr, type[ 0 ], val[0], 0, "kill_critter_type" );
     GETARGI( scr, type[ 1 ], val[1], 1, "kill_critter_type" );
-    if( LsgGetUnk02() ){
+    if( LsgPending() ){
         eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
         return;
     }
@@ -2490,7 +2490,7 @@ void ScrGame_OpCritterAddTrait( Intp_t *scr )
                 if ( v14 == 1 ){
                     if( prk == 5 ){
                         AiUnk54( obj, val );
-                    } else if( prk == 6 && !PartyMembRdy( obj ) && val != obj->Critter.State.GroupId && !LsgGetUnk02() ){
+                    } else if( prk == 6 && !PartyMembRdy( obj ) && val != obj->Critter.State.GroupId && !LsgPending() ){
                         AiUnk53( obj, val );
                     }
                 } else {
@@ -2583,7 +2583,6 @@ void ScrGame_MessageStr( Intp_t *scr )
     SCP_DBGA( "message_str( [%x]%x, [%x]%x )", type[1], msg_list, type[0], msg_num );
     if( msg_list ){
         msg = ScptGetDialog( msg_list, msg_num, 1 );
-printf("==>'%s'\n", msg );
         if( !msg ){
             eprintf( "\nError: No message file EXISTS!: index %d, line %d", msg_list, msg_num );
             msg = "Error";
@@ -2756,7 +2755,7 @@ void ScrGame_FloatMsg( Intp_t *scr )
         case 12: colorFg = gPalColorCubeRGB[15][15][15]; break;
         default: break;
     }
-    if( TextObjCreate( obj, Text, Font, colorFg, colorBg, &Area) != -1 ) TileUpdateArea( &Area, obj->Elevation );
+    if( TextFloatMessage( obj, Text, Font, colorFg, colorBg, &Area) != -1 ) TileUpdateArea( &Area, obj->Elevation );
 }
 
 /*
@@ -2801,7 +2800,7 @@ void ScrGame_MetaRule( Intp_t *scr )
         case 17: RETINT( scr, WmLocKarma( meta_par ) ); break;
         case 18: RETINT( scr, EvQeEnqueued( obj, 0 ) ); break;
         case 19: RETINT( scr, WmUnk03( meta_par ) ); break;
-        case 22: RETINT( scr, LsgGetUnk02() ); break;
+        case 22: RETINT( scr, LsgPending() ); break;
         case 30: RETINT( scr, WmUnk90() ); break;
         case 31: RETINT( scr, WmUnk91() ); break;
         case 32: RETINT( scr, WmCarRefuel( meta_par ) ); break;

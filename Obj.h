@@ -82,6 +82,11 @@ typedef struct // 0x28
     int i10;
 } ObjScenery_t;
 
+// Obj_t->Flags:
+#define OBJ_FLG_UNK01		0x001	// ??
+#define OBJ_FLG_VISIBLE		0x010	// 1- visible, 0-invisible
+#define OBJ_FLG_REMOVABLE	0x400	// object cannot be deleted
+
 typedef struct _Obj_t // 132
 {
     union{
@@ -98,7 +103,7 @@ typedef struct _Obj_t // 132
   int FrameNo;
   int Orientation;
   int ImgId;
-  int Flags; // 0x400 - removable
+  int Flags; 		// 0x400 - removable
   int Elevation;	// map level
   union {
     ObjCritter_t  Critter;

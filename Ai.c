@@ -1727,7 +1727,7 @@ int AiMumble( Obj_t *obj, char *Text )
 
     if( TextCount() > 0 ) return 0;    
     p = AiGetPacketByObj( obj );
-    if( !TextObjCreate( obj, Text, p->Font, p->Color, p->OutlineColor, &Area ) ) TileUpdateArea( &Area, obj->Elevation );
+    if( !TextFloatMessage( obj, Text, p->Font, p->Color, p->OutlineColor, &Area ) ) TileUpdateArea( &Area, obj->Elevation );
     return 0;
 }
 

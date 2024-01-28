@@ -66,7 +66,7 @@ int LsgMenuGameLoad( unsigned int arg );
 int LsgMenuCreate( unsigned int mode );
 void LsgClose( int Mode );
 int LsgSaveGame();
-int LsgGetUnk02();
+int LsgPending(); // Load/Save is in process
 int LsgLoad( int SlotNo );
 void LsgGetTime( short *pDay, short *pMon, short *a4, int a3 );
 int LsgSaveHdr( int SlotNo );

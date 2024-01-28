@@ -335,7 +335,7 @@ int PartyRecoverLoad()
     	Free( tmp );
     }
     gPartyLock = 0;
-    if( !LsgGetUnk02() ) PartyFix();
+    if( !LsgPending() ) PartyFix();
     return 0;        
 }
 
@@ -894,7 +894,7 @@ void PartyLvlUp()
     	    Line.Id = v5->i01 - 1 + 10 * v0 + 9000;
     	    if( MessageGetMsg( &gMessage, &Line ) == 1 ){
         	sprintf( stmp, Line.Text, CritterGetName( gParty[ i ].dude ) );
-        	TextObjCreate( gParty[ i ].dude, stmp, 101, gPalColorCubeRGB[31][31][31], gPalColorCubeRGB[0][0][0], &v19 );
+        	TextFloatMessage( gParty[ i ].dude, stmp, 101, gPalColorCubeRGB[31][31][31], gPalColorCubeRGB[0][0][0], &v19 );
         	TileUpdateArea( &v19, gParty[ i ].dude->Elevation );
     	    }                                                                                
         } else {

@@ -530,7 +530,7 @@ int MvePrep( int WinId, char *MovieFile, int (*AfterFrameCb)() )
         MovSetupBlitter( (void *)MveBlitBuffered );
 	MovPrep( gMveFile, 0, 0, 0 );
     }
-    eprintf( ( gMveScaled ) ? "scaled\n" : "not scaled\n" );
+    eprintf( "%s", ( gMveScaled ) ? "scaled" : "not scaled" );
     if( gMvePrepCb ) gMvePrepCb();
     if( gMveMraFile ){
         dbgetBei( gMveMraFile, &pword );

@@ -1,8 +1,8 @@
 #pragma once
 #include "FrameWork.h"
 
-#define eprintf		printf
-//#define eprintf( fmt, a... )	ErrorPrintf( fmt, ##a )
+//#define eprintf
+#define eprintf( fmt, a... )	printf( "E<%s:%i>:" fmt "\n",__FILE__,__LINE__, ##a )
 //#define ASSERT( cond )		_assert_( cond, ##cond, __LINE__, __FILE_NAME__ )
 #define DD	{ static int cnt=0; printf("<!debug %i!> file %s -> function %s() -> line %i\n", cnt++, __FILE_NAME__,__func__, __LINE__ ); }
 

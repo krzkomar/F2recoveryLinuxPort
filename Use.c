@@ -109,13 +109,10 @@ void UseLook( Obj_t *crit, Obj_t *obj, void (*OutCb)(char *))
     if( OBJTYPE( obj->ImgId ) == TYPE_TILE ) return;
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return;
     if( obj->ScrId != -1 ){
-DD
-scp_dbg = 1;
         ScptSetup( obj->ScrId, crit, obj );
         ScptRun( obj->ScrId, SCPT_AEV_LOOK_AT_P_PROC );
         if( ScptPtr( obj->ScrId, &scr ) == -1 ) return;
         Override = scr->OverrideFlag;
-scp_dbg = 0;
     }
     if( !Override ){
         if( OBJTYPE( obj->Pid ) == TYPE_CRIT && CritterIsDead( obj ) )

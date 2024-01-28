@@ -135,7 +135,7 @@ void IfcMsgUpdate()
     char *surf, *p;
     int fnt, i, n;
 
-    if ( !gIfcMsgEnable ) return;            
+    if( !gIfcMsgEnable ) return;            
     if( !(surf = WinGetSurface( gIfcWin )) ) return;
     p = surf + 24 * gIfcMsgWidth + 23;
     ScrCopy( gIfcMsgSurf, 167, 60, 167, p, gIfcMsgWidth );
@@ -151,8 +151,7 @@ void IfcMsgUpdate()
 
 void IfcMsgButtUp()
 {
-    if ( (gIfcMsgLines + gIfcMsgUnk06 - 1) % gIfcMsgLines != gIfcMsgLinesCounter )
-    {
+    if( (gIfcMsgLines + gIfcMsgUnk06 - 1) % gIfcMsgLines != gIfcMsgLinesCounter ){
         gIfcMsgUnk06 = (gIfcMsgLines + gIfcMsgUnk06 - 1) % gIfcMsgLines;
         IfcMsgUpdate();
     }
@@ -160,8 +159,7 @@ void IfcMsgButtUp()
 
 void IfcMsgButtDn()
 {
-    if ( gIfcMsgUnk06 != gIfcMsgLinesCounter )
-    {
+    if( gIfcMsgUnk06 != gIfcMsgLinesCounter ){
         gIfcMsgUnk06 = (gIfcMsgUnk06 + 1) % gIfcMsgLines;
         IfcMsgUpdate();
     }

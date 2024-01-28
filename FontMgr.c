@@ -134,7 +134,7 @@ int FontMgrLineWidth( char *str )
 int FontMgrWidth( char Chr )
 {
     if( !gFontMgrInited ) return 0;
-    return ( Chr == ' ' ) ? gFontMgrCurData->SpaceW : gFontMgrCurData->dsc[ ( unsigned int)Chr ].Width;
+    return ( Chr == ' ' ) ? gFontMgrCurData->SpaceW : gFontMgrCurData->dsc[ (( unsigned int)Chr) & 0xff ].Width;
 }
 
 int FontMgrWidthMono( char *str )

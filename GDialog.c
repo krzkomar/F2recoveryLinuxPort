@@ -163,8 +163,8 @@ void GdialogEnter( Obj_t *target, int flg )
             if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "\nError: gdialog: Can't find message!" ); return; }
             if( flg )
                 IfcMsgOut( msg.Text );
-            else
-            	eprintf( "%s", msg.Text );
+//            else
+//            	eprintf( "%s", msg.Text );
             return;
         }
         if( tmp == -2 ){
@@ -172,8 +172,8 @@ void GdialogEnter( Obj_t *target, int flg )
             if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "\nError: gdialog: Can't find message!" ); return; }
             if( flg )
                 IfcMsgOut( msg.Text );
-            else
-            	eprintf( "%s", msg.Text );
+//            else
+//            	eprintf( "%s", msg.Text );
             return;
         }
     }

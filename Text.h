@@ -36,7 +36,7 @@ void TextEvEnable();
 int TextEvStatus();
 void TextSetBaseDelay( double val );
 void TextSetLineDelay( double var );
-int TextObjCreate( Obj_t *obj, char *Text, int Font, int ColorA, int ColorB, VidRect_t *Area );
+int TextFloatMessage( Obj_t *obj, char *Text, int Font, int ColorA, int ColorB, VidRect_t *Area );
 void TextRender( VidRect_t *area );
 int TextCount();
 void TextUnk09( Text_t *text );

@@ -7,6 +7,8 @@
 
 #ifdef SCP_DEBUG
 extern int scp_dbg;
+#define SCP_DBG_EN	scp_dbg = 1
+#define SCP_DBG_DIS	scp_dbg = 0
 #define SCP_DBG( s, n, m... )	if( scp_dbg ){ printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s->FileName, s->Opcode & 0xffff, s->CodePC - 2, ##m ); }
 #define SCP_DBG_VAR		Intp_t *s_dbg = scr;
 #define SCP_DBGA( n, m... )	if( scp_dbg ){ printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s_dbg->FileName, s_dbg->Opcode & 0xffff, s_dbg->CodePC - 2, ##m ); }
@@ -14,6 +16,8 @@ extern int scp_dbg;
 #define SCP_DECHO( str )	if( scp_dbg ){ printf( "%s\n", str ); }
 #define SCP_DBGP( fmt, m... )	if( scp_dbg ){ printf( fmt, ##m ); }
 #else
+#define SCP_DBG_EN
+#define SCP_DBG_DIS
 #define SCP_DBG( s, n, m... )
 #define SCP_DBG_VAR
 #define SCP_DBGA( n, m... )

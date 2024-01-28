@@ -3,8 +3,8 @@
 #define INTP_STACK_SIZE	0x1000
 
 #define SCR_OPCODE	0x8000		// 1000
-#define SCR_STRING	0x9001		// 1001
-#define SCR_FSTRING	0x9801 		// 1001
+#define SCR_STRING	0x9001		// 1001 stala
+#define SCR_FSTRING	0x9801 		// 1001	zmienna lancuchowa
 #define SCR_FLOAT	0xA001		// 1010
 #define SCR_INT		0xC001		// 1100
 #define SCRTYPE( n )	((n) & ~0x0800)	//
@@ -167,7 +167,7 @@ void *IntpPopPtrStack( char *Base, int *pidx );
 void IntpPushIntStack( char *Base, int *pIdx, int idata );
 int IntpPopIntStack( char *Base, int *pidx );
 short IntpPopShortStack( char *Base, int *pIdx );
-void IntpUnk02( Intp_t *r, short opcode, int a3 );
+void IntpStrRefInc( Intp_t *r, short opcode, int a3 );
 void IntpStringDeRef( Intp_t *scr, short type, int Idx );
 void IntpPushwA( Intp_t *scr, short wdata );
 void IntpPushiA( Intp_t *scr, int idata );
