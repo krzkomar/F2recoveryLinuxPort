@@ -1896,7 +1896,7 @@ void ScrGame_CritterHeal( Intp_t *scr )
 }
 
 /*
-    void set_light_level(int level) - set the level of illumination map
+    void set_light_level(int level) - set the level of illumination map 0 - 100%
 */
 void ScrGame_SetLightLevel( Intp_t *scr)
 {
@@ -1924,11 +1924,11 @@ void ScrGame_SetLightLevel( Intp_t *scr)
 void ScrGame_GameTime( Intp_t *scr )
 {
     SCP_DBG_VAR;
-    int GameDekaSeconds;
+    int time;
 
     SCP_DBGA( "game_time" );
-    GameDekaSeconds = ScptGetGameDekaSeconds();
-    RETINT( scr, GameDekaSeconds );
+    time = ScptGetGameDekaSeconds();
+    RETINT( scr, time );
 }
 
 /*
