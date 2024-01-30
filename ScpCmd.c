@@ -17,7 +17,7 @@ void ScpA_Nop( Intp_t *scr )
 
 /*
     name: ?
-    code 0x8001, 0xC001, 0x9001, 0x9801, 0xa001
+    code 0x8001, 0xC001, 0x9001, 0x9801, 
     ret: ?
     dsc: ?
 */
@@ -248,7 +248,7 @@ void ScpA_Fetch( Intp_t *scr ) // 8032
     SCP_ERRTYPEF( Type1 != SCR_INT, stmp, "Invalid type given to fetch, %x", Type1 );
     k = IntpReadBei( scr->StackA, scr->Base + 6 * Arg1 );
     
-    p = &scr->StackA[ 6 * Arg1 + 4 ];
+    p = (uint8_t *)&scr->StackA[ 6 * Arg1 + 4 ];
     SCP_PUSHARG_A( (((uint16_t)p[ scr->Base + 0 ] << 8) | (uint16_t)p[ scr->Base + 1 ]), k, scr );
 }
 
@@ -257,262 +257,268 @@ void ScpA_CmpNE( Intp_t *scr ) // 8034 'stack:=p2<>p1'
     SCP_DBG_VAR;
     unsigned short Type1, Type2;
     float Arg1f, Arg2f;
-    int Arg2i,Arg1i;
-    char *s, stmp1[80], stmp2[80], stmp3[80], stmp4[80];
-    void *ptr1, *ptr2;
+    int Arg2,Arg1;
+    char *s, stmp[ 80 ];
+    void *Arg1p, *Arg2p;
 
-    SCP_GETARGFX( Type1, Arg1i, Arg1f, ptr1, scr );
-    SCP_GETARGFX( Type2, Arg2i, Arg2f, ptr2, scr );
-    if( ( Type1 == SCR_PTR ) || ( Type2 == SCR_PTR ) ){ // ptr
-	if( Type1 == SCR_INT || Type2 == SCR_INT ){ // ptr vs int
-	    Arg1i = (Type1 == SCR_INT) ? Arg1i: Arg2i;
-	    ptr1 = (Type1 == SCR_PTR) ? ptr1: ptr2;
-	    IntpPushIntStack( scr->StackA, &scr->StackApos, (ptr1 && !Arg1i) ? 1:0 );	    
-	    SCP_DBGA( "( %p != %x )", ptr1, Arg1i );
-	} else {
-	    if( ( Type1 == SCR_PTR ) && ( Type2 == SCR_PTR ) ){
-		IntpPushIntStack( scr->StackA, &scr->StackApos, ptr1 == ptr2 );	    
-		SCP_DBGA( "( %p != %p )", ptr1, ptr2 );
-	    } else {
-		SCP_DBGA( "( ! != ! )" );
-		IntpPushIntStack( scr->StackA, &scr->StackApos, 0 );
-	    }
-	}
-	goto LABEL_55;
-    }
-    SCP_DBGA( "( [%x]%x != [%x]%x )", Type2, Arg2i, Type1, Arg1i );
-    if( ( Type2 == SCR_FSTRING ) || ( Type2 == SCR_STRING ) ){ // int
-        if( Type1 < SCR_FSTRING ) {
-            if( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ) {
-            if( Type1 < SCR_FLOAT ) goto LABEL_55;
-            if( Type1 == SCR_FLOAT ){
-                sprintf( stmp1, "%.05f", Arg1f );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp1, IntpGetString( scr, Type2 >>8, Arg2i ) ) != 0);
-            } else {
-                if( Type1 == SCR_INT ){
-            	    if( Arg1f == 0.0 ){
-        		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2i != 0 );
-        	    } else {
-            		sprintf( stmp3, "%d", Arg1i );
-            		IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp3, IntpGetString(scr, Type2 >> 8, Arg2i )) != 0);
-            	    }
-                }
-            }
-        } else {
-    	    s = ( Type2 & 0x800 ) ? &scr->Strings[ Arg2i + 4 ] : &scr->StringsConst[ Arg2i + 4 ];
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString(scr, Type1 >> 8, Arg1i )) != 0 );
-        }
-        goto LABEL_55;
-    }
-    if( Type2 < SCR_FSTRING ) goto LABEL_55;
+    SCP_GETARGFX( Type1, Arg1, Arg1f, Arg1p, scr );
+    SCP_GETARGFX( Type2, Arg2, Arg2f, Arg2p, scr );
+    SCP_DBGA( "( [%x]%x != [%x]%x )", Type2, Arg2, Type1, Arg1 );
 
-    if( Type2 == SCR_FLOAT ){ // float
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ){
-    	    if( Type1 == SCR_FLOAT ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f != Arg1f );
-            if( Type1 == SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f != Arg2f );
-        } else {
-    	    sprintf( stmp2, "%.05f", Arg2f );
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString( scr, Type1 >> 8 , Arg1i ) ) != 0);
-    	}
-    } else {
-	if( Type2 == SCR_INT ){
-	    if( Type1 == SCR_FSTRING || ( Type1 == SCR_STRING )){
-    		if( Arg2f == 0.0 ){
-        	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1i != 0 );
-    		} else {
-    		    sprintf( stmp4, "%d", Arg2i );
-    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString( scr, Type1 >> 8, Arg1i ) ) != 0 );
-    		}
-	    } else {
-		if( Type1 == SCR_FLOAT ){
+    switch( Type2 ){
+	case SCR_STRING:
+	case SCR_FSTRING:
+	    switch( Type1 ){
+        	case SCR_STRING:
+    		case SCR_FSTRING:
+    		    s = ( (Type2 & 0x800) != 0 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString( scr, Type1 >> 8, Arg1 ) ) );
+    		    break;
+    		case SCR_FLOAT:
+        	    sprintf( stmp, "%.05f", Arg1f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type2 >> 8, Arg2 ) ) );
+    		    break;
+    		case SCR_INT:
+        	    if( Arg1 == 0 ){ IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 ); break; }
+        	    sprintf( stmp, "%d", Arg1 );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type2 >> 8 , Arg2 ) ) );
+    		    break;
+    		case SCR_PTR:
+        	    if( !Arg1p ){ IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 ); break; }
+        	    sprintf( stmp, "%p", Arg1p );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type2 >> 8 , Arg2 ) ) );
+    		    break;
+    	    }
+    	    break;
+	case SCR_FLOAT:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING:
+    		    sprintf( stmp, "%.05f", Arg2f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) );
+    		    break;
+    		case SCR_FLOAT:
     		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f != Arg1f );
-		} else {
-    		    if( Type1 == Type2 ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f != Arg1i );
-		}
+    		    break;
+    		case SCR_INT:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, (float)Arg1 != Arg2f );
+    		    break;
+    		case SCR_PTR:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f != 0.0 || Arg1p );
+    		    break;
+    	    }
+    	    break;
+	case SCR_INT:
+	    switch( Type1 ){
+		case SCR_STRING:
+		case SCR_FSTRING:
+    		    if( Arg2 == 0 ){ IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 != 0 ); break; }
+    		    sprintf( stmp, "%d", Arg2 );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) );
+    		    break;
+		case SCR_FLOAT:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, (double)Arg2 != Arg1f );
+    		    break;
+    		case SCR_INT: 
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 != Arg1 );
+    		    break;
+    		case SCR_PTR:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 || Arg1p );
+    		    break;
 	    }
-	}
+	    break;
+	case SCR_PTR:
+	    switch( Type1 ){
+		case SCR_STRING:
+		case SCR_FSTRING:
+    		    if( !Arg2p ){ IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 != 0 ); break; }
+    		    sprintf( stmp, "%p", Arg2p );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) );
+    		    break;
+		case SCR_FLOAT:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2p || Arg1f != 0.0 );
+    		    break;
+    		case SCR_INT: 
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2p || Arg1 );
+    		    break;
+    		case SCR_PTR:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2p != Arg1p );
+    		    break;
+	    }
+	    break;
     }
-    goto LABEL_55;
-LABEL_55:
     IntpPushwA( scr, SCR_INT );
-    return;
 }
 
 void ScpA_CmpEQ( Intp_t *scr ) // 8033 'stack:= p2==p1'
 {
     SCP_DBG_VAR;
     unsigned short Type1, Type2;
-    int Arg1, Arg2;
-    char *s, stmp1[80], stmp2[80], stmp3[80], stmp4[80];
-    float Arg2f,Idx;
+    float Arg1f, Arg2f;
+    int Arg2,Arg1;
+    char *s, stmp[ 80 ];
+    void *Arg1p, *Arg2p;
 
-    SCP_GETARGF( Type1, Arg1, Idx, scr );
-    SCP_GETARGF( Type2, Arg2, Arg2f, scr );
+    SCP_GETARGFX( Type1, Arg1, Arg1f, Arg1p, scr );
+    SCP_GETARGFX( Type2, Arg2, Arg2f, Arg2p, scr );
     SCP_DBGA( "( [%x]%x == [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( Type2 < SCR_FSTRING ){
-        if( Type2 == SCR_STRING ) goto LABEL_37;
-        goto LABEL_55;        
+
+    switch( Type2 ){
+	case SCR_STRING:
+	case SCR_FSTRING:
+	    switch( Type1 ){
+        	case SCR_STRING:
+    		case SCR_FSTRING:
+    		    s = ( (Type2 & 0x800) != 0 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, !strcmp( s, IntpGetString( scr, Type1 >> 8, Arg1 ) ) );
+    		    break;
+    		case SCR_FLOAT:
+        	    sprintf( stmp, "%.05f", Arg1f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, !strcmp( stmp, IntpGetString( scr, Type2 >> 8, Arg2 ) ) );
+    		    break;
+    		case SCR_INT:
+        	    if( Arg1 == 0 ){ IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 == 0 ); break; }
+        	    sprintf( stmp, "%d", Arg1 );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, !strcmp( stmp, IntpGetString( scr, Type2 >> 8 , Arg2 ) ) );
+    		    break;
+    		case SCR_PTR:
+        	    if( !Arg1p ){ IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 == 0 ); break; }
+        	    sprintf( stmp, "%p", Arg1p );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, !strcmp( stmp, IntpGetString( scr, Type2 >> 8 , Arg2 ) ) );
+    		    break;
+    	    }
+    	    break;
+	case SCR_FLOAT:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING:
+    		    sprintf( stmp, "%.05f", Arg2f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, !strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) );
+    		    break;
+    		case SCR_FLOAT:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f == Arg1f );
+    		    break;
+    		case SCR_INT:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, (float)Arg1 == Arg2f );
+    		    break;
+    		case SCR_PTR:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f == 0.0 && !Arg1p );
+    		    break;
+    	    }
+    	    break;
+	case SCR_INT:
+	    switch( Type1 ){
+		case SCR_STRING:
+		case SCR_FSTRING:
+    		    if( Arg2 == 0 ){ IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 == 0 ); break; }
+    		    sprintf( stmp, "%d", Arg2 );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, !strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) );
+    		    break;
+		case SCR_FLOAT:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, (double)Arg2 == Arg1f );
+    		    break;
+    		case SCR_INT: 
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 == Arg1 );
+    		    break;
+    		case SCR_PTR:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 == 0 && !Arg1p );
+    		    break;
+	    }
+	    break;
+	case SCR_PTR:
+	    switch( Type1 ){
+		case SCR_STRING:
+		case SCR_FSTRING:
+    		    if( !Arg2p ){ IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 == 0 ); break; }
+    		    sprintf( stmp, "%p", Arg2p );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, !strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) );
+    		    break;
+		case SCR_FLOAT:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, !Arg2p && Arg1f == 0.0 );
+    		    break;
+    		case SCR_INT: 
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, !Arg2p && !Arg1 );
+    		    break;
+    		case SCR_PTR:
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2p == Arg1p );
+    		    break;
+	    }
+	    break;
     }
-    if( Type2 <= SCR_FSTRING ){
-LABEL_37:
-        if( Type1 < SCR_FSTRING ) {
-            if( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_55;
-            if( Type1 <= SCR_FLOAT ){
-                sprintf( stmp1, "%.05f", *&Idx );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp1, IntpGetString( scr, Type2 >> 8, Arg2f )) == 0 );
-            } else {
-                if( Type1 != SCR_INT ) goto LABEL_55;
-                if( Idx == 0.0 ){
-        	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f == 0 );
-                } else {
-        	    sprintf( stmp3, "%d", Arg1 );
-            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp(stmp3, IntpGetString( scr, Type2 >> 8, Arg2f ) ) == 0 );
-                }
-            }            
-            goto LABEL_55;
-        }
-        s = ( (Type2 & 0x800) != 0 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString( scr, Type1 >> 8, Idx )) == 0 );
-        goto LABEL_55;
-    }
-    if( Type2 < SCR_FLOAT ) goto LABEL_55;
-    if( Type2 <= SCR_FLOAT ){
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_55;
-            if( Type1 <= SCR_FLOAT ){
-                IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f == Idx );
-            } else {
-                if( Type1 == SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos, Idx == Arg2f );
-            }            
-            goto LABEL_55;
-        }
-        sprintf( stmp2, "%.05f", Arg2f );
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString( scr, Type1 >> 8, Idx )) == 0 );
-        goto LABEL_55;
-    }
-    if( Type2 != SCR_INT ){
-    	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type1 < SCR_FSTRING ){
-        if( Type1 != SCR_STRING ){
-    	    IntpPushwA( scr, SCR_INT );
-	    return;
-	}
-    }
-    if( Type1 > SCR_FSTRING ){
-	if( Type1 >= SCR_FLOAT ){
-    	    if( Type1 == SCR_FLOAT ){
-        	IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f == Idx );
-    	    } else {
-        	if( Type1 == Type2 ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f == Idx );
-    	    }        
-	}
-        IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Arg2f == 0.0 ){
-        IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 == 0 );
-    } else {
-    	sprintf( stmp4, "%d", Arg2 );
-	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString( scr, Type1 >> 8, Arg1 ) ) == 0 );
-    }
-    IntpPushwA( scr, SCR_INT );
-    return;    
-LABEL_55:
     IntpPushwA( scr, SCR_INT );
 }
 
 void ScpA_CmpLE( Intp_t *scr ) // 8035 'stack:= p2<=p1'
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
-    float Arg1f, Arg2f;
-    char *s, stmp1[80], stmp2[80], stmp3[80], stmp4[80];
+    double Arg2f, Arg1f;
+    char stmp[ 80 ], *s;
 
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x <= [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( Type2 < SCR_FSTRING ){
-        if( Type2 != SCR_STRING ) goto LABEL_55;
-        goto LABEL_37;
+
+    switch( Type2 ){
+	case SCR_FSTRING:
+	case SCR_STRING:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING: // (string)Arg2 >= (string)Arg1
+    		    s = ( Type2 & 0x800 ) ? scr->Strings : scr->StringsConst;
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( &s[ Arg2 + 4 ], IntpGetString( scr, Type1 >> 8, Arg1 ) ) <= 0 );
+    		    break;
+    		case SCR_FLOAT: // (string)Arg2 >= (float)Arg1
+        	    sprintf( stmp, "%.05f", Arg1f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( IntpGetString( scr, Type2 >> 8, Arg2 ), stmp ) <= 0 );
+    		    break;
+    		case SCR_INT: // (string)Arg2 >= (int)Arg1
+        	    if( Arg1 == 0 ){
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 <= 0 ); // ??
+    		    } else {
+            		sprintf( stmp, "%d", Arg1 );
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( IntpGetString( scr, Type2 >> 8, Arg2 ), stmp ) <= 0 );
+    		    }
+    		    break;    	
+    	    }
+    	    break;    
+	case SCR_FLOAT:
+	    switch( Type1 ){
+    		case SCR_FSTRING:
+    		case SCR_STRING: // (float)Arg2 >= (string)Arg1
+    		    sprintf( stmp, "%.05f", Arg2f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) <= 0 );
+    		    break;
+    		case SCR_FLOAT: // (float)Arg2 >= (float)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f <= Arg1f );
+    		    break;
+    		case SCR_INT: // (float)Arg2 >= (int)Arg1
+    	    	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f <= (double)Arg1 );
+    		    break;
+    	    }
+	    break;
+	case SCR_INT:
+	    switch( Type1 ){
+		case SCR_FSTRING: 
+		case SCR_STRING: // (int)Arg2 >= (string)Arg1
+    		    if( Arg2 == 0 ){
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 <= 0 ); // ?
+    		    } else {
+    			sprintf( stmp, "%d", Arg2 );
+    			IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) <= 0 );
+    		    }
+    		    break;
+    		case SCR_FLOAT: // (int)Arg2 >= (float)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, (double)Arg2 <= Arg1f );
+    		    break;
+    		case SCR_INT: // (int)Arg2 >= (int)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 <= Arg1 );
+    		    break;
+	    }
+	    break;
     }
-    if( Type2 <= SCR_FSTRING ){
-LABEL_37:
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_55;
-            if( Type1 <= SCR_FLOAT ){
-                sprintf( stmp1, "%.05f", Arg1f );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetString( scr, Type2 >> 8, Arg2 ) ) <= 0 );
-            } else {
-                if( Type1 != SCR_INT ) goto LABEL_55;
-                if( Arg1 == 0.0 ){
-        	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 <= 0 );
-                } else {
-            	    sprintf( stmp3, "%d", Arg1 );
-            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetString( scr, Type2 >> 8, Arg2 )) <= 0 );
-                }                
-            }    	    
-    	    goto LABEL_55;
-        }
-        s = ( (Type2 & 0x800) != 0 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString( scr, Type1 > 8, Arg1 )) <= 0 );
-        goto LABEL_55;
-    }
-    if( Type2 < SCR_FLOAT ) goto LABEL_55;
-    if( Type2 <= SCR_FLOAT ){
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_55;
-            if( Type1 <= SCR_FLOAT ){
-                IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 <= Arg1 );
-            } else {
-                if( Type1 != SCR_INT ) goto LABEL_55;
-                IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 >= Arg2 );
-            }	    
-	    goto LABEL_55;
-        }
-        sprintf( stmp2, "%.05f", Arg2f );
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString(scr, Type1 >> 8, Arg1 ) ) <= 0 );
-    	goto LABEL_55;
-    }
-    if( Type2 != SCR_INT ) goto LABEL_55;
-    if( Type1 < SCR_FSTRING ){
-        if( Type1 != SCR_STRING ) goto LABEL_55;
-        goto LABEL_23;
-    }
-    if( Type1 <= SCR_FSTRING ){
-LABEL_23:
-        if( Arg2 == 0.0 ){
-            IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 <= 0 );
-        } else {
-    	    sprintf( stmp4, "%d", Arg2 );
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString(scr, Type1 >> 8, Arg1 ) ) <= 0 );
-    	}
-	IntpPushwA(scr, SCR_INT);
-	return;
-    }
-    if( Type1 >= SCR_FLOAT ){
-        if ( Type1 <= SCR_FLOAT ){
-            IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f <= Arg1f );
-        } else {
-            if( Type1 == Type2 ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 <= Arg1 );
-        }	
-	goto LABEL_55;
-    }
-LABEL_55:
-    IntpPushwA(scr, SCR_INT);
+    IntpPushwA( scr, SCR_INT );
 }
 
 void ScpA_CmpGE( Intp_t *scr ) // 8036 'stack:=p2>=p1'
@@ -521,268 +527,217 @@ void ScpA_CmpGE( Intp_t *scr ) // 8036 'stack:=p2>=p1'
     uint16_t Type1, Type2;
     int Arg1, Arg2;
     double Arg2f, Arg1f;
-    char stmp1[80], stmp2[80], stmp3[80], stmp4[80];
+    char stmp[ 80 ], *s;
 
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x >= [%x]%x )", Type2, Arg2, Type1, Arg1 );
 
-    if( Type2 < 0x9801 ){
-        if( Type2 != 0x9001 ) goto LABEL_55;
-        goto LABEL_37;
+    switch( Type2 ){
+	case SCR_FSTRING:
+	case SCR_STRING:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING: // (string)Arg2 >= (string)Arg1
+    		    s = ( Type2 & 0x800 ) ? scr->Strings : scr->StringsConst;
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( &s[ Arg2 + 4 ], IntpGetString( scr, Type1 >> 8, Arg1 ) ) >= 0 );
+    		    break;
+    		case SCR_FLOAT: // (string)Arg2 >= (float)Arg1
+        	    sprintf( stmp, "%.05f", Arg1f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( IntpGetString( scr, Type2 >> 8, Arg2 ), stmp ) >= 0 );
+    		    break;
+    		case SCR_INT: // (string)Arg2 >= (int)Arg1
+        	    if( Arg1 == 0 ){
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 >= 0 ); // ??
+    		    } else {
+            		sprintf( stmp, "%d", Arg1 );
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( IntpGetString( scr, Type2 >> 8, Arg2 ), stmp ) >= 0 );
+    		    }
+    		    break;    	
+    	    }
+    	    break;    
+	case SCR_FLOAT:
+	    switch( Type1 ){
+    		case SCR_FSTRING:
+    		case SCR_STRING: // (float)Arg2 >= (string)Arg1
+    		    sprintf( stmp, "%.05f", Arg2f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) >= 0 );
+    		    break;
+    		case SCR_FLOAT: // (float)Arg2 >= (float)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f >= Arg1f );
+    		    break;
+    		case SCR_INT: // (float)Arg2 >= (int)Arg1
+    	    	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f >= (double)Arg1 );
+    		    break;
+    	    }
+	    break;
+	case SCR_INT:
+	    switch( Type1 ){
+		case SCR_FSTRING: 
+		case SCR_STRING: // (int)Arg2 >= (string)Arg1
+    		    if( Arg2 == 0 ){
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 >= 0 ); // ?
+    		    } else {
+    			sprintf( stmp, "%d", Arg2 );
+    			IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) >= 0 );
+    		    }
+    		    break;
+    		case SCR_FLOAT: // (int)Arg2 >= (float)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, (double)Arg2 >= Arg1f );
+    		    break;
+    		case SCR_INT: // (int)Arg2 >= (int)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 >= Arg1 );
+    		    break;
+	    }
+	    break;
     }
-    if( Type2 <= 0x9801 ){
-LABEL_37:
-        if( Type1 < 0x9801 ){
-            if( Type1 != 0x9001 ) goto LABEL_55;
-        } else if( Type1 > 0x9801 ){
-            if( Type1 < 0xA001 ) goto LABEL_55;
-            if( Type1 <= 0xA001 ){
-                sprintf( stmp1, "%.05f", Arg1f );
-        	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetString( scr, Type2 >> 8, Arg2 ) ) >= 01 );
-        	goto LABEL_55;
-            } else {
-                if( Type1 != 0xC001 ) goto LABEL_55;
-                if( Arg1f == 0.0 ){
-        	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 >= 0 );
-        	    goto LABEL_55;
-                }
-                sprintf( stmp3, "%d", Arg1 );
-        	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetString( scr, Type2 >>8, Arg2 ) ) >= 0 );
-        	goto LABEL_55;
-            }            
-        }
-        if( (Type2 & 0x800) != 0 )
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( &scr->Strings[Arg2 + 4], IntpGetString( scr, Type1 >> 8, Arg1f ) ) >= 0 );
-        else
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( &scr->StringsConst[Arg2 + 4], IntpGetString( scr, Type1 >> 8, Arg1f ) ) >= 0 );
-        goto LABEL_55;
-    }
-    if( Type2 < 0xA001 ) goto LABEL_55;
-    if( Type2 <= 0xA001 ){
-        if( Type1 < 0x9801 ){
-            if( Type1 != 0x9001 ) goto LABEL_55;
-        } else if( Type1 > 0x9801 ){
-            if( Type1 < 0xA001 ) goto LABEL_55;
-            if( Type1 <= 0xA001 ){
-                IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f >= Arg1f );
-            } else {
-                if( Type1 != 0xC001 ) goto LABEL_55;
-                IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f <= Arg2f );
-            }    	    
-    	    goto LABEL_55;
-        }
-        sprintf( stmp2, "%.05f", Arg2f );
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString( scr, Type1 >> 8, Arg1f ) ) >= 0 );
-        goto LABEL_55;
-    }
-    if( Type2 != 0xC001 ) goto LABEL_55;
-    if( Type1 < 0x9801 ){
-        if( Type1 != 0x9001 ) goto LABEL_55;
-        goto LABEL_23;
-    }
-    if( Type1 <= 0x9801 ){
-LABEL_23:
-        if( Arg2f == 0.0 ){
-            IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f >= 0 );
-            goto LABEL_55;
-        }
-        sprintf( stmp4, "%d", Arg2 );
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString( scr, Type1 >> 8, Arg1f ) ) >= 0 );
-        goto LABEL_55;
-    }
-    if( Type1 >= 0xA001 ){
-        if( Type1 <= 0xA001 ){
-            IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f >= Arg1f );
-        } else {
-            if( Type1 != Type2 ) goto LABEL_55;
-            IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f >= Arg1f );
-        }        
-        goto LABEL_55;
-    }
-LABEL_55:
-    IntpPushwA( scr, 0xC001 );
+    IntpPushwA( scr, SCR_INT );
 }
 
 void ScpA_CmpLS( Intp_t *scr ) // 8037 'stack:=p2<p1'
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
-    char *s, stmp1[80], stmp2[80], stmp3[80], stmp4[80];
-    float Arg2f, Arg1f;
+    double Arg2f, Arg1f;
+    char stmp[ 80 ], *s;
 
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x < [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( Type2 < SCR_FSTRING ){
-        if( Type2 == SCR_STRING ) goto LABEL_37;
-        goto LABEL_55;        
+
+    switch( Type2 ){
+	case SCR_FSTRING:
+	case SCR_STRING:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING: // (string)Arg2 >= (string)Arg1
+    		    s = ( Type2 & 0x800 ) ? scr->Strings : scr->StringsConst;
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( &s[ Arg2 + 4 ], IntpGetString( scr, Type1 >> 8, Arg1 ) ) < 0 );
+    		    break;
+    		case SCR_FLOAT: // (string)Arg2 >= (float)Arg1
+        	    sprintf( stmp, "%.05f", Arg1f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( IntpGetString( scr, Type2 >> 8, Arg2 ), stmp ) < 0 );
+    		    break;
+    		case SCR_INT: // (string)Arg2 >= (int)Arg1
+        	    if( Arg1 == 0 ){
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 < 0 ); // ??
+    		    } else {
+            		sprintf( stmp, "%d", Arg1 );
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( IntpGetString( scr, Type2 >> 8, Arg2 ), stmp ) < 0 );
+    		    }
+    		    break;    	
+    	    }
+    	    break;    
+	case SCR_FLOAT:
+	    switch( Type1 ){
+    		case SCR_FSTRING:
+    		case SCR_STRING: // (float)Arg2 >= (string)Arg1
+    		    sprintf( stmp, "%.05f", Arg2f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) < 0 );
+    		    break;
+    		case SCR_FLOAT: // (float)Arg2 >= (float)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f < Arg1f );
+    		    break;
+    		case SCR_INT: // (float)Arg2 >= (int)Arg1
+    	    	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f < (double)Arg1 );
+    		    break;
+    	    }
+	    break;
+	case SCR_INT:
+	    switch( Type1 ){
+		case SCR_FSTRING: 
+		case SCR_STRING: // (int)Arg2 >= (string)Arg1
+    		    if( Arg2 == 0 ){
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 < 0 ); // ?
+    		    } else {
+    			sprintf( stmp, "%d", Arg2 );
+    			IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) < 0 );
+    		    }
+    		    break;
+    		case SCR_FLOAT: // (int)Arg2 >= (float)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, (double)Arg2 < Arg1f );
+    		    break;
+    		case SCR_INT: // (int)Arg2 >= (int)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 < Arg1 );
+    		    break;
+	    }
+	    break;
     }
-    if( Type2 <= SCR_FSTRING ){
-LABEL_37:
-        if( Type1 < SCR_FSTRING ){
-            if ( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_55;
-            if( Type1 <= SCR_FLOAT ){
-                sprintf( stmp1, "%.05f", Arg1f );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetString( scr, Type2 >> 8, Arg2 ) ) < 0 );
-            } else {
-                if( Type1 != SCR_INT ) goto LABEL_55;
-                if( Arg1f == 0.0 ){
-        	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f < 0);
-        	    goto LABEL_55;
-                }
-                sprintf( stmp3, "%d", Arg1 );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetString( scr, Type2 >> 8, Arg2 ) ) < 0 );
-            }
-    	    goto LABEL_55;
-        }
-        s = ( (Type2 & 0x800) != 0 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString(scr, Type1 >> 8, Arg1) ) < 0 );
-        goto LABEL_55;
-    }
-    if( Type2 < SCR_FLOAT ) goto LABEL_55;
-    if( Type2 <= SCR_FLOAT ){
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_55;
-            if( Type1 <= SCR_FLOAT ){
-                IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f < Arg1 );
-            } else {
-                if( Type1 != SCR_INT ) goto LABEL_55;
-                IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 > Arg2f );
-            }    	    
-            goto LABEL_55;
-        }
-        sprintf( stmp2, "%.05f", *&Arg2f );
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString( scr, Type1 >> 8, Arg1 ) ) < 0 );
-        goto LABEL_55;
-    }
-    if( Type2 != SCR_INT ) goto LABEL_55;
-    if( Type1 < SCR_FSTRING ){
-        if( Type1 == SCR_STRING ) goto LABEL_23;
-        goto LABEL_55;        
-    }
-    if( Type1 <= SCR_FSTRING ){
-LABEL_23:
-        if( Arg2f == 0.0 ){
-            IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 < 0 );
-            goto LABEL_55;
-        }
-        sprintf( stmp4, "%d", Arg2 );
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString(scr, Type1 >> 8, Arg1) ) < 0);
-        goto LABEL_55;
-    }
-    if( Type1 >= SCR_FLOAT ){
-        if( Type1 <= SCR_FLOAT ){
-            IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f < Arg1 );
-        } else {
-            if( Type1 == Type2 ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f < Arg1 );
-        }    	
-        goto LABEL_55;
-    }
-LABEL_55:
     IntpPushwA( scr, SCR_INT );
 }
         
 void ScpA_CmpGT( Intp_t *scr ) // 8038 'stack:=p2>p1''
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
-    char *s, stmp1[80], stmp2[80], stmp3[80], stmp4[80];
-    float Arg2f, Arg1f;
+    double Arg2f, Arg1f;
+    char stmp[ 80 ], *s;
 
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x > [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( Type2 < SCR_FSTRING ){
-        if( Type2 == SCR_STRING ) goto LABEL_37;
-        goto LABEL_55;        
-    }
-    if( Type2 <= SCR_FSTRING ){
-LABEL_37:
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_55;
-            if( Type1 <= SCR_FLOAT ){
-                sprintf( stmp1, "%.05f", Arg1f );
-                IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp1, IntpGetString( scr, Type2 >> 8, Arg2 ) ) > 0);
-            } else {
-                if( Type1 != SCR_INT ) goto LABEL_55;
-                if( Arg1f == 0.0 ){
-        	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 > 0 );
-                } else {
-            	    sprintf( stmp3, "%d", Arg1 );
-            	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp3, IntpGetString( scr, Type2 >> 8, Arg2 ) ) > 0);
-                }
-            }    	    
-    	    goto LABEL_55;
-        }  
-        s = ( Type2 & 0x800 ) ? &scr->Strings[ Arg2 + 4 ] : &scr->StringsConst[ Arg2 + 4 ];
-        IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( s, IntpGetString( scr, Type1 >> 8, Arg1 ) ) > 0 );
-        IntpPushwA( scr, SCR_INT );
-        return;
-    }
-    if( Type2 < SCR_FLOAT ) goto LABEL_55;
-    if( Type2 <= SCR_FLOAT ){
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 != SCR_STRING ) goto LABEL_55;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_55;
-            if( Type1 <= SCR_FLOAT ){
-                IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f > Arg1f );
-            } else {
-                if( Type1 == SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 < Arg2f );
-                IntpPushwA( scr, SCR_INT );
-                return;   
-            }            
-        } else {
-    	    sprintf( stmp2, "%.05f", Arg2f );
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp2, IntpGetString(scr, Type1 >> 8, Arg1 ) ) > 0);
-    	    IntpPushwA( scr, SCR_INT );
-        }
-        return;
-    }
-    if( Type2 != SCR_INT ){
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type1 < SCR_FSTRING ){
-        if( Type1 != SCR_STRING ){
-	    IntpPushwA( scr, SCR_INT );
-	    return;
-        }
-    } else {
-	if( Type1 > SCR_FSTRING ){
-	    if( Type1 >= SCR_FLOAT ){
-    		if( Type1 == SCR_FLOAT ){
-    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f > Arg1f );
-    		} else {
-        	    if( Type1 == Type2 ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 > Arg1 );
-    		}
-		IntpPushwA( scr, SCR_INT );
-    		return;
-	    }
-	    IntpPushwA( scr, SCR_INT );
-	    return;
-	}
-    }
-    if( Arg2 == 0.0 ){
-        IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 > 0 ); IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    sprintf( stmp4, "%d", Arg2 );
-    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp4, IntpGetString( scr, Type1 >> 8, Arg1 ) ) > 0); IntpPushwA( scr, SCR_INT );
-    return;
 
-LABEL_55:
+    switch( Type2 ){
+	case SCR_FSTRING:
+	case SCR_STRING:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING: // (string)Arg2 >= (string)Arg1
+    		    s = ( Type2 & 0x800 ) ? scr->Strings : scr->StringsConst;
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( &s[ Arg2 + 4 ], IntpGetString( scr, Type1 >> 8, Arg1 ) ) > 0 );
+    		    break;
+    		case SCR_FLOAT: // (string)Arg2 >= (float)Arg1
+        	    sprintf( stmp, "%.05f", Arg1f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( IntpGetString( scr, Type2 >> 8, Arg2 ), stmp ) > 0 );
+    		    break;
+    		case SCR_INT: // (string)Arg2 >= (int)Arg1
+        	    if( Arg1 == 0 ){
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 > 0 ); // ??
+    		    } else {
+            		sprintf( stmp, "%d", Arg1 );
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( IntpGetString( scr, Type2 >> 8, Arg2 ), stmp ) > 0 );
+    		    }
+    		    break;    	
+    	    }
+    	    break;    
+	case SCR_FLOAT:
+	    switch( Type1 ){
+    		case SCR_FSTRING:
+    		case SCR_STRING: // (float)Arg2 >= (string)Arg1
+    		    sprintf( stmp, "%.05f", Arg2f );
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) > 0 );
+    		    break;
+    		case SCR_FLOAT: // (float)Arg2 >= (float)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f > Arg1f );
+    		    break;
+    		case SCR_INT: // (float)Arg2 >= (int)Arg1
+    	    	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f > (double)Arg1 );
+    		    break;
+    	    }
+	    break;
+	case SCR_INT:
+	    switch( Type1 ){
+		case SCR_FSTRING: 
+		case SCR_STRING: // (int)Arg2 >= (string)Arg1
+    		    if( Arg2 == 0 ){
+        		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 > 0 ); // ?
+    		    } else {
+    			sprintf( stmp, "%d", Arg2 );
+    			IntpPushIntStack( scr->StackA, &scr->StackApos, strcmp( stmp, IntpGetString( scr, Type1 >> 8, Arg1 ) ) > 0 );
+    		    }
+    		    break;
+    		case SCR_FLOAT: // (int)Arg2 >= (float)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, (double)Arg2 > Arg1f );
+    		    break;
+    		case SCR_INT: // (int)Arg2 >= (int)Arg1
+    		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 > Arg1 );
+    		    break;
+	    }
+	    break;
+    }
     IntpPushwA( scr, SCR_INT );
-    return;
 }
 
 void ScpA_Add( Intp_t *scr ) // 8039
@@ -792,7 +747,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
     int Arg1, Arg2;
     float Arg2f, Arg1f;
     unsigned int t2;
-    char *s2, *pd, *p, *q;
+    char *s, *pd, *p, *q;
 
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
@@ -801,12 +756,11 @@ void ScpA_Add( Intp_t *scr ) // 8039
     t2 = Type2 & 0xF7FF;
     if( t2 < SCR_FLOAT ){
         if( t2 == SCR_STRING ){
-    	    if( (Type2 & 0x800) != 0 ){
-        	s2 = &scr->Strings[ Arg2 + 4 ];
-    	    } else if( (Type2 & 0x1000) != 0 ){
-        	s2 = &scr->StringsConst[ Arg2 + 4 ];
+    	    s = NULL;    	    
+    	    if( Type2 & 0x0800 ){
+    		s = &scr->Strings[ Arg2 + 4 ];
     	    } else {
-        	s2 = 0;
+    		if( Type2 & 0x1000 ) s = &scr->StringsConst[ Arg2 + 4 ];
     	    }
 	    q = NULL;
 	    switch( Type1 & 0xF7FF ){
@@ -830,8 +784,8 @@ void ScpA_Add( Intp_t *scr ) // 8039
     		    sprintf( q, "%d", Arg1 );
     		    break;
     	    }
-    	    p = dbg_malloc( strlen( s2 ) + strlen( q ) + 1 );
-    	    strcpy( p, s2 );
+    	    p = dbg_malloc( strlen( s ) + strlen( q ) + 1 );
+    	    strcpy( p, s );
     	    strcpy( p + strlen( p ), q );
     	    IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); 
     	    IntpPushwA( scr, SCR_FSTRING );
@@ -854,14 +808,13 @@ void ScpA_Add( Intp_t *scr ) // 8039
             	    }        	
             	    break;
     		case SCR_STRING:
-    		    if( Type1 & 0x800 ){
-        		pd = &scr->Strings[ Arg1 + 4 ];
-    		    } else if( (Type1 & 0x1000) != 0 ){
-        		pd = &scr->StringsConst[ Arg1 + 4 ];
+    		    pd = NULL;
+    		    if( Type1 & 0x0800 ){
+    			 pd = &scr->Strings[ Arg1 + 4 ];
     		    } else {
-        		pd = NULL;
+    			if( Type1 & 0x1000 ) pd = &scr->StringsConst[ Arg1 + 4 ];
     		    }
-    		    p = dbg_malloc( strlen(pd) + 80 );
+    		    p = dbg_malloc( strlen( pd ) + 80 );
     		    sprintf( p, "%d", Arg2 );
     		    strcpy( p + strlen( p ), pd );
     		    IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
@@ -873,12 +826,11 @@ void ScpA_Add( Intp_t *scr ) // 8039
     }
     switch( Type1 & 0xF7FF ){
         case SCR_STRING:
-    	    if( Type1 & 0x800 ){
-        	pd = &scr->Strings[ Arg1 + 4 ];
-    	    } else if( Type1 & 0x1000  ){
-        	pd = &scr->StringsConst[ Arg1 + 4 ];
+    	    pd = NULL;    	    
+    	    if( Type1 & 0x0800 ){
+    	        pd = &scr->Strings[ Arg1 + 4 ];
     	    } else {
-        	pd = NULL;
+    		if( Type1 & 0x1000 ) pd = &scr->StringsConst[ Arg1 + 4 ];
     	    }
     	    p = dbg_malloc( strlen( pd ) + 80 );
     	    sprintf( p, "%.5f", Arg2f );
@@ -905,18 +857,21 @@ void ScpA_Sub( Intp_t *scr ) // 803A
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x - [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( Type2 < SCR_FLOAT ) return;
-    if( Type2 == SCR_FLOAT ){ // float - float/int
-        IntpPushIntStack( scr->StackA, &scr->StackApos, ( Type1 == SCR_FLOAT ) ? Arg2f - Arg1f : Arg2f - Arg1 );
-        IntpPushwA( scr, SCR_FLOAT );
-    } else { // ? - int
-        if( Type2 != SCR_INT ) return;
-        if( Type1 == SCR_FLOAT ){ // int - float
-    	IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 - Arg1f );	IntpPushwA( scr, SCR_FLOAT );
-        } else { // int - int
-            IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 - Arg1 ); IntpPushwA( scr, SCR_INT );
-        }
-    }    
+    switch( Type2 ){
+	case SCR_FLOAT: // float - float/int
+    	    IntpPushIntStack( scr->StackA, &scr->StackApos, ( Type1 == SCR_FLOAT ) ? Arg2f - Arg1f : Arg2f - Arg1 );
+    	    IntpPushwA( scr, SCR_FLOAT );
+    	    break;
+	case SCR_INT:
+	    if( Type1 == SCR_FLOAT ){ // int - float
+    		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 - Arg1f );	
+    		IntpPushwA( scr, SCR_FLOAT );
+	    } else { // int - int
+    		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 - Arg1 ); 
+    		IntpPushwA( scr, SCR_INT );
+	    }
+	    break;
+    }
 }
 
 void ScpA_Mul( Intp_t *scr ) // 803B
@@ -1011,79 +966,34 @@ void ScpA_LogAnd( Intp_t *scr ) // 803E
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x && [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( Type2 < SCR_FSTRING ){
-        if( Type2 != SCR_STRING ) goto LABEL_60;
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 != SCR_STRING ) goto LABEL_60;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_60;
-            if( Type1 > SCR_FLOAT ){
-                if( Type1 == SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f != 0 );
-            } else {
-    		IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg1f != 0.0) );
+    
+    switch( Type2 ){
+	case SCR_STRING :
+	case SCR_FSTRING:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, 1 ); break;
+    		case SCR_FLOAT: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f != 0.0 ); break;
+    		case SCR_INT: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 != 0 ); break;
     	    }
-    	    goto LABEL_60;
-        }
-        IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-        goto LABEL_60;
+    	    break;    
+	case SCR_FLOAT:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f != 0 ); break;
+    		case SCR_FLOAT:   IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg2f != 0.0) && (Arg1f != 0.0) ); break;
+        	case SCR_INT:     IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg2f != 0.0 ) && Arg1 ); break;
+	    }        
+    	    break;        
+	case SCR_INT:
+	    switch( Type1 ){
+    		case SCR_STRING: 
+		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 != 0 ); break;
+    		case SCR_FLOAT:   IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 && (Arg1f != 0.0) ); break;
+    		case SCR_INT:     IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 && Arg1 ); break;
+	    }
+	    break;
     }
-    if( Type2 <= SCR_FSTRING ){
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 != SCR_STRING ) goto LABEL_60;
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 < SCR_FLOAT ) goto LABEL_60;
-            if( Type1 > SCR_FLOAT ){
-                if( Type1 != SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f != 0 );
-            } else {
-    		IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg1f != 0.0) );
-    	    }
-    	    goto LABEL_60;
-        }
-        IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-        goto LABEL_60;
-    }
-    if( Type2 < SCR_FLOAT ) goto LABEL_60;
-    if( Type2 == SCR_FLOAT ){
-        if( Type1 < SCR_FSTRING ){ // float AND str
-            if( Type1 == SCR_STRING ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f != 0 );
-	    IntpPushwA( scr, SCR_INT );
-	    return;
-        }
-        if( Type1 == SCR_FSTRING ){ // float AND fstr
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f != 0 );
-	    IntpPushwA( scr, SCR_INT );
-	    return;
-        }
-        if( Type1 < SCR_FLOAT ) goto LABEL_60;
-        if( Type1 == SCR_FLOAT ){ // float AND float
-            IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg2f != 0.0) && (Arg1f != 0.0) );
-        } else { // float AND int
-            if( Type1 == SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg2f != 0.0 )  && Arg1 );
-        }        
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type2 != SCR_INT ) goto LABEL_60;
-    if( Type1 < SCR_FSTRING ){ // int AND str
-        if( Type1 == SCR_STRING ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 != 0 );
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type1 == SCR_FSTRING ){ // int AND fstr
-        IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 != 0 );
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type1 >= SCR_FLOAT ){
-        if( Type1 == SCR_FLOAT ){ // int AND float
-            IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 && (Arg1f != 0.0) );
-        } else { // int AND int
-            if( Type1 == SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 && Arg1 );
-        }        
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-LABEL_60:
     IntpPushwA( scr, SCR_INT );
     return;
 }
@@ -1098,89 +1008,37 @@ void ScpA_LogOr( Intp_t *scr ) // 803F ||( p1 , p2 )
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x || [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( Type2 < SCR_FSTRING ){
-        if( Type2 == SCR_STRING ){
-    	    if( Type1 < SCR_FSTRING ){
-        	if( Type1 == SCR_STRING ) IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-    	    } else if( Type1 > SCR_FSTRING ){
-        	if( Type1 >= SCR_FLOAT ){
-        	    if( Type1 == SCR_FLOAT || Type1 == SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos,  1 );
-        	}
-    	    } else {
-    		IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
+    
+    switch( Type2 ){
+	case SCR_STRING :
+	case SCR_FSTRING:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, 1 ); break;
+    		case SCR_FLOAT: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f != 0.0 ); break;
+    		case SCR_INT: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 != 0 ); break;
     	    }
-        }
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type2 <= SCR_FSTRING ){
-        if( Type1 < SCR_FSTRING ){
-            if( Type1 == SCR_STRING ) IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-        } else if( Type1 > SCR_FSTRING ){
-            if( Type1 >= SCR_FLOAT ){
-        	if( Type1 == SCR_FLOAT || Type1 == SCR_INT ) IntpPushIntStack( scr->StackA, &scr->StackApos,  1 );
-            }
-        } else {
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-        }
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type2 < SCR_FLOAT ){
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type2 > SCR_FLOAT ){
-	if( Type2 == SCR_INT ){
-	    if( Type1 < SCR_FSTRING ){
-    		if( Type1 == SCR_STRING ) IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-		IntpPushwA( scr, SCR_INT );
-		return;
+    	    break;    
+	case SCR_FLOAT:
+	    switch( Type1 ){
+    		case SCR_STRING:
+    		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f != 0 ); break;
+    		case SCR_FLOAT:   IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg2f != 0.0) || (Arg1f != 0.0) ); break;
+        	case SCR_INT:     IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg2f != 0.0 ) || Arg1 ); break;
+	    }        
+    	    break;        
+	case SCR_INT:
+	    switch( Type1 ){
+    		case SCR_STRING: 
+		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 != 0 ); break;
+    		case SCR_FLOAT:   IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 || (Arg1f != 0.0) ); break;
+    		case SCR_INT:     IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 || Arg1 ); break;
 	    }
-	    if( Type1 <= SCR_FSTRING ){
-		IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-		IntpPushwA( scr, SCR_INT );
-		return;
-	    }
-	    if( Type1 >= SCR_FLOAT ){
-    		if( Type1 <= SCR_FLOAT ){
-        	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f || (Arg1f != 0.0) );
-    		} else {
-    		    if( Type1 == SCR_INT ){
-        		if( Arg2f ){
-        		    IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-        		} else {
-        		    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f ? 1:0 );
-        		}            
-        	    }
-    		}        
-	    }
-	}
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type1 < SCR_FSTRING ){
-        if( Type1 == SCR_STRING ) IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type1 == SCR_FSTRING ){
-        IntpPushIntStack( scr->StackA, &scr->StackApos, 1 );
-	IntpPushwA( scr, SCR_INT );
-	return;
-    }
-    if( Type1 >= SCR_FLOAT ){
-        if( Type1 == SCR_FLOAT ){
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg2f != 0.0) || (Arg1f != 0.0 ) ); IntpPushwA( scr, SCR_INT );
-        } else {
-    	    if( Type1 == SCR_INT ){
-    		if( Arg2f != 0.0 ) Arg1f = 1;                    
-    		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f ? 1:0 );
-    	    }
-        }
+	    break;
     }
     IntpPushwA( scr, SCR_INT );
     return;
+
 }
 
 void ScpA_LogNot( Intp_t *scr ) // 8045 !( arg )
@@ -1434,9 +1292,9 @@ void ScpA_ExitProc( Intp_t *scr ) // 801F ?( arg1, arg2, arg3 )
 
     SCP_GETARG( Type1, Arg1, scr ); scr->i34 = Arg1; // window
     Type2 = IntpPopShortStack( scr->StackA, &scr->StackApos);
-    if( Type2 == 0x9801 ){
+    if( Type2 == SCR_FSTRING ){
 	Arg1 = IntpPopIntStack( scr->StackA, &scr->StackApos);
-	IntpStringDeRef( scr, 0x9801, Arg1 );
+	IntpStringDeRef( scr, SCR_FSTRING, Arg1 );
 	scr->Func = NULL;
 	SCP_DBGA( "EXIT_PROC( [%x]%x )", Type2, Arg1 );
     } else {
@@ -1638,13 +1496,13 @@ void ScpA_8013( Intp_t *scr ) // 8013 SetLocVar( )?
     SCP_DBGA( "?8013?( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
 
     tmp = IntpReadBei( scr->StackA, 6 * Arg1 + scr->SaveStack );
-    if( *(uint16_t *)&scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack ] == 0x0198 ) IntpStringDeRef( scr, 0x9801, tmp );
+    if( *(uint16_t *)&scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack ] == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, tmp );
 
     IntpWriteBew( Arg2 >> 8, scr->StackA, 6 * Arg1 + scr->SaveStack );
     IntpWriteBew( Arg2, scr->StackA, 6 * Arg1 + scr->SaveStack + 2 );
     scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 0 ] = Type2 >> 8;
     scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 1 ] = Type2;
-    if( Type2 == (uint16_t)0x9801 ) (*(uint16_t *)&scr->Strings[ Arg2 + 2 ] )++;
+    if( Type2 == SCR_FSTRING ) (*(uint16_t *)&scr->Strings[ Arg2 + 2 ] )++;
 
 }
 
