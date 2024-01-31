@@ -748,14 +748,14 @@ void ScpA_Add( Intp_t *scr ) // 8039
     float Arg2f, Arg1f;
     unsigned int t2;
     char *s, *pd, *p, *q;
+    void *Arg1p, *Arg2p;
 
-    SCP_GETARGF( Type1, Arg1, Arg1f, scr );
-    SCP_GETARGF( Type2, Arg2, Arg2f, scr );
+    SCP_GETARGFX( Type1, Arg1, Arg1f, Arg1p, scr );
+    SCP_GETARGFX( Type2, Arg2, Arg2f, Arg2p, scr );
     SCP_DBGA( "( [%x]%x + [%x]%x )", Type2, Arg2, Type1, Arg1 );
-
+printf( "( [%x]%x(%p) + [%x]%x(%p) )\n", Type2, Arg2,Arg2p, Type1, Arg1, Arg1p );
     t2 = Type2 & 0xF7FF;
-    if( t2 < SCR_FLOAT ){
-        if( t2 == SCR_STRING ){
+    if( t2 == SCR_STRING ){
     	    s = NULL;    	    
     	    if( Type2 & 0x0800 ){
     		s = &scr->Strings[ Arg2 + 4 ];
@@ -764,6 +764,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
     	    }
 	    q = NULL;
 	    switch( Type1 & 0xF7FF ){
+    		case SCR_FSTRING:
     		case SCR_STRING:
         	    if( Type1 & 0x800 ){
             		pd = &scr->Strings[ Arg1 + 4 ];
@@ -783,6 +784,9 @@ void ScpA_Add( Intp_t *scr ) // 8039
     		    q = dbg_malloc( 80 );
     		    sprintf( q, "%d", Arg1 );
     		    break;
+		case SCR_PTR:
+    		    IntpPushPtrStack( scr->StackA, &scr->StackApos, NULL ); IntpPushwA( scr, SCR_PTR ); // illegal operations to pointer
+    		    break;
     	    }
     	    p = dbg_malloc( strlen( s ) + strlen( q ) + 1 );
     	    strcpy( p, s );
@@ -791,11 +795,9 @@ void ScpA_Add( Intp_t *scr ) // 8039
     	    IntpPushwA( scr, SCR_FSTRING );
     	    dbg_free( q );
     	    dbg_free( p );
-        }
-        return;
+    	    return;
     }
-    if( t2 > SCR_FLOAT ){
-        if( t2 == SCR_INT ){
+    if( t2 == SCR_INT ){
     	    switch( Type1 & 0xF7FF ){
         	case SCR_FLOAT:
             	    IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1 ); IntpPushwA( scr, SCR_FLOAT );
@@ -807,6 +809,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
                 	IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1 ); IntpPushwA( scr, SCR_FLOAT );
             	    }        	
             	    break;
+    		case SCR_FSTRING:
     		case SCR_STRING:
     		    pd = NULL;
     		    if( Type1 & 0x0800 ){
@@ -820,31 +823,54 @@ void ScpA_Add( Intp_t *scr ) // 8039
     		    IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
     		    dbg_free( p );
     	    	    break;
+		case SCR_PTR:
+    		    IntpPushPtrStack( scr->StackA, &scr->StackApos, NULL ); IntpPushwA( scr, SCR_PTR ); // illegal operations to pointer
+    		    break;
     	    }
-        }
-        return;
+    	    return;
     }
-    switch( Type1 & 0xF7FF ){
-        case SCR_STRING:
-    	    pd = NULL;    	    
-    	    if( Type1 & 0x0800 ){
-    	        pd = &scr->Strings[ Arg1 + 4 ];
-    	    } else {
-    		if( Type1 & 0x1000 ) pd = &scr->StringsConst[ Arg1 + 4 ];
-    	    }
-    	    p = dbg_malloc( strlen( pd ) + 80 );
-    	    sprintf( p, "%.5f", Arg2f );
-    	    strcpy( p + strlen( p ), pd );
-    	    IntpPushIntStack(scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
-    	    dbg_free( p );
-    	    break;
-	case SCR_FLOAT:
-    	    IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1f ); IntpPushwA(scr, SCR_FLOAT);
-    	    break;
-	case SCR_INT:
-    	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 + Arg2 ); IntpPushwA( scr, SCR_FLOAT );
-    	    break;
+    if( t2 == SCR_INT ){
+	switch( Type1 & 0xF7FF ){
+    	    case SCR_FSTRING:
+    	    case SCR_STRING:
+    		pd = NULL;    	    
+    		if( Type1 & 0x0800 ){
+    	    	    pd = &scr->Strings[ Arg1 + 4 ];
+    		} else {
+    		    if( Type1 & 0x1000 ) pd = &scr->StringsConst[ Arg1 + 4 ];
+    		}
+    		p = dbg_malloc( strlen( pd ) + 80 );
+    		sprintf( p, "%.5f", Arg2f );
+    		strcpy( p + strlen( p ), pd );
+    	        IntpPushIntStack(scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); IntpPushwA( scr, SCR_FSTRING );
+    		dbg_free( p );
+    		break;
+	    case SCR_FLOAT:
+    		IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1f ); IntpPushwA(scr, SCR_FLOAT);
+    		break;
+	    case SCR_INT:
+    		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 + Arg2 ); IntpPushwA( scr, SCR_FLOAT );
+    		break;
+    	    case SCR_PTR:
+    		IntpPushPtrStack( scr->StackA, &scr->StackApos, Arg1p + Arg2 ); IntpPushwA( scr, SCR_PTR );
+    	        break;
+	}
+	return;
     }
+    if( t2 == SCR_PTR ){
+	switch( Type1 & 0xF7FF ){
+    	    case SCR_FSTRING:
+    	    case SCR_STRING:
+    	    case SCR_PTR:
+	    case SCR_FLOAT:
+    		IntpPushPtrStack( scr->StackA, &scr->StackApos, NULL ); IntpPushwA( scr, SCR_PTR ); // illegal operations to pointer
+    		break;
+	    case SCR_INT:
+    		IntpPushPtrStack( scr->StackA, &scr->StackApos, Arg1 + Arg2p ); IntpPushwA( scr, SCR_PTR );
+    		break;
+	}
+	return;
+    }    
 }
 
 void ScpA_Sub( Intp_t *scr ) // 803A

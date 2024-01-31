@@ -5,7 +5,7 @@
 int scp_dbg = 0;
 #endif
 
-int gScptUnk02;
+int gScptActionFlags;
 Scpt01_t gScptUnk15;
 Combat02_t gScptUnk114;
 
@@ -63,7 +63,7 @@ int gScptUnk113 = 0;
 int gScptUnk112 = 0;
 int gScptCalendarDays[ 13 ] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0 };
 
-int gScptUnk02;
+int gScptActionFlags;
 int gScptUnk115;
 int gScptUnk118;
 int gScptUnk121;
@@ -71,7 +71,7 @@ int gScptUnk122;
 int gScptUnk116;
 int gScptUnk117;
 int gScptUnk117;
-Obj_t *gScptUnk102;
+Obj_t *gScptTalkObject;
 Obj_t *gScptUnk100;
 Obj_t *gScptUnk101;
 Obj_t *gScptUnk119;
@@ -509,14 +509,14 @@ int ScptUnk126( int Unused, Obj_t *obj )
     return 0;
 }
 
-void ScptUnk125()
+void ScptResetActionFlags()
 {
-    gScptUnk02 = 0;
+    gScptActionFlags = 0;
 }
 
 void ScptUnk124( Scpt_t *a1 )
 {
-    if( (gScptUnk02 & 0x01) && (gScptUnk15.obj == a1->TimeEv) )  gScptUnk02 &= ~0x401;
+    if( (gScptActionFlags & SCP_ACT_01 ) && (gScptUnk15.obj == a1->TimeEv) )  gScptActionFlags &= ~( SCP_ACT_400 | SCP_ACT_01 );
 }
 
 void ScptProcess()
@@ -529,28 +529,28 @@ void ScptProcess()
     int a3;
     int MapId;
 
-    if( gScptUnk02 ){
-        if( gScptUnk02 & 0x01 ){
+    if( gScptActionFlags ){
+        if( gScptActionFlags & SCP_ACT_01 ){
             v0 = ActionUnk13();
             if( !v0 ){
-                gScptUnk02 &=  ~0x401;
+                gScptActionFlags &=  ~( SCP_ACT_400 | SCP_ACT_01 );
                 memcpy( &gScptUnk114, &gScptUnk15, sizeof( gScptUnk114 ) );
-                if( gScptUnk02 & 0x40 ){
-                    gScptUnk02 &= ~0x40;
-                    CombatStart( 0 );
+                if( gScptActionFlags & SCP_ACT_COMBAT ){
+                    gScptActionFlags &= ~SCP_ACT_COMBAT;
+                    CombatStart( NULL );
                 } else {
                     CombatStart( &gScptUnk114 );
                     memset( &gScptUnk114, 0, sizeof( gScptUnk114 ) );
                 }
             }
         }
-        if( gScptUnk02 & 0x02 ){ gScptUnk02 &= ~0x02; WmUnk10( v0 ); }
-        if( gScptUnk02 & 0x04 ){ gScptUnk02 &= ~0x04; WmMenu(); }
-        if( gScptUnk02 & 0x08 ){
+        if( gScptActionFlags & SCP_ACT_02 ){ gScptActionFlags &= ~SCP_ACT_02; WmUnk10( v0 ); }
+        if( gScptActionFlags & SCP_ACT_WORLDMAP ){ gScptActionFlags &= ~SCP_ACT_WORLDMAP; WmMenu(); }
+        if( gScptActionFlags & SCP_ACT_ELEVATOR ){
             MapId = gMap.MapId;
             a3 = gScptUnk118;
             a4 = -1;
-            gScptUnk02 &= ~0x08;
+            gScptActionFlags &= ~SCP_ACT_ELEVATOR;
             if( ElevatorMenu( gScptUnk115, &MapId, &a3, &a4 ) != -1 ){
                 AutomapSave();
                 if( MapId == gMap.MapId ){
@@ -596,11 +596,11 @@ void ScptProcess()
                 }
             }
         }
-        if( gScptUnk02 & 0x10 ){ gScptUnk02 &= ~0x10; ActionExplode( gScptUnk121, gScptUnk122, gScptUnk116, gScptUnk117, 0, 1 ); }
-        if( gScptUnk02 & 0x20 ){ gScptUnk02 &= ~0x20; GdialogEnter( gScptUnk102, 0 ); }
-        if( gScptUnk02 & 0x80 ){ gScptUnk02 &= ~0x80; EndGameRun(); EndGameMoviePlay(); }
-        if( gScptUnk02 & 0x100 ){ gScptUnk02 &= ~0x100; InvMenuSteal( gScptUnk100, gScptUnk101 ); }
-        if( gScptUnk02 & 0x200 ){ gScptUnk02 &= ~0x200; InvStealAttempt( gScptUnk119, gScptUnk120 ); }
+        if( gScptActionFlags & SCP_ACT_EXPLOSION ){ gScptActionFlags &= ~SCP_ACT_EXPLOSION; ActionExplode( gScptUnk121, gScptUnk122, gScptUnk116, gScptUnk117, 0, 1 ); }
+        if( gScptActionFlags & SCP_ACT_TALK ){ gScptActionFlags &= ~SCP_ACT_TALK; GdialogEnter( gScptTalkObject, 0 ); }
+        if( gScptActionFlags & SCP_ACT_ENDGAME ){ gScptActionFlags &= ~SCP_ACT_ENDGAME; EndGameRun(); EndGameMoviePlay(); }
+        if( gScptActionFlags & SCP_ACT_STEAL_MENU ){ gScptActionFlags &= ~SCP_ACT_STEAL_MENU; InvMenuSteal( gScptUnk100, gScptUnk101 ); }
+        if( gScptActionFlags & SCP_ACT_STEAL_ATTEMPT ){ gScptActionFlags &= ~SCP_ACT_STEAL_ATTEMPT; InvStealAttempt( gScptUnk119, gScptUnk120 ); }
     }
 }
 
@@ -611,7 +611,7 @@ void ScptUnk122()
     short PosY;
     int Lvl, pMapId;
 
-    if( gScptUnk02 & 8 ){
+    if( gScptActionFlags & SCP_ACT_ELEVATOR ){
         pMapId = gMap.MapId;
         PosY = -1;
         Lvl = gScptUnk118;
@@ -648,18 +648,18 @@ void ScptUnk122()
             }
         }
     }
-    if( gScptUnk02 & 0x100 ) InvMenuSteal( gScptUnk100, gScptUnk101 );
-    gScptUnk02 = 0;
+    if( gScptActionFlags & SCP_ACT_STEAL_MENU ) InvMenuSteal( gScptUnk100, gScptUnk101 );
+    gScptActionFlags = 0;
 }
 
 int ScptUnk121( Scpt01_t *a1 )
 {
-    if( gScptUnk02 & 0x400 ) return -1;
+    if( gScptActionFlags & SCP_ACT_400 ) return -1;
     if( a1 )
         memcpy( &gScptUnk15, a1, sizeof( Scpt01_t ) );
     else
-        gScptUnk02 |= 0x40;
-    gScptUnk02 |= 0x01;
+        gScptActionFlags |= SCP_ACT_COMBAT;
+    gScptActionFlags |= SCP_ACT_01;
     return 0;
 }
 
@@ -668,22 +668,22 @@ int ScptUnk120( Scpt01_t *scr )
     if( scr )
         memcpy( &gScptUnk15, scr, sizeof( Scpt01_t ) );
     else
-        gScptUnk02 |= gScptUnk02;
-    gScptUnk02 |= 0x401;
+        gScptActionFlags |= SCP_ACT_COMBAT;
+    gScptActionFlags |= ( SCP_ACT_400 | SCP_ACT_01 );
     return 0;
 }
 
 int ScptUnk119()
 {
     if( IN_COMBAT ) gMenuEscape = 1;
-    gScptUnk02 |= 0x02;
+    gScptActionFlags |= SCP_ACT_02;
     return 0;
 }
 
 int ScptWorldMap()
 {
     if( IN_COMBAT ) gMenuEscape = 1;
-    gScptUnk02 |= 0x04;
+    gScptActionFlags |= SCP_ACT_WORLDMAP;
     return 0;
 }
 
@@ -708,7 +708,7 @@ int ScptRequestElevator( Scpt_t *a1, int Reaction )
 	if( p != 0 ) break;
     }
     if( Reaction == -1 ) return -1;
-    gScptUnk02 |= 0x08;
+    gScptActionFlags |= SCP_ACT_ELEVATOR;
     gScptUnk115 = Reaction;
     gScptUnk118 = gCurrentMapLvl;
     return 0;	
@@ -716,29 +716,29 @@ int ScptRequestElevator( Scpt_t *a1, int Reaction )
 
 void ScptExplosion( unsigned int tilenum, int a2, int a3, int a4 )
 {
-    gScptUnk02 |= 0x10;
+    gScptActionFlags |= SCP_ACT_EXPLOSION;
     gScptUnk121 = tilenum;
     gScptUnk122 = a2;
     gScptUnk116 = a3;
     gScptUnk117 = a4;
 }
 
-void ScptUnk115( Obj_t *a1 )
+void ScptTalkTo( Obj_t *a1 )
 {
-    gScptUnk102 = a1;
-    gScptUnk02 |= 0x20;
+    gScptTalkObject = a1;
+    gScptActionFlags |= SCP_ACT_TALK;
 }
 
 void ScptSlideShow()
 {
-    gScptUnk02 |= 0x80;
+    gScptActionFlags |= SCP_ACT_ENDGAME;
 }
 
 int ScptUnk113( void *a1, void *a2 )
 {
     gScptUnk100 = a1;
     gScptUnk101 = a2;
-    gScptUnk02 |= 0x100;
+    gScptActionFlags |= SCP_ACT_STEAL_MENU;
     return 0;
 }
 
@@ -746,7 +746,7 @@ void ScptUnk112( Obj_t *a1, Obj_t *a2 )
 {
     gScptUnk119 = a1;
     gScptUnk120 = a2;
-    gScptUnk02 |= 0x200;
+    gScptActionFlags |= SCP_ACT_STEAL_ATTEMPT;
 }
 
 void ScptUnk111( char *a1 )
@@ -809,7 +809,7 @@ void ScptIndexPproc( Scpt_t *scr )
     }
 }
 
-int ScptUnk108( int Pid, int idx )
+int ScptEventHandled( int Pid, int idx )
 {
     Scpt_t *scr;
 
@@ -970,7 +970,7 @@ int ScptInit()
     IntpSetErrHandler( TextBoxUnk03 );
     ScpAInitCommands();
     ScptBookReset();
-    gScptUnk02 = 0;
+    gScptActionFlags = 0;
     PartyUnk06();
     if( ScptLoadFileList() == -1 ) return -1;
     return 0;    
@@ -979,7 +979,7 @@ int ScptInit()
 int ScptUnk01()
 {
     ScptFlush();
-    gScptUnk02 = 0;
+    gScptActionFlags = 0;
     PartyUnk06( 0 );
     return 0;
 }
@@ -1002,7 +1002,7 @@ int ScptGameInit()
     InpTaskStart( ScptTaskCb );
     if( ScptSetDudeScript() == -1 ) return -1;
     gScptUnk52 = 1;
-    gScptUnk02 = 0;
+    gScptActionFlags = 0;
     return 0;
 }
 
@@ -1029,7 +1029,7 @@ int ScptClose()
     SciUnk01();
     SciUnk20();
     InpTaskStop( ScptTaskCb );
-    gScptUnk02 = 0;
+    gScptActionFlags = 0;
     if( gScptLocVarTable ){
         Free( gScptLocVarTable );
         gScptLocVarTable = NULL;
@@ -1064,7 +1064,7 @@ int ScptReset()
     InpTaskStop( ScptTaskCb );
     MessageClose( &gScptMsg );
     if( ScptClearDudeScript() == -1 ) return -1;
-    gScptUnk02 = 0;
+    gScptActionFlags = 0;
     return 0;    
 }
 
@@ -1487,7 +1487,7 @@ int ScptRemove( int Pid )
     if( !qq ) return -1;    
     if( ( qq->Script[ i ].Flags & SCR_02 ) && qq->Script[ i ].Intp ) qq->Script[ i ].Intp = 0;
     if( qq->Script[ i ].Flags & SCR_NOTREMOVE ) return 0;
-    if( (gScptUnk02 & 0x01) && (gScptUnk15.obj == qq->Script[ i ].TimeEv) ) gScptUnk02 &= ~0x401;
+    if( (gScptActionFlags & SCP_ACT_01 ) && (gScptUnk15.obj == qq->Script[ i ].TimeEv) ) gScptActionFlags &= ~( SCP_ACT_400 | SCP_ACT_01 );
     if( ScptRemoveLocalVars( &qq->Script[ i ] ) == -1 ) eprintf( "\nERROR Removing local vars on scr_remove!!\n" );
     if( EvQeDelB( qq->Script[ i ].TimeEv, 3 ) == -1 ) eprintf( "\nERROR Removing Timed Events on scr_remove!!\n" );
     Current = bk->Current;

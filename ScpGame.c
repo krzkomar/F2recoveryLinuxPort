@@ -251,7 +251,7 @@ void ScrGame_UsingSkill( Intp_t *scr )
 void ScrGame_RollVsSkill( Intp_t *scr )
 {
     SCP_DBG_VAR;
-//    Scpt_t *script;
+    Scpt_t *script;
     Obj_t *critter;
     int skill, modifier, sk;
     uint16_t type[ 3 ];
@@ -263,7 +263,7 @@ void ScrGame_RollVsSkill( Intp_t *scr )
     sk = 0;
     if( critter ){
         if( OBJTYPE( critter->Pid ) == TYPE_CRIT ){
-//            if( ScptPtr( ScptGetActionSource( scr ), &script ) != -1 ) sk = SkillUse( critter, skill, script->i20, modifier );
+            if( ScptPtr( ScptGetActionSource( scr ), &script ) != -1 ) sk = SkillUse( critter, skill, script->i20, modifier );
         }
     } else {
         ScrGameErrorMsg( scr, "roll_vs_skill", 1 );
@@ -1394,7 +1394,7 @@ void ScrGame_ObjCanSeeObj( Intp_t *scr )
     if( obj[0] && obj[1] ){
         if ( obj[0]->GridId != -1 ){
             if( obj[0] == gObjDude ) CritterUsingSkill( 0 );
-//            FeatGetVal( obj[1], 1 );
+//            FeatGetVal( obj[1], 1 ); // return not used
             if( AiObjCanHearObj( obj[1], obj[0] ) ){
                 AnimUnk06( obj[1], obj[1]->GridId, obj[0]->GridId, 0, &pObj, 16 );
                 if( obj[0] == pObj ) n = 1;
@@ -1571,7 +1571,6 @@ void ScrGameUnk04( int x0, int y0, int x1, int y1, int a5 )
 
 void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5 )
 {
-/*
     int v5; // ebp
     int v6; // eax
     int rt; // edi
@@ -1619,7 +1618,6 @@ void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5 )
         }
         TileUpdateArea( &v15, ++rt );
     }
-*/
 }
 
 /*
@@ -1633,9 +1631,7 @@ void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5 )
 */
 void ScrGame_Metarule3( Intp_t *scr )
 {
-//    SCP_DBG_VAR;
-DD
-/*
+    SCP_DBG_VAR;
     Obj_t *i;
     Obj_t *obj;
     Obj_t *v22;
@@ -1649,8 +1645,10 @@ DD
     int v24;
     int result;
     int meat3_switch;
+    int meta3_switch;
     uint16_t type[4];
 
+return;
     v23 = 0;
     GETARGI( scr, type[ 0 ], arg0, 0, "metarule3" );
     GETARGI( scr, type[ 1 ], arg1, 1, "metarule3" );
@@ -1704,7 +1702,6 @@ DD
         default: return;                
     }
     RETINT( scr, result );
-*/
 }
 
 /*
@@ -1783,7 +1780,7 @@ void ScrGame_LoadMap( Intp_t *scr )
     GETARGI( scr, type1, val1, 0, "load_map" );
     type2 = IntpPopwA(scr);
     val2 = IntpPopiA( scr );
-    if( type2 == 0x9801 ) IntpStringDeRef( scr, 0x9801, val2 );
+    if( type2 == SCR_FSTRING ) IntpStringDeRef( scr, SCR_FSTRING, val2 );
     SCP_DBGA( "load_map( [%x]%x, [%x]%x )", type2, val2, type1, val1 );
     MapIdxByFileName = -1;
     Arg = 0;
@@ -2709,11 +2706,11 @@ void ScrGame_FloatMsg( Intp_t *scr )
     for( i = 0; i < 2; i++ ){
         type[ i ] = IntpPopwA( scr );
         Idx[ i ] = IntpPopiA( scr );
-        if( type[ i ] == 0x9801 ) IntpStringDeRef( scr, type[ i ], Idx[ i ] );
+        if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], Idx[ i ] );
         if( i == 1 ){
-            if( (type[ i ] & 0xF7FF) == 0x9001 ) Text = IntpGetString( scr, type[ i ] >> 8, Idx[ i ]);
+            if( (type[ i ] & 0xF7FF) == SCR_STRING ) Text = IntpGetString( scr, type[ i ] >> 8, Idx[ i ]);
         } else {
-            if( (type[ i ] & 0xF7FF) != 0xC001 ) IntpError("script error: %s: invalid arg %d to float_msg", scr->FileName, i );
+            if( (type[ i ] & 0xF7FF) != SCR_INT ) IntpError("script error: %s: invalid arg %d to float_msg", scr->FileName, i );
         }
     }
     GETARGP( scr, type[ 2 ], obj, 2, "float_msg" );
@@ -2780,14 +2777,14 @@ void ScrGame_MetaRule( Intp_t *scr )
     type[ 0 ] = IntpPopwA( scr );    
     if( type[ 0 ] == SCR_PTR ){
         obj = IntpPopPtrA( scr );
-	if( type[ 0 ] == 0x9801 ) IntpStringDeRef( scr, type[ 0 ], 0 );
-	if( (type[ 0 ] & ~0x800) != 0xC001 ) IntpError( "script error: %s: invalid arg %d to metarule", scr->FileName, 0 );
+	if( type[ 0 ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ 0 ], 0 );
+	if( (type[ 0 ] & ~0x800) != SCR_INT ) IntpError( "script error: %s: invalid arg %d to metarule", scr->FileName, 0 );
 	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
 	SCP_DBGA( "metarule( [%x]%x, [%x]%p )", type[1], sel, type[0], obj );
     } else {
         meta_par = IntpPopiA( scr );
-	if( type[ 0 ] == 0x9801 ) IntpStringDeRef( scr, type[ 0 ], meta_par );
-	if( (type[ 0 ] & ~0x800) != 0xC001 ) IntpError( "script error: %s: invalid arg %d to metarule", scr->FileName, 0 );
+	if( type[ 0 ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ 0 ], meta_par );
+	if( (type[ 0 ] & ~0x800) != SCR_INT ) IntpError( "script error: %s: invalid arg %d to metarule", scr->FileName, 0 );
 	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
 	SCP_DBGA( "metarule( [%x]%x, [%x]%x )", type[1], sel, type[0], meta_par );
     }
@@ -3317,11 +3314,11 @@ void ScrGame_GsayReply( Intp_t *scr )
     for( i = 0; i < 2; i++ ){
         type[ i ] = IntpPopwA( scr );
         val[ i ] = IntpPopiA( scr );
-        if( type[ i ] == 0x9801 ) IntpStringDeRef( scr, type[ i ], val[ i ] );
-        if( (type[ i ] & 0xF7FF) != 0xC001 ){
+        if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], val[ i ] );
+        if( (type[ i ] & 0xF7FF) != SCR_INT ){
             if( i ){
                 IntpError("script error: %s: invalid arg %d to gsay_reply", scr->FileName, i );
-            } else if( type[ i ] == 0x9001 ){
+            } else if( type[ i ] == SCR_STRING ){
                 s = IntpGetString( scr, type[1], val[0] );
             } else {
                 IntpError( "script error: %s: invalid arg %d to gsay_reply", scr->FileName, 0 );
@@ -3352,19 +3349,19 @@ void ScrGame_GsayOption( Intp_t *scr )
 
     type[ 0 ] = IntpPopwA( scr );
     Idx[ 0 ] = IntpPopiA( scr );
-    if( type[ 0 ] == 0x9801 ) IntpStringDeRef( scr, 0x9801, Idx[ 0 ] );
+    if( type[ 0 ] == SCR_FSTRING ) IntpStringDeRef( scr, SCR_FSTRING, Idx[ 0 ] );
 
     type[ 1 ] = IntpPopwA( scr );
     Idx[ 1 ] = IntpPopiA( scr );
-    if( type[ 1 ] == 0x9801 ) IntpStringDeRef( scr, 0x9801, Idx[ 1 ] );
+    if( type[ 1 ] == SCR_FSTRING ) IntpStringDeRef( scr, SCR_FSTRING, Idx[ 1 ] );
 
     for( i = 2; i < 4; i++ ){
         type[ i ] = IntpPopwA( scr );
         Idx[ i ] = IntpPopiA( scr );
-        if( type[ i ] == 0x9801 ) IntpStringDeRef( scr, 0x9801, Idx[ i ] );
-        if( (type[ i ] & 0xF7FF) != 0xC001 ){
+        if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, SCR_FSTRING, Idx[ i ] );
+        if( (type[ i ] & 0xF7FF) != SCR_INT ){
             if( i == 2 ){
-                if( (type[ i ] & 0xF7FF) == 0x9001 )
+                if( (type[ i ] & 0xF7FF) == SCR_STRING )
                     s = IntpGetString( scr, type[ i ] >> 8, Idx[ i + 2 ] );
                 else
                     IntpError( "script error: %s: invalid arg %d to gsay_option", scr->FileName, 2 );
@@ -3374,7 +3371,7 @@ void ScrGame_GsayOption( Intp_t *scr )
         }
     }
     SCP_DBGA( "gsay_option( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], Idx[3], type[2], Idx[2], type[1], Idx[1], type[0], Idx[0] );
-    if( (type[ 1 ] & 0xF7FF) == 0x9001 ){
+    if( (type[ 1 ] & 0xF7FF) == SCR_STRING ){
         IntpGetString( scr, type[ 1 ] >> 8, Idx[ 1 ] );
         if( s )
             GdialogUnk11( Idx[ 3 ], s, Idx[ 0 ] );
@@ -3383,7 +3380,7 @@ void ScrGame_GsayOption( Intp_t *scr )
         scr->Flags &= ~0x20;
         return;
     }
-    if( (type[ 1 ] & 0xF7FF) != 0xC001 ){
+    if( (type[ 1 ] & 0xF7FF) != SCR_INT ){
         IntpError( "Invalid arg 3 to sayOption" );
         scr->Flags &= ~0x20;
         return;
@@ -3410,10 +3407,10 @@ void ScrGame_GsayMessage( Intp_t *scr )
     for( i = 0; i < 3; i++ ){
         type[ i ] = IntpPopwA( scr );
         val[ i ] = IntpPopiA( scr );
-        if( type[ i ] == 0x9801 ) IntpStringDeRef( scr, type[ i ], val[ i ] );
-        if( ( type[ i ] & 0xF7FF ) != 0xC001 ){
+        if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], val[ i ] );
+        if( ( type[ i ] & 0xF7FF ) != SCR_INT ){
             if( i == 1 ){
-                if( (type[ i ] & 0xF7FF) == 0x9001 )
+                if( (type[ i ] & 0xF7FF) == SCR_STRING )
                     Arg = IntpGetString( scr, type[ i ] >> 8, val[ i ] );
                 else
                     IntpError( "script error: %s: invalid arg %d to gsay_message", scr->FileName, 1 );
@@ -3451,10 +3448,10 @@ void ScrGame_GigOption( Intp_t *scr )
     for( i = 0; i < 5; i++ ){
         type[ i ] = IntpPopwA( scr );
         val[ i ] = IntpPopiA( scr );
-        if( type[ i ] == 0x9801 ) IntpStringDeRef( scr, type[ i ], val[ i ] );
-        if( (type[ i ] & 0xF7FF) != 0xC001 ){
+        if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], val[ i ] );
+        if( (type[ i ] & 0xF7FF) != SCR_INT ){
             if( i == 2 ){
-                if( type[ i ] == 0x9001 )
+                if( type[ i ] == SCR_STRING )
                     a3 = IntpGetString( scr, type[ i ] >> 8, val[ i ] );
                 else
                     IntpError( "script error: %s: invalid arg %d to giq_option", scr->FileName, 2 );
@@ -3477,7 +3474,7 @@ void ScrGame_GigOption( Intp_t *scr )
         scr->Flags &= ~0x20;
         return;
     }
-    if( (type[ 1 ] & 0xF7FF) == 0x9001 ){
+    if( (type[ 1 ] & 0xF7FF) == SCR_STRING ){
 //	Arg = IntpGetString( scr, type[ 1 ] >> 8, val[ 1 ] );
         if( a3 )
             GdialogUnk11( val[3], a3, val[0] );
@@ -3486,7 +3483,7 @@ void ScrGame_GigOption( Intp_t *scr )
         scr->Flags &= ~0x20u;
         return;
     }
-    if( type[ 1 ] != 0xC001 ){
+    if( type[ 1 ] != SCR_INT ){
         IntpError( "Invalid arg 4 to sayOption" );
         scr->Flags &= ~0x20u;
         return;

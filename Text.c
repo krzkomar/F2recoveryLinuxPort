@@ -94,10 +94,8 @@ int TextFloatMessage( Obj_t *obj, char *Text, int Font, int ColorA, int ColorB, 
     memset( TextObj, 0, sizeof( Text_t ) );
     FontId = FontGetCurrent();
     FontSet( Font );
-DD
-printf("===>%s\n", Text);
+
     if( WinTextWrap( Text, 200, Lines, &cnt ) ){ FontSet( FontId ); return -1; }
-DD
     TextObj->LinesCnt = cnt - 1;
     if( TextObj->LinesCnt < 1 ) eprintf( "**Error in TextObjectCreate()\n" );
     TextObj->w = 0;

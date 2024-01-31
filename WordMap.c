@@ -1454,17 +1454,17 @@ int WmFindAreaByEntrance( int EntranceId, int *pIdx )
     return 0;
 }
 
-void WmUnk45( int MapId, int a2, int Val )
+int WmUnk45( int MapId, int a2, int Val )
 {
     int v5;
     int AreaId = 0;
 
-    if( MapId < 0 || MapId >= gWmMapCount ) return;
-    if( !( gWmMaps[ MapId ].Flags & 0x01 ) ) return;
-    if( WmFindAreaByEntranceId( MapId, &AreaId ) == -1 ) return;
-    if( WmUnk43( AreaId, MapId, a2, &v5) == -1 ) return;
-    if( !( gWmMaps[ MapId ].Flags & 0x01) ) return;
-    gWmAreas[ AreaId ].Entrances[ v5 ].i01 = Val;
+    if( MapId < 0 || MapId >= gWmMapCount ) return -1;
+    if( !( gWmMaps[ MapId ].Flags & 0x01 ) ) return 0;
+    if( WmFindAreaByEntranceId( MapId, &AreaId ) == -1 ) return -1;
+    if( WmUnk43( AreaId, MapId, a2, &v5 ) == -1 ) return -1;
+    if( ( gWmMaps[ MapId ].Flags & 0x01) ) gWmAreas[ AreaId ].Entrances[ v5 ].i01 = Val;
+    return 0;
 }
 
 

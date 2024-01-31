@@ -1171,8 +1171,7 @@ int ActionTalk( Obj_t *Crit1, Obj_t *Crit2 )
         AnimStart( 2 );
         AnimObjMoveToObj( Crit1, Crit2, Crit1->Critter.State.CurrentAP, 0 );
     } else {
-        tmp = ( Crit1 == gObjDude ) ? 2 : 1;
-        AnimStart( tmp );
+        AnimStart( ( Crit1 == gObjDude ) ? 2 : 1 );
         if( ObjGetDistance( Crit1, Crit2 ) >= 9 || CombatBlockedAim( Crit1, Crit1->GridId, Crit2->GridId, Crit2, 0 ) ) AnimObjRunToObj( Crit1, Crit2, -1, 0 );
     }
     AnimSetFinish( Crit1, Crit2, (void *)ActionSndACb, -1 );
@@ -1194,7 +1193,7 @@ int ActionSndACb( Obj_t *Critter, Obj_t *Target )
 
 void ActionSndBCb( Obj_t *a1 )
 {
-    ScptUnk115( a1 );
+    ScptTalkTo( a1 );
 }
 
 void ActionUnk05( int a1, int edx0, int a3, int a4, int a5, int a6, int a7 )
@@ -1264,7 +1263,7 @@ int ActionUnk04( int Min, int Max, Obj_t *obj, int *a4, int a5 )
     return tmp;
 }
 
-int ActionUnk03( Obj_t *a1, Obj_t *a2 )
+int ActionCritterTalkTo( Obj_t *a1, Obj_t *a2 )
 {
 //    int GroupId;
     ObjCritterCond_t *p_State;
@@ -1274,7 +1273,7 @@ DD
     if( a1 == a2 ) return 0;
     if( !CritterCanTalk( a2 ) ) return 0;
     if( ActionFindPath( a1, a2 ) ) return 0;
-    if( !ScptUnk108( a2->ScrId, 24 ) ) return 0;
+    if( !ScptEventHandled( a2->ScrId, SCPT_AEV_PUSH_P_PROC ) ) return 0;
     if( !IN_COMBAT ) return 1;
 //    GroupId = a2->Critter.State.GroupId;
     p_State = &a2->Critter.State;
@@ -1291,8 +1290,8 @@ int ActionUnk02( Obj_t *a1, Obj_t *a2 )
     int i18;
     int Id;
     Scpt_t *scr;
-
-    if( !ActionUnk03( a1, a2 ) ) return -1;
+DD
+    if( !ActionCritterTalkTo( a1, a2 ) ) return -1;
     if( UseGetScriptId( a2, &Id ) != -1 ){
         ScptSetup( Id, a1, a2 );
         ScptRun( Id, SCPT_AEV_PUSH_P_PROC );

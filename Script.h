@@ -5,6 +5,19 @@
 #define SCRT( n )	((((unsigned int)(n)) >> 24) & 0xff)
 //#define SCP_DBG( n, m... )
 
+// script action flags
+#define SCP_ACT_01		0x01 // combat ...
+#define SCP_ACT_02		0x02 // wmunk10()
+#define SCP_ACT_WORLDMAP	0x04
+#define SCP_ACT_ELEVATOR	0x08
+#define SCP_ACT_EXPLOSION	0x10
+#define SCP_ACT_TALK		0x20
+#define SCP_ACT_COMBAT		0x40 // combat ...
+#define SCP_ACT_ENDGAME		0x80
+#define SCP_ACT_STEAL_MENU	0x100
+#define SCP_ACT_STEAL_ATTEMPT	0x200
+#define SCP_ACT_400		0x400 // combat ...
+
 #ifdef SCP_DEBUG
 extern int scp_dbg;
 #define SCP_DBG_EN	scp_dbg = 1
@@ -304,14 +317,14 @@ int ScptUnk119();
 int ScptWorldMap();
 int ScptRequestElevator( Scpt_t *a1, int Reaction );
 void ScptExplosion( unsigned int tilenum, int a2, int a3, int a4 );
-void ScptUnk115( Obj_t *a1 );
+void ScptTalkTo( Obj_t *a1 );
 void ScptSlideShow();
 int ScptUnk113( void *a1, void *a2 );
 void ScptUnk112( Obj_t *a1, Obj_t *a2 );
 void ScptUnk111( char *a1 );
 int ScptRun( int ScriptId, int ProcId );
 void ScptIndexPproc( Scpt_t *scr );
-int ScptUnk108( int Pid, int idx );
+int ScptEventHandled( int Pid, int idx );
 int ScptAppendFileToList( char *fname );
 int ScptIsFileOnListA( char *fname );
 int ScptIsFileOnList( char *fname, int *pLine);

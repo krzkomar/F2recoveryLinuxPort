@@ -388,7 +388,7 @@ void WmUnk41( int MapIdx );
 int WmGetEntranceIdx( int AreaId, int EntranceId, int *pEntranceIdx );
 int WmUnk43( int AreaId, int EntranceId, int Unk, int *pIdx );
 int WmFindAreaByEntrance( int EntranceId, int *pIdx );
-void WmUnk45( int MapId, int a2, int Val );
+int WmUnk45( int MapId, int a2, int Val );
 int WmMenu();
 int WmMenu1( int a1 );
 int WmUnk47();

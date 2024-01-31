@@ -475,7 +475,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             break;
         case TYPE_CRIT:
             if( obj == gObjDude ){ 
-        	MenuPositions = 1; IconMenu[ 0 ] = 4; 
+        	MenuPositions = 1; IconMenu[ 0 ] = INV_ACT_TURN; 
     	    } else {
                 if( ObjTalkative( obj ) ){ 
             	    if( !IN_COMBAT ){ 
@@ -486,7 +486,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             	    MenuPositions = 1; 
             	    IconMenu[ 0 ] = INV_ACT_USE; 
             	} 
-            	if( ActionUnk03( gObjDude, obj ) ) IconMenu[ MenuPositions++ ] = 9; 
+            	if( ActionCritterTalkTo( gObjDude, obj ) ) IconMenu[ MenuPositions++ ] = INV_ACT_9; 
             }
             IconMenu[ MenuPositions++ ] = INV_ACT_INSPECT; 
             IconMenu[ MenuPositions++ ] = INV_ACT_TAKE; 
@@ -516,6 +516,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
     MapUnk35();
     tmp = MseY;
     sel = 0;
+    // select 
     while( ( MseGetButtons() & MSE_LBHOLD ) == 0 ){
         InpUpdate();
         if( gMenuEscape ) IconMenu[ sel ] = 0;
