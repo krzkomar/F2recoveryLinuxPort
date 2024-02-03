@@ -3,7 +3,7 @@
 int *gGVals;
 int gGValCount;
 
-int gGlobUnk01 = 0;
+int gGlobFloatMsg = 0;
 
 int GlobVarGet( int GlobIdx )
 {
@@ -16,7 +16,9 @@ int GlobVarGet( int GlobIdx )
 
 int GlobVarSet( int Idx, int Val )
 {
+DD
     if( Idx < 0 || Idx >= gGValCount ){
+DD
         eprintf( "ERROR: attempt to reference global var out of range: %d", Idx );
         return -1;
     }
@@ -62,31 +64,29 @@ int GlobVarLoadFile( char *fname, char *SecName, int *pCount, int **pData )
     return 0;
 }
 
-int GlobUnk01()
+int GlobFloatMsgState()
 {
-    return gGlobUnk01;
+    return gGlobFloatMsg;
 }
 
-int GlobVarUnk02( unsigned int a1 )
+int GlobVarFloatMsgInc( unsigned int a1 )
 {
-    if( a1 < 2 ){
-        if( !a1 ) a1 = 1;
-    } else if( a1 <= 2 ){
-        a1 = 3;
-    } else if( a1 == 4 ){
-        a1 = 5;
+    switch( a1 ){
+	case 0: a1 = 1; break;
+	case 2: a1 = 3; break;
+	case 4: a1 = 5; break;
     }
-    if( gGlobUnk01 == 4 && a1 == 5 ) return -1;
-    gGlobUnk01 = a1;
+    if( gGlobFloatMsg == 4 && a1 == 5 ) return -1;
+    gGlobFloatMsg = a1;
     return 0;
 }
 
-int GlobVarUnk03()
+int GlobVarFloatMsgDec()
 {
-    switch( gGlobUnk01 ){
-        case 1: gGlobUnk01 = 0; break;
-        case 3: gGlobUnk01 = 2; break;
-        case 5: gGlobUnk01 = 4; break;
+    switch( gGlobFloatMsg ){
+        case 1: gGlobFloatMsg = 0; break;
+        case 3: gGlobFloatMsg = 2; break;
+        case 5: gGlobFloatMsg = 4; break;
         default: break;
     }
     return 0;

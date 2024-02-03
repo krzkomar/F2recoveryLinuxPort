@@ -187,7 +187,7 @@ int GameProcess( int sel, int a2 )
     int tmp, mx, my, month, day, year;
     char stmp1[128], stmp2[128], stmp[100], Version[32];
 
-    if( gGlobUnk01 == 5 ) GdialogUnk02();
+    if( gGlobFloatMsg == 5 ) GdialogFloatingMessages();
     if( sel == -1 ) return 0; // no event
     if( sel == -2 ){
         tmp = MseGetButtons();

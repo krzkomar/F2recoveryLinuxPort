@@ -71,7 +71,7 @@ int gScptUnk122;
 int gScptUnk116;
 int gScptUnk117;
 int gScptUnk117;
-Obj_t *gScptTalkObject;
+Obj_t *gScptTalkObject = NULL;
 Obj_t *gScptUnk100;
 Obj_t *gScptUnk101;
 Obj_t *gScptUnk119;
@@ -439,7 +439,7 @@ void ScptUnk132()
 
     Time = TimerGetTime();
     v1 = 0;
-    if( GlobUnk01() != 4 && TimerDiff( Time, gScptUnk111 ) >= 30000 ){
+    if( GlobFloatMsgState() != 4 && TimerDiff( Time, gScptUnk111 ) >= 30000 ){
         gScptUnk111 = Time;
         ScptExecMapUpdateScripts( 23 );
     }
@@ -723,9 +723,9 @@ void ScptExplosion( unsigned int tilenum, int a2, int a3, int a4 )
     gScptUnk117 = a4;
 }
 
-void ScptTalkTo( Obj_t *a1 )
+void ScptTalkTo( Obj_t *trg )
 {
-    gScptTalkObject = a1;
+    gScptTalkObject = trg;
     gScptActionFlags |= SCP_ACT_TALK;
 }
 

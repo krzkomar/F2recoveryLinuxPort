@@ -1175,7 +1175,7 @@ int ActionTalk( Obj_t *Crit1, Obj_t *Crit2 )
         if( ObjGetDistance( Crit1, Crit2 ) >= 9 || CombatBlockedAim( Crit1, Crit1->GridId, Crit2->GridId, Crit2, 0 ) ) AnimObjRunToObj( Crit1, Crit2, -1, 0 );
     }
     AnimSetFinish( Crit1, Crit2, (void *)ActionSndACb, -1 );
-    AnimSetCallback11( Crit1, (AnimU_t)Crit2, (void *)ActionSndBCb, -1 );
+    AnimSetCallback11( Crit1, (AnimU_t)Crit2, (void *)ActionTalkToObj, -1 );
     return AnimBegin();
 }
 
@@ -1191,9 +1191,9 @@ int ActionSndACb( Obj_t *Critter, Obj_t *Target )
     return -1;
 }
 
-void ActionSndBCb( Obj_t *a1 )
+void ActionTalkToObj( Obj_t *Src, Obj_t *Trg )
 {
-    ScptTalkTo( a1 );
+    ScptTalkTo( Trg );
 }
 
 void ActionUnk05( int a1, int edx0, int a3, int a4, int a5, int a6, int a7 )
@@ -1263,24 +1263,22 @@ int ActionUnk04( int Min, int Max, Obj_t *obj, int *a4, int a5 )
     return tmp;
 }
 
-int ActionCritterTalkTo( Obj_t *a1, Obj_t *a2 )
+int ActionCritterTalkTo( Obj_t *Src, Obj_t *Trg )
 {
-//    int GroupId;
     ObjCritterCond_t *p_State;
-    int WhoHitMe;
-DD
-    if( OBJTYPE( a2->ImgId ) != TYPE_CRIT ) return 0;
-    if( a1 == a2 ) return 0;
-    if( !CritterCanTalk( a2 ) ) return 0;
-    if( ActionFindPath( a1, a2 ) ) return 0;
-    if( !ScptEventHandled( a2->ScrId, SCPT_AEV_PUSH_P_PROC ) ) return 0;
+    Obj_t *WhoHitMe;
+
+    if( OBJTYPE( Trg->ImgId ) != TYPE_CRIT ) return 0;
+    if( Src == Trg ) return 0;
+    if( !CritterCanTalk( Trg ) ) return 0;
+    if( ActionTargetAccessible( Src, Trg ) ) return 0;
+    if( !ScptEventHandled( Trg->ScrId, SCPT_AEV_PUSH_P_PROC ) ) return 0;
     if( !IN_COMBAT ) return 1;
-//    GroupId = a2->Critter.State.GroupId;
-    p_State = &a2->Critter.State;
-//    if( GroupId == a1->Critter.State.GroupId && a1 == p_State->WhoHitMe ) return 0;
-    if( !(WhoHitMe = p_State->WhoHitMe) ) return 1;
-//    return WhoHitMe->Critter.State.GroupId != a1->Critter.State.GroupId;    
-return 0;
+
+    p_State = &Trg->Critter.State;
+    if( Trg->Critter.State.GroupId == Src->Critter.State.GroupId && Src == Trg->Critter.State.WhoHitMeObj ) return 0;
+    if( !( WhoHitMe = p_State->WhoHitMeObj ) ) return 1;
+    return WhoHitMe->Critter.State.GroupId != Src->Critter.State.GroupId;    
 }
 
 int ActionUnk02( Obj_t *a1, Obj_t *a2 )
@@ -1322,10 +1320,10 @@ DD
     return AnimBegin();
 }
 
-int ActionFindPath( Obj_t *Crit, Obj_t *Target )
+int ActionTargetAccessible( Obj_t *Crit, Obj_t *Target )
 {
-    if( !AnimMakeTrace( Crit, Crit->GridId, Target->GridId, 0, 0, (void *)ObjUnk58 ) ) return -1;
-    if( TileGetDistance( Crit->GridId, Target->GridId ) <= 12 ) return 0;
-    return -2;
+    if( !AnimMakeTrace( Crit, Crit->GridId, Target->GridId, 0, 0, (void *)ObjUnk58 ) ) return -1; // out of sight
+    if( TileGetDistance( Crit->GridId, Target->GridId ) > 12 ) return -2; // too far away
+    return 0;    
 }
 

@@ -180,7 +180,7 @@ void ScrGame_OverrideMapStart( Intp_t *scr )
     char stmp[ 60 ];
     uint16_t type[ 4 ];
 
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     GETARGI( scr, type[ 0 ], Val[ 0 ], 0, "override_map_start" );
     GETARGI( scr, type[ 1 ], Val[ 1 ], 1, "override_map_start" );
     GETARGI( scr, type[ 2 ], Val[ 2 ], 2, "override_map_start" );
@@ -202,7 +202,7 @@ void ScrGame_OverrideMapStart( Intp_t *scr )
         TileSetCenter( GridPos, 1 );
         TileUpdate();
     }
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
 }
 
 /*
@@ -577,18 +577,18 @@ void ScrGame_DestroyObject( Intp_t *scr )
     uint16_t type;
     int v3;
 
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     v3 = 0;
     GETARGP( scr, type, obj, 0, "destroy_object" );
     SCP_DBGA( "destroy_object( [%x]%p )", type, obj );
     if( !obj ){
         ScrGameErrorMsg( scr, "destroy_object", 1 );
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( OBJTYPE( obj->Pid ) == 1 && LsgPending() ){
         eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( obj == ScptGetSelfObj( scr ) ) v3 = 1;
@@ -610,7 +610,7 @@ void ScrGame_DestroyObject( Intp_t *scr )
         ObjDestroy( obj, &Area );
         TileUpdateArea( &v14, gCurrentMapLvl );
     }
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
     if( v3 ) scr->Flags |= 0x1000000;    
 }
 
@@ -1442,24 +1442,24 @@ void ScrGame_Attack( Intp_t *scr )
         ScrGameErrorMsg( scr, "attack", 1 );
         return;
     }
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     if( !(p = ScptGetSelfObj( scr )) ){
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( !CritterCanTalk( p ) || ( p->Flags & 0x01 ) ){
         eprintf( "\n   But is already Inactive (Dead/Stunned/Invisible)" );
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( !CritterCanTalk( who ) || ( who->Flags & 0x01) ){
         eprintf( "\n   But target is already dead or invisible" );
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( who->Critter.State.Reaction & 0x04 ){
         eprintf( "\n   But target is AFRAID" );
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( !GdialogUnk01() ){
@@ -1485,7 +1485,7 @@ void ScrGame_Attack( Intp_t *scr )
             }
             ScptUnk121( &tmp );
         }
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
     }
 }
 
@@ -1499,13 +1499,13 @@ void ScrGame_StartGdialog( Intp_t *scr )
     Proto_t *proto;
     int n, BackGroundIdx, HeadNum, Mood, MsgFileNum;
     uint16_t type[ 5 ];
-    
+DD    
     GETARGI( scr, type[ 0 ], BackGroundIdx, 0, "start_gdialog" );
     GETARGI( scr, type[ 1 ], HeadNum, 1, "start_gdialog" );
     GETARGI( scr, type[ 2 ], Mood, 2, "start_gdialog" );
     GETARGP( scr, type[ 3 ], who, 3, "start_gdialog" );
     GETARGI( scr, type[ 4 ], MsgFileNum, 4, "start_gdialog" );
-    SCP_DBGA( "start_gdialog( [%x]%x, [%x]%p, [%x]%x, [%x]%x, [%x]%x)", type[4], MsgFileNum, type[3], who, type[2], Mood, type[1], HeadNum, type[0], BackGroundIdx);
+    SCP_DBGA( "start_gdialog( [%x]%x, [%x]%p, [%x]%x, [%x]%x, [%x]%x)", type[4], MsgFileNum, type[3], who, type[2], Mood, type[1], HeadNum, type[0], BackGroundIdx );
     if( IN_COMBAT ) return;
     if( !who ){
         ScrGameErrorMsg( scr, "start_gdialog", 1 );
@@ -1518,7 +1518,7 @@ void ScrGame_StartGdialog( Intp_t *scr )
     } else {
 	if( HeadNum != -1 ) gDlgUnk46 = ArtMakeId( 8, HeadNum, 0, 0, 0 );
     }
-    GdialogUnk07( BackGroundIdx );
+    GdialogSetBg( BackGroundIdx );
     gScrGameMood = Mood;
     if( gDlgUnk46 != -1 ){
         if( (n = EvQeUnk20( EvQeUnk23( gDlgUnk44 ) )) ){
@@ -1978,12 +1978,12 @@ void ScrGame_KillCritter( Intp_t *scr )
         if( LsgPending() ){
             eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
         } else {
-            scr->Flags |= 0x20;
+            scr->Flags |= SCR_FPROC_RUN;
             if( ScptGetSelfObj( scr ) == obj ) flg = 1;
             AnimClear( obj );
             CombatUnk79( obj );
             CritterKill( obj, val, 1 );
-            scr->Flags &= ~0x20u;
+            scr->Flags &= ~SCR_FPROC_RUN;
             if( flg ) scr->Flags |= 0x1000000;
         }
     } else {
@@ -2051,7 +2051,7 @@ DD
         eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
         return;
     }
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     for( p = ObjGetObjectFirst(); p; p = ObjGetObjectNext() ){
         while( (p->ImgId & 0xFF0000) >> 16 >= 48 ){
             p = ObjGetObjectNext();
@@ -2061,7 +2061,7 @@ DD
             if( v11 == v22 || v23 > 200 ){
                 ScrGameErrorMsg( scr, "kill_critter_type", 3 );
                 eprintf( " Infinite loop destroying critters!" );
-                scr->Flags &= ~0x20;
+                scr->Flags &= ~SCR_FPROC_RUN;
                 return;
             }
             AnimClear( v11 );
@@ -2085,7 +2085,7 @@ DD
         }
     }
 LABEL_27:
-    scr->Flags &= ~0x20u;
+    scr->Flags &= ~SCR_FPROC_RUN;
 */
 }
 
@@ -2108,7 +2108,7 @@ void ScrGame_CritterDamage( Intp_t *scr )
             v10 = ScptGetSelfObj( scr );
             if( v16->Critter.State.WhoHitMe == -1 ) v16->Critter.State.WhoHitMe = 0;
             ActionUnk05( v16->GridId, v16->Elevation, v15, v15, val & 0xFCFF, (val & 0x200) == 0, val & 0x100 );
-            scr->Flags &= ~0x20;
+            scr->Flags &= ~SCR_FPROC_RUN;
             if( v10 == v16 ) scr->Flags |= 0x1000000;
         } else {
             ScrGameErrorMsg( scr, "critter_damage", 3 );
@@ -2299,7 +2299,7 @@ void ScrGame_DialogueSystemEnter( Intp_t *scr )
     SCP_DBGA( "dialogue_system_enter" );
     if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 ) return;    
     obj = ScptGetSelfObj( scr );
-    if( (OBJTYPE( obj->Pid ) != TYPE_CRIT || CritterCanTalk( obj )) && !IN_COMBAT && GlobVarUnk02( 4 ) != -1 ) gDlgUnk44 = ScptGetSelfObj( scr );    
+    if( (OBJTYPE( obj->Pid ) != TYPE_CRIT || CritterCanTalk( obj )) && !IN_COMBAT && GlobVarFloatMsgInc( 4 ) != -1 ) gDlgUnk44 = ScptGetSelfObj( scr );    
 }
 
 /*
@@ -3134,13 +3134,13 @@ void ScrGame_PlayGmovie( Intp_t *scr )
     int val;
 
     memcpy( tmp, gScrGameMovieFlags, sizeof( gScrGameMovieFlags ) );
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     GETARGI( scr, type, val, 0, "play_gmovie" );
     SCP_DBGA( "play_gmovie( [%x]%x )", type, val );
     GdialogUnk04();
     if( GMoviePlay( val, tmp[ val ] ) == -1 ) eprintf( "\nError playing movie %d!", val );
     GdialogUnk03();
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
 }
 
 /*
@@ -3278,14 +3278,14 @@ void ScrGame_StartDialog( Intp_t *scr )
     SCP_DBG_VAR;
 
     SCP_DBGA( "gsay_start");
-    scr->Flags |= 0x20;
-    GdialogStart();
-    if( scr ){
-        scr->Flags &= ~0x20;
+    scr->Flags |= SCR_FPROC_RUN;
+    if( GdialogStart() ){
+        scr->Flags &= ~SCR_FPROC_RUN;
         IntpError( "Error starting dialog." );
     }
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
 }
+
 
 /*
     void gsay_end - ctavitsya after the call to start a dialogue
@@ -3295,9 +3295,9 @@ void ScrGame_GsayEnd( Intp_t *scr )
     SCP_DBG_VAR;
 
     SCP_DBGA( "gsay_end");
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     GdialogEnd();
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
 }
 
 /*
@@ -3307,21 +3307,22 @@ void ScrGame_GsayReply( Intp_t *scr )
 {
     SCP_DBG_VAR;
     int i, val[2];
-    char type[2], *s;
+    uint16_t type[2];
+    char *s;
 
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     s = NULL;
     for( i = 0; i < 2; i++ ){
-        type[ i ] = IntpPopwA( scr );
-        val[ i ] = IntpPopiA( scr );
-        if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], val[ i ] );
+      type[ i ] = IntpPopwA( scr );
+      val[ i ] = IntpPopiA( scr );
+      if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], val[ i ] );
         if( (type[ i ] & 0xF7FF) != SCR_INT ){
             if( i ){
                 IntpError("script error: %s: invalid arg %d to gsay_reply", scr->FileName, i );
             } else if( type[ i ] == SCR_STRING ){
                 s = IntpGetString( scr, type[1], val[0] );
             } else {
-                IntpError( "script error: %s: invalid arg %d to gsay_reply", scr->FileName, 0 );
+                IntpError( "script error: %s: invalid arg %d to gsay_reply", scr->FileName, i );
             }
         }
     }
@@ -3330,7 +3331,7 @@ void ScrGame_GsayReply( Intp_t *scr )
         GdialogUnk15( scr, s );
     else
         GdialogUnk14( scr, val[ 1 ], val[ 0 ] );
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
 }
 
 /*
@@ -3344,7 +3345,7 @@ void ScrGame_GsayOption( Intp_t *scr )
     uint16_t type[ 4 ];
     char *s;
 
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     s = NULL;
 
     type[ 0 ] = IntpPopwA( scr );
@@ -3377,19 +3378,19 @@ void ScrGame_GsayOption( Intp_t *scr )
             GdialogUnk11( Idx[ 3 ], s, Idx[ 0 ] );
         else
             GdialogUnk10( Idx[ 3 ], Idx[ 2 ], Idx[ 0 ] );
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( (type[ 1 ] & 0xF7FF) != SCR_INT ){
         IntpError( "Invalid arg 3 to sayOption" );
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( s )
         GdialogUnk13( Idx[ 3 ], s, Idx[ 1 ], Idx[ 0 ] );
     else
         GdialogUnk12( Idx[ 3 ], Idx[ 2 ], Idx[ 1 ], Idx[ 0 ] );
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
 }
 
 /*
@@ -3403,7 +3404,7 @@ void ScrGame_GsayMessage( Intp_t *scr )
     char *Arg;
 
     Arg = NULL;
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     for( i = 0; i < 3; i++ ){
         type[ i ] = IntpPopwA( scr );
         val[ i ] = IntpPopiA( scr );
@@ -3426,7 +3427,7 @@ void ScrGame_GsayMessage( Intp_t *scr )
         GdialogUnk14( scr, val[2], val[1] );
     GdialogUnk10( -2, -2, 50 );
     GdialogUnk09();
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
 }
 
 /*
@@ -3444,7 +3445,7 @@ void ScrGame_GigOption( Intp_t *scr )
     uint16_t type[5];
     char *a3;
 
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     for( i = 0; i < 5; i++ ){
         type[ i ] = IntpPopwA( scr );
         val[ i ] = IntpPopiA( scr );
@@ -3467,11 +3468,11 @@ void ScrGame_GigOption( Intp_t *scr )
     if( v13 ) v14 = v12 + v13;
     if( val[ 4 ] < 0 ){
         if( -v14 < val[ 4 ] ){
-            scr->Flags &= ~0x20;
+            scr->Flags &= ~SCR_FPROC_RUN;
             return;
         }
     } else if( v14 < val[ 4 ] ){
-        scr->Flags &= ~0x20;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( (type[ 1 ] & 0xF7FF) == SCR_STRING ){
@@ -3480,19 +3481,19 @@ void ScrGame_GigOption( Intp_t *scr )
             GdialogUnk11( val[3], a3, val[0] );
         else
             GdialogUnk10( val[3], val[2], val[0] );
-        scr->Flags &= ~0x20u;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( type[ 1 ] != SCR_INT ){
         IntpError( "Invalid arg 4 to sayOption" );
-        scr->Flags &= ~0x20u;
+        scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( a3 )
         GdialogUnk13( val[3], a3, val[1], val[0] );
     else
         GdialogUnk12( val[3], val[2], val[1], val[0] );
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
 }
 
 /*
@@ -4207,7 +4208,7 @@ void ScrGame_DestroyMultObjs( Intp_t *scr )
 
     v26 = 0;
     v27 = 0;
-    scr->Flags |= 0x20;
+    scr->Flags |= SCR_FPROC_RUN;
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "destroy_mult_objs" );
     GETARGP( scr, type[ 1 ], obj, 1, "destroy_mult_objs" );    
     SCP_DBGA( "destroy_mult_objs( [%x]%p, [%x]%x )", type[1], obj, type[0], val[ 0 ] );
@@ -4234,7 +4235,7 @@ void ScrGame_DestroyMultObjs( Intp_t *scr )
         TileUpdateArea( &Area, gCurrentMapLvl );
     }
     RETINT( scr, v27 );
-    scr->Flags &= ~0x20;
+    scr->Flags &= ~SCR_FPROC_RUN;
     if( v26 ) scr->Flags |= 0x1000000;
 }
 

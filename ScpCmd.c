@@ -753,7 +753,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
     SCP_GETARGFX( Type1, Arg1, Arg1f, Arg1p, scr );
     SCP_GETARGFX( Type2, Arg2, Arg2f, Arg2p, scr );
     SCP_DBGA( "( [%x]%x + [%x]%x )", Type2, Arg2, Type1, Arg1 );
-printf( "( [%x]%x(%p) + [%x]%x(%p) )\n", Type2, Arg2,Arg2p, Type1, Arg1, Arg1p );
+//printf( "( [%x]%x(%p) + [%x]%x(%p) )\n", Type2, Arg2,Arg2p, Type1, Arg1, Arg1p );
     t2 = Type2 & 0xF7FF;
     if( t2 == SCR_STRING ){
     	    s = NULL;    	    

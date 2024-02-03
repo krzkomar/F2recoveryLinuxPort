@@ -183,7 +183,7 @@ void InvMenu()
         sel = InpUpdate();
         if( sel == KEY_ESC || gMenuEscape ) break;
         InvBodyUpdate( -1, 0 );
-        if( GlobUnk01() == 5 ) break;
+        if( GlobFloatMsgState() == 5 ) break;
 	switch( sel ){
     	    case 17: case 24: case 324: SysQuitDlg(); break;
     	    case 327:

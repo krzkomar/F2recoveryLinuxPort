@@ -169,6 +169,6 @@ int IfaceIndicatorBoxUpdate();
 void IfaceIndicatorBoxRender( int a1 );
 int IfaceIndocatorBoxAddEffect( int Effect );
 void IfaceIndicatorBoxShow();
-void IfaceIndicatorBoxHide();
+int  IfaceIndicatorBoxHide();
 
 

@@ -1352,9 +1352,13 @@ void IfaceIndicatorBoxShow()
     IfaceIndicatorBoxUpdate();
 }
 
-void IfaceIndicatorBoxHide()
+int IfaceIndicatorBoxHide()
 {
+    int tmp;
+    
+    tmp = gIfcIndicatorBoxVisible;
     gIfcIndicatorBoxVisible = 0;
     IfaceIndicatorBoxUpdate();
+    return tmp;
 }
 

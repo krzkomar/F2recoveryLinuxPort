@@ -1,7 +1,7 @@
 #pragma once
 
 extern int *gGVals;
-extern int gGlobUnk01;
+extern int gGlobFloatMsg;
 //int gGValCount;
 
 
@@ -9,8 +9,8 @@ int GlobVarGet( int GlobIdx );
 int GlobVarSet( int Idx, int Val );
 int GlobVarLoad();
 int GlobVarLoadFile( char *fname, char *SecName, int *pCount, int **pData );
-int GlobUnk01();
+int GlobFloatMsgState();
 int GlobUnk02(unsigned int );
 int GlobUnk03();
-int GlobVarUnk03();
-int GlobVarUnk02();
+int GlobVarFloatMsgDec();
+int GlobVarFloatMsgInc();
