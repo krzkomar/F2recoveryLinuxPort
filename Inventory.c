@@ -2589,7 +2589,7 @@ int InvMenuBarter( int eax0, Obj_t *a2, Obj_t *a3, Obj_t *a4, int a5 )
     ObjStack_t *stk;
     MsgLine_t msg;
     int v15,v14,k,n,i,sel,v54,v58,v59;
-
+DD
     obj = a2;
     a1 = a3;
     sel = -1;

@@ -180,7 +180,7 @@ int PartyAddMember( Obj_t *dude )
     AiUnk53( dude, 0 );
     EvQeDelB( dude, 3 );
     if( GdialogUnk01() ){
-        if( dude == gDlgUnk44 ) GdialogUnk17();
+        if( dude == gDlgUnk44 ) GdialogJoinLeavePM();
     }
     return 0;
 }
@@ -203,7 +203,7 @@ int PartyRemoveMember( Obj_t *dude )
     if( ScptPtr( dude->ScrId, &scr ) != -1 ) scr->Flags &= 0x18;
     EvQeDelB( dude, 3 );
     if( GdialogUnk01() ){
-        if( dude == gDlgUnk44 ) GdialogUnk17();
+        if( dude == gDlgUnk44 ) GdialogJoinLeavePM();
     }
     return 0;    
 }

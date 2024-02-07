@@ -310,14 +310,12 @@ int MessageGetParameter( xFile_t *fh, char *Text )
             return 3;
         }
         if( c == '}' ) break;
-        if( c != '\n' ){
-            Text[ i ] = c;
-            if( i + 1 > 1024 ){
-		ErrorPrintf( "\nError reading message file - text exceeds limit.\n" );
-		return 4;
-            }
+        if( c == '\n' ) continue;
+        Text[ i++ ] = c;
+        if( i > 1024 ){
+	    ErrorPrintf( "\nError reading message file - text exceeds limit.\n" );
+	    return 4;
         }
-        i++;
     }
     Text[ i ] = '\0';
     return ex;

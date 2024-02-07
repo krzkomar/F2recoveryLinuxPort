@@ -13,7 +13,7 @@
         type = IntpPopwA( scr );\
         arg = IntpPopiA( scr );		\
         if( type == SCR_FSTRING ) IntpStringDeRef( scr, type, arg );	\
-        if( (type & 0xF7FF) != SCR_INT ) IntpError( "script error: %s: invalid arg %d to "#name, scr->FileName, arg_num );
+        if( (type & 0xF7FF) != SCR_INT ) IntpError( "script error: %s: invalid arg %d[%x] to "#name, scr->FileName, arg_num, type );
 
 #define GETARGP( scr, type, arg, arg_num, name )	\
         type = IntpPopwA( scr );\
@@ -3313,24 +3313,25 @@ void ScrGame_GsayReply( Intp_t *scr )
     scr->Flags |= SCR_FPROC_RUN;
     s = NULL;
     for( i = 0; i < 2; i++ ){
-      type[ i ] = IntpPopwA( scr );
-      val[ i ] = IntpPopiA( scr );
-      if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], val[ i ] );
-        if( (type[ i ] & 0xF7FF) != SCR_INT ){
+        type[ i ] = IntpPopwA( scr );
+        val[ i ] = IntpPopiA( scr );
+        if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], val[ i ] );
+
+	if( (type[ i ] & 0xF7FF) != SCR_INT ){
             if( i ){
                 IntpError("script error: %s: invalid arg %d to gsay_reply", scr->FileName, i );
-            } else if( type[ i ] == SCR_STRING ){
-                s = IntpGetString( scr, type[1], val[0] );
+            } else if( type[ i ] == SCR_STRING || (type[ i ] == SCR_FSTRING)){
+                s = IntpGetString( scr, type[0] >> 8, val[0] );
             } else {
-                IntpError( "script error: %s: invalid arg %d to gsay_reply", scr->FileName, i );
+                IntpError( "script error: %s: invalid arg %d to gsay_reply (type:%x)", scr->FileName, i, type[ i ] );
             }
         }
     }
     SCP_DBGA( "gsay_reply( [%x]%x, [%x]%x )", type[1], val[1], type[0], val[0] );
     if( s )
-        GdialogUnk15( scr, s );
+        GdialogSayReply( scr, s );
     else
-        GdialogUnk14( scr, val[ 1 ], val[ 0 ] );
+        GdialogSayReplyConst( scr, val[ 1 ], val[ 0 ] );
     scr->Flags &= ~SCR_FPROC_RUN;
 }
 
@@ -3375,9 +3376,9 @@ void ScrGame_GsayOption( Intp_t *scr )
     if( (type[ 1 ] & 0xF7FF) == SCR_STRING ){
         IntpGetString( scr, type[ 1 ] >> 8, Idx[ 1 ] );
         if( s )
-            GdialogUnk11( Idx[ 3 ], s, Idx[ 0 ] );
+            GdialogSayOptionStrNoProc( Idx[ 3 ], s, Idx[ 0 ] );
         else
-            GdialogUnk10( Idx[ 3 ], Idx[ 2 ], Idx[ 0 ] );
+            GdialogSayOptionConstNoProc( Idx[ 3 ], Idx[ 2 ], Idx[ 0 ] );
         scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
@@ -3387,9 +3388,9 @@ void ScrGame_GsayOption( Intp_t *scr )
         return;
     }
     if( s )
-        GdialogUnk13( Idx[ 3 ], s, Idx[ 1 ], Idx[ 0 ] );
+        GdialogSayOptionStr( Idx[ 3 ], s, Idx[ 1 ], Idx[ 0 ] );
     else
-        GdialogUnk12( Idx[ 3 ], Idx[ 2 ], Idx[ 1 ], Idx[ 0 ] );
+        GdialogSayOptionConst( Idx[ 3 ], Idx[ 2 ], Idx[ 1 ], Idx[ 0 ] );
     scr->Flags &= ~SCR_FPROC_RUN;
 }
 
@@ -3422,11 +3423,11 @@ void ScrGame_GsayMessage( Intp_t *scr )
     }    
     SCP_DBGA( "gsay_message( %s, [%x]%x, [%x]%x )", Arg, type[2], val[2], type[1], val[1] );
     if( Arg )
-        GdialogUnk15( scr, Arg );
+        GdialogSayReply( scr, Arg );
     else
-        GdialogUnk14( scr, val[2], val[1] );
-    GdialogUnk10( -2, -2, 50 );
-    GdialogUnk09();
+        GdialogSayReplyConst( scr, val[2], val[1] );
+    GdialogSayOptionConstNoProc( -2, -2, 50 );
+    GdialogFinish();
     scr->Flags &= ~SCR_FPROC_RUN;
 }
 
@@ -3478,9 +3479,9 @@ void ScrGame_GigOption( Intp_t *scr )
     if( (type[ 1 ] & 0xF7FF) == SCR_STRING ){
 //	Arg = IntpGetString( scr, type[ 1 ] >> 8, val[ 1 ] );
         if( a3 )
-            GdialogUnk11( val[3], a3, val[0] );
+            GdialogSayOptionStrNoProc( val[3], a3, val[0] );
         else
-            GdialogUnk10( val[3], val[2], val[0] );
+            GdialogSayOptionConstNoProc( val[3], val[2], val[0] );
         scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
@@ -3490,9 +3491,9 @@ void ScrGame_GigOption( Intp_t *scr )
         return;
     }
     if( a3 )
-        GdialogUnk13( val[3], a3, val[1], val[0] );
+        GdialogSayOptionStr( val[3], a3, val[1], val[0] );
     else
-        GdialogUnk12( val[3], val[2], val[1], val[0] );
+        GdialogSayOptionConst( val[3], val[2], val[1], val[0] );
     scr->Flags &= ~SCR_FPROC_RUN;
 }
 

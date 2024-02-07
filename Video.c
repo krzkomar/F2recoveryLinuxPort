@@ -324,6 +324,7 @@ Pal8_t *VidCreateDimmedPalette()
 
 void VidUpdate( int x, int y, int Width, int Height )
 {        
+    if( Width == 0 || Height == 0 ) return;
     if( gVidUpdateForbid ){
 	if( Width > gUpdateRect.w ) gUpdateRect.w = Width;
 	if( Height > gUpdateRect.h ) gUpdateRect.h = Height;
@@ -331,7 +332,6 @@ void VidUpdate( int x, int y, int Width, int Height )
 	if( y > gUpdateRect.y ) gUpdateRect.y = y;
 	return;
     }
-
     SDL_BlitSurface( gSDLSurfaceCur, NULL, gSDLSurfaceMain, NULL );
     SDL_UpdateTexture( gSDLTexture, NULL, gSDLSurfaceMain->pixels, gSDLSurfaceMain->pitch );
     SDL_RenderCopy( gSDLRenderer, gSDLTexture, NULL, NULL );
@@ -402,13 +402,17 @@ void VidCopy16( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Wi
 {
     char *Screen;
     char *psrc;
+    int h;
 
+    if( Width == 0 || Height == 0 ) return;
     if( !gSDLReady ) return;
     Screen = gSDLSurfaceCur->pixels + gSDLSurfaceCur->pitch * posY + posX;
     psrc = pSrc + SrcPitch * SrcY + SrcX;
-    for( ;Height; psrc += SrcPitch, Height--, Screen += gSDLSurfaceCur->pitch ){
+    h = Height;
+    for( ;h; psrc += SrcPitch, h--, Screen += gSDLSurfaceCur->pitch ){
         memcpy( Screen, psrc, Width );
     }
+
     VidUpdate( posX, posY, Width, Height );
 }
 

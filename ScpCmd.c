@@ -764,7 +764,6 @@ void ScpA_Add( Intp_t *scr ) // 8039
     	    }
 	    q = NULL;
 	    switch( Type1 & 0xF7FF ){
-    		case SCR_FSTRING:
     		case SCR_STRING:
         	    if( Type1 & 0x800 ){
             		pd = &scr->Strings[ Arg1 + 4 ];
@@ -785,12 +784,13 @@ void ScpA_Add( Intp_t *scr ) // 8039
     		    sprintf( q, "%d", Arg1 );
     		    break;
 		case SCR_PTR:
-    		    IntpPushPtrStack( scr->StackA, &scr->StackApos, NULL ); IntpPushwA( scr, SCR_PTR ); // illegal operations to pointer
+		    q = Arg1p;
     		    break;
     	    }
-    	    p = dbg_malloc( strlen( s ) + strlen( q ) + 1 );
+    	    p = dbg_malloc( strlen( s ) + strlen( q ) + 1 ); //!!
     	    strcpy( p, s );
     	    strcpy( p + strlen( p ), q );
+//printf("-SUMA->'%s'\n", p );
     	    IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); 
     	    IntpPushwA( scr, SCR_FSTRING );
     	    dbg_free( q );
@@ -806,7 +806,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
             	    if( (Arg1 <= 0 || 0x7FFFFFFF - Arg1 >= Arg2) && (Arg1 >= 0 || (0x80000001 - Arg1) <= Arg2) ){
                 	IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 + Arg2 ); IntpPushwA( scr, SCR_INT );
             	    } else {
-                	IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1 ); IntpPushwA( scr, SCR_FLOAT );
+                	IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1 ); IntpPushwA( scr, SCR_INT );
             	    }        	
             	    break;
     		case SCR_FSTRING:
@@ -829,7 +829,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
     	    }
     	    return;
     }
-    if( t2 == SCR_INT ){
+    if( t2 == SCR_FLOAT ){
 	switch( Type1 & 0xF7FF ){
     	    case SCR_FSTRING:
     	    case SCR_STRING:
@@ -846,13 +846,13 @@ void ScpA_Add( Intp_t *scr ) // 8039
     		dbg_free( p );
     		break;
 	    case SCR_FLOAT:
-    		IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 + Arg1f ); IntpPushwA(scr, SCR_FLOAT);
+    		IntpPushIntStack(scr->StackA, &scr->StackApos, Arg1f + Arg2f ); IntpPushwA( scr, SCR_FLOAT );
     		break;
 	    case SCR_INT:
-    		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 + Arg2 ); IntpPushwA( scr, SCR_FLOAT );
+    		IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 + Arg2f ); IntpPushwA( scr, SCR_FLOAT );
     		break;
     	    case SCR_PTR:
-    		IntpPushPtrStack( scr->StackA, &scr->StackApos, Arg1p + Arg2 ); IntpPushwA( scr, SCR_PTR );
+    		IntpPushPtrStack( scr->StackA, &scr->StackApos, Arg1p + (int)Arg2f ); IntpPushwA( scr, SCR_PTR );
     	        break;
 	}
 	return;

@@ -178,7 +178,7 @@ int   WinProcess( Window_t *win, int *a2 );
 int   WinGetAreaPointedPixel( Widget_t *Wg, VidRect_t *Rect );
 int   WinImageGetWinId( int ImageId );
 int   WinGetPointed();
-int   WinImageRemove( int ImageId );
+int   WinImageRemove( int ImageId ); // WinWidgetFree()
 void  WinWidgetsFree( Widget_t *img );
 void  WinCloseWithKey( int WdgId, int Key );
 int   WinGetEmpty();

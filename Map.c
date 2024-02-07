@@ -606,10 +606,11 @@ int MapLoadMapFile( xFile_t *fh )
     p->TimeEv = ScptNewObjId();
     scr->i08 = p->TimeEv;
     scr->TimeEv = p;
-//SCP_DBG_EN;
+SCP_DBG_EN;
     ScptUnk23();
     ScptRun( gMapScriptId, SCPT_AEV_MAP_ENTER_P_PROC );
     ScptUnk22();
+SCP_DBG_DIS;
     if( WmSetupRandomEncounter() == -1 ) errmsg = "Error Setting up random encounter";
 Error:
     if( errmsg ){

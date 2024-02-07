@@ -201,6 +201,7 @@ int WinCreateWindow( int Xpos, int Ypos, int Width, int Height, short BgColor, i
     Window_t *wg;
     int WgId, i, n;
 
+
     if( !gWinSys.Init || gWinWindowsCount == WIN_COUNT_MAX || Width > VidW || Height > VidH ) return WIN_ERROR;
     wg = Malloc( sizeof( Window_t ) );
     gWinWindows[ gWinWindowsCount ] = wg;
@@ -214,7 +215,6 @@ int WinCreateWindow( int Xpos, int Ypos, int Width, int Height, short BgColor, i
     wg->Flags  = Flags;
     wg->RandX  = rand() & 0xFFFE;
     wg->RandY  = rand() & 0xFFFE;
-
     if( BgColor == WIN_BGALPHA ){
         if( !gWinTexture ) BgColor = WIN_PALCOLOR_ALPHA;
     } else if( BgColor && 0xff00 ){
@@ -231,8 +231,10 @@ int WinCreateWindow( int Xpos, int Ypos, int Width, int Height, short BgColor, i
     gWinWindowsCount++;
     WinDrawFilledRect( WgId, 0, 0, Width, Height, BgColor );
     wg->Flags |= WIN_FLG_CLEAN;
+
     WinSetPosition( WgId, Xpos, Ypos );
     wg->Flags = Flags;
+
     if( !( Flags & WIN_FLG_4 ) ){ // win on top ?
         for( i = gWinWindowsCount - 2; i > 0; i-- ){
             if( !(gWinWindows[ i ]->Flags & WIN_FLG_4) ) break;
@@ -247,29 +249,25 @@ int WinCreateWindow( int Xpos, int Ypos, int Width, int Height, short BgColor, i
             gWinWindowsIds[ WgId ] = n;
         }
     }
-
     return WgId;
 }
 
 void WinClose( int WgId )
 {
-    Window_t *Widget, *tmp;
+    Window_t *Widget;
     VidRect_t Area;
     int id, i;
 
     Widget = WinGetWindow( WgId );
-
     if( !gWinSys.Init || !Widget ) return;
     Area = Widget->Geometry;
     id = gWinWindowsIds[ Widget->Id ];
     WinFree( WgId );
     gWinWindowsCount--;
     gWinWindowsIds[ WgId ] = -1;
-
     for( i = id; i < gWinWindowsCount; i++ ){
-        tmp = gWinWindows[ i + 1 ];
-        gWinWindows[ i ] = tmp;
-        gWinWindowsIds[ tmp->Id ] = i++;
+        gWinWindows[ i ] = gWinWindows[ i + 1 ];
+        gWinWindowsIds[ gWinWindows[ i ]->Id ] = i;
     }
     if( gWinSys.Init ) WinRedrawArea( &Area, 0 ); // restore area beneath
 }
@@ -627,7 +625,6 @@ void WinRedraw( Window_t *win, VidRect_t *Geometry, char *pSurface )
             WinRegionUpdate( win, &region, pSurface );
             if( win->Id ){                
                 for( p = region; p; p = p->Prev ){
-
                     WinDrawCursor( win, &p->Area );
                     if( pSurface ){ // mouse fetch bmp
                 	if( gWinUnk01 && (win->Flags & WIN_FLG_BLIT ) ){
@@ -641,21 +638,20 @@ void WinRedraw( Window_t *win, VidRect_t *Geometry, char *pSurface )
                         	WIN_XY( p->Area.lt - Geometry->lt, p->Area.tp - Geometry->tp, dstPitch, pSurface ), dstPitch 
                     	    );
                     	}
-                    } 
-                    else if( gWinUnk01 ){
+                    } else if( gWinUnk01 ){
                         w = gVidMainGeo.rt - gVidMainGeo.lt + 1;
-                        if( win->Flags & WIN_FLG_BLIT )
+                        if( win->Flags & WIN_FLG_BLIT ){
                             win->Blitter(
                         	WIN_XY( p->Area.lt - win->Geometry.lt, p->Area.tp - win->Geometry.tp, win->Width, win->Surface), p->Area.rt - p->Area.lt + 1, p->Area.bm - p->Area.tp + 1, win->Width, 
                         	WIN_XY( p->Area.lt, p->Area.tp, w, gWinSurface ), gVidMainGeo.rt - gVidMainGeo.lt + 1
                     	    );
-                        else
+                        } else {
                             ScrCopy(
                         	WIN_XY( p->Area.lt - win->Geometry.lt, p->Area.tp - win->Geometry.tp, win->Width, win->Surface ), p->Area.rt - p->Area.lt + 1, p->Area.bm - p->Area.tp + 1, win->Width, 
                         	WIN_XY( p->Area.lt, p->Area.tp, w, gWinSurface ), gVidMainGeo.rt - gVidMainGeo.lt + 1
                     	    );
-                    } 
-                    else {
+			}
+                    } else { // screen draw
                         gVidCopyA(
                     	    WIN_XY( p->Area.lt - win->Geometry.lt, p->Area.tp - win->Geometry.tp, win->Width, win->Surface ), win->Width, p->Area.bm - p->Area.tp + 1, 
                     	    0, 0, p->Area.rt - p->Area.lt + 1, p->Area.bm - p->Area.tp + 1, p->Area.lt, p->Area.tp
@@ -857,20 +853,18 @@ int WinGetRect( int WinId, VidRect_t *Geometry )
 
 int WinCursorProcess()
 {
-    int tmp;
-    int i;
-    int HotKey = -1;
+    int i, HotKey = -1;
 
     VidUpdateClr();
-    tmp = gVidUpdateForbid;
-    gVidUpdateForbid = 1;
+//    tmp = gVidUpdateForbid;
+//    gVidUpdateForbid = 1;
     if( gWinSys.Init && gWinWindowsCount - 1 < 1 ) return -1;
 
     for( i = gWinWindowsCount - 1; i >= 1; i-- ){
 	if( !WinProcess( gWinWindows[ i ], &HotKey ) ) break;
         if( gWinWindows[ i ]->Flags & 0x10 ) break;
     }
-    gVidUpdateForbid = tmp;
+//    gVidUpdateForbid = tmp;
     VidUpdateOpt();
     return HotKey;
 }
@@ -1803,7 +1797,7 @@ void WinDrawWidget( Widget_t *Wdt, Window_t *Win, char *pSrcPic, int Hide, VidRe
         if( pSrcPic ){
             if( !Hide ){
                 SrcPitch = Wdt->area.rt - Wdt->area.lt + 1;
-                if( (Wdt->Flags & 0x20) != 0 )
+                if( Wdt->Flags & 0x20 )
                     ScrCopyAlpha(&pSrcPic[(area.tp - Wdt->area.tp) * SrcPitch + area.lt - Wdt->area.lt], area.rt - area.lt + 1, area.bm - area.tp + 1, SrcPitch, &Win->Surface[area.lt + Win->Width * area.tp], Win->Width );
                 else
                     ScrCopy(&pSrcPic[(area.tp - Wdt->area.tp) * SrcPitch + area.lt - Wdt->area.lt], area.rt - area.lt + 1, area.bm - area.tp + 1, SrcPitch, &Win->Surface[area.lt + Win->Width * area.tp], Win->Width);

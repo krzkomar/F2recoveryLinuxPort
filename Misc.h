@@ -10,6 +10,11 @@
 #define ARCH_64 UINTPTR_MAX == 0xffffffffffffffff
 #define ARCH_32 UINTPTR_MAX == 0xffffffff
 
+#define DI			if( gDbg )
+#define DF_ON			gDbg = 1;
+#define DF_OFF  		gDbg = 0;
+#define DF( fmt, args... ) 	if( gDbg ){ DD printf( fmt, ##args ); }
+extern int gDbg;
 
 typedef union{
     int i;
