@@ -4,6 +4,10 @@
 
 #define LIPMAGIC	0x5800
 
+#define LIPS_NOTSTOP	0x01
+#define LIPS_ANIMATE	0x02
+#define LIPS_CLRMASK	~( LIPS_NOTSTOP | LIPS_ANIMATE )
+
 typedef struct
 {
     int Type;
@@ -20,7 +24,7 @@ typedef struct
     void 	*Unk12;
     char 	*Phonemes;
     int 	Unk14;
-    int 	Unk15;
+    int 	Position;
     int 	PhonemesCnt;
     int 	Unk16;
     int 	MarkersCnt;
@@ -40,8 +44,8 @@ typedef struct
 } Lips_t;
 
 extern Lips_t gLipsync;
-extern int gLipsUnk04;
-extern char gLipsPhoneme;
+extern int gLipsNewPhonemeFlag;
+extern int gLipsPhoneme;
 /*
 char gLipsUnk03;
 int gLipsPosition;
@@ -53,7 +57,7 @@ char gLipsFnameBuf[ 50 ];
 /********************************************************************/
 
 char *LipsyncGetFName( char *Name, int MaxSize );
-void LipsyncSpeachStop();
+void LipsyncSpeechUpdate();
 int LipsyncSpeechStart();
 int LipsyncRewind();
 int LipsyncGetByte( char *fname, xFile_t *fh );

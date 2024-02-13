@@ -8,13 +8,13 @@ int   gDlgBoxReply = -1;
 int   gDlgBoxOption = -1;
 int   gDlgUnk88 = 0;
 int   gDlgIndicatorBoxState = 0;
-int   gDlgUnk86 = 0;
-CachePool_t *gDlgUnk85 = NULL;
-ArtFrmHdr_t *gDlgUnk84 = NULL;
+int   gDlgFidgetId = 0;
+CachePool_t *gDlgFidgetImgObj = NULL;
+ArtFrmHdr_t *gDlgFidgetImg = NULL;
 short gDlgBgndIdx = 2;
-int   gDlgUnk82 = 0;
-CachePool_t *gDlgUnk81 = NULL;
-ArtFrmHdr_t *gDlgUnk80 = NULL;
+int   gDlgHeadFrameId = 0;
+CachePool_t *gDlgHeadArtObj = NULL;
+ArtFrmHdr_t *gDlgHeadFrameImg = NULL;
 int   gDlgLipsEn = 0;
 int   gDlgUnk09 = 0;
 int   gDlgState = 0;
@@ -40,7 +40,7 @@ VidRect_t gDlgUnk22[ 8 ] = {
     { 504, 40,  514, 188 } 
 };
 int gDlgUnk26 = 1;
-int gDlgUnk27 = 0;
+int gDlgFidgetAnimate = 0;
 int gDlgReplyWin = -1;
 int gDlgOptionWin = -1;
 int gDlgUnk29 = -1;
@@ -49,26 +49,26 @@ int gDlgUnk11 = -1;
 char *gDlgPalA = NULL;
 char *gDlgPalB = NULL;
 int gDlgUnk10 = 0;
-int gDlgUnk32 = 0;
+int gDlgFidgetDrawFactor = 0;
 CachePool_t *gDlgArt[ 8 ] = { ART_NULL, ART_NULL, ART_NULL, ART_NULL, ART_NULL, ART_NULL, ART_NULL, ART_NULL };
 char *gDlgUnk36 = NULL;
 int gDlgUnk37[ 12 ] = { 35, 35, 82, 35, 37, 46, 89, 90, 87, 88, 91, 92 };
-Obj_t *gDlgUnk44 = NULL;
-int gDlgUnk45 = 0;
-short gDlgUnk46 = 0;
-int gDlgUnk47 = -1;
+Obj_t *gDlgPartyMemberObj = NULL;
+int gDlgPmExchangeMode = 0;
+int gDlgHeadId = 0;
+int gDlgActionSrc = -1;
 int gDlgUnk48[ 42 ] = { 0, 3, 1, 1, 3, 1, 1, 1, 7, 8, 7, 3, 1, 8, 1, 7, 7, 6, 6, 2, 2, 2, 2, 4, 4, 5, 5, 2, 2, 2, 2, 2, 6, 2, 2, 5, 8, 2, 2, 2, 2, 8 };
-int gDlgUnk49 = 0;
+int gDlgHeadFrame = 0;
 int gDlgUnk50 = -1;
-int gDlgUnk51 = 10000;
+int gDlgFidgetFinishSpeed = 10000;
 const char *gDlgUnk52[ 3 ] = { "Said Good", "Said Neutral", "Said Bad" };
-int gDlgUnk53 = 0;
-Gdialog02_t gDlgUnk54[ 5 ] = {
-    { 0x1B6, 0x25, 0x18D, 0x18B, 0x18C, NULL, NULL, NULL, 0x832, 4 },
-    { 0x1B6, 0x43, 0x18A, 0x188, 0x189, NULL, NULL, NULL, 0x837, 3 },
-    { 0x1B6, 0x60, 0x196, 0x194, 0x195, NULL, NULL, NULL, 0x836, 2 },
-    { 0x1B6, 0x7E, 0x190, 0x18E, 0x18F, NULL, NULL, NULL, 0x83F, 1 },
-    { 0x1B6, 0x9C, 0x193, 0x191, 0x192, NULL, NULL, NULL, 0x833, 0 },
+int gDlgPanelHeight = 0;
+Gdialog02_t gDlgCmbtCtrlButtons[ 5 ] = {
+    { 0x1B6, 0x25, 0x18D, 0x18B, 0x18C, NULL, NULL, NULL, 2098, 4 },
+    { 0x1B6, 0x43, 0x18A, 0x188, 0x189, NULL, NULL, NULL, 2103, 3 },
+    { 0x1B6, 0x60, 0x196, 0x194, 0x195, NULL, NULL, NULL, 2102, 2 },
+    { 0x1B6, 0x7E, 0x190, 0x18E, 0x18F, NULL, NULL, NULL, 2111, 1 },
+    { 0x1B6, 0x9C, 0x193, 0x191, 0x192, NULL, NULL, NULL, 2099, 0 },
 };
 
 int gDlgTextIds[ 6 ][ 12 ][ 2 ] = {
@@ -80,7 +80,7 @@ int gDlgTextIds[ 6 ][ 12 ][ 2 ] = {
     { { 600, 0 }, { 601, 1 }, { 602, 2 }, { 603, 3 }, { 604, 4 }, { -1,  0 } }
 };
 
-Gdialog02_t gDlgUnk71[ 6 ] = {
+Gdialog02_t gDlgCustomDispButtons[ 6 ] = {
     { 95, 9,   410, 409, -1, NULL, NULL, NULL, 0, 0 },
     { 96, 38,  416, 415, -1, NULL, NULL, NULL, 1, 0 }, 
     { 96, 68,  418, 417, -1, NULL, NULL, NULL, 2, 0 },
@@ -89,7 +89,7 @@ Gdialog02_t gDlgUnk71[ 6 ] = {
     { 96, 157, 412, 411, -1, NULL, NULL, NULL, 5, 0 }
 };
 int gDlgUnk79 = 0;
-int gDlgUnk105[ 6 ];
+int gDlgDispositions[ 6 ];
 Msg_t gDlgMsg;
 char gDlgLumA[ 256 ];
 char gDlgLumB[ 256 ];
@@ -116,7 +116,7 @@ CachePool_t *gDlgUnk130;
 CachePool_t *gDlgUnk131;
 ArtFrmHdr_t *gDlgImg101Dat;
 int gDlgFontSave;
-int gDlgUnk134;
+int gDlgFidgetTimer;
 int gDlgMood;
 Intp_t *gDlgScript;
 int gDlgReplyMsgList;
@@ -126,8 +126,8 @@ char gDlgReply[ 2700 ];
 
 Gdialog_t gDlgOptions[ 30 ]; 
 int gDlgUnk149;
-int gDlgUnk150;
-int gDlgUnk151;
+int gDlgFidgetSpeed;
+int gDlgFidgetFrame;
 
 /****************************************************************/
 
@@ -182,8 +182,8 @@ void GdialogEnter( Obj_t *target, int flg )
     gDlgUnk11 = gObjDude->GridId;
     MapUnk35();
     gDlgUnk06 = 1;
-    gDlgUnk44 = target;
-    gDlgUnk45 = PartyMembRdy( target );
+    gDlgPartyMemberObj = target;
+    gDlgPmExchangeMode = PartyMembRdy( target );
     gDlgUnk10 = 1;
 DD
 //SCP_DBG_EN;
@@ -205,10 +205,10 @@ DD
     }
     GdialogLipsyncEnd();
     if( gDlgUnk07 == 1 ){
-	if( gDlgState == 2 || gDlgState == 8 || gDlgState == 11 ){ GdialogUnk79(); } else // enter PM Trade
-	if( gDlgState == 1 ){ GdialogUnk61(); } else 
-	if( gDlgUnk09 == 1 ){ GdialogUnk79(); } else 
-	if( gDlgUnk09 == 4 ){ GdialogUnk61(); }        
+	if( gDlgState == 2 || gDlgState == 8 || gDlgState == 11 ){ GdialogPanelCloseAnimation(); } else // enter PM Trade
+	if( gDlgState == 1 ){ GdialogPanelClose(); } else 
+	if( gDlgUnk09 == 1 ){ GdialogPanelCloseAnimation(); } else 
+	if( gDlgUnk09 == 4 ){ GdialogPanelClose(); }        
 	GdialogUnk06();
     }
     gDlgUnk07 = 0;
@@ -227,7 +227,7 @@ return 0;
     GlobVarFloatMsgDec();
     gDlgUnk18 = 1;
     SoundUpdateAll();
-    GdialogEnter( gDlgUnk44, 0 );
+    GdialogEnter( gDlgPartyMemberObj, 0 );
     SoundUpdateAll();
     if( gDlgUnk11 != gObjDude->GridId ) gDlgUnk12 = gObjDude->GridId;
     if( gDlgUnk13 ) TileUnk49( gDlgUnk12, 2 );
@@ -240,7 +240,7 @@ int GdialogLipsyncStart( char *DirName )
     char fname[ 16 ];
 
     if( !DirName ){ eprintf( "\nGDialog: Bleep!" ); return GSoundPlay( "censor" ); }
-    if( ArtGetFilenameFromList( 8, gDlgUnk46 & 0xFFF, fname ) == -1 ) return -1;    
+    if( ArtGetFilenameFromList( 8, gDlgHeadId & 0xFFF, fname ) == -1 ) return -1;    
     if( LipsyncLoadFile( DirName, fname ) == -1 ) return -1;
     gDlgLipsEn = 1;
     LipsyncSpeechStart();
@@ -258,24 +258,23 @@ void GdialogLipsyncEnd()
 
 int GdialogUnk03()
 {
-    InpTaskStart( GdialogUnk51 );
+    InpTaskStart( GdialogAnimationUpdate );
     return 0;
 }
 
 int GdialogUnk04()
 {
-    InpTaskStop( GdialogUnk51 );
+    InpTaskStop( GdialogAnimationUpdate );
     return 0;
 }
 
-int GdialogUnk05( int Art, int Mood ) // dialog with Party Member
+int GdialogStartConversation( int HeadId, int Mood ) // dialog with Party Member
 {
-DD
     if( gDlgUnk09 == 1 ) return -1;
     if( gDlgUnk07 == 1 ) return 0;
     AnimReset();    
     gDlgIndicatorBoxState = IfaceIndicatorBoxHide();
-    gDlgUnk45 = PartyMembRdy( gDlgUnk44 );
+    gDlgPmExchangeMode = PartyMembRdy( gDlgPartyMemberObj );
     gDlgFontSave = FontGetCurrent();
     FontSet( 101 );
     DialogReplyWin( 135, 225, 58, 379, 0 );
@@ -288,19 +287,19 @@ DD
     CycleColorStop();
     if( gDlgUnk18 ) GmouseSetIfaceMode( 0 );
     GmouseUnk03();
-    GmouseLoadCursor(1);
+    GmouseLoadCursor( 1 );
     TextFlush();
-    if( OBJTYPE( gDlgUnk44->Pid ) ) TileUnk49( gDlgUnk44->GridId, 2 );
+    if( OBJTYPE( gDlgPartyMemberObj->Pid ) ) TileUnk49( gDlgPartyMemberObj->GridId, 2 );
     gDlgUnk26 = 1;
     GdialogMakeWindow();
-    InpTaskStart( GdialogUnk51 );
-    GdialogUnk42( Art, Mood );
+    InpTaskStart( GdialogAnimationUpdate );
+    GdialogHeadUpdate( HeadId, Mood );
     gDlgUnk07 = 1;
     GmouseScrollDisable();
-    if( Art == -1 ){
+    if( HeadId == -1 ){ 
 	gDlgUnk29 /= 2;
         GSoundSetMusicVol( gDlgUnk29 );        
-    } else {
+    } else { // talking head
         gDlgUnk29 = -1;
         GSoundBgClose();
     }
@@ -311,28 +310,28 @@ DD
 int GdialogUnk06()
 {
     int Pid_high;
-DD
+
     if( gDlgState == 2 || gDlgState == 8 || gDlgState == 11 ) return -1;
     if( !gDlgUnk07 ) return 0;
     GdialogLipsyncEnd();
     GdialogUnk27();
-    InpTaskStop( GdialogUnk51 );
-    Pid_high = OBJTYPE( gDlgUnk44->Pid );
+    InpTaskStop( GdialogAnimationUpdate );
+    Pid_high = OBJTYPE( gDlgPartyMemberObj->Pid );
     if( Pid_high ){
         if( gDlgUnk11 != gObjDude->GridId ) gDlgUnk12 = gObjDude->GridId;
         Pid_high = TileUnk49( gDlgUnk12, 2 );
     }
     GdialogCloseWindow( Pid_high );
     FontSet( gDlgFontSave );
-    if( gDlgUnk84 ){
-        ArtClose( gDlgUnk85 );
-        gDlgUnk84 = 0;
+    if( gDlgFidgetImg ){
+        ArtClose( gDlgFidgetImgObj );
+        gDlgFidgetImg = 0;
     }
-    if( gDlgUnk81 ){
-        if( ArtClose( gDlgUnk81 ) == -1 ) eprintf( "Failure unlocking lips frame!\n" );
-        gDlgUnk81 = 0;
-        gDlgUnk80 = 0;
-        gDlgUnk82 = 0;
+    if( gDlgHeadArtObj ){
+        if( ArtClose( gDlgHeadArtObj ) == -1 ) eprintf( "Failure unlocking lips frame!\n" );
+        gDlgHeadArtObj = 0;
+        gDlgHeadFrameImg = 0;
+        gDlgHeadFrameId = 0;
     }
     PalExtClose( gPalColorCubeRGB[17][17][17] );
     PalExtClose( gPalColorCubeRGB[21][21][11] );
@@ -365,7 +364,7 @@ int GdialogSetBg( int BackgroundIdx )
 void GdialogReply( char *str )
 {
     int Position = 0;
-printf("=1=>'%s'\n", str);        
+
     if( gDlgReplyWin == -1 ) eprintf( "\nError: Reply window doesn't exist!" );
     gDlgBoxTitleArea.lt = 5;
     gDlgBoxTitleArea.tp = 10;
@@ -430,7 +429,6 @@ int GdialogSayReplyConst( Intp_t *Script, int MsgList, int MsgNum )
 
 int GdialogSayReply( Intp_t *Script, char *Text )
 {
-printf("=!!=>'%s'\n", Text);
     GdialogAddReplyToReviewStr( Script, Text );
     gDlgScript = Script;
     gDlgUnk139 = 0;
@@ -443,15 +441,15 @@ printf("=!!=>'%s'\n", Text);
 
 int GdialogEnd()
 {
-    int v0;
-
-    v0 = 0;
     if( gDlgReplyMsgList == -1 ) return 0;
     if( gDlgOptionCnt < 1 ){
         gDlgOptions[ gDlgOptionCnt ].ProcedureTargetId = 0;
-        if( GdialogAddOptionByIdx( -1, -1, 50 ) == -1 ){ IntpError( "Error setting option." ); v0 = -1; }
+        if( GdialogAddOptionByIdx( -1, -1, 50 ) == -1 ){ 
+    	    IntpError( "Error setting option." ); 
+    	    gDlgOptionCnt = 0; 
+    	    return -1;
+    	}
     }
-    if( v0 == -1 ){ gDlgOptionCnt = 0; return -1; }
     return GdialogMenu();
 }
 
@@ -460,12 +458,12 @@ void GdialogJoinLeavePM()
     int v0;
 
     if( gDlgUnk09 != 1 ) return;
-    v0 = PartyMembRdy( gDlgUnk44 );
-    if( v0 == gDlgUnk45 ) return;
+    v0 = PartyMembRdy( gDlgPartyMemberObj );
+    if( v0 == gDlgPmExchangeMode ) return;
     if( gDlgReplyWin != -1 ) WinUpdateDirty( gDlgReplyWin );
     if( gDlgOptionWin != -1 ) WinUpdateDirty( gDlgOptionWin );
-    GdialogUnk79();
-    gDlgUnk45 = v0;
+    GdialogPanelCloseAnimation();
+    gDlgPmExchangeMode = v0;
     GdialogCreateButtons();
     if( gDlgReplyWin != -1 ) WinMoveTop( gDlgReplyWin );
     if( gDlgOptionWin != -1 ) WinMoveTop( gDlgOptionWin );
@@ -543,7 +541,7 @@ int GdialogCreateReview( int *pWin )
     WinSetClickSound( bt, GSoundPlayPushBt, GSoundPlayReleaseBt );
     FontSet( 101 );
     WinUpdate( *pWin );
-    InpTaskStop( GdialogUnk51 );
+    InpTaskStop( GdialogAnimationUpdate );
     if( !(gDlgUnk36 = ArtGetBitmap( ArtMakeId( 6, 102, 0, 0, 0 ), 0, 0, &gDlgArt[ 7 ] )) ){ GdialogCloseReview( pWin ); return -1; }
     return 0;
 }
@@ -552,7 +550,7 @@ int GdialogCloseReview( int *pWin )
 {
     int i;
 
-    InpTaskStart( GdialogUnk51 );
+    InpTaskStart( GdialogAnimationUpdate );
     for( i = 0; i != 6; i++ ){
         if( gDlgArt[ i ] != ART_NULL ){
             ArtClose( gDlgArt[ i ] );
@@ -622,7 +620,7 @@ void GdialogReviewUpdate( int win, int pos )
 	&surf[ v16 * area.tp + area.lt ], v16
     );    
     for( i = pos; i < gDlgReviewCount; i++ ){
-        sprintf( stmp, "%s:", ObjGetName( gDlgUnk44 ) );
+        sprintf( stmp, "%s:", ObjGetName( gDlgPartyMemberObj ) );
         WinDrawText( win, stmp, 180, 88, v4, DLG_COLOR_5 | 0x2000000 );
         area.tp += h;
         if( gDlgReviewSlots[ i ].ReplyMsgList <= -3 )
@@ -725,7 +723,7 @@ int GdialogAddOptionToReviewStr( char *Text )
 int GdialogUnk30()
 {
     int bt;
-DD
+
     if( (gDlgBoxReply = WinCreateWindow( 135, 225, 379, 58, 256, 4 )) == -1 ) return -1;    
     if( (bt = WinCreateButton( gDlgBoxReply, 1, 1, 377, 28, -1, -1, 328, -1, 0, 0, 0, 32 ) ) != -1 ){
         WinSetClickSound( bt, GSoundPlayPushBt, GSoundPlayReleaseBt );
@@ -757,7 +755,7 @@ DD
 int GdialogOptionsRemove()
 {
     int i;
-DD    
+    
     for( i = 0; i < gDlgOptionCnt; i++ ){
         if( gDlgOptions[ i ].Button == -1 ) continue;
         WinImageRemove( gDlgOptions[ i ].Button );
@@ -829,29 +827,25 @@ int GdialogMenu() // dialog with NPC
         } else {
     	    switch( gDlgState ){
         	case 3: // PM Trade
-DD
             	    gDlgUnk09 = 4;
-            	    InvMenuBarter( gDlgMainWin, gDlgUnk44, gDlgUnk20, gDlgUnk15, gDlgBarterModifier );
+            	    InvMenuBarter( gDlgMainWin, gDlgPartyMemberObj, gDlgUnk20, gDlgUnk15, gDlgBarterModifier );
             	    GdialogUnk62();
             	    v7 = gDlgUnk09;
-            	    GdialogUnk61();
+            	    GdialogPanelClose();
             	    gDlgUnk09 = v7;
             	    if( gDlgUnk09 == 4 ){ gDlgState = 1; gDlgUnk09 = 1; }
             	    continue;
         	case 9: // PM Combat Control
-DD
             	    gDlgUnk09 = 10;
             	    GdialogCombatControlMenu();
             	    GdialogCombatControlMenuClose();
             	    continue;
-        	case 12: // PM ?
-DD
+        	case 12: // PM Custum disposition
             	    gDlgUnk09 = 13;
-            	    GdialogUnk72();
-            	    GdialogUnk71();
+            	    GdialogCustomDispMenuProcess();
+            	    GdialogCustomDispMenuClose();
             	    continue;
-        	case 98: // PM ?
-DD
+        	case 98: // PM barter
         	    GdialogBarter(); 
         	    break;
     	    }
@@ -868,14 +862,12 @@ DD
                 }
             }
             if( sel == 328 ){
-DD
                 if( v1 > 0 ){
                     v19 = 0;
                     gDlgUnk139 = Option[ --v1 ];
                     GdialogDisplayReply();
                 }
             } else if( sel == 336 ){
-DD
                 if( v1 < v0 ){
                     v19 = 0;
                     gDlgUnk139 = Option[ ++v1 ];
@@ -924,7 +916,7 @@ int GdialogUnk35( int a1 )
         GdialogAddOptionToReviewStr( gDlgOptions[ a1 ].Text );
     else
         GdialogAddOptionToReviewIdx( gDlgOptions[ a1 ].MsgPage, gDlgOptions[ a1 ].MsgId );
-    gDlgUnk27 = 0;
+    gDlgFidgetAnimate = 0;
     GdialogLipsyncEnd();
 
     reaction = 0;
@@ -1138,9 +1130,9 @@ void GdialogCloseWindow()
 
     if( gDlgMainWin != -1 ) gDlgSurf = 0;
     if( gDlgUnk09 == 1 ){
-        GdialogUnk79();
+        GdialogPanelCloseAnimation();
     } else if( gDlgUnk09 == 4 ){
-        GdialogUnk61();
+        GdialogPanelClose();
     }
     if( gDlgBackWindow != -1 ){
         WinClose(gDlgBackWindow);
@@ -1149,65 +1141,65 @@ void GdialogCloseWindow()
     for( i = 0; i != 8; i++ ) Free( gDlgUnk97[ i ] );
 }
 
-void GdialogUnk42( int Art, unsigned int Mood )
+void GdialogHeadUpdate( int HeadId, unsigned int Mood )
 {
     int Frame, HeadsInfo, Random;
     unsigned int fidget;
-    char v12[ 200 ], v13[ 220 ];
+    char stmp[ 200 ];
 
     Frame = 10;
-    gDlgUnk151 = 0;
-    if( Art == -1 ){
-        gDlgUnk86 = -1;
-        gDlgUnk84 = 0;
-        gDlgUnk85 = ART_NULL;
+    gDlgFidgetFrame = 0;
+    if( HeadId == -1 ){
+        gDlgFidgetId = -1;
+        gDlgFidgetImg = 0;
+        gDlgFidgetImgObj = ART_NULL;
         gDlgMood = -1;
-        gDlgUnk150 = 0;
-        gDlgUnk134 = 0;
+        gDlgFidgetSpeed = 0;
+        gDlgFidgetTimer = 0;
         GdialogRenderScreen( 0, 0 );
-        gDlgUnk82 = 0;
-        gDlgUnk81 = NULL;
-        gDlgUnk80 = 0;
+        gDlgHeadFrameId = 0;
+        gDlgHeadArtObj = NULL;
+        gDlgHeadFrameImg = NULL;
         return;
     }
 
     if( Mood == 1 ) Frame = 9;
     if( Mood == 7 ) Frame = 11;
 
-    if( gDlgUnk82 && Frame != gDlgUnk49 ){
-        if( ArtClose( gDlgUnk81 ) == -1 ) eprintf( "failure unlocking lips frame!\n" );
-        gDlgUnk81 = 0;
-        gDlgUnk80 = 0;
-        gDlgUnk82 = 0;
+    if( gDlgHeadFrameId && (Frame != gDlgHeadFrame) ){ // last frame ?
+        if( ArtClose( gDlgHeadArtObj ) == -1 ) eprintf( "failure unlocking lips frame!\n" );
+        gDlgHeadArtObj = NULL;
+        gDlgHeadFrameImg = NULL;
+        gDlgHeadFrameId = 0;
     }
-    if( !gDlgUnk82 ){
-        gDlgUnk49 = Frame;
-        gDlgUnk82 = ArtMakeId( 8, Art, Frame, 0, gDlgUnk82 );
-        gDlgUnk80 = ArtLoadImg( gDlgUnk82, &gDlgUnk81 );
-        if( !gDlgUnk80 ){
+    if( gDlgHeadFrameId == 0 ){ //
+        gDlgHeadFrame = Frame;
+        gDlgHeadFrameId = ArtMakeId( 8, HeadId, Frame, 0, 0 );
+        gDlgHeadFrameImg = ArtLoadImg( gDlgHeadFrameId, &gDlgHeadArtObj );
+        if( !gDlgHeadFrameImg ){
             eprintf( "failure!\n" );
-            CacheStats( &gArtCacheDb, v13 );
-            eprintf( "%s", v13 );
+            CacheStats( &gArtCacheDb, stmp );
+            eprintf( "%s", stmp );
         }
     }
-    if( !(HeadsInfo = ArtGetHeadsInfo( ArtMakeId(8, Art, Mood, 0, 0) )) ){
+    if( !(HeadsInfo = ArtGetHeadsInfo( ArtMakeId( 8, HeadId, Mood, 0, 0 ) ) ) ){
 	eprintf( "\tError - No available fidgets for given frame id\n" );
         return;
     }
-    Random = RandMinMax(1, 100) + gDlgUnk32 / 2;
+    Random = RandMinMax( 1, 100 ) + gDlgFidgetDrawFactor / 2;
     fidget = HeadsInfo;
     if( HeadsInfo < 2 ){
-        if( HeadsInfo != 1 ){
+        if( HeadsInfo == 0 ){
 	    if( Random < 52 )
     		fidget = 1;
 	    else 
 		fidget = ( Random < 77 ) ? 2 : 3;
 	}
     } else {
-        if( HeadsInfo <= 2 ){
-            fidget = ( Random < 68 ) ? 1:2;
+        if( HeadsInfo == 2 ){
+            fidget = ( Random < 68 ) ? 1 : 2;
         } else {
-    	    if( HeadsInfo == 3 ) gDlgUnk32 = 0;
+    	    if( HeadsInfo == 3 ) gDlgFidgetDrawFactor = 0;
 	    if( Random < 52 )
     		fidget = 1;
 	    else 
@@ -1215,52 +1207,51 @@ void GdialogUnk42( int Art, unsigned int Mood )
 	}
     }
     eprintf( "Choosing fidget %d out of %d\n", fidget, HeadsInfo );
-    if( gDlgUnk84 && ArtClose( gDlgUnk85 ) == -1 ) eprintf( "failure!\n" );
-    gDlgUnk86 = ArtMakeId(8, Art, Mood, fidget, 0);
-    gDlgUnk151 = 0;
-    gDlgUnk84 = ArtLoadImg(gDlgUnk86, &gDlgUnk85);
-    if( !gDlgUnk84 ){
+    if( gDlgFidgetImg && ArtClose( gDlgFidgetImgObj ) == -1 ) eprintf( "failure!\n" );
+    gDlgFidgetId = ArtMakeId( 8, HeadId, Mood, fidget, 0 );
+    gDlgFidgetFrame = 0;
+    gDlgFidgetImg = ArtLoadImg( gDlgFidgetId, &gDlgFidgetImgObj );
+    if( !gDlgFidgetImg ){
         eprintf( "failure!\n" );
-        CacheStats( &gArtCacheDb, v12 );
-        eprintf( "%s", v12 );
+        CacheStats( &gArtCacheDb, stmp );
+        eprintf( "%s", stmp );
     }
-    gDlgUnk134 = 0;
+    gDlgFidgetTimer = 0;
     gDlgMood = Mood;
-    gDlgUnk150 = 1000 / ArtGetObjSpeed( gDlgUnk84 );
+    gDlgFidgetSpeed = 1000 / ArtGetObjSpeed( gDlgFidgetImg );
 }
 
 void GdialogUnk43()
 {
-    if( gDlgUnk84 && gDlgMainWin != -1 ){
+    if( gDlgFidgetImg && gDlgMainWin != -1 ){
         eprintf("Waiting for fidget to complete...\n");
-        while ( ArtGetFpd(gDlgUnk84) > gDlgUnk151 ){
-            if ( TimerCurrDiff(gDlgUnk134) >= gDlgUnk150 ){
-                GdialogRenderScreen(gDlgUnk84, gDlgUnk151);
-                gDlgUnk134 = TimerGetSysTime();
-                gDlgUnk151++;
+        while( ArtGetFpd( gDlgFidgetImg ) > gDlgFidgetFrame ){
+            if( TimerCurrDiff( gDlgFidgetTimer ) >= gDlgFidgetSpeed ){
+                GdialogRenderScreen( gDlgFidgetImg, gDlgFidgetFrame );
+                gDlgFidgetTimer = TimerGetSysTime();
+                gDlgFidgetFrame++;
             }
         }
-        gDlgUnk151 = 0;
+        gDlgFidgetFrame = 0;
     }
 }
 
 void GdialogTransition( int a1 )
 {
-    ArtFrmHdr_t *Img; // ecx
-    unsigned int v7; // esi
-    int v8; // ebx
-    unsigned int v9; // edx
-    CachePool_t *ImgObj; // [esp+0h] [ebp-18h] BYREF
+    CachePool_t *ImgObj;
+    ArtFrmHdr_t *Img;
+    unsigned int v7, v9;
+    int v8;
 
-    if ( gDlgUnk84 && gDlgMainWin == -1 ) return;
+    if ( gDlgFidgetImg && gDlgMainWin == -1 ) return;
     MseCursorRedraw();
     eprintf( "Starting transition...\n" );
     GdialogUnk43();
-    if( gDlgUnk84 ){
-        if( ArtClose( gDlgUnk85 ) == -1 ) eprintf( "\tError unlocking fidget in transition func..." );
-        gDlgUnk84 = 0;
+    if( gDlgFidgetImg ){
+        if( ArtClose( gDlgFidgetImgObj ) == -1 ) eprintf( "\tError unlocking fidget in transition func..." );
+        gDlgFidgetImg = 0;
     }
-    if( !(Img = ArtLoadImg( ArtMakeId( 8, gDlgUnk46, a1, 0, 0 ), &ImgObj ) ) ) eprintf( "\tError locking transition...\n" );
+    if( !(Img = ArtLoadImg( ArtMakeId( 8, gDlgHeadId, a1, 0, 0 ), &ImgObj ) ) ) eprintf( "\tError locking transition...\n" );
     v7 = 1000 / ArtGetObjSpeed( Img );  
     v9 = 0;  
     for( v8 = 0; v8 < ArtGetFpd( Img ); v8++ ){
@@ -1346,19 +1337,19 @@ void GdialogRfshOptionRect( int win, VidRect_t *DrawRect )
     );
 }
 
-void GdialogUnk51( int a1 )
+void GdialogAnimationUpdate()
 {
     switch( gDlgState ){
         case 2:
             gDlgUnk50 = -1; 
             gDlgState = 3; 
-            GdialogUnk79(); 
+            GdialogPanelCloseAnimation(); 
             GdialogUnk60(); 
             break;
         case 1:
             gDlgUnk50 = -1;
             gDlgState = 0;
-            GdialogUnk61();
+            GdialogPanelClose();
             GdialogCreateButtons();
             if( gDlgReplyWin != -1 ) WinMoveTop( gDlgReplyWin );
             if( gDlgOptionWin != -1 ) WinMoveTop( gDlgOptionWin );
@@ -1366,59 +1357,60 @@ void GdialogUnk51( int a1 )
         case 8:
             gDlgUnk50 = -1;
             gDlgState = 9;
-            GdialogUnk79();
-            GdialogUnk63();
+            GdialogPanelCloseAnimation();
+            GdialogCombatControlMenuCreate();
             break;
         case 11:
             gDlgUnk50 = -1;
             gDlgState = 12;
-            GdialogUnk79();
-            GdialogUnk70();
+            GdialogPanelCloseAnimation();
+            GdialogCustomDispMenuCreate();
             break;
     }
-    if( gDlgUnk84 ){
-        if( gDlgLipsEn == 1 ){
-            LipsyncSpeachStop();
-            if( gLipsUnk04 ){
-                GdialogRenderScreen( gDlgUnk80, gDlgUnk48[ (int)gLipsPhoneme ] );
-                gLipsUnk04 = 0;
-            }
-            if( !SoundIsPlaying( gLipsync.Snd ) ){
-                GdialogLipsyncEnd();
-                GdialogRenderScreen( gDlgUnk80, 0 );
-                gDlgUnk27 = 1;
-                gDlgUnk32 = 3;
-                gDlgUnk151 = 0;
-            }
+    if( gDlgFidgetImg == NULL ) return;
+    if( gDlgLipsEn == 1 ){
+        LipsyncSpeechUpdate();
+        if( gLipsNewPhonemeFlag ){ // update head Art
+            GdialogRenderScreen( gDlgHeadFrameImg, gDlgUnk48[ gLipsPhoneme ] );
+            gLipsNewPhonemeFlag = 0;
         }
-        else if( gDlgUnk27 ){
-            if( TimerCurrDiff(gDlgUnk134) >= gDlgUnk51 ){
-                gDlgUnk27 = 0;
-                gDlgUnk32 += gDlgUnk51 / 0x3E8u;
-                gDlgUnk51 = 1000 * (RandMinMax(0, 3) + 4);
-                GdialogUnk42(gDlgUnk86 & 0xFFF, (gDlgUnk86 & 0xFF0000) >> 16);
-            }
-        } else if( TimerCurrDiff(gDlgUnk134) >= gDlgUnk150 ){
-            if( ArtGetFpd(gDlgUnk84) <= gDlgUnk151 ){
-                GdialogRenderScreen(gDlgUnk84, 0);
-                gDlgUnk27 = 1;
-            } else {
-                GdialogRenderScreen(gDlgUnk84, gDlgUnk151);
-                gDlgUnk134 = TimerGetSysTime();
-                gDlgUnk151++;
-            }
+        if( !SoundIsPlaying( gLipsync.Snd ) ){
+            GdialogLipsyncEnd();
+            GdialogRenderScreen( gDlgHeadFrameImg, 0 );
+            gDlgFidgetAnimate = 1; // set head to it default state of animation (fidget ending frame)
+            gDlgFidgetDrawFactor = 3;
+            gDlgFidgetFrame = 0;
+        }
+        return;
+    }
+    if( gDlgFidgetAnimate ){ // finish fidget animation
+        if( TimerCurrDiff( gDlgFidgetTimer ) >= gDlgFidgetFinishSpeed ){
+            gDlgFidgetAnimate = 0;
+            gDlgFidgetDrawFactor += gDlgFidgetFinishSpeed / 1000;
+            gDlgFidgetFinishSpeed = 1000 * (RandMinMax(0, 3) + 4);
+            GdialogHeadUpdate( gDlgFidgetId & 0xFFF, (gDlgFidgetId & 0xFF0000) >> 16 );
+        }
+        return;
+    }
+    if( TimerCurrDiff( gDlgFidgetTimer ) >= gDlgFidgetSpeed ){ // fidget animation
+        if( ArtGetFpd( gDlgFidgetImg ) <= gDlgFidgetFrame ){
+            GdialogRenderScreen( gDlgFidgetImg, 0 );
+            gDlgFidgetAnimate = 1;
+        } else {
+            GdialogRenderScreen( gDlgFidgetImg, gDlgFidgetFrame );
+            gDlgFidgetTimer = TimerGetSysTime();
+            gDlgFidgetFrame++;
         }
     }
 }
 
 void GdialogReaction( int a1 )
 {
-    int v1, v4, v6;
+    int v4, v6;
 
-    v1 = a1 + 1;
     eprintf( "Dialogue Reaction: " );
-    if( v1 < 3 ) eprintf( "%s\n", gDlgUnk52[ v1 ] );
-    gDlgUnk32 = 0;
+    if( a1+1 < 3 ) eprintf( "%s\n", gDlgUnk52[ a1 ] );
+    gDlgFidgetDrawFactor = 0;
     if( a1 >= -50 ){
         if( a1 != -1 ) return;
         if( gDlgMood < 4 ){
@@ -1438,7 +1430,7 @@ void GdialogReaction( int a1 )
 	if( gDlgMood < 4 ){
             if( gDlgMood == 1 ){
                 GdialogTransition( 2 );
-                GdialogUnk42( gDlgUnk46, 4 );
+                GdialogHeadUpdate( gDlgHeadId, 4 );
             }
             return;
         }
@@ -1451,10 +1443,10 @@ void GdialogReaction( int a1 )
         v6 = 7;
     }
     GdialogTransition( v4 );
-    GdialogUnk42( gDlgUnk46, v6 );    
+    GdialogHeadUpdate( gDlgHeadId, v6 );    
 }
 
-int GdialogOptionBg( int a1, int a2, char *a3, char *a4, char *a5, int a6, int a7 )
+int GdialogPanelSlide( int a1, int a2, char *a3, char *a4, char *a5, int a6, int a7 )
 {
     unsigned int result;
     char *pSrc, *v9;
@@ -1622,119 +1614,111 @@ void GdialogUnk59()
 int GdialogUnk60()
 {
     ArtFrmHdr_t *Img;
-    char *ObjData,*Surface,*v7;
-    int ObjHeight,v15,h;
+    char *ObjData,*Surface;
+    int w,h;
     CachePool_t *ImgObj;
-
+DD
     gDlgUnk09 = 4;    
-    if( !( Img = ArtLoadImg( ( gDlgUnk45 ) ? ArtMakeId( 6, 420, 0, 0, 0 ) : ArtMakeId( 6, 111, gDlgUnk45, 0, 0 ), &ImgObj ) ) ) return -1;
+    if( !( Img = ArtLoadImg( ( gDlgPmExchangeMode ) ? ArtMakeId( 6, 420, 0, 0, 0 ) : ArtMakeId( 6, 111, gDlgPmExchangeMode, 0, 0 ), &ImgObj ) ) ) return -1;
     if( ( ObjData = ArtGetObjData( Img, 0, 0 ) ) ){
-            ObjHeight = ArtGetObjHeight( Img, 0, 0 );
-            gDlgUnk53 = ObjHeight;
-            h = 480 - ObjHeight;            
-            if( ( gDlgMainWin = WinCreateWindow( 0, h, gVidMainGeo.rt - gVidMainGeo.lt + 1, ObjHeight, 256, 2 ) ) != -1 ){
-                Surface = WinGetSurface( gDlgMainWin );
-                v15 = gVidMainGeo.rt - gVidMainGeo.lt + 1;
-                v7 = WinGetSurface( gDlgBackWindow );
-                ScrCopy( &v7[ v15 * h ], v15, ObjHeight, v15, Surface, v15 );
-                GdialogOptionBg( gDlgMainWin, 1, ObjData, Surface, 0, ObjHeight, 0 );
-                ArtClose( ImgObj );
-                if( (gDlgButtons[ 0 ] = WinCreateButton( gDlgMainWin, 41, 163, 14, 14, -1, -1, -1, 109, gDlgImgBtA0, gDlgImgBtA1, 0, 32 ) ) != -1 ){
-                    WinSetClickSound( gDlgButtons[ 0 ], GSoundPlayCheck, GSoundPlayUnCheck );
-                    if( (gDlgButtons[ 1 ] = WinCreateButton( gDlgMainWin, 584, 162, 14, 14, -1, -1, -1, 116, gDlgImgBtA0, gDlgImgBtA1, 0, 32 ) ) != -1 ){
-                        WinSetClickSound( gDlgButtons[ 1 ], GSoundPlayCheck, GSoundPlayUnCheck );
-                        if( ObjCreate( &gDlgUnk15, -1, -1 ) != -1 ){
-                            gDlgUnk15->Flags |= 0x01;
-                            if( ObjCreate( &gDlgUnk20, -1, -1 ) != -1 ){
-                                gDlgUnk20->Flags |= 0x01;
-                                if( ObjCreate( &gDlgUnk21, gDlgUnk44->ImgId, -1 ) != -1 ){
-                                    gDlgUnk21->ScrId = -1;
-                                    gDlgUnk21->Flags |= 0x05;
-                                    return 0;
-                                }
-                                ObjDestroy( gDlgUnk20, 0 );
+        gDlgPanelHeight = ArtGetObjHeight( Img, 0, 0 );
+        h = 480 - gDlgPanelHeight;            
+        if( ( gDlgMainWin = WinCreateWindow( 0, h, gVidMainGeo.rt - gVidMainGeo.lt + 1, gDlgPanelHeight, 256, 2 ) ) != -1 ){
+            Surface = WinGetSurface( gDlgMainWin );
+            w = gVidMainGeo.rt - gVidMainGeo.lt + 1;
+            ScrCopy( WinGetSurface( gDlgBackWindow ) + w * h, w, gDlgPanelHeight, w, Surface, w ); // background, under panel
+            GdialogPanelSlide( gDlgMainWin, 1, ObjData, Surface, 0, gDlgPanelHeight, 0 ); // Panel Look in Trade mode
+            ArtClose( ImgObj );
+            if( (gDlgButtons[ 0 ] = WinCreateButton( gDlgMainWin, 41, 163, 14, 14, -1, -1, -1, 109, gDlgImgBtA0, gDlgImgBtA1, 0, 32 ) ) != -1 ){ // 'Trade' button
+                WinSetClickSound( gDlgButtons[ 0 ], GSoundPlayCheck, GSoundPlayUnCheck );
+                if( (gDlgButtons[ 1 ] = WinCreateButton( gDlgMainWin, 584, 162, 14, 14, -1, -1, -1, 116, gDlgImgBtA0, gDlgImgBtA1, 0, 32 ) ) != -1 ){ // 'Talk' button
+                    WinSetClickSound( gDlgButtons[ 1 ], GSoundPlayCheck, GSoundPlayUnCheck );
+                    if( ObjCreate( &gDlgUnk15, -1, -1 ) != -1 ){
+                        gDlgUnk15->Flags |= 0x01;
+                        if( ObjCreate( &gDlgUnk20, -1, -1 ) != -1 ){
+                            gDlgUnk20->Flags |= 0x01;
+                            if( ObjCreate( &gDlgUnk21, gDlgPartyMemberObj->ImgId, -1 ) != -1 ){
+                                gDlgUnk21->ScrId = -1;
+                                gDlgUnk21->Flags |= 0x05;
+                                return 0;
                             }
-                            ObjDestroy( gDlgUnk15, 0 );
+                            ObjDestroy( gDlgUnk20, 0 );
                         }
-                        WinImageRemove( gDlgButtons[ 1 ] );
-                        gDlgButtons[ 1 ] = -1;
+                        ObjDestroy( gDlgUnk15, 0 );
                     }
-                    WinImageRemove( gDlgButtons[ 0 ] );
-                    gDlgButtons[ 0 ] = -1;
+                    WinImageRemove( gDlgButtons[ 1 ] );
+                    gDlgButtons[ 1 ] = -1;
                 }
-                WinClose( gDlgMainWin );
-                gDlgMainWin = -1;
+                WinImageRemove( gDlgButtons[ 0 ] );
+                gDlgButtons[ 0 ] = -1;
             }
+            WinClose( gDlgMainWin );
+            gDlgMainWin = -1;
+        }
     }
     ArtClose( ImgObj );
     return -1;
 }
 
-void GdialogUnk61()
+void GdialogPanelClose()
 {
     int i;
     char *Surface,*Bitmap;
     CachePool_t *ImgObj;
-DD
+
     if( gDlgMainWin == -1 ) return;
-    ObjDestroy(gDlgUnk21, 0);
-    ObjDestroy(gDlgUnk20, 0);
-    ObjDestroy(gDlgUnk15, 0);
+    ObjDestroy( gDlgUnk21, 0 );
+    ObjDestroy( gDlgUnk20, 0 );
+    ObjDestroy( gDlgUnk15, 0 );
     for ( i = 0; i != 9;  i++ ){
         WinImageRemove( gDlgButtons[ i ] );
         gDlgButtons[ i ] = -1;
     }
     Surface = WinGetSurface( gDlgBackWindow );    
-    if( (Bitmap = ArtGetBitmap( ( gDlgUnk45 ) ? ArtMakeId( 6, 420, 0, 0, 0 ) : ArtMakeId( 6, 111, 0, 0, gDlgUnk45 ), 0, 0, &ImgObj )) ){
-        GdialogOptionBg( gDlgMainWin, 0, Bitmap, WinGetSurface( gDlgMainWin ), &Surface[ (gVidMainGeo.rt - gVidMainGeo.lt + 1) * (480 - gDlgUnk53) ], gDlgUnk53, 0 );
+    if( (Bitmap = ArtGetBitmap( ( gDlgPmExchangeMode ) ? ArtMakeId( 6, 420, 0, 0, 0 ) : ArtMakeId( 6, 111, 0, 0, gDlgPmExchangeMode ), 0, 0, &ImgObj )) ){
+        GdialogPanelSlide( gDlgMainWin, 0, Bitmap, WinGetSurface( gDlgMainWin ), &Surface[ (gVidMainGeo.rt - gVidMainGeo.lt + 1) * (480 - gDlgPanelHeight) ], gDlgPanelHeight, 0 );
         ArtClose( ImgObj );
     }
     WinClose( gDlgMainWin );
     gDlgMainWin = -1;
-    AiUnk45( gDlgUnk44, 0 );
+    AiUnk45( gDlgPartyMemberObj, 0 );
 }
 
-int GdialogUnk62()
+void GdialogUnk62()
 {
-    int i, n;
+    int i;
 
     for( i = 0; i < gDlgUnk15->Critter.Box.Cnt; i++ ){
         Item14( gDlgUnk15, gObjDude, gDlgUnk15->Critter.Box.Box->obj, Item33( gDlgUnk15, gDlgUnk15->Critter.Box.Box->obj ) );
     }
-    n = gDlgUnk20->Critter.Box.Cnt;
     for( i = 0; i < gDlgUnk20->Critter.Box.Cnt; i++ ){
-        n = Item14( gDlgUnk20, gDlgUnk44, gDlgUnk20->Critter.Box.Box->obj, Item33( gDlgUnk20, gDlgUnk20->Critter.Box.Box->obj ) );
+        Item14( gDlgUnk20, gDlgPartyMemberObj, gDlgUnk20->Critter.Box.Box->obj, Item33( gDlgUnk20, gDlgUnk20->Critter.Box.Box->obj ) );
     }
-    n = gDlgUnk21->Critter.Box.Cnt;
     if( gDlgUnk21 ){
         for( i = 0; i < gDlgUnk21->Critter.Box.Cnt; i++ ){
-            n = Item14( gDlgUnk21, gDlgUnk44, gDlgUnk21->Critter.Box.Box->obj, Item33( gDlgUnk21, gDlgUnk21->Critter.Box.Box->obj ) );
+            Item14( gDlgUnk21, gDlgPartyMemberObj, gDlgUnk21->Critter.Box.Box->obj, Item33( gDlgUnk21, gDlgUnk21->Critter.Box.Box->obj ) );
         }
     }
-    return n;
 }
 
-int GdialogUnk63()
+int GdialogCombatControlMenuCreate()
 {
     ArtFrmHdr_t *Img,*v18,*v23,*v26;
     CachePool_t *ImgObj;
     char *ObjData,*Surface,*v9,*v27,*a8,*a9;    
-    int ObjHeight,Window,v8,Disposition,v31,zz,a3,i;
-    
-    if( !(Img = ArtLoadImg( ArtMakeId(6, 390, 0, 0, 0), &ImgObj )) ) return -1;
-    ObjData = ArtGetObjData( Img, 0, 0 );
-    if( !ObjData ) goto err;
-    ObjHeight = ArtGetObjHeight( Img, 0, 0);
-    gDlgUnk53 = ObjHeight;
-    Window = WinCreateWindow(0, 480 - ObjHeight, gVidMainGeo.rt - gVidMainGeo.lt + 1, ObjHeight, 256, 2);
-    gDlgMainWin = Window;
-    if( Window == -1 ) goto err;
-    Surface = WinGetSurface( Window );
+    int ObjHeight,v8,Disposition,v31,zz,a3,i;
+
+    if( !( Img = ArtLoadImg( ArtMakeId( 6, 390, 0, 0, 0 ), &ImgObj ) ) ) return -1;
+    if( !( ObjData = ArtGetObjData( Img, 0, 0 ) ) ) goto err;
+    ObjHeight = ArtGetObjHeight( Img, 0, 0 );
+    gDlgPanelHeight = ObjHeight;    
+    if( (gDlgMainWin = WinCreateWindow(0, 480 - ObjHeight, gVidMainGeo.rt - gVidMainGeo.lt + 1, ObjHeight, 256, 2)) == -1 ) goto err;
+    Surface = WinGetSurface( gDlgMainWin );
     v31 = gVidMainGeo.rt - gVidMainGeo.lt + 1;
     v8 = v31 * (480 - ObjHeight);
     v9 = WinGetSurface( gDlgBackWindow );
     ScrCopy( &v9[v8], v31, ObjHeight, v31, Surface, v31 );
-    GdialogOptionBg( gDlgMainWin, 1, ObjData, Surface, 0, ObjHeight, 0 );
+    GdialogPanelSlide( gDlgMainWin, 1, ObjData, Surface, 0, ObjHeight, 0 );
     ArtClose( ImgObj );            
     if( ( gDlgButtons[ 0 ] = WinCreateButton( gDlgMainWin, 593, 41, 14, 14, -1, -1, -1, 27, gDlgImgBtA0, gDlgImgBtA1, 0, 32 ) ) == -1 ) goto err;
     WinSetClickSound( gDlgButtons[ 0 ], GSoundPlayCheck, GSoundPlayUnCheck );                
@@ -1745,25 +1729,25 @@ int GdialogUnk63()
     if( ( gDlgButtons[ 3 ] = WinCreateButton( gDlgMainWin, 235, 46, 14, 14, -1, -1, -1, 97, gDlgImgBtA0, gDlgImgBtA1, 0, 32 ) ) == -1 ) goto err;
     WinSetClickSound( gDlgButtons[ 3 ], GSoundPlayCheck, GSoundPlayUnCheck );
     gDlgUnk113 = 4;
-    for( i = 0; i < 5; i++  ){
-        if( !(v18 = ArtLoadImg( ArtMakeId( 6, gDlgUnk54[ i ].ArtId1, 0, 0, 0 ), &gDlgUnk54[ i ].Art1 ) ) ) goto err;
+    for( i = 0; i < 5; i++  ){ // disposition list
+        if( !(v18 = ArtLoadImg( ArtMakeId( 6, gDlgCmbtCtrlButtons[ i ].ArtId1, 0, 0, 0 ), &gDlgCmbtCtrlButtons[ i ].Art1 ) ) ) goto err;
         zz = ArtGetObjWidth( v18, 0, 0 );
         a3 = ArtGetObjHeight( v18, 0, 0 );
         a8 = ArtGetObjData( v18, 0, 0 );
-        if( !(v23 = ArtLoadImg( ArtMakeId( 6, gDlgUnk54[ i ].ArtId2, 0, 0, 0 ), &gDlgUnk54[ i ].Art2 ) ) ) goto err;
+        if( !(v23 = ArtLoadImg( ArtMakeId( 6, gDlgCmbtCtrlButtons[ i ].ArtId2, 0, 0, 0 ), &gDlgCmbtCtrlButtons[ i ].Art2 ) ) ) goto err;
         a9 = ArtGetObjData( v23, 0, 0 );                                
-        if( !(v26 = ArtLoadImg( ArtMakeId( 6, gDlgUnk54[ i ].ArtId3, 0, 0, 0 ), &gDlgUnk54[ i ].Art3 ) ) ) goto err;
+        if( !(v26 = ArtLoadImg( ArtMakeId( 6, gDlgCmbtCtrlButtons[ i ].ArtId3, 0, 0, 0 ), &gDlgCmbtCtrlButtons[ i ].Art3 ) ) ) goto err;
         v27 = ArtGetObjData( v26, 0, 0 );
-	gDlgButtons[ i + 4 ] = WinCreateButton( gDlgMainWin, gDlgUnk54[ i ].Xpos, gDlgUnk54[ i ].Ypos, zz, a3, -1, -1, gDlgUnk54[ i ].HotKey, -1, a8, a9, 0, 37 );
+	gDlgButtons[ i + 4 ] = WinCreateButton( gDlgMainWin, gDlgCmbtCtrlButtons[ i ].Xpos, gDlgCmbtCtrlButtons[ i ].Ypos, zz, a3, -1, -1, gDlgCmbtCtrlButtons[ i ].HotKey, -1, a8, a9, 0, 37 );
         if( ( gDlgButtons[ i + 4 ]  ) == -1 ) break;
         WinSetAnimH( gDlgButtons[ i + 4 ], v27, v27, v27 );
         WinSetClickSound( gDlgButtons[ i + 4 ], GSoundPlayCheck, GSoundPlayUnCheck );
-        if( !PartyInDisposition( gDlgUnk44, gDlgUnk54[ i ].Disposition ) ) WinDisableWidget( gDlgButtons[ i + 4 ] );
+        if( !PartyInDisposition( gDlgPartyMemberObj, gDlgCmbtCtrlButtons[ i ].Disposition ) ) WinDisableWidget( gDlgButtons[ i + 4 ] );
     }                                                        
     WinRadioButton( 5, &gDlgButtons[ gDlgUnk113 ] );
-    Disposition = AiGetDisposition( gDlgUnk44 );
+    Disposition = AiGetDisposition( gDlgPartyMemberObj );
     WinButtonSet( gDlgButtons[ gDlgUnk113 + 4 - Disposition ], 1, 0 );
-    GdialogUnk65();
+    GdialogCombatControlAttributes();
     gDlgUnk09 = 10;
     WinUpdate( gDlgMainWin );
     return 0;
@@ -1777,36 +1761,36 @@ void GdialogCombatControlMenuClose()
     CachePool_t *ImgObj;
     char *surf, *img;
     int i;
-DD
+
     if( gDlgMainWin == -1 ) return;    
     for( i = 0; i != 9; i++ ){
         WinImageRemove( gDlgButtons[ i ] );
         gDlgButtons[ i ] = -1;
     }
     for( i = 0; i != 5; i++ ){
-        if( gDlgUnk54[ i ].Art1 ){
-            ArtClose( gDlgUnk54[ i ].Art1 );
-            gDlgUnk54[ i ].Art1 = NULL;
+        if( gDlgCmbtCtrlButtons[ i ].Art1 ){
+            ArtClose( gDlgCmbtCtrlButtons[ i ].Art1 );
+            gDlgCmbtCtrlButtons[ i ].Art1 = NULL;
         }
-        if( gDlgUnk54[ i ].Art2 ){
-            ArtClose( gDlgUnk54[ i ].Art2 );
-            gDlgUnk54[ i ].Art2 = NULL;
+        if( gDlgCmbtCtrlButtons[ i ].Art2 ){
+            ArtClose( gDlgCmbtCtrlButtons[ i ].Art2 );
+            gDlgCmbtCtrlButtons[ i ].Art2 = NULL;
         }
-        if( gDlgUnk54[ i ].Art3 ){
-            ArtClose( gDlgUnk54[ i ].Art3 );
-            gDlgUnk54[ i ].Art3 = NULL;
+        if( gDlgCmbtCtrlButtons[ i ].Art3 ){
+            ArtClose( gDlgCmbtCtrlButtons[ i ].Art3 );
+            gDlgCmbtCtrlButtons[ i ].Art3 = NULL;
         }
     }
     surf = WinGetSurface( gDlgBackWindow );    
     if( (img = ArtGetBitmap( ArtMakeId( 6, 390, 0, 0, 0 ), 0, 0, &ImgObj )) ){
-        GdialogOptionBg( gDlgMainWin, 0, img, WinGetSurface( gDlgMainWin ), &surf[ (gVidMainGeo.rt - gVidMainGeo.lt + 1) * (480 - gDlgUnk53) ], gDlgUnk53, 0 );
+        GdialogPanelSlide( gDlgMainWin, 0, img, WinGetSurface( gDlgMainWin ), &surf[ (gVidMainGeo.rt - gVidMainGeo.lt + 1) * (480 - gDlgPanelHeight) ], gDlgPanelHeight, 0 );
         ArtClose( ImgObj );
     }
     WinClose( gDlgMainWin );
     gDlgMainWin = -1;    
 }
 
-void GdialogUnk65()
+void GdialogCombatControlAttributes()
 {
     int Width,ObjWidth,v20,v22,v29,FontId;
     char *ObjData,stmp[256],*surf;
@@ -1828,29 +1812,36 @@ void GdialogUnk65()
         ScrCopy( &ObjData[ 80 * ObjWidth + 232 ], 132, 106, ObjWidth, &surf[ 80 * Width + 232 ], Width );
         ArtClose( Obj );
     }
-    RHandObj = InvGetRHandObj(gDlgUnk44);
+    RHandObj = InvGetRHandObj(gDlgPartyMemberObj);
     sprintf( stmp, "%s", ( RHandObj ) ? ItemGetName( RHandObj ) : MessageGetMessage( &gProtoMessages, &Line, 10 ) );
     gFont.Print( &surf[ 20 * Width + 112 ], stmp, 110, Width, DLG_COLOR_5 );
-    ArmorObj = InvGetArmorObj( gDlgUnk44 );
+    ArmorObj = InvGetArmorObj( gDlgPartyMemberObj );
     sprintf( stmp, "%s", ( ArmorObj ) ? ItemGetName( ArmorObj ) : MessageGetMessage( &gProtoMessages, &Line, 10 ) );
     gFont.Print( &surf[ 49 * Width + 112 ], stmp, 110, Width, DLG_COLOR_5 );
-    if( (v18 = ArtLoadImg( ArtMakeId( OBJTYPE( gDlgUnk44->ImgId ), gDlgUnk44->ImgId & 0xFFF, 0, (gDlgUnk44->ImgId & 0xF000) >> 12, 3 ), &Obj )) ){
+    if( (v18 = ArtLoadImg( ArtMakeId( OBJTYPE( gDlgPartyMemberObj->ImgId ), gDlgPartyMemberObj->ImgId & 0xFFF, 0, (gDlgPartyMemberObj->ImgId & 0xF000) >> 12, 3 ), &Obj )) ){
         v20 = ArtGetObjWidth( v18, 0, 3 );
         v22 = ArtGetObjHeight( v18, 0, 3 );
         ScrCopyAlpha( ArtGetObjData( v18, 0, 3 ), v20, v22, v20, &surf[ Width * (132 - v22 / 2) + 39 - v20 / 2], Width );
         ArtClose( Obj );
     }
-    sprintf( stmp, "%d/%d", FeatGetVal(gDlgUnk44, 35), FeatGetVal( gDlgUnk44, 7 ) );
+    // attributes
+    sprintf( stmp, "%d/%d", FeatGetVal(gDlgPartyMemberObj, 35), FeatGetVal( gDlgPartyMemberObj, FEAT_HP ) );
     gFont.Print( &surf[ 96 * Width + 240 ], stmp, 115, Width, DLG_COLOR_5 );
-    sprintf( stmp, "%s", SkillGetName( PartyBestSkill( gDlgUnk44 ) ) );
+
+    sprintf( stmp, "%s", SkillGetName( PartyBestSkill( gDlgPartyMemberObj ) ) );
     gFont.Print( &surf[ 113 * Width + 240 ], stmp, 115, Width, DLG_COLOR_5 );
-    sprintf( stmp, "%d/%d ", ItemGetBackPackWeight( gDlgUnk44 ), FeatGetVal( gDlgUnk44, 12 ) );
-    if( CritterOverload( gDlgUnk44 ) ) v29 = DLG_COLOR_9;
+
+    v29 = DLG_COLOR_5;
+    sprintf( stmp, "%d/%d ", ItemGetBackPackWeight( gDlgPartyMemberObj ), FeatGetVal( gDlgPartyMemberObj, FEAT_CARRY ) );
+    if( CritterOverload( gDlgPartyMemberObj ) ) v29 = DLG_COLOR_9;
     gFont.Print( &surf[ 131 * Width + 240 ], stmp, 115, Width, v29 );
-    sprintf( stmp, "%d", FeatGetVal(gDlgUnk44, 11) );
+
+    sprintf( stmp, "%d", FeatGetVal( gDlgPartyMemberObj, FEAT_MELEE ) );
     gFont.Print( &surf[ 148 * Width + 240 ], stmp, 115, Width, DLG_COLOR_5 );
-    sprintf( stmp, "%d/%d ", ( IN_COMBAT ) ? gDlgUnk44->Critter.State.CurrentAP : FeatGetVal( gDlgUnk44, 8 ), FeatGetVal( gDlgUnk44, 8 ) );
+
+    sprintf( stmp, "%d/%d ", ( IN_COMBAT ) ? gDlgPartyMemberObj->Critter.State.CurrentAP : FeatGetVal( gDlgPartyMemberObj, FEAT_AP ), FeatGetVal( gDlgPartyMemberObj, FEAT_AP ) );
     gFont.Print( &surf[ 167 * Width + 240 ], stmp, 115, Width, DLG_COLOR_5 );
+
     FontSet( FontId );
     WinUpdate( gDlgMainWin );
 }
@@ -1873,16 +1864,16 @@ int GdialogUnk67( Obj_t *a1 )
     return RandMinMax( 0, 4 ) + 670;
 }
 
-int GdialogUnk68()
+int GdialogMenuTrade()
 {
     MsgLine_t msg;
     Proto_t *proto;
 
-    if( OBJTYPE( gDlgUnk44->Pid ) != TYPE_CRIT ) return 1;
-    ProtoGetObj( gDlgUnk44->Pid, &proto );
+    if( OBJTYPE( gDlgPartyMemberObj->Pid ) != TYPE_CRIT ) return 1;
+    ProtoGetObj( gDlgPartyMemberObj->Pid, &proto );
     if( (proto->Critt.Type & 2) != 0 ) return 1;
     msg.Id = 903;
-    if( gDlgUnk45 ) msg.Id = 913;
+    if( gDlgPmExchangeMode ) msg.Id = 913;
     if( MessageGetMsg( &gProtoMessages, &msg ) == 1 )
         GdialogReply( msg.Text );
     else
@@ -1892,47 +1883,51 @@ int GdialogUnk68()
 
 void GdialogCombatControlMenu()
 {
-    int ext;
+    int ext,n;
     Obj_t *obj;
     MsgLine_t msg;
-DD
+
     ext = 0;
     while( !ext && !gMenuEscape){
-    	switch( InpUpdate() ){
+    	switch( (n = InpUpdate()) ){
     	    case -1: break;
     	    case 17: case 24: case 324: SysQuitDlg(); break;
     	    case KEY_ESC: gDlgState = 1; gDlgUnk09 = 1; return;
-    	    case 'a':
-    		if( gDlgUnk44->Pid != 0x10000A1 ){                
-        	    if( (obj = AiFindBestArmor( gDlgUnk44 ) ) ) InvUnk28( gDlgUnk44, obj, 0 );
+    	    case 'a': // use best armor
+    		if( gDlgPartyMemberObj->Pid != 0x10000A1 ){                
+        	    if( (obj = AiFindBestArmor( gDlgPartyMemberObj ) ) ) InvUnk28( gDlgPartyMemberObj, obj, 0 );
     		}
-    		GdialogReply( MessageGetMessage( &gProtoMessages, &msg, GdialogUnk67( gDlgUnk44 ) ) );
-    		GdialogUnk65();
+    		GdialogReply( MessageGetMessage( &gProtoMessages, &msg, GdialogUnk67( gDlgPartyMemberObj ) ) );
+    		GdialogCombatControlAttributes();
     		break;
-	    case 'd':
-		if( !GdialogUnk68() ) break;
+	    case 'd': // Trade
+		if( !GdialogMenuTrade() ) break;
 		gDlgState = 2; 
 		gDlgUnk09 = 4; 
 		return;
-    	    case -2:
-    		if( MseCursorCenterInArea( 441, 451, 540, 470 ) ){ AiUnk06( gDlgUnk44, 0 ); gDlgUnk09 = 13; gDlgState = 11; ext = 1; }
+    	    case -2: // disposition
+    		if( !MseCursorCenterInArea( 441, 451, 540, 470 ) ) break;
+    		AiUnk06( gDlgPartyMemberObj, AI_DISP_CUSTOM );
+    		gDlgUnk09 = 13; 
+    		gDlgState = 11; 
+    		ext = 1;
     		break;
-    	    case 'w':
-        	InvUnwield( gDlgUnk44, 1 );
-        	if( (obj = AiUnk29( gDlgUnk44, 0, 0 )) ){ InvUnk28( gDlgUnk44, obj, 1 ); AiUnk45( gDlgUnk44, 0 ); }
-    		GdialogReply( MessageGetMessage( &gProtoMessages, &msg, GdialogUnk67( gDlgUnk44 ) ) );
-    		GdialogUnk65();
+    	    case 'w': // best weapon
+        	InvUnwield( gDlgPartyMemberObj, 1 );
+        	if( (obj = AiUnk29( gDlgPartyMemberObj, 0, 0 )) ){ InvUnk28( gDlgPartyMemberObj, obj, 1 ); AiUnk45( gDlgPartyMemberObj, 0 ); }
+    		GdialogReply( MessageGetMessage( &gProtoMessages, &msg, GdialogUnk67( gDlgPartyMemberObj ) ) );
+    		GdialogCombatControlAttributes();
     		break;
-    	    case 2098: AiUnk06( gDlgUnk44, 4 ); break;
-    	    case 2099: AiUnk06( gDlgUnk44, 0 ); gDlgUnk09 = 13; gDlgState = 11; ext = 1; break;
-    	    case 2102: AiUnk06( gDlgUnk44, 2 ); break;
-    	    case 2103: AiUnk06( gDlgUnk44, 3 ); break;
-    	    case 2111: AiUnk06( gDlgUnk44, 1 ); break;        
+    	    case 2098: AiUnk06( gDlgPartyMemberObj, AI_DISP_BERSERK ); break;
+    	    case 2099: AiUnk06( gDlgPartyMemberObj, AI_DISP_CUSTOM ); gDlgUnk09 = 13; gDlgState = 11; ext = 1; break;
+    	    case 2102: AiUnk06( gDlgPartyMemberObj, AI_DISP_DEFENSIVE ); break;
+    	    case 2103: AiUnk06( gDlgPartyMemberObj, AI_DISP_AGGRESIVE ); break;
+    	    case 2111: AiUnk06( gDlgPartyMemberObj, AI_DISP_COWARD ); break;        
         }
     }
 }
 
-int GdialogUnk70()
+int GdialogCustomDispMenuCreate()
 {
     ArtFrmHdr_t *Img, *Img1, *Img2;
     CachePool_t *ImgObj;
@@ -1943,62 +1938,57 @@ int GdialogUnk70()
     if( MessageLoad( &gDlgMsg, "game/custom.msg" ) != 1 ) return -1;    
     if( !(Img = ArtLoadImg( ArtMakeId( 6, 391, 0, 0, 0 ), &ImgObj )) ) return -1;
     ObjData = ArtGetObjData( Img, 0, 0 );
-    if( ObjData ){
-        ObjHeight = ArtGetObjHeight( Img, 0, 0 );
-        gDlgUnk53 = ObjHeight;
-        w = gVidMainGeo.rt - gVidMainGeo.lt + 1;
-        if( (gDlgMainWin = WinCreateWindow( 0, 480 - ObjHeight, w, ObjHeight, 256, 2 ) ) != -1 ){
-            Surface = WinGetSurface( gDlgMainWin );
-            p = WinGetSurface( gDlgBackWindow );
-            ScrCopy( &p[ w * (480 - ObjHeight)], w, ObjHeight, w, Surface, w );
-            GdialogOptionBg( gDlgMainWin, 1, ObjData, Surface, 0, ObjHeight, 0 );
-            ArtClose( ImgObj );
-            if( (gDlgButtons[ 0 ] = WinCreateButton( gDlgMainWin, 593, 101, 14, 14, -1, -1, -1, 13, gDlgImgBtA0, gDlgImgBtA1, 0, 32 )) != -1 ){
-                WinSetClickSound( gDlgButtons[ 0 ], GSoundPlayCheck, GSoundPlayUnCheck );
-                gDlgUnk112 = 1;                
-                for( i = 0; i < 6; i++ ){
-                    if( !(Img1 = ArtLoadImg( ArtMakeId( 6, gDlgUnk71[ i ].ArtId1, 0, 0, 0 ), &gDlgUnk71[ i ].Art1 ) ) ) break;
-                    if( !(Img2 = ArtLoadImg( ArtMakeId( 6, gDlgUnk71[ i ].ArtId2, 0, 0, 0 ), &gDlgUnk71[ i ].Art2 ) ) ) break;
-                    gDlgButtons[ i + 1 ] = WinCreateButton( gDlgMainWin, gDlgUnk71[ i ].Xpos, gDlgUnk71[ i ].Ypos, ArtGetObjWidth( Img1, 0, 0 ), ArtGetObjHeight( Img1, 0, 0 ), -1, -1, -1, gDlgUnk71[ i ].HotKey, ArtGetObjData( Img1, 0, 0 ), ArtGetObjData( Img2, 0, 0 ), 0, 32 );
-                    if( gDlgButtons[ i + 1 ] == -1 ) break;
-                    WinSetClickSound( gDlgButtons[ i + 1 ], GSoundPlayCheck, GSoundPlayUnCheck );
-                }
-                gDlgUnk105[ 0 ] = AiGetAreaAttackMode( gDlgUnk44 );
-                gDlgUnk105[ 1 ] = AiGetHealthGrade( gDlgUnk44 );
-                gDlgUnk105[ 2 ] = AiGetBestWeapon( gDlgUnk44 );
-                gDlgUnk105[ 3 ] = AiGetDistance( gDlgUnk44 );
-                gDlgUnk105[ 4 ] = AiGetAttackWho( gDlgUnk44 );
-                gDlgUnk105[ 5 ] = AiGetChemUse( gDlgUnk44 );
-                gDlgUnk09 = 13;
-                GdialogUnk73();
-                return 0;
-            }
-        }
+    if( !ObjData ){ GdialogCustomDispMenuClose(); return -1; }
+    ObjHeight = ArtGetObjHeight( Img, 0, 0 );
+    gDlgPanelHeight = ObjHeight;
+    w = gVidMainGeo.rt - gVidMainGeo.lt + 1;
+    if( (gDlgMainWin = WinCreateWindow( 0, 480 - ObjHeight, w, ObjHeight, 256, 2 ) ) == -1 ){ GdialogCustomDispMenuClose(); return -1; }
+    Surface = WinGetSurface( gDlgMainWin );
+    p = WinGetSurface( gDlgBackWindow );
+    ScrCopy( &p[ w * (480 - ObjHeight)], w, ObjHeight, w, Surface, w );
+    GdialogPanelSlide( gDlgMainWin, 1, ObjData, Surface, 0, ObjHeight, 0 );
+    ArtClose( ImgObj );
+    if( (gDlgButtons[ 0 ] = WinCreateButton( gDlgMainWin, 593, 101, 14, 14, -1, -1, -1, 13, gDlgImgBtA0, gDlgImgBtA1, 0, 32 )) == -1 ){ GdialogCustomDispMenuClose(); return -1; }
+    WinSetClickSound( gDlgButtons[ 0 ], GSoundPlayCheck, GSoundPlayUnCheck );
+    gDlgUnk112 = 1;                
+    for( i = 0; i < 6; i++ ){
+        if( !(Img1 = ArtLoadImg( ArtMakeId( 6, gDlgCustomDispButtons[ i ].ArtId1, 0, 0, 0 ), &gDlgCustomDispButtons[ i ].Art1 ) ) ) break;
+        if( !(Img2 = ArtLoadImg( ArtMakeId( 6, gDlgCustomDispButtons[ i ].ArtId2, 0, 0, 0 ), &gDlgCustomDispButtons[ i ].Art2 ) ) ) break;
+        gDlgButtons[ i + 1 ] = WinCreateButton( gDlgMainWin, gDlgCustomDispButtons[ i ].Xpos, gDlgCustomDispButtons[ i ].Ypos, ArtGetObjWidth( Img1, 0, 0 ), ArtGetObjHeight( Img1, 0, 0 ), -1, -1, -1, gDlgCustomDispButtons[ i ].HotKey, ArtGetObjData( Img1, 0, 0 ), ArtGetObjData( Img2, 0, 0 ), 0, 32 );
+        if( gDlgButtons[ i + 1 ] == -1 ) break;
+        WinSetClickSound( gDlgButtons[ i + 1 ], GSoundPlayCheck, GSoundPlayUnCheck );
     }
-    GdialogUnk71();
-    return -1;
+    gDlgDispositions[ 0 ] = AiGetAreaAttackMode( gDlgPartyMemberObj );
+    gDlgDispositions[ 1 ] = AiGetHealthGrade( gDlgPartyMemberObj );
+    gDlgDispositions[ 2 ] = AiGetBestWeapon( gDlgPartyMemberObj );
+    gDlgDispositions[ 3 ] = AiGetDistance( gDlgPartyMemberObj );
+    gDlgDispositions[ 4 ] = AiGetAttackWho( gDlgPartyMemberObj );
+    gDlgDispositions[ 5 ] = AiGetChemUse( gDlgPartyMemberObj );
+    gDlgUnk09 = 13;
+    GdialogUpdateCustomDispMenu();
+    return 0;    
 }
 
-void GdialogUnk71()
+void GdialogCustomDispMenuClose()
 {
     int i, tmp;
     CachePool_t *ImgObj;
     char *surf, *Img;
-DD
+
     if( gDlgMainWin == -1 ) return;
     for( i = 0; i != 9; i++ ){
         WinImageRemove( gDlgButtons[ i ] );
         gDlgButtons[ i ] = -1;
     }
     for( i = 0; i != 6; i++ ){
-        if( gDlgUnk71[ i ].Art1 ){ ArtClose( gDlgUnk71[ i ].Art1 ); gDlgUnk71[ i ].Art1 = NULL; }
-        if( gDlgUnk71[ i ].Art2 ){ ArtClose( gDlgUnk71[ i ].Art2 ); gDlgUnk71[ i ].Art2 = NULL; }
-        if( gDlgUnk71[ i ].Art3 ){ ArtClose( gDlgUnk71[ i ].Art3 ); gDlgUnk71[ i ].Art3 = NULL; }
+        if( gDlgCustomDispButtons[ i ].Art1 ){ ArtClose( gDlgCustomDispButtons[ i ].Art1 ); gDlgCustomDispButtons[ i ].Art1 = NULL; }
+        if( gDlgCustomDispButtons[ i ].Art2 ){ ArtClose( gDlgCustomDispButtons[ i ].Art2 ); gDlgCustomDispButtons[ i ].Art2 = NULL; }
+        if( gDlgCustomDispButtons[ i ].Art3 ){ ArtClose( gDlgCustomDispButtons[ i ].Art3 ); gDlgCustomDispButtons[ i ].Art3 = NULL; }
     }
-    tmp = (gVidMainGeo.rt - gVidMainGeo.lt + 1) * (480 - gDlgUnk53);
+    tmp = (gVidMainGeo.rt - gVidMainGeo.lt + 1) * (480 - gDlgPanelHeight);
     surf = WinGetSurface( gDlgBackWindow );
     if( ( Img = ArtGetBitmap( ArtMakeId( 6, 391, 0, 0, 0 ), 0, 0, &ImgObj ) ) ){
-        GdialogOptionBg( gDlgMainWin, tmp, Img, WinGetSurface( gDlgMainWin ), &surf[ tmp ], gDlgUnk53, 0 );
+        GdialogPanelSlide( gDlgMainWin, tmp, Img, WinGetSurface( gDlgMainWin ), &surf[ tmp ], gDlgPanelHeight, 0 );
         ArtClose( ImgObj );
     }
     WinClose( gDlgMainWin );
@@ -2006,29 +1996,28 @@ DD
     MessageClose( &gDlgMsg );
 }
 
-void GdialogUnk72()
+void GdialogCustomDispMenuProcess()
 {
     int sel;
-DD
-    while( 1 ){
+
+    do{
         sel = InpUpdate();
         if( sel == -1 ) continue;
-	if( sel == 17 || sel == 24 || sel == 324 ) SysQuitDlg();
-	if( gMenuEscape ) break;
-    	if( sel < 13 ){
-    	    if( sel <= 5 ){
-            	GdialogUnk75( sel );
-            	GdialogUnk73();
-    	    }
-    	} else if( sel <= KEY_ENTER || sel == KEY_ESC ){
+    	if( sel == KEY_ENTER || sel == KEY_ESC ){
     	    gDlgState = 8;
     	    gDlgUnk09 = 10;
     	    break;
     	}
-    }
+	if( sel == 17 || sel == 24 || sel == 324 ) SysQuitDlg();
+    	if( sel <= 5 ){
+if( sel < 0 ) continue;
+            GdialogCustomDispMode( sel );
+            GdialogUpdateCustomDispMenu();
+    	}
+    }while( !gMenuEscape );
 }
 
-void GdialogUnk73()
+void GdialogUpdateCustomDispMenu()
 {
     char *surf;
     int w, ow, oh, FontId;
@@ -2045,63 +2034,56 @@ void GdialogUnk73()
     ow = ArtGetObjWidth( img, 0, 0 );
     ScrCopy( ArtGetObjData( img, 0, 0 ), ow, oh, ow, surf, gVidMainGeo.rt - gVidMainGeo.lt + 1 );
     ArtClose( ImgObj );
-    if( gDlgUnk105[ 0 ] == -1 ){
+    if( gDlgDispositions[ 0 ] == -1 ){
         gFont.Print( &surf[ 20 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, 99 ), 248, w, DLG_COLOR_5 );
     } else {
-        eprintf( "\nburst: %d", gDlgUnk105[ 0 ] );
-        gFont.Print( &surf[ 20 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[0][ gDlgUnk105[0] ][0] ), 248, w, DLG_COLOR_5 );
+        eprintf( "\nburst: %d", gDlgDispositions[ 0 ] );
+        gFont.Print( &surf[ 20 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[0][ gDlgDispositions[0] ][0] ), 248, w, DLG_COLOR_5 );
     }        
-    gFont.Print( &surf[ 48  * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[1][ gDlgUnk105[1] ][0]), 248, w, DLG_COLOR_5 );
-    gFont.Print( &surf[ 78  * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[2][ gDlgUnk105[2] ][0]), 248, w, DLG_COLOR_5 );
-    gFont.Print( &surf[ 108 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[3][ gDlgUnk105[3] ][0]), 248, w, DLG_COLOR_5 );
-    gFont.Print( &surf[ 137 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[4][ gDlgUnk105[4] ][0]), 248, w, DLG_COLOR_5 );
-    gFont.Print( &surf[ 166 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[5][ gDlgUnk105[5] ][0]), 248, w, DLG_COLOR_5 );
+    gFont.Print( &surf[ 48  * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[1][ gDlgDispositions[1] ][0]), 248, w, DLG_COLOR_5 );
+    gFont.Print( &surf[ 78  * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[2][ gDlgDispositions[2] ][0]), 248, w, DLG_COLOR_5 );
+    gFont.Print( &surf[ 108 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[3][ gDlgDispositions[3] ][0]), 248, w, DLG_COLOR_5 );
+    gFont.Print( &surf[ 137 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[4][ gDlgDispositions[4] ][0]), 248, w, DLG_COLOR_5 );
+    gFont.Print( &surf[ 166 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[5][ gDlgDispositions[5] ][0]), 248, w, DLG_COLOR_5 );
     WinUpdate( gDlgMainWin );
     FontSet( FontId );
 }
 
-void GdialogUnk74( char *surf, int a2, int a3, int a4 )
+void GdialogDispositionOptions( char *surf, int Pitch, int DispositionType, int HighLight )
 {
-    int i;
-    int state = 0;
-    int color;
-    int FieldLen;
+    int i, state = 0, color, FieldLen;
     MsgLine_t msg;
 
     FontSet( 101 );    
-    FieldLen = a2 - 84;
+    FieldLen = Pitch - 84;
     for( i = 0; i < 6; i++ ){
-        if( gDlgTextIds[ a3 ][ i ][ 0 ] == -1 ) continue;
-        if ( a3 <= 5 ){
-            switch( a3 ){
-                case 0: state = PartyInAttackMode( gDlgUnk44, gDlgTextIds[ a3 ][ i ][ 1 ] ); break;
-                case 1: state = PartyInRunAwayMode( gDlgUnk44, gDlgTextIds[ a3 ][ i ][ 1 ] ); break;
-                case 2: state = PartyInBestWeapon( gDlgUnk44, gDlgTextIds[ a3 ][ i ][ 1 ] ); break;
-                case 3: state = PartyInDistance( gDlgUnk44, gDlgTextIds[ a3 ][ i ][ 1 ] ); break;
-                case 4: state = PartyInAttackWho( gDlgUnk44, gDlgTextIds[ a3 ][ i ][ 1 ] ); break;
-                case 5: state = PartyInChemUse( gDlgUnk44, gDlgTextIds[ a3 ][ i ][ 1 ] ); break;
-            }
+        if( gDlgTextIds[ DispositionType ][ i ][ 0 ] == -1 ) continue;
+        switch( DispositionType ){
+            case 0: state = PartyInAttackMode( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ i ][ 1 ] ); break;
+            case 1: state = PartyInRunAwayMode( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ i ][ 1 ] ); break;
+            case 2: state = PartyInBestWeapon( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ i ][ 1 ] ); break;
+            case 3: state = PartyInDistance( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ i ][ 1 ] ); break;
+            case 4: state = PartyInAttackWho( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ i ][ 1 ] ); break;
+            case 5: state = PartyInChemUse( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ i ][ 1 ] ); break;
         }
         if( state ){
-            color = ( i == a4 ) ? DLG_COLOR_10 : DLG_COLOR_5;
+            color = ( i == HighLight ) ? DLG_COLOR_10 : DLG_COLOR_5;
         } else {
             color = DLG_COLOR_7;
         }
-//        a3 = FieldLen;//?
-        gFont.Print( (surf + a2 * (i * gFont.ChrHeight() + 42) + 42), MessageGetMessage( &gDlgMsg, &msg, gDlgTextIds[ a3 ][ i ][ 0 ] ), FieldLen, a2, color );
+        gFont.Print( (surf + Pitch * (i * gFont.ChrHeight() + 42) + 42), MessageGetMessage( &gDlgMsg, &msg, gDlgTextIds[ DispositionType ][ i ][ 0 ] ), FieldLen, Pitch, color );
     }    
 }
 
-int GdialogUnk75( int a1 )
+int GdialogCustomDispMode( int DispositionType )
 {
     MsgLine_t msg;
     CachePool_t *Obj;
     ArtFrmHdr_t *Data;
-    int state;
+    int state, ObjWidth,sel,SysTime,bottom,right,FontId,CentY,CentX,Height,win,x0,y1,x1,y0,ExitFlg,SelectedLine;
     char *ObjData, *surf;
-    unsigned int Lines, PrevTime;
-    int ObjWidth,sel,SysTime,bottom,right,FontId,CentY,CentX,Height,win,x0,y1,x1,y0,ExitFlg,v56;
-DD
+    unsigned int SelLine, PrevTime;
+
     FontId = FontGetCurrent();
     ExitFlg = PrevTime = 0;    
     if( !( Data = ArtLoadImg( ArtMakeId( 6, 419, 0, 0, 0 ), &Obj ) ) ) return -1;
@@ -2117,61 +2099,60 @@ DD
     if( WinCreateButton( win, 70, 164, 14, 14, -1, -1, -1, 13, gDlgImgBtA0, gDlgImgBtA1, 0, 32 ) == -1 ){ WinClose( win ); return -1; }
     if( WinCreateButton( win, 176, 163, 14, 14, -1, -1, -1, 27, gDlgImgBtA0, gDlgImgBtA1, 0, 32 ) == -1 ){ WinClose( win ); return -1; }    
     FontSet( 103 );
-    gFont.Print( ( surf + 15  * ObjWidth + 40  ), MessageGetMessage( &gDlgMsg, &msg, a1 ), ObjWidth, ObjWidth, DLG_COLOR_3 );
+    gFont.Print( ( surf + 15  * ObjWidth + 40  ), MessageGetMessage( &gDlgMsg, &msg, DispositionType ), ObjWidth, ObjWidth, DLG_COLOR_3 );
     gFont.Print( ( surf + 163 * ObjWidth + 88  ), MessageGetMessage( &gDlgMsg, &msg, 10 ), ObjWidth, ObjWidth, DLG_COLOR_3 );
     gFont.Print( ( surf + 162 * ObjWidth + 193 ), MessageGetMessage( &gDlgMsg, &msg, 11 ), ObjWidth, ObjWidth, DLG_COLOR_3 );
-    v56 = gDlgUnk105[ a1 ];
-    GdialogUnk74( surf, ObjWidth, a1, v56 );
+    SelectedLine = gDlgDispositions[ DispositionType ];
+    GdialogDispositionOptions( surf, ObjWidth, DispositionType, SelectedLine );
     WinUpdate( win );
-    y0 = CentY + 42;
-    y1 = CentY + Height - 42;
     x0 = CentX + 42;
+    y0 = CentY + 42;
     x1 = CentX + ObjWidth - 42;
+    y1 = CentY + Height - 42;
     do{
-            sel = InpUpdate();
+        sel = InpUpdate();
         if( sel == -1 ) continue;
         if( sel == 17 || sel == 24 || sel == 324 ) SysQuitDlg();
         if( gMenuEscape ) break;
         if( sel >= 13 ){
             if( sel == KEY_ENTER ){
                 ExitFlg = 1;
-                gDlgUnk105[ x1 ] = v56;
-                GdialogUnk76( a1, gDlgTextIds[ a1 ][ v56 ][ 1 ] );
-            } else if( sel == KEY_ESC ){
-                ExitFlg = 1;
+                gDlgDispositions[ DispositionType ] = SelectedLine;
+                GdialogSetDisposition( DispositionType, gDlgTextIds[ DispositionType ][ SelectedLine ][ 1 ] );
+                continue;
             }
+            if( sel == KEY_ESC ){ ExitFlg = 1; continue; }
             continue;
         }
         if( sel != -2 ) continue;
         if( (MseGetButtons() & 0x10) == 0 ) continue;
         if( !MseCursorCenterInArea( x0, y0, x1, y1 ) ) continue;
         MseGetCursorPosition( &right, &bottom );
-        Lines = y0 / gFont.ChrHeight();
-        if( Lines >= 6 ) continue;
+        SelLine = (bottom - y0) / gFont.ChrHeight();
+        if( SelLine >= 6 ) continue;
         SysTime = TimerGetSysTime();
-        if( Lines == v56 ){
+
+        if( SelLine == SelectedLine ){
             if( TimerDiff( SysTime, PrevTime ) < 250 ){
-                gDlgUnk105[ x1 ] = Lines;
+                gDlgDispositions[ DispositionType ] = SelLine;
                 ExitFlg = 1;
-                GdialogUnk76( a1, gDlgTextIds[ a1 ][ Lines ][ 1 ] );
+                GdialogSetDisposition( DispositionType, gDlgTextIds[ DispositionType ][ SelLine ][ 1 ] );
                 continue;
             }
         } else {
-            if( gDlgTextIds[ a1 ][ Lines ][ 0 ] != -1 ){
-                if( a1 <= 5 ){
-                    switch( a1 ){
-                        case 0: state = PartyInAttackMode( gDlgUnk44, gDlgTextIds[ a1 ][ Lines ][ 1 ] ); break;
-                        case 1: state = PartyInRunAwayMode( gDlgUnk44, gDlgTextIds[ a1 ][ Lines ][ 1 ] ); break;
-                        case 2: state = PartyInBestWeapon( gDlgUnk44, gDlgTextIds[ a1 ][ Lines ][ 1 ] ); break;
-                        case 3: state = PartyInDistance( gDlgUnk44, gDlgTextIds[ a1 ][ Lines ][ 1 ] ); break;
-                        case 4: state = PartyInAttackWho( gDlgUnk44, gDlgTextIds[ a1 ][ Lines ][ 1 ] ); break;
-                        case 5: state = PartyInChemUse( gDlgUnk44, gDlgTextIds[ a1 ][ Lines ][ 1 ] ); break;
-                        default: state = 0;
-                    }
+            if( gDlgTextIds[ DispositionType ][ SelLine ][ 0 ] != -1 ){
+                switch( DispositionType ){
+                    case 0: state = PartyInAttackMode( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ SelLine ][ 1 ] ); break;
+                    case 1: state = PartyInRunAwayMode( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ SelLine ][ 1 ] ); break;
+                    case 2: state = PartyInBestWeapon( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ SelLine ][ 1 ] ); break;
+                    case 3: state = PartyInDistance( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ SelLine ][ 1 ] ); break;
+                    case 4: state = PartyInAttackWho( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ SelLine ][ 1 ] ); break;
+                    case 5: state = PartyInChemUse( gDlgPartyMemberObj, gDlgTextIds[ DispositionType ][ SelLine ][ 1 ] ); break;
+                    default: state = 0;
                 }
-                if( state ){
-                    v56 = Lines;
-                    GdialogUnk74( surf, ObjWidth, a1, Lines );
+                if( state ){ // select line
+                    SelectedLine = SelLine;
+                    GdialogDispositionOptions( surf, ObjWidth, DispositionType, SelLine );
                     WinUpdate( win );
                 }
             }
@@ -2183,29 +2164,29 @@ DD
     return 0;
 }
 
-int GdialogUnk76( int a1, int a2 )
+int GdialogSetDisposition( int Type, int Mode )
 {
-    switch( a1 ){
-        case 0:
-            if( a2 >= 5 ) return -1;
-            AiGetPacketByObj( gDlgUnk44 )->AreaAttackMode = a2;
+    switch( Type ){
+        case AI_DISP_ATTACK:
+            if( Mode >= 5 ) return -1;
+            AiGetPacketByObj( gDlgPartyMemberObj )->AreaAttackMode = Mode;
             return 0;
-        case 1: return AiSetRunAway( gDlgUnk44, a2 );
-        case 2: 
-            if( a2 >= 8 ) return -1;
-            AiGetPacketByObj( gDlgUnk44 )->BestWeapon = a2;
+        case AI_DISP_RUNAWAY: return AiSetRunAway( gDlgPartyMemberObj, Mode );
+        case AI_DISP_BESTWEAPON: 
+            if( Mode >= 8 ) return -1;
+            AiGetPacketByObj( gDlgPartyMemberObj )->BestWeapon = Mode;
             return 0;
-        case 3:
-            if( a2 >= 5 ) return -1;
-            AiGetPacketByObj( gDlgUnk44 )->Distance = a2;
+        case AI_DISP_DISTANCE:
+            if( Mode >= 5 ) return -1;
+            AiGetPacketByObj( gDlgPartyMemberObj )->Distance = Mode;
             return 0;
-        case 4:
-            if( a2 >= 5 ) return -1;
-            AiGetPacketByObj( gDlgUnk44 )->AttackWho = a2;
+        case AI_DISP_ATTACKWHO:
+            if( Mode >= 5 ) return -1;
+            AiGetPacketByObj( gDlgPartyMemberObj )->AttackWho = Mode;
             return 0;
-        case 5:
-            if( a2 >= 6 ) return -1;
-            AiGetPacketByObj( gDlgUnk44 )->ChemUse = a2;
+        case AI_DISP_CHEMUSE:
+            if( Mode >= 6 ) return -1;
+            AiGetPacketByObj( gDlgPartyMemberObj )->ChemUse = Mode;
             return 0;
     }
     return -1;
@@ -2217,13 +2198,13 @@ void GdialogBarter()
     Proto_t *proto;
     Scpt_t *scr;
 
-    if( OBJTYPE( gDlgUnk44->Pid ) != 1 ) return;
-    if( ScptPtr( gDlgUnk44->ScrId, &scr ) == -1 ) return;    
-    if( OBJTYPE( gDlgUnk44->Pid ) == 1 ){ // ??
-	ProtoGetObj( gDlgUnk44->Pid, &proto );
+    if( OBJTYPE( gDlgPartyMemberObj->Pid ) != 1 ) return;
+    if( ScptPtr( gDlgPartyMemberObj->ScrId, &scr ) == -1 ) return;    
+    if( OBJTYPE( gDlgPartyMemberObj->Pid ) == 1 ){ 
+	ProtoGetObj( gDlgPartyMemberObj->Pid, &proto );
 	if( !( proto->Critt.Type & 0x02 ) ){
     	    msg.Id = 903; // 'This person will not barter with you'
-    	    if( gDlgUnk45 ) msg.Id = 913; // 'This critter can't carry anything.'
+    	    if( gDlgPmExchangeMode ) msg.Id = 913; // 'This critter can't carry anything.'
     	    if( MessageGetMsg( &gProtoMessages, &msg ) == 1 )
         	GdialogReply( msg.Text );
     	    else
@@ -2232,7 +2213,7 @@ void GdialogBarter()
 	}    
     }
     if( gDlgLipsEn == 1 && SoundIsPlaying( gLipsync.Snd ) ) GdialogLipsyncEnd();
-    gDlgState = 2;
+    gDlgState = 2; // enter barter
     gDlgUnk09 = 4;
     if( gDlgReplyWin != -1 ) WinUpdateDirty( gDlgReplyWin );
     if( gDlgOptionWin != -1 ) WinUpdateDirty( gDlgOptionWin );
@@ -2247,19 +2228,13 @@ int GdialogCreateButtons()
 
     if( gDlgUnk88 ) return -1;    
     for( i = 0; i < 9; i++ ) gDlgButtons[ i ] = -1;
-    if( !(Img = ArtLoadImg( gDlgUnk45 ? ArtMakeId( 6, 389, 0, 0, 0 ) : ArtMakeId( 6, 99, gDlgUnk45, 0, 0 ), &ImgObj )) ) return -1;    
+    if( !(Img = ArtLoadImg( gDlgPmExchangeMode ? ArtMakeId( 6, 389, 0, 0, 0 ) : ArtMakeId( 6, 99, gDlgPmExchangeMode, 0, 0 ), &ImgObj )) ) return -1;    
     ObjData = ArtGetObjData( Img, 0, 0 );
     if( ObjData ){
         ObjHeight = ArtGetObjHeight( Img, 0, 0 );
-	gDlgUnk53 = ObjHeight;
+	gDlgPanelHeight = ObjHeight;
 	h = 480 - ObjHeight;
-DD
-printf("B11=>%i [ %i, %i ] %i\n", gDlgBoxOption,WinGetWidth(gDlgBoxOption),WinGetHeight(gDlgBoxOption), gDlgMainWin );        
-for( i = 0; i < 10; i++) printf("A [%i]=%i\n", i, WinGetWidth( i ));
         gDlgMainWin = WinCreateWindow( 0, h, gVidMainGeo.rt - gVidMainGeo.lt + 1, ObjHeight, 256, 2 );
-printf("\n");
-for( i = 0; i < 10; i++) printf("B [%i]=%i\n", i, WinGetWidth( i ));
-printf("B1=>%i [ %i, %i ] %i\n", gDlgBoxOption,WinGetWidth(gDlgBoxOption),WinGetHeight(gDlgBoxOption), gDlgMainWin);        
         if( gDlgMainWin != -1 ){
             Surface = WinGetSurface( gDlgMainWin );
             w = gVidMainGeo.rt - gVidMainGeo.lt + 1;
@@ -2267,10 +2242,10 @@ printf("B1=>%i [ %i, %i ] %i\n", gDlgBoxOption,WinGetWidth(gDlgBoxOption),WinGet
             ScrCopy( &v8[ w * h ], w, ObjHeight, w, Surface, w );
             if( gDlgUnk10 ){
                 WinUpdate( gDlgBackWindow );
-                GdialogOptionBg( gDlgMainWin, 1, ObjData, Surface, NULL, ObjHeight, -1 ); // render lower dialog iface
+                GdialogPanelSlide( gDlgMainWin, 1, ObjData, Surface, NULL, ObjHeight, -1 ); // render lower dialog iface
                 gDlgUnk10 = 0;
             } else {
-                GdialogOptionBg( gDlgMainWin, 1, ObjData, Surface, NULL, ObjHeight, -1 );
+                GdialogPanelSlide( gDlgMainWin, 1, ObjData, Surface, NULL, ObjHeight, -1 );
             }
             ArtClose( ImgObj );
             if( (gDlgButtons[ 0 ] = WinCreateButton( gDlgMainWin, 593, 41, 14, 14, -1, -1, -1, -1, gDlgImgBtA0, gDlgImgBtA1, 0, 32 )) != -1 ){
@@ -2281,7 +2256,7 @@ printf("B1=>%i [ %i, %i ] %i\n", gDlgBoxOption,WinGetWidth(gDlgBoxOption),WinGet
                             if( (gDlgButtons[ 1 ] = WinCreateButton( gDlgMainWin, 13, 154, 51, 29, -1, -1, -1, -1, Bitmap, v14, 0, 0 )) != -1 ){
                                 WinSetButtonHandler( gDlgButtons[ 1 ], 0, 0, 0, GdialogReview ); // handle Review button
                                 WinSetClickSound( gDlgButtons[ 1 ], GSoundPlayPushBt, GSoundPlayReleaseBt );
-                                if( !gDlgUnk45 ){ gDlgUnk88 = 1; return 0; }
+                                if( !gDlgPmExchangeMode ){ gDlgUnk88 = 1; return 0; }
                                 if( (gDlgButtons[ 2 ] = WinCreateButton( gDlgMainWin, 593, 116, 14, 14, -1, -1, -1, -1, gDlgImgBtA0, gDlgImgBtA1, 0, 32 ) ) != -1 ){
                                     WinSetButtonHandler( gDlgButtons[ 2 ], 0, 0, 0, GdialogUnk66 );
                                     WinSetClickSound( gDlgButtons[ 2 ], GSoundPlayCheck, GSoundPlayUnCheck );
@@ -2308,12 +2283,12 @@ printf("B1=>%i [ %i, %i ] %i\n", gDlgBoxOption,WinGetWidth(gDlgBoxOption),WinGet
     return -1;
 }
 
-void GdialogUnk79()
+void GdialogPanelCloseAnimation()
 {
     int i, Id;
     CachePool_t *ImgObj;
     char *surf, *Bitmap;
-DD
+
     if( gDlgMainWin == -1 ) return;
     for( i = 0; i != 9; i++ ){
         WinImageRemove( gDlgButtons[ i ] );
@@ -2322,12 +2297,12 @@ DD
     ArtClose( gDlgUnk123 );
     ArtClose( gDlgUnk121 );
     surf = WinGetSurface( gDlgBackWindow );
-    if( gDlgUnk45 )
+    if( gDlgPmExchangeMode )
         Id = ArtMakeId( 6, 389, 0, 0, 0 );
     else
-        Id = ArtMakeId( 6, 99, 0, 0, gDlgUnk45 );    
+        Id = ArtMakeId( 6, 99, 0, 0, gDlgPmExchangeMode );    
     if( !( Bitmap = ArtGetBitmap( Id, 0, 0, &ImgObj ) ) ) return;
-    GdialogOptionBg( gDlgMainWin, 0, Bitmap, WinGetSurface( gDlgMainWin ), &surf[ (gVidMainGeo.rt - gVidMainGeo.lt + 1) * (480 - gDlgUnk53) ], gDlgUnk53, 0 );
+    GdialogPanelSlide( gDlgMainWin, 0, Bitmap, WinGetSurface( gDlgMainWin ), &surf[ (gVidMainGeo.rt - gVidMainGeo.lt + 1) * (480 - gDlgPanelHeight) ], gDlgPanelHeight, 0 );
     ArtClose( ImgObj );
     WinClose( gDlgMainWin );
     gDlgUnk88 = 0;
@@ -2360,10 +2335,10 @@ int GdialogRenderA( VidRect_t *Area )
     CachePool_t *ImgObj;
     char *surf, *img;
 
-    if( gDlgUnk45 )
+    if( gDlgPmExchangeMode )
         Id = ArtMakeId( 6, 389, 0, 0, 0 );
     else
-        Id = ArtMakeId( 6, 99, 0, 0, gDlgUnk45 );
+        Id = ArtMakeId( 6, 99, 0, 0, 0 );
     if( !( img = ArtGetBitmap( Id, 0, 0, &ImgObj ) ) ) return -1;
     pos = 640 * Area->tp + Area->lt;
     surf = WinGetSurface( gDlgMainWin );

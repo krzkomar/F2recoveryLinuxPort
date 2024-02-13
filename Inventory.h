@@ -102,7 +102,7 @@ void InvMenu();
 int InvMenuCreate( unsigned int idx );
 void InvMenuClose( int a1 );
 void InvBpUpdate( int BpOffset, int Picked, int mode );
-int InvUnk03( int a1, int a2, ObjBox_t *box, int a4 );
+void InvItemList( int a1, int a2, ObjBox_t *box, int a4 );
 void InvPrintQuantity( Obj_t *obj, int Quantity, char *surf, int Pitch, int Picked );
 void InvBodyUpdate( int a1 ,int a2 );
 int InvInit();

@@ -1836,8 +1836,7 @@ char *ScptGetDialog( int MsgPage, int MsgId, int SpkFlg )
     if( MsgPage == -1 && MsgId == -1 ) return NULL;
     if( MsgPage == -2 && MsgId == -2 ) return MessageGetMessage( &gProtoMessages, &MsgList, 650 ); // '[Done]'
     if( ScptGetMsgStr( MsgPage, &Message ) == -1 ){ eprintf( "\nERROR: message_str: can't find message file: List: %d!", MsgPage ); return 0; }
-    if( ( gDlgUnk46 & 0xF000000 ) >> 24 != 8 ) SpkFlg = 0;
-
+    if( ( gDlgHeadId & 0xF000000 ) >> 24 != 8 ) SpkFlg = 0;
     MsgList.Id = MsgId;
     if( MessageGetMsg( Message, &MsgList ) != 1 ){ eprintf( "\nError: can't find message: List: %d, Num: %d!", MsgPage, MsgId ); return "Error"; }
     if( !SpkFlg || !GdialogUnk01() ) return MsgList.Text;

@@ -956,7 +956,7 @@ Obj_t *AiUnk27( Obj_t *Attacker, Obj_t *Item1, Obj_t *Item2, Obj_t *Target )
 
     if( v27 == v26 ){
         if( v27 == 999 ) return 0;
-        if( abs32( v31 - v32 ) <= 5 ) return ( Item26( Item2 ) > Item26( Item1 ) ) ? Item2 : Item1;
+        if( abs32( v31 - v32 ) <= 5 ) return ( ItemPrice( Item2 ) > ItemPrice( Item1 ) ) ? Item2 : Item1;
         
         if( v31 > v32 ) return Item2;
     } else {

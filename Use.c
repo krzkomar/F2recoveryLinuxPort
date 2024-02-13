@@ -555,7 +555,7 @@ int UseUseMisc( Obj_t *crit )
     if( crit->Pid != PID_RAMIREZBOXCLOSED && // 5 jets
 	crit->Pid != PID_RAIDERSMAP &&  // add location
 	crit->Pid != PID_CATSPAWISS5 && // increase energy weapon
-	crit->Pid != PID_PIPBOYLINGUALENCHANCER && // increase speach skill 
+	crit->Pid != PID_PIPBOYLINGUALENCHANCER && // increase speech skill 
 	crit->Pid != PID_SURVEYMAP && // add location
 	crit->Pid != PID_PIPBOYMEDENCHANCER // doctor skill +10%
     ) return -1;    

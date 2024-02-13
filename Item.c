@@ -175,7 +175,7 @@ int ItemUseItem( Obj_t *Critter, Obj_t *Item, int QuantityMax )
     		}
     		Critter->Container.Box.Cnt--;
 	    } else {
-    		if( ObjUnk13(stk, Item) == -1 ) return -1;
+    		if( ObjAddToStack( stk, Item ) == -1 ) return -1;
     		ObjLightItem( Critter->Container.Box.Box[ i ].obj, NULL );
     		Critter->Container.Box.Box[ i ].Quantity -= QuantityMax;
     		if( ItemGetObjType( Item ) == PR_ITEM_AMMO ){
@@ -241,9 +241,9 @@ int Item14( Obj_t *a1, Obj_t *a2, Obj_t *a3, int a4 )
     return Item12( a1, a2, a3, a4, 1 );
 }
 
-int Item15( Obj_t *a1, Obj_t *a2 )
+int ItemMoveObjInvToObj( Obj_t *SrcObj, Obj_t *DstObj )
 {
-    while( a1->Container.Box.Cnt > 0 ) Item12( a1, a2, a1->Container.Box.Box->obj, a1->Container.Box.Box->Quantity, 1 );
+    while( SrcObj->Container.Box.Cnt > 0 ) Item12( SrcObj, DstObj, SrcObj->Container.Box.Box->obj, SrcObj->Container.Box.Box->Quantity, 1 );
     return 0;
 }
 
@@ -436,7 +436,7 @@ int ItemGetItemWeight( Obj_t *item )
     return weight;
 }
 
-int Item26( Obj_t *obj )
+int ItemPrice( Obj_t *obj )
 {
     Proto_t *proto;
     int t;
@@ -444,9 +444,9 @@ int Item26( Obj_t *obj )
     if( !obj ) return 0;
     ProtoGetObj( obj->Pid, &proto );
     switch( proto->Critt.Type ){
-        case 1:
-            return Item27( obj ) + proto->Critt.BaseStat[ 21 ];
-        case 3:
+        case PR_ITEM_CONTAINER:
+            return ItemOffert( obj ) + proto->Critt.BaseStat[ 21 ];
+        case PR_ITEM_WEAPON:
             ProtoGetObj( obj->Pid, &proto );
             if( obj->Container.Charges > 0 ){
                 t = ItemGetObjType( obj ) == 3 ? obj->Container.AmmoId : -1;
@@ -454,14 +454,13 @@ int Item26( Obj_t *obj )
             	    return proto->Critt.BaseStat[ 21 ] + obj->Container.Charges * proto->Critt.BaseStat[ 21 ] / proto->Critt.BaseStat[ 1 ];
             }
             break;
-        case 4:
-            ProtoGetObj( obj->Pid, &proto );
-            return (obj->Critter.State.Reaction * obj->Container.Charges) / (( proto->Critt.Type == 4 ) ? proto->Critt.BaseStat[ 1 ] : proto->Critt.BaseStat[ 15 ]);
+        case PR_ITEM_AMMO:
+            return (obj->Container.Charges * proto->Critt.BaseStat[ 21 ]) / (( proto->Critt.Type == 4 ) ? proto->Critt.BaseStat[ 1 ] : proto->Critt.BaseStat[ 15 ]);
     }
     return proto->Critt.BaseStat[ 21 ];
 }
 
-int Item27( Obj_t *obj )
+int ItemOffert( Obj_t *obj )
 {
     int n, i;
     Obj_t *RHandObj, *LHandObj, *ArmorObj;
@@ -471,21 +470,21 @@ int Item27( Obj_t *obj )
     n = 0;    
     if( obj->Critter.Box.Cnt > 0 ){
         for( i = 0; i < obj->Critter.Box.Cnt; i++ ){
-            if( ItemGetObjType( obj->Container.Box.Box[i].obj) == 4 ){
+            if( ItemGetObjType( obj->Container.Box.Box[ i ].obj ) == 4 ){
                 ProtoGetObj( obj->Container.Box.Box[ i ].obj->Pid, &proto );
-                n += Item26( obj->Container.Box.Box[ i ].obj ) + ( obj->Container.Box.Box[ i ].Quantity - 1 ) * proto->Critt.BaseStat[21];
+                n += ItemPrice( obj->Container.Box.Box[ i ].obj ) + ( obj->Container.Box.Box[ i ].Quantity - 1 ) * proto->Critt.BaseStat[21];
             } else {
-                n += obj->Container.Box.Box[ i ].Quantity * Item26( obj->Container.Box.Box[ i ].obj );
+                n += obj->Container.Box.Box[ i ].Quantity * ItemPrice( obj->Container.Box.Box[ i ].obj );
             }
         }
     }
     if( OBJTYPE( obj->ImgId ) == 1 ){
-        RHandObj = InvGetRHandObj(obj);
-        if( RHandObj && (RHandObj->Flags & 0x2000000) == 0 ) n += Item26( RHandObj );
+        RHandObj = InvGetRHandObj( obj );
+        if( RHandObj && (RHandObj->Flags & 0x2000000) == 0 ) n += ItemPrice( RHandObj );
         LHandObj = InvGetLHandObj( obj );
-        if( LHandObj && RHandObj != LHandObj && (LHandObj->Flags & 0x1000000) == 0 ) n += Item26( LHandObj );
+        if( LHandObj && RHandObj != LHandObj && (LHandObj->Flags & 0x1000000) == 0 ) n += ItemPrice( LHandObj );
         if( (ArmorObj = InvGetArmorObj( obj )) ){
-            if( (ArmorObj->Flags & 0x4000000) == 0 ) n += Item26( ArmorObj );
+            if( (ArmorObj->Flags & 0x4000000) == 0 ) n += ItemPrice( ArmorObj );
         }
     }
     return n;

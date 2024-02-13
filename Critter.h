@@ -36,7 +36,7 @@ typedef struct {
     int MaterialId;	// 18
     int Size;		// 19
     int Weight;		// 20
-    int Cost;		// 21
+    int Price;		// 21
     int ArtId;		// 22
     int i24;
     int i25;

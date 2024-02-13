@@ -575,17 +575,14 @@ int ObjCopy( Obj_t **pObj, int Pid )
     return ObjCreate( pObj, proto->ImgId, Pid );    
 }
 
-int ObjUnk13( ObjStack_t *stk, Obj_t *item )
+int ObjAddToStack( ObjList_t *stk, Obj_t *item )
 {
-/*
     ObjList_t *list;
-    Obj_t *it;
     ObjBox_t *box;
     int i;
     int j;
     ObjList_t *Ptr;
 
-    it = item;
     if( !item ) return -1;
     list = Malloc( sizeof( ObjList_t ) );
     if( !list ) return -1;
@@ -596,7 +593,7 @@ int ObjUnk13( ObjStack_t *stk, Obj_t *item )
 	return -1;
     }
     ProtoDudeEffectReset( list->object );
-    memcpy( list->object, it, sizeof( Obj_t ) );
+    memcpy( list->object, item, sizeof( Obj_t ) );
     if( stk ) stk->object = list->object;
     ObjAddObject( list );
     stk->object->TimeEv = ScptNewObjId();
@@ -604,7 +601,7 @@ int ObjUnk13( ObjStack_t *stk, Obj_t *item )
         stk->object->ScrId = -1;
         UseCreateScript( stk->object, &stk->object->ScrId );
     }
-    if( ObjSetRotation( stk->object, it->Orientation, 0 ) == -1 ){
+    if( ObjSetRotation( stk->object, item->Orientation, 0 ) == -1 ){
         if( list ){ Free( list ); list = NULL; }
         return -1;
     }
@@ -612,18 +609,15 @@ int ObjUnk13( ObjStack_t *stk, Obj_t *item )
     box = &stk->object->Container.Box;
     box->Capacity = 0;
     box->Box = 0;
-    item = it;
     box->Cnt = 0;    
     for( i = j = 0; i < item->Critter.Box.Cnt; j++, i++ ){
-	if( !ObjUnk13( Ptr, item->Critter.Box.Box[ j ].obj ) ) return -1;
+	if( !ObjAddToStack( stk, item->Critter.Box.Box[ j ].obj ) ) return -1;
         if( item->Critter.Box.Box[ j ].obj == -1 ){ Free( list ); list = NULL; return -1; }
         if( ItemAdd( stk->object, Ptr, item->Container.Box.Box[ i ].Quantity ) == -1 ){
             if( list ){ Free( list ); list = NULL; }
     	    return -1;
         }
     }    
-*/
-DD
     return 0;
 }
 

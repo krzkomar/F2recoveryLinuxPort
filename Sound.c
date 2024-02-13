@@ -227,6 +227,7 @@ Sound_t *SoundCreate( int FlagB, int FlagC )
     if(!(NewSnd = (Sound_t *)gSoundMalloc( sizeof( Sound_t ) )) ){ gSoundErrno = SND_ERR_ALLOC; return NULL; }
     memset( NewSnd, 0x00, sizeof( Sound_t ) );
     memcpy( &NewSnd->File, &gSoundOpenCb, sizeof( SoundFile_t ) );
+    NewSnd->File.Handler = -1;
     NewSnd->Channels = 1;
     NewSnd->Freq = gSoundSampleRate;
     NewSnd->FlagsC = FlagC | 0x02;
@@ -281,7 +282,6 @@ void SoundLoad( Sound_t *Snd )
     }    
 
     if( Snd->File.GetFmt ) Snd->File.GetFmt( Snd->File.Handler, &Snd->Channels, &Snd->Freq, &Snd->Samples );
-        
     SoundLoadBuffer( Snd, FileBuffer, nsize );
     gSoundFree( FileBuffer );
     if( Snd->FlagsB & 0x01 ){
@@ -301,7 +301,6 @@ int SoundLoadFile( Sound_t *Snd, char *Name )
 
 int SoundRewind( Sound_t *snd, int Pos )
 {
-
     if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return SND_ERR_NOINIT; }
     if( !snd ){ gSoundErrno = SND_ERR_NOSOUND; return SND_ERR_NOSOUND; }
     if( snd->FlagsB & 2 ){
@@ -532,10 +531,10 @@ static int SoundUpdate( Sound_t *snd )
             snd->Callback = NULL;
             SoundDelete( snd );
         } else {
-//            snd->State |= SND_PLAYED;
-//            if( snd->State & SND_PLAYING ) gSoundPlayed--;
-//            SoundStop( snd );
-//            snd->State &= ~SND_PLAYING;
+            snd->State |= SND_PLAYED;
+            if( snd->State & SND_PLAYING ) gSoundPlayed--;
+            SoundStop( snd );
+            snd->State &= ~SND_PLAYING;
         }
     }
     gSoundErrno = 0;
@@ -837,28 +836,36 @@ void SoundTimerClear( int *timer )
     *timer = -1;    
 }
 
-int SoundSpeechUnk01( Sound_t *snd )
+int SoundSpeechPosition( Sound_t *snd ) // returns current play position
 {
+    int32_t offset;
     if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return SND_ERR_NOINIT; }    
     if( !snd ){ gSoundErrno = SND_ERR_NOSOUND;return SND_ERR_NOSOUND;}        
-    if( !(snd->FlagsB & 0x02) ) return snd->CurPos;    
-    if( snd->CurPos <= snd->BufSize ) return snd->CurPos + snd->PlayPos + snd->Bps * snd->InBufferSize - snd->BufSize;    
-    return snd->CurPos - snd->BufSize + snd->PlayPos;
+
+    alGetSourcei( snd->SrcId, AL_SAMPLE_OFFSET, &offset );
+
+    return offset;
+
+//    if( !(snd->FlagsB & 0x02) ) 
+//    return snd->CurPos;    
+//    if( snd->CurPos <= snd->BufSize ) return snd->CurPos + snd->PlayPos + snd->Bps * snd->InBufferSize - snd->BufSize;    
+//    return snd->CurPos + snd->PlayPos - snd->BufSize;
 }
 
-int SoundSpeechPlay( Sound_t *snd, int Pos )
+int SoundSpeechSetOffset( Sound_t *snd, int Pos )
 {
 //    unsigned int ReadOut;
 //    unsigned int Frac;
 
-DD
     if( !gSoundDriverOn ){ gSoundErrno = SND_ERR_NOINIT; return SND_ERR_NOINIT; }
     if( !snd ){ gSoundErrno = SND_ERR_NOSOUND; return SND_ERR_NOSOUND; }
-    if( !(snd->FlagsB & 0x02) ){
+//    if( !(snd->FlagsB & 0x02) ){
 	snd->CurPos = Pos;
         gSoundErrno = 0;
+	SoundUpdate( snd );
         return 0;
-    }
+//    }
+//DD
 //    Frac = Pos / snd->InBufferSize % snd->Bps;
 //    snd->CurPos = Frac * snd->InBufferSize + Pos % snd->InBufferSize;
 /*
@@ -876,8 +883,8 @@ DD
     snd->i28 = (++Frac) < snd->Bps ? Frac : 0;
     SoundUpdate( snd );
 */
-    gSoundErrno = 0;
-    return 0;
+//    gSoundErrno = 0;
+//    return 0;
 }
 
 int SoundSetBps( Sound_t *snd, int Bps )
@@ -913,7 +920,7 @@ void SoundSfxUnlink( Sound01_t *fx )
 void SoundBckgTimerCb()
 {
     Sound01_t *p;
-DD    
+    
     for( p = gSoundSfxRoot; p; p = p->Next ){
         if( (p->i04 > p->i02) || ((p->i01 + p->i04) < p->i02) ){
     	    if( (p->i04 < p->i02) || ((p->i01 + p->i04) > p->i02) ){
@@ -949,7 +956,7 @@ DD
 int SoundFadePause( Sound_t *snd, int a2, int Vol, int a4 )
 {
     Sound01_t *p, *tmp;
-DD
+
     p = NULL;
     if( !gSound_unk14 ){ gSoundErrno = SND_ERR_NOINIT; return SND_ERR_NOINIT; }
     if( !snd ){ gSoundErrno = SND_ERR_NOSOUND; return SND_ERR_NOSOUND;  }
@@ -1013,16 +1020,23 @@ void SoundLink( Sound_t *snd )
 
 void SoundDeleteAll()
 {
-    for( ; gSounds; gSounds = gSounds->Prev ){
-//printf("===>%p\n", gSounds);
-//        SoundDelete( gSounds );
-    }
+    Sound_t *tmp;
+    
+    while( gSounds ){
+	tmp = gSounds->Prev;
+        SoundDelete( gSounds );
+        gSounds = tmp;
+    }    
 }
 
 void SoundCloseAll()
 {
-    for( ; gSounds; gSounds = gSounds->Prev ){
+    Sound_t *tmp;
+
+    while( gSounds ){
+	tmp = gSounds->Prev;
         SoundDelete( gSounds );
+        gSounds = tmp;
     }
     
     if( gSoundTimer != -1 ){

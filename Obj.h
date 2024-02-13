@@ -261,7 +261,7 @@ void ObjRenderCursor( VidRect_t *Area );
 void ObjUnk10( int result, int a2, int a3, unsigned int a4, int a7, int *a6, int a9 );
 int ObjCreate( Obj_t **obj, int ArtId, int Pid );
 int ObjCopy( Obj_t **pObj, int Pid );
-int ObjUnk13( ObjStack_t *stk, Obj_t *item );
+int ObjAddToStack( ObjList_t *stk, Obj_t *item );
 int ObjUnk14( Obj_t *obj, unsigned int GridId, int MapLvl, VidRect_t *Area );
 int ObjLightItem( Obj_t *Obj, VidRect_t *Area );
 int ObjMove( Obj_t *Obj, int dx, int dy, VidRect_t *Area ); 

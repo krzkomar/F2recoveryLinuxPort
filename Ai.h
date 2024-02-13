@@ -2,6 +2,24 @@
 
 #define LIGHT_THRESHOLD_FOR_SOLAR_SCORCHER	62259
 
+// predefinied disposition type
+enum{
+    AI_DISP_CUSTOM,	// 0
+    AI_DISP_COWARD,	// 1
+    AI_DISP_DEFENSIVE,	// 2
+    AI_DISP_AGGRESIVE,	// 3
+    AI_DISP_BERSERK	// 4
+};
+// dispositions
+enum{
+    AI_DISP_ATTACK,	// 0
+    AI_DISP_RUNAWAY,	// 1
+    AI_DISP_BESTWEAPON,	// 2
+    AI_DISP_DISTANCE,	// 3
+    AI_DISP_ATTACKWHO,	// 4
+    AI_DISP_CHEMUSE	// 5
+};
+
 typedef struct
 {
     char *Name;

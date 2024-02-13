@@ -1,6 +1,6 @@
 #include "FrameWork.h"
 
-extern int gDlgUnk45;
+extern int gDlgPmExchangeMode;
 
 CachePool_t *gInvQaDlgImgObj[ 8 ];
 CachePool_t *gInvUnk20[12];
@@ -289,7 +289,7 @@ int InvMenuCreate( unsigned int idx )
         gInvWin = WinCreateWindow( 80, 290, 480, 180, 257, 0 );
         gInvUnk15 = 560;
         gInvUnk16 = 470;
-        ScrCopy( WinGetSurface( gInvUnk18 ) + 80, 480, 180, gVidMainGeo.rt - gVidMainGeo.lt + 1, WinGetSurface( gInvWin ), 480 );
+        ScrCopy( WinGetSurface( gInvUnk18 ) + 80, 480, 180, gVidMainGeo.rt - gVidMainGeo.lt + 1, WinGetSurface( gInvWin ), 480 ); // background
         gInvInfoCb = GdialogReply;
     }
     if( (idx != 3) && (idx != 2) ){
@@ -620,58 +620,49 @@ void InvBpUpdate( int BpOffset, int Picked, int mode )
     WinUpdate( gInvWin );
 }
 
-int InvUnk03( int a1, int a2, ObjBox_t *box, int a4 )
+void InvItemList( int a1, int a2, ObjBox_t *box, int Mode )
 {
-    char *aa,*surf,*bmp,*surfA;
-    int v4,v10,_i,v12,rr,v18,v26,i;
-    ObjStack_t *v16;
+    char *surf, *bmp;
+    int Pitch,i,n,k;
     CachePool_t *ImgObj;
 
     surf = WinGetSurface( gInvWin );
-    if( a4 == 2 ){
-        v4 = 537;
+    if( Mode == 2 ){
+        Pitch = 537;
         if( (bmp = ArtGetBitmap( ArtMakeId( 6, 114, 0, 0, 0 ), 0, 0, &ImgObj )) ){
             ScrCopy( bmp + 20166, 64, 48 * gInvUnk08, 537, surf + 20166, 537 );
             ArtClose( ImgObj );
         }
-    } else if( a4 == 3 ){
-        v4 = 480;
-        surfA = WinGetSurface( gInvUnk18 );
-        v10 = gVidMainGeo.rt - gVidMainGeo.lt + 1;
-        v10 = (v10 * 9)/4 - v10;
-        ScrCopy( &surfA[v10 + 475], 64, 48 * gInvUnk08, gVidMainGeo.rt - gVidMainGeo.lt + 1, surf + 17195, 480 );
+    } else if( Mode == 3 ){
+        Pitch = 480;
+        ScrCopy( 
+    	    WinGetSurface( gInvUnk18 ) + (35 * (gVidMainGeo.rt - gVidMainGeo.lt + 1)) + 475, 
+    	    64, 48 * gInvUnk08, gVidMainGeo.rt - gVidMainGeo.lt + 1, surf + 17195, 480 
+    	); // Clear Merchant inventory background
     }
-    _i = 0;
-    v26 = 0;
-    for( i = a1 + 1; ; i++, _i++, v26 += 48 ){
-        rr = _i + a1;
-        if( _i + a1 >= box->Cnt || _i >= gInvUnk08 ) break;
-        if( a4 == 2 ){
-            v12 = v4 * (v26 + 41) + 301;
-        } else if( a4 == 3 ){
-            v12 = v4 * (v26 + 39) + 397;
-        }
-        aa = &surf[v12];
-        ArtLoadImgScaled( ItemGetArtId( box->Box[ box->Cnt - i ].obj ), aa, 56, 40, v4 );
-        v18 = (_i == a2);
-        v16 = &box->Box[ box->Cnt - i ];
-        InvPrintQuantity( v16->obj, v16->Quantity, aa, v4, v18 );
+
+    k = a1 + 1;
+    n = 0;
+    for( i = 0; ( i < gInvUnk08 ) && ( i + a1 < box->Cnt ); k++, i++ ){
+        if( Mode == 2 ){ n = Pitch * (i*48 + 41) + 301; } 
+        if( Mode == 3 ){ n = Pitch * (i*48 + 39) + 397; }
+        ArtLoadImgScaled( ItemGetArtId( box->Box[ box->Cnt - k ].obj ), surf + n, 56, 40, Pitch );
+        InvPrintQuantity( box->Box[ box->Cnt - k ].obj, box->Box[ box->Cnt - k ].Quantity, surf + n, Pitch, (i == a2) );
     }
-    if( a4 == 2 ){
-        if( gInvUnk36 != -1 ){
-            if( a1 <= 0 )
-                rr = WinDisableWidget( gInvUnk36 );
-            else
-                rr = WinEnableWidget( gInvUnk36 );
-        }
-        if( gInvUnk37 != -1 ){
-            if( box->Cnt - a1 <= gInvUnk08 )
-                return WinDisableWidget( gInvUnk37 );
-            else
-                return WinEnableWidget( gInvUnk37 );
-        }
+
+    if( Mode != 2 ) return;
+    if( gInvUnk36 != -1 ){
+        if( a1 <= 0 )
+            WinDisableWidget( gInvUnk36 );
+        else
+            WinEnableWidget( gInvUnk36 );
     }
-    return rr;
+    if( gInvUnk37 != -1 ){
+        if( box->Cnt - a1 <= gInvUnk08 )
+            WinDisableWidget( gInvUnk37 );
+        else
+            WinEnableWidget( gInvUnk37 );
+    }
 }
 
 void InvPrintQuantity( Obj_t *obj, int Quantity, char *surf, int Pitch, int Picked )
@@ -1953,9 +1944,9 @@ void InvActionMenu( int sel, int mode )
 
     InvSetInfoMode( 1 );
     if( !mode && IconsTable[ SelectedAction ] != 3 ) InvStatsUpdate();
-    if( mode == 2 || mode == 3 ) InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, mode );
+    if( mode == 2 || mode == 3 ) InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, mode );
     InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, mode );
-    if( mode == 3 ) InvUnk43( gInvUnk18, gInvUnk84, gInvUnk65, -1 );
+    if( mode == 3 ) InvBarterStack( gInvUnk18, gInvUnk84, gInvUnk65, -1 );
     InvSetBodyImg();
     return;
 }
@@ -2065,7 +2056,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
 	}
     }
 
-    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
+    InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
     v27 = 2;
     InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
     InvBodyUpdate( Obj2->ImgId, 2 );
@@ -2085,8 +2076,8 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
             	v35 -= ItemGetBackPackWeight( Critter );
             	BackPackWeight = ItemGetBackPackWeight( Obj2 );
         	if( BackPackWeight <= v35 ){
-            	    Item15( Obj2, Critter );
-            	    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
+            	    ItemMoveObjInvToObj( Obj2, Critter );
+            	    InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
             	    v27 = 2;
             	    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
         	} else {
@@ -2120,7 +2111,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
             	gInvUnk39[ 0 ] = Obj2;
             	gInvUnk40 = 0;
             	gInvUnk63[ 0 ] = 0;
-        	InvUnk03( 0, -1, &Obj2->Container.Box, 2 );
+        	InvItemList( 0, -1, &Obj2->Container.Box, 2 );
             	v27 = 2;
             	InvBpUpdate( gInvUnk04[gInvUnk05], -1, 2 );
             	InvBodyUpdate( Obj2->ImgId, 2 );
@@ -2135,13 +2126,13 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     	    case 397:
         	if( gInvUnk63[gInvUnk40] <= 0 ) continue;
             	gInvUnk63[ gInvUnk40 ]--;
-            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
+            	InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
             	WinUpdate( gInvWin );
         	continue;
     	    case 401:
         	if( gInvUnk08 + gInvUnk63[gInvUnk40] >= gInvUnk62->Box.Cnt ) continue;
             	gInvUnk63[ gInvUnk40 ]++;
-            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
+            	InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
             	WinUpdate( gInvWin );
         	continue;
     	    case 2500 ... 2501:
@@ -2168,7 +2159,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
                                 v78 += v3;
                                 v3 += 10;
                             }
-                            InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
+                            InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
                             v27 = 2;
                             InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
                         }
@@ -2191,7 +2182,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
                             v78 += v3;
                             v3 += 10;
                         }
-                        InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
+                        InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 2 );
                         v27 = 2;
                         InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 2 );
                     }
@@ -2210,7 +2201,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     	    if( v70   ){ v27 = 1; v70->Flags   |= 0x2000000; ItemAdd( Obj2, v70, 1   ); }
     	    if( dude2 ){ v27 = 1; dude2->Flags |= 0x4000000; ItemAdd( Obj2, dude2, 1 ); }
     	}
-    	Item15( NewItem, Obj2 );
+    	ItemMoveObjInvToObj( NewItem, Obj2 );
     	ObjDestroy( NewItem, 0 );
     	if( gSkillUnk80 && !v76 ){
     	    if( v78 > 0 && !PartyMembRdy(Obj2) ){
@@ -2273,7 +2264,7 @@ int InvUnk38( Obj_t *a1, int a2, Obj_t *a3, int a4 )
         area.tp = 48 * a2 + 37;
         Quantity = gInvUnk62->Box.Box[gInvUnk62->Box.Cnt - ( a2 + gInvUnk63[ gInvUnk40 ] + 1 ) ].Quantity;
         if( Quantity > 1 ){
-            InvUnk03( gInvUnk63[ gInvUnk40 ], a2, &gInvUnk62->Box, 2 );
+            InvItemList( gInvUnk63[ gInvUnk40 ], a2, &gInvUnk62->Box, 2 );
             WinUpdate( gInvWin );
             flg = 0;
         }
@@ -2343,10 +2334,10 @@ int InvStackPrice( Obj_t *dude, Obj_t *Merchant )
     double PartyBarterLvl, MerchantBarterLvl;
     float MoneyAll,v12, v14, v15, discount;
 
-    if( gDlgUnk45 ) return ItemGetBackPackWeight( gInvUnk65 );
+    if( gDlgPmExchangeMode ) return ItemGetBackPackWeight( gInvUnk65 );
     discount = 0.0;
     MoneyAll = ItemGetMoneyAll( gInvUnk65 );
-    v14 = Item27( gInvUnk65 ) - MoneyAll;
+    v14 = ItemOffert( gInvUnk65 ) - MoneyAll;
     if( dude == gObjDude && PerkLvl( gObjDude, PERK_MASTER_TRADER ) ) discount = 25.0;
     PartyBarterLvl = PartyGetBestSkillLvl( SKILL_BARTER );
     MerchantBarterLvl = SkillGetTotal( Merchant, SKILL_BARTER );
@@ -2356,31 +2347,32 @@ int InvStackPrice( Obj_t *dude, Obj_t *Merchant )
     return lround( v15 * v12 + MoneyAll );
 }
 
-int InvBarterDo( Obj_t *dude, Obj_t *Item, Obj_t *a4, Obj_t *a3 )
+int InvBarterDo( Obj_t *Customer, Obj_t *CustomerStack, Obj_t *Merchant, Obj_t *MerchantStack )
 {
     MsgLine_t msg;
     int Reject;
 
-    if( ItemGetBackPackWeight( a3 ) > (FeatGetVal( dude, FEAT_CARRY ) - ItemGetBackPackWeight( dude )) ){
+    // test overweight
+    if( ItemGetBackPackWeight( MerchantStack ) > (FeatGetVal( Customer, FEAT_CARRY ) - ItemGetBackPackWeight( Customer )) ){
 	msg.Id = 31; // 'Sorry, you cannot carry that much.'
 	if( MessageGetMsg( &gInvMsg, &msg ) == 1 ) GdialogReply( msg.Text );
 	return -1;    
     }
-    if( gDlgUnk45 ){
-	if( ItemGetBackPackWeight( Item ) > (FeatGetVal( a4, 12 ) - ItemGetBackPackWeight( a4 )) ){
+    if( gDlgPmExchangeMode ){
+	if( ItemGetBackPackWeight( CustomerStack ) > ( FeatGetVal( Merchant, FEAT_CARRY ) - ItemGetBackPackWeight( Merchant ) ) ){
     	    msg.Id = 32; // 'Sorry, that's too much to carry.'
     	    if( MessageGetMsg( &gInvMsg, &msg ) == 1 ) GdialogReply( msg.Text );
     	    return -1;
 	} 
     }
-    if( gDlgUnk45 == 0 ){
+    if( gDlgPmExchangeMode == 0 ){
 	Reject = 0;
-	if( !Item->Critter.Box.Cnt ){
+	if( !CustomerStack->Critter.Box.Cnt ){
     	    Reject = 1;
 	} else {
-	    if( Item34( Item ) && ( Item->Pid != PID_GEIGER || ItemDeviceOff( Item ) == -1 ) ) Reject = 1;
+	    if( Item34( CustomerStack ) && ( CustomerStack->Pid != PID_GEIGER || ItemDeviceOff( CustomerStack ) == -1 ) ) Reject = 1;
 	    if( !Reject ){
-    		if( InvStackPrice( dude, a4 ) > Item27( Item ) ) Reject = 1;
+    		if( InvStackPrice( Customer, Merchant ) > ItemOffert( CustomerStack ) ) Reject = 1;
 	    }
 	}
 	if( Reject ){
@@ -2389,12 +2381,12 @@ int InvBarterDo( Obj_t *dude, Obj_t *Item, Obj_t *a4, Obj_t *a3 )
 	    return -1;
 	}
     }
-    Item15( a3, dude );
-    Item15( Item, a4 );
+    ItemMoveObjInvToObj( MerchantStack, Customer );
+    ItemMoveObjInvToObj( CustomerStack, Merchant );
     return 0;
 }
 
-void InvUnk41( Obj_t *dude, int quantity, int a3, int a4, Obj_t *a1, Obj_t *a2, int a7 )
+void InvMoveObj( Obj_t *dude, int quantity, int a3, int a4, Obj_t *a1, Obj_t *a2, int a7 )
 {
     char *surf1, *surf2;
     int tmp, h;
@@ -2421,7 +2413,7 @@ void InvUnk41( Obj_t *dude, int quantity, int a3, int a4, Obj_t *a1, Obj_t *a2, 
     } else if( a7 ){
         InvBpUpdate( a4, a3, 3 );
     } else {
-        InvUnk03( a4, a3, &gInvUnk62->Box, 3 );
+        InvItemList( a4, a3, &gInvUnk62->Box, 3 );
     }
     if( (Img = ArtLoadImg( ItemGetArtId( dude ), &ImgObj ) ) ){
         tmp = ArtGetObjWidth( Img, 0, 0 );
@@ -2474,9 +2466,9 @@ void InvUnk42( Obj_t *Item, int quantity, int a3, Obj_t *a4, Obj_t *a1, int a6 )
         area.bm = area.tp + 47;
         WinAreaUpdate( gInvWin, &area );
     } else if( a6 ){
-        InvUnk43( gInvUnk18, a1, 0, a3 );
+        InvBarterStack( gInvUnk18, a1, 0, a3 );
     } else {
-        InvUnk43( gInvUnk18, 0, a1, a3 );
+        InvBarterStack( gInvUnk18, 0, a1, a3 );
     }    
     if( (Img = ArtLoadImg( ItemGetArtId( Item ), &ImgObj ) ) ){
         w = ArtGetObjWidth( Img, 0, 0 );
@@ -2509,9 +2501,8 @@ void InvUnk42( Obj_t *Item, int quantity, int a3, Obj_t *a4, Obj_t *a1, int a6 )
     InvSetInfoMode( 0 );
 }
 
-void InvUnk43( int win, Obj_t *box, Obj_t *obj, int a4 )
+void InvBarterStack( int win, Obj_t *CustomerStack, Obj_t *MerchantStack, int a4 )
 {
-    Obj_t *item;
     ObjStack_t *v13, *v27;
     VidRect_t area;
     MsgLine_t msg1, msg2;
@@ -2519,31 +2510,32 @@ void InvUnk43( int win, Obj_t *box, Obj_t *obj, int a4 )
     void *v31;
     int v7,i,v15,v24,v38,DestPitch,FontId,v45;
 
-    item = box;
     surf1 = WinGetSurface( gInvWin );
     FontId = FontGetCurrent();
     DestPitch = 480;
     FontSet( 101 );
     v45 = gFont.ChrHeight() + 48 * gInvUnk08;
-    if( item ){
+    if( CustomerStack ){ // Customer
         surf2 = WinGetSurface( win );
         v31 = surf1 + 9769;
         v7 = gVidMainGeo.rt - gVidMainGeo.lt + 1;
         ScrCopy( &surf2[ 20 * v7 + 249 ], 64, v45 + 1, v7, v31, 480 );
         v8 = surf1 + 11689;        
-        for( i = 0; i + gInvUnk78 < item->Critter.Box.Cnt && i < gInvUnk08; ){
-            ArtLoadImgScaled( ItemGetArtId( item->Critter.Box.Box[ item->Critter.Box.Cnt - ( i + gInvUnk78 + 1 ) ].obj ), v8, 56, 40, 480);
-            v13 = &item->Critter.Box.Box[ item->Critter.Box.Cnt - ( i + gInvUnk78 + 1 ) ];
+
+        for( i = 0; i + gInvUnk78 < CustomerStack->Critter.Box.Cnt && i < gInvUnk08; ){
+            ArtLoadImgScaled( ItemGetArtId( CustomerStack->Critter.Box.Box[ CustomerStack->Critter.Box.Cnt - ( i + gInvUnk78 + 1 ) ].obj ), v8, 56, 40, 480);
+            v13 = &CustomerStack->Critter.Box.Box[ CustomerStack->Critter.Box.Cnt - ( i + gInvUnk78 + 1 ) ];
+            InvPrintQuantity( v13->obj, v13->Quantity, v8, 480, i == a4 );
             v8 += 23040;
             i++;
-            InvPrintQuantity( v13->obj, v13->Quantity, v8, 480, i == a4 );
         }
+
         v15 = DestPitch * (48 * gInvUnk08 + 24) + 169;
-        if( gDlgUnk45 ){
+        if( gDlgPmExchangeMode ){
             msg1.Id = 30;
-            if( MessageGetMsg( &gInvMsg, &msg1 ) == 1 ) sprintf( stmp, "%s %d", msg1.Text, ItemGetBackPackWeight( item ) );            
+            if( MessageGetMsg( &gInvMsg, &msg1 ) == 1 ) sprintf( stmp, "%s %d", msg1.Text, ItemGetBackPackWeight( CustomerStack ) );            
         } else {
-            sprintf( stmp, "$%d", Item27( item ) );
+            sprintf( stmp, "$%d", ItemOffert( CustomerStack ) );
         }
         gFont.Print( &surf1[v15], stmp, 80, DestPitch, gPalColorCubeRGB[31][31][31] );
         area.lt = 169;
@@ -2552,20 +2544,20 @@ void InvUnk43( int win, Obj_t *box, Obj_t *obj, int a4 )
         area.rt = 233;
         WinAreaUpdate( gInvWin, &area );
     }
-    if( obj ){
+    if( MerchantStack ){ // Merchant side
 	v7 = ( gVidMainGeo.rt - gVidMainGeo.lt + 1 );
         Surface = WinGetSurface( win );
         ScrCopy( &Surface[ 20 * v7 + 334], 64, v45 + 1, v7, &surf1[ 20 * DestPitch + 254 ], DestPitch );
         v38 = 48 * DestPitch;        
         v8 = &surf1[ 24 * DestPitch + 254 ];
-        for( i = 0; i + gInvUnk77 < obj->Critter.Box.Cnt && i < gInvUnk08; ){
-            v24 = ItemGetArtId( obj->Critter.Box.Box[ obj->Critter.Box.Cnt - ( i + gInvUnk77 + 1 ) ].obj );
+        for( i = 0; i + gInvUnk77 < MerchantStack->Critter.Box.Cnt && i < gInvUnk08; ){
+            v24 = ItemGetArtId( MerchantStack->Critter.Box.Box[ MerchantStack->Critter.Box.Cnt - ( i + gInvUnk77 + 1 ) ].obj );
             ArtLoadImgScaled( v24, v8, 56, 40, DestPitch );
-            v27 = &obj->Critter.Box.Box[ obj->Critter.Box.Cnt - ( i + gInvUnk77 + 1 ) ];
+            v27 = &MerchantStack->Critter.Box.Box[ MerchantStack->Critter.Box.Cnt - ( i + gInvUnk77 + 1 ) ];
             InvPrintQuantity( v27->obj, v27->Quantity, v8, DestPitch, i++ == a4 );
             v8 += v38;
         }
-        if( gDlgUnk45 ){
+        if( gDlgPmExchangeMode ){
             msg2.Id = 30;
             if( MessageGetMsg( &gInvMsg, &msg2 ) == 1 ){
                 sprintf( stmp, "%s %d", msg2.Text, InvStackPrice( gObjDude, gInvUnk39[ 0 ] ) );
@@ -2583,68 +2575,57 @@ void InvUnk43( int win, Obj_t *box, Obj_t *obj, int a4 )
     FontSet( FontId );
 }
 
-int InvMenuBarter( int eax0, Obj_t *a2, Obj_t *a3, Obj_t *a4, int a5 )
+int InvMenuBarter( int WinId, Obj_t *Merchant, Obj_t *MerchantStackObj, Obj_t *DudeStackObj, int BarterModifier )
 {
-    Obj_t *ArmorObj, *RHandObj,*v12,*v53,*v55,*v56,*v57,*obj,*a1;
+    Obj_t *ArmorObj,*v53,*WeaponObj,*RhandObj;
     ObjStack_t *stk;
     MsgLine_t msg;
-    int v15,v14,k,n,i,sel,v54,v58,v59;
-DD
-    obj = a2;
-    a1 = a3;
+    int k,n,i,sel,v54,v58,v59;
+
     sel = -1;
-    v55 = 0;
-    v53 = 0;
-    gInvUnk66 = a5;
+    WeaponObj = NULL;
+    v53 = NULL;
+    gInvUnk66 = BarterModifier;
     if( InvInit() == -1 ) return -1;
-    ArmorObj = InvGetArmorObj(obj);
-    v57 = ArmorObj;
-    if( ArmorObj ) ItemUseItem(obj, ArmorObj, 1);
-    RHandObj = InvGetRHandObj( obj );
-    v56 = RHandObj;
-    if( RHandObj ){
-	ItemUseItem(obj, RHandObj, 1);
+
+    ArmorObj = InvGetArmorObj( Merchant );
+    if( ArmorObj ) ItemUseItem( Merchant, ArmorObj, 1 );
+
+    if( (RhandObj = InvGetRHandObj( Merchant )) ){
+	ItemUseItem( Merchant, RhandObj, 1 );
     } else {
-	if( !gDlgUnk45 ){
-    	    RHandObj = InvSearchObjByType( obj, 3, 0 );
-    	    v55 = RHandObj;
-    	    if( RHandObj ) ItemUseItem(obj, RHandObj, 1);
+	if( !gDlgPmExchangeMode ){
+    	    if( (WeaponObj = InvSearchObjByType( Merchant, PR_ITEM_WEAPON, 0 )) ) ItemUseItem( Merchant, WeaponObj, 1 );
 	}
     }
+
     if( ObjCreate( &v53, 0, 467 ) == -1 ) return -1;
-    Item16(obj, v53);
-    gInvBackPack = (ObjContainer_t *)&gInvSelectedDude;
-    gInvUnk65 = a1;
-    gInvUnk84 = a4;
+    Item16( Merchant, v53 );
+    gInvBackPack = &gInvSelectedDude->Container;
+    gInvUnk65 = MerchantStackObj;
+    gInvUnk84 = DudeStackObj;
     gInvUnk78 = 0;
     gInvUnk77 = 0;
-    gInvUnk79 = (ObjContainer_t *)&a4;
-    gInvUnk85 = (ObjContainer_t *)&a1;
-    gInvUnk18 = eax0;
+    gInvUnk79 = &DudeStackObj->Container;
+    gInvUnk85 = &MerchantStackObj->Container;
+    gInvUnk18 = WinId;
     gInvUnk40 = 0;
-    gInvUnk62 = (ObjContainer_t *)&obj;
-    gInvUnk39[0] = obj;
+    gInvUnk62 = &Merchant->Container;
+    gInvUnk39[0] = Merchant;
     gInvUnk63[0] = 0;
     v54 = InvMenuCreate( 3 );
-    InvUnk03( gInvUnk63[gInvUnk40], -1, &gInvUnk62->Box, 3 );
-    InvBpUpdate(gInvUnk04[0], -1, 3);
-    InvBodyUpdate(obj->ImgId, 3);
-    v12 = a1;
+    InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+    InvBpUpdate( gInvUnk04[0], -1, 3 );
+    InvBodyUpdate( Merchant->ImgId, 3 );
     WinUpdate( gInvUnk18 );
-    InvUnk43( eax0, a4, v12, -1 );
-    InvSetInfoMode(0);
-    v14 = EvQeUnk23(obj);
-    v15 = EvQeUnk20(v14);
-    if( v15 ){
-        if( v15 <= 1 ){
-            v59 = 0;
-        } else if( v15 == 2 ){
-            v59 = -15;
-        }
-    } else {
-        v59 = 25;
+    InvBarterStack( WinId, DudeStackObj, MerchantStackObj, -1 );
+    InvSetInfoMode( 0 );
+    switch( EvQeUnk20( EvQeUnk23( Merchant ) ) ){
+	case 0: v59 = 25; break;
+	case 1: v59 = 0; break;
+	case 2: v59 = -15; break;
     }
-    v58 = a5 + v59;
+    v58 = BarterModifier + v59;
     while( 1 ){
         if( sel == KEY_ESC || gMenuEscape ) break;
         sel = InpUpdate();
@@ -2653,8 +2634,8 @@ DD
         if( sel == -1 ) continue;
         gInvUnk66 = v58;
         if( sel == 't' || v59 <= -30 ){
-            Item15( a1, obj );
-            Item15( a4, gObjDude );
+            ItemMoveObjInvToObj( MerchantStackObj, Merchant );
+            ItemMoveObjInvToObj( DudeStackObj, gObjDude );
             GdialogUnk59();
             break;
         }
@@ -2663,38 +2644,39 @@ DD
         	if( gInvUnk04[ gInvUnk05 ] > 0 ){ gInvUnk04[ gInvUnk05 ]--; InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 ); }
         	continue;
     	    case 329:
-        	if( gInvUnk78 > 0 ){ gInvUnk78--; InvUnk43( eax0, a4, a1, -1 ); }
+        	if( gInvUnk78 > 0 ){ gInvUnk78--; InvBarterStack( WinId, DudeStackObj, MerchantStackObj, -1 ); }
         	continue;
     	    case 336:
     		if( gInvUnk04[ gInvUnk05 ] + gInvUnk08 < gInvBackPack->Box.Cnt ){ gInvUnk04[ gInvUnk05 ]++; InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 ); }
     		continue;
-            case 109:
-        	if( !((a4->Critter.Box.Cnt || gInvUnk65->Critter.Box.Cnt) && !InvBarterDo( gInvSelectedDude, a4, a1, obj )) ) continue;
-            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+            case 109: // 'Trade' button
+        	if( (DudeStackObj->Critter.Box.Cnt == 0) && (gInvUnk65->Critter.Box.Cnt == 0) ) continue;
+        	if( InvBarterDo( gInvSelectedDude, DudeStackObj, Merchant, MerchantStackObj ) ) continue;
+            	InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
             	InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
-            	InvUnk43( eax0, a4, a1, -1 );
+            	InvBarterStack( WinId, DudeStackObj, MerchantStackObj, -1 );
             	msg.Id = 27;    // 'OK, That's good trade.'
-            	if( !gDlgUnk45 && MessageGetMsg( &gInvMsg, &msg ) == 1 ) GdialogReply( msg.Text );
+            	if( !gDlgPmExchangeMode && MessageGetMsg( &gInvMsg, &msg ) == 1 ) GdialogReply( msg.Text );
         	continue;
             case 337:
-    		if( gInvUnk78 + gInvUnk08 < gInvUnk79->Box.Cnt ){ gInvUnk78++; InvUnk43( eax0, a4, a1, -1 ); }
+    		if( gInvUnk78 + gInvUnk08 < gInvUnk79->Box.Cnt ){ gInvUnk78++; InvBarterStack( WinId, DudeStackObj, MerchantStackObj, -1 ); }
     		continue;       
             case 374:
-        	if( gInvUnk08 + gInvUnk77 < gInvUnk85->Box.Cnt ){ gInvUnk77++; InvUnk43( eax0, a4, a1, -1 ); }
+        	if( gInvUnk08 + gInvUnk77 < gInvUnk85->Box.Cnt ){ gInvUnk77++; InvBarterStack( WinId, DudeStackObj, MerchantStackObj, -1 ); }
         	continue;
             case 388:
-        	if( gInvUnk77 > 0 ){ gInvUnk77--; InvUnk43( eax0, a4, a1, -1 ); }
+        	if( gInvUnk77 > 0 ){ gInvUnk77--; InvBarterStack( WinId, DudeStackObj, MerchantStackObj, -1 ); }
         	continue;
             case 397:
         	if( gInvUnk63[ gInvUnk40 ] <= 0 ) continue;
             	gInvUnk63[ gInvUnk40 ]--;
-            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+            	InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
             	WinUpdate( gInvWin );
         	continue;
             case 401:
         	if( gInvUnk08 + gInvUnk63[gInvUnk40] >= gInvUnk62->Box.Cnt ) continue;
             	gInvUnk63[ gInvUnk40 ]++;
-            	InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+            	InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
             	WinUpdate( gInvWin );
                 continue;
             case 2500 ... 2501: 
@@ -2709,17 +2691,17 @@ DD
         if( !(MseGetButtons() & 0x01) ) continue;        
         if( sel >= 1000 && sel < gInvUnk08 + 1000 ){
             if( gInvInfoMode == 1 ){
-                    InvActionMenu( sel, 3 );
-                    InvUnk43( eax0, a4, 0, -1 );
-            } else {
+                InvActionMenu( sel, 3 );
+                InvBarterStack( WinId, DudeStackObj, 0, -1 );
+            } else { // dude inventory
         	n = sel - 1000;
-        	if( n + gInvUnk04[gInvUnk05] < gInvBackPack->Box.Cnt ){
+        	if( n + gInvUnk04[ gInvUnk05 ] < gInvBackPack->Box.Cnt ){
             	    k = gInvUnk04[ gInvUnk05 ];
             	    stk = &gInvBackPack->Box.Box[ gInvBackPack->Box.Cnt - (n + k + 1) ];
-                    InvUnk41( stk->obj, stk->Quantity, n, k, obj, a4, 1 );
-                    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+                    InvMoveObj( stk->obj, stk->Quantity, n, k, Merchant, DudeStackObj, 1 );
+                    InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
                     InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
-                    InvUnk43( eax0, a4, 0, -1 );
+                    InvBarterStack( WinId, DudeStackObj, 0, -1 );
         	}
             }
             sel = -1;
@@ -2727,16 +2709,16 @@ DD
         if( sel >= 2000 && sel < gInvUnk08 + 2000 ){
             if( gInvInfoMode == 1 ){
                 InvActionMenu( sel, 3 );
-                InvUnk43( eax0, 0, a1, -1 );
-            } else {
+                InvBarterStack( WinId, 0, MerchantStackObj, -1 );
+            } else { // merchant inventory
             	n = sel - 2000;
             	if( n + gInvUnk63[ gInvUnk40 ] < gInvUnk62->Box.Cnt ){
             	    k = gInvUnk63[ gInvUnk40 ];
                     stk = &gInvUnk62->Box.Box[ gInvUnk62->Box.Cnt - (n + k + 1) ];
-                    InvUnk41( stk->obj, stk->Quantity, n, k, obj, a1, 0 );
-                    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+                    InvMoveObj( stk->obj, stk->Quantity, n, k, Merchant, MerchantStackObj, 0 );
+                    InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
                     InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
-                    InvUnk43( eax0, 0, a1, -1 );
+                    InvBarterStack( WinId, 0, MerchantStackObj, -1 );
             	}
             }
             sel = -1;
@@ -2744,15 +2726,15 @@ DD
         if( !(sel < 2300 || sel >= 2300 + gInvUnk08 ) ){
     	    if( gInvInfoMode == 1 ){
         	InvActionMenu( sel, 3 );
-            	InvUnk43( eax0, a4, 0, -1 );
+            	InvBarterStack( WinId, DudeStackObj, 0, -1 );
     	    } else {
         	n = sel - 2300;
         	if( n < gInvUnk79->Box.Cnt ){
             	    stk = &gInvUnk79->Box.Box[ gInvUnk79->Box.Cnt - (n + gInvUnk78 + 1) ];
-            	    InvUnk42( stk->obj, stk->Quantity, n, obj, a4, 1 );
-        	    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+            	    InvUnk42( stk->obj, stk->Quantity, n, Merchant, DudeStackObj, 1 );
+        	    InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
         	    InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
-            	    InvUnk43( eax0, a4, 0, -1 );
+            	    InvBarterStack( WinId, DudeStackObj, 0, -1 );
         	}
             }
             sel = -1;
@@ -2760,25 +2742,25 @@ DD
         if( sel >= 2400 && sel < gInvUnk08 + 2400 ){
             if( gInvInfoMode == 1 ){
                 InvActionMenu( sel, 3 );
-                InvUnk43( eax0, 0, a1, -1 );
+                InvBarterStack( WinId, 0, MerchantStackObj, -1 );
             } else {
                 n = sel - 2400;
                 if( n < gInvUnk85->Box.Cnt ){
                     stk = &gInvUnk85->Box.Box[ gInvUnk85->Box.Cnt - (n + gInvUnk77 + 1) ];
-                    InvUnk42( stk->obj, stk->Quantity, n, obj, a1, 0 );
-                    InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
+                    InvUnk42( stk->obj, stk->Quantity, n, Merchant, MerchantStackObj, 0 );
+                    InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, 3 );
                     InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 3 );
-            	    InvUnk43( eax0, 0, a1, -1 );
+            	    InvBarterStack( WinId, 0, MerchantStackObj, -1 );
                 }
             }                            
             sel = -1;
         }        
     }
-    Item15( v53, obj );
+    ItemMoveObjInvToObj( v53, Merchant );
     ObjDestroy( v53, 0 );
-    if( v57 ){ v57->Flags |= 0x04000000; ItemAdd( obj, v57, 1 ); }
-    if( v56 ){ v56->Flags |= 0x02000000; ItemAdd( obj, v56, 1 ); }
-    if( v55 ) ItemAdd( obj, v55, 1 );
+    if( ArmorObj ){ ArmorObj->Flags |= 0x04000000; ItemAdd( Merchant, ArmorObj, 1 ); }
+    if( RhandObj ){ RhandObj->Flags |= 0x02000000; ItemAdd( Merchant, RhandObj, 1 ); }
+    if( WeaponObj ) ItemAdd( Merchant, WeaponObj, 1 );
     InvMenuClose( v54 );
     for( i = 0; i != 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
     if( gInvUnk02 ) GameIfaceDisable( 0 );
@@ -2799,7 +2781,7 @@ void InvUnk45( int a1, int a2 )
             gInvUnk63[ gInvUnk40 ] = 0;            
             gInvUnk62 = &gInvUnk39[ gInvUnk40 ]->Container;
             InvBodyUpdate( gInvUnk39[ gInvUnk40 ]->ImgId, a2 );
-            InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, a2 );
+            InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, a2 );
             WinUpdate( gInvWin );
         }
     } else {
@@ -2834,7 +2816,7 @@ void InvUnk46( int sel, int mode )
         obj = gInvUnk39[ --gInvUnk40 ];
         gInvUnk62 = &obj->Container;
         InvBodyUpdate( obj->ImgId, mode );
-        InvUnk03( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, mode );
+        InvItemList( gInvUnk63[ gInvUnk40 ], -1, &gInvUnk62->Box, mode );
         WinUpdate( gInvWin );
     }    
 }

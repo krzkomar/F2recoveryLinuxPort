@@ -625,8 +625,8 @@ Acm_t *AcmOpen(int (*ReadCb)(void *Fh, void *data, int size), void *file, int *p
         gAcmPcmAlloc = malloc( 0x10000 * sizeof(int) );
 	gAcmPcmTable = &gAcmPcmAlloc[ 0x8000 ];
     }
-    *pnChannels = acm->nChannels;
-    *pFreq = acm->Frequency;
+    *pnChannels = 1;//acm->nChannels; // commented because of dialogs
+    *pFreq = 22050;//acm->Frequency; // commented because of dialogs
     *pnSamples = acm->ReadAvail;
 #ifdef DEBUG
     eprintf( "Decode ACM file: samples=%i, freq=%i, channels=%i\n", acm->ReadAvail, acm->Frequency, acm->nChannels );

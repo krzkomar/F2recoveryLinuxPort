@@ -1499,29 +1499,30 @@ void ScrGame_StartGdialog( Intp_t *scr )
     Proto_t *proto;
     int n, BackGroundIdx, HeadNum, Mood, MsgFileNum;
     uint16_t type[ 5 ];
-DD    
+    
     GETARGI( scr, type[ 0 ], BackGroundIdx, 0, "start_gdialog" );
     GETARGI( scr, type[ 1 ], HeadNum, 1, "start_gdialog" );
     GETARGI( scr, type[ 2 ], Mood, 2, "start_gdialog" );
     GETARGP( scr, type[ 3 ], who, 3, "start_gdialog" );
     GETARGI( scr, type[ 4 ], MsgFileNum, 4, "start_gdialog" );
     SCP_DBGA( "start_gdialog( [%x]%x, [%x]%p, [%x]%x, [%x]%x, [%x]%x)", type[4], MsgFileNum, type[3], who, type[2], Mood, type[1], HeadNum, type[0], BackGroundIdx );
+
     if( IN_COMBAT ) return;
     if( !who ){
         ScrGameErrorMsg( scr, "start_gdialog", 1 );
         return;
     }
-    gDlgUnk46 = -1;
-    if( OBJTYPE( who->Pid ) == 1 ){
+    gDlgHeadId = -1;
+    if( OBJTYPE( who->Pid ) == TYPE_CRIT ){
         if( ProtoGetObj( who->Pid, &proto ) == -1 ) return;
-        if( HeadNum != -1 ) gDlgUnk46 = ArtMakeId( 8, HeadNum, 0, 0, 0 );
+        if( HeadNum != -1 ) gDlgHeadId = ArtMakeId( 8, HeadNum, 0, 0, 0 );
     } else {
-	if( HeadNum != -1 ) gDlgUnk46 = ArtMakeId( 8, HeadNum, 0, 0, 0 );
+	if( HeadNum != -1 ) gDlgHeadId = ArtMakeId( 8, HeadNum, 0, 0, 0 );
     }
     GdialogSetBg( BackGroundIdx );
     gScrGameMood = Mood;
-    if( gDlgUnk46 != -1 ){
-        if( (n = EvQeUnk20( EvQeUnk23( gDlgUnk44 ) )) ){
+    if( gDlgHeadId != -1 ){
+        if( (n = EvQeUnk20( EvQeUnk23( gDlgPartyMemberObj ) )) ){
             if( n <= 1 ){
                 gScrGameMood = 4;
             } else if( n == 2 ){
@@ -1531,9 +1532,9 @@ DD
             gScrGameMood = 7;
         }
     }
-    gDlgUnk47 = ScptGetActionSource( scr );
-    gDlgUnk44 = ScptGetSelfObj( scr );
-    GdialogUnk05( gDlgUnk46, gScrGameMood );
+    gDlgActionSrc = ScptGetActionSource( scr );
+    gDlgPartyMemberObj = ScptGetSelfObj( scr );
+    GdialogStartConversation( gDlgHeadId, gScrGameMood );
 }
 
 /*
@@ -1545,8 +1546,8 @@ void ScrGame_EndDialogue( Intp_t *scr )
 
     SCP_DBGA( "end_dialogue" );
     if( GdialogUnk06() == -1 ) return;
-    gDlgUnk44 = 0;
-    gDlgUnk47 = -1;
+    gDlgPartyMemberObj = 0;
+    gDlgActionSrc = -1;
 }
 
 /*
@@ -1648,7 +1649,7 @@ void ScrGame_Metarule3( Intp_t *scr )
     int meta3_switch;
     uint16_t type[4];
 
-return;
+//return;
     v23 = 0;
     GETARGI( scr, type[ 0 ], arg0, 0, "metarule3" );
     GETARGI( scr, type[ 1 ], arg1, 1, "metarule3" );
@@ -2299,7 +2300,7 @@ void ScrGame_DialogueSystemEnter( Intp_t *scr )
     SCP_DBGA( "dialogue_system_enter" );
     if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 ) return;    
     obj = ScptGetSelfObj( scr );
-    if( (OBJTYPE( obj->Pid ) != TYPE_CRIT || CritterCanTalk( obj )) && !IN_COMBAT && GlobVarFloatMsgInc( 4 ) != -1 ) gDlgUnk44 = ScptGetSelfObj( scr );    
+    if( (OBJTYPE( obj->Pid ) != TYPE_CRIT || CritterCanTalk( obj )) && !IN_COMBAT && GlobVarFloatMsgInc( 4 ) != -1 ) gDlgPartyMemberObj = ScptGetSelfObj( scr );    
 }
 
 /*
@@ -2761,24 +2762,15 @@ void ScrGame_FloatMsg( Intp_t *scr )
 void ScrGame_MetaRule( Intp_t *scr ) 
 {
     SCP_DBG_VAR;
-    int v14; // ecx
-    int v15; // edx
-    int v16; // edi
-    int meta_par;
-    Obj_t *obj; // [esp+0h] [ebp-38h]
-    int sel; // [esp+4h] [ebp-34h]
-    int EntryValue; // [esp+8h] [ebp-30h] BYREF
-    uint16_t type[2]; // [esp+Ch] [ebp-2Ch]
-    Proto_t *proto; // [esp+10h] [ebp-28h] BYREF
-    Proto_t *pObj; // [esp+14h] [ebp-24h] BYREF
-    int WeaponBase; // [esp+1Ch] [ebp-1Ch]
+    Obj_t *obj;
+    uint16_t type[ 2 ];
+    Proto_t *proto, *pObj;
+    int v14, v15, v16, meta_par, sel, EntryValue, WeaponBase;
     
     WeaponBase = 0;
     type[ 0 ] = IntpPopwA( scr );    
     if( type[ 0 ] == SCR_PTR ){
         obj = IntpPopPtrA( scr );
-	if( type[ 0 ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ 0 ], 0 );
-	if( (type[ 0 ] & ~0x800) != SCR_INT ) IntpError( "script error: %s: invalid arg %d to metarule", scr->FileName, 0 );
 	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
 	SCP_DBGA( "metarule( [%x]%x, [%x]%p )", type[1], sel, type[0], obj );
     } else {
@@ -2788,7 +2780,7 @@ void ScrGame_MetaRule( Intp_t *scr )
 	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
 	SCP_DBGA( "metarule( [%x]%x, [%x]%x )", type[1], sel, type[0], meta_par );
     }
-
+printf("----->%i\n", sel);
     switch( sel ){
 	case 13: gMenuEscape = 2; RETINT( scr, 0 ); break;	    
         case 14: RETINT( scr, (gMap.MapFlags & 0x01) == 0 ); break;
@@ -3688,7 +3680,7 @@ void ScrGame_InvenUnwield( Intp_t *scr )
     SCP_DBG_VAR;
     Obj_t *obj;
     int n;
-
+DD
     obj = ScptGetSelfObj( scr );
     SCP_DBGA( "inven_unwield( %p )", obj );
     n = 1;
@@ -4307,7 +4299,7 @@ void ScrGame_MoveObjInvenToObj( Intp_t *scr )
             if( RHandObj->Flags & 0x2000000 ) v15 |= 0x2000000;
             ScrGameSetShape( obj, RHandObj, v15 );
         }
-        Item15( obj, v10 );
+        ItemMoveObjInvToObj( obj, v10 );
         if( obj == gObjDude ){
             if( ArmorObj ) InvUpdateStatistics( gObjDude, ArmorObj, 0 );
             ProtoDudeImgInit();

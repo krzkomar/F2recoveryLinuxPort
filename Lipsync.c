@@ -1,9 +1,9 @@
 #include "FrameWork.h"
 
-char gLipsPhoneme = 0;
-char gLipsUnk03 = 0;
+int gLipsPhoneme = 0;
+int gLipsPrevPhoneme = 0;
 int gLipsPosition = 0;
-int gLipsUnk04 = 1;
+int gLipsNewPhonemeFlag = 1;
 Lips_t gLipsync = { 2, 0x5800, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x32, 0x64, 0, 0, 0, {'T','E','S','T'}, {'V','O','C',0}, {'T','X','T',0}, {'L','I','P',0} };
 unsigned int gLipsTime = 0;
 char gLipsFileDir[ 14 ];
@@ -17,76 +17,62 @@ char *LipsyncGetFName( char *Name, int MaxSize )
     return gLipsFnameBuf;
 }
 
-void LipsyncSpeachStop()
+void LipsyncSpeechUpdate()
 {
-    char v4;
-    int v0, v1, v2, v3, v5;
+    int SpkPos, i, k;
 
-    v0 = gLipsPosition;
-    if( gLipsync.Status & 0x02 ){
-        v1 = SoundSpeechUnk01(gLipsync.Snd);
-        v0 = gLipsPosition;
-        v2 = v1;
-        v3 = gLipsPosition;
-        while( v2 > gLipsync.Markers[ v3 ].Pos ){
-            v3++;
-            v4 = gLipsync.Phonemes[ v0++ ];
-    	    gLipsPhoneme = v4;
-            if( v0 >= gLipsync.MarkersCnt ){
-                v0 = 0;
-                gLipsPhoneme = *gLipsync.Phonemes;
-                if( !(gLipsync.Status & 0x01) ){
-                    gLipsPosition = 0;
-                    SoundStop( gLipsync.Snd );
-                    v0 = gLipsPosition;
-                    gLipsync.Status &= ~0x03;
-                }
-                break;
-            }
+    i = gLipsPosition;
+    if( gLipsync.Status & LIPS_ANIMATE ){
+        SpkPos = SoundSpeechPosition( gLipsync.Snd );
+        for( i = gLipsPosition; ; i++ ){
+    	    if( gLipsync.Markers[ i ].Pos >= SpkPos ) break;
+    	    gLipsPhoneme = gLipsync.Phonemes[ i ];
+            if( i >= gLipsync.MarkersCnt ) break;
         }
-        if( v0 >= gLipsync.MarkersCnt - 1 ){
-            gLipsPosition = v0;
-            v5 = 0;
+        if( i >= gLipsync.MarkersCnt ){
+            gLipsPosition = i;
+            k = 0;
             if( gLipsync.MarkersCnt <= 5 )
                 eprintf( "Error: Too few markers to stop speech!" );
             else
-                v5 = 3;
-            v0 = gLipsPosition;
-            if( v2 < gLipsync.Markers[ v5 ].Pos ){
-                v0 = 0;
+                k = 3;
+            i = gLipsPosition;
+            if( gLipsync.Markers[ k ].Pos > SpkPos ){
+                i = 0;
                 gLipsPhoneme = gLipsync.Phonemes[ 0 ];
-                if( !(gLipsync.Status & 0x01) ){
-                    gLipsPosition = 0;
+                if( !(gLipsync.Status & LIPS_NOTSTOP ) ){
                     SoundStop( gLipsync.Snd );
-                    v0 = gLipsPosition;
-                    gLipsync.Status &= ~0x03;
+                    gLipsync.Status &= LIPS_CLRMASK;
                 }
             }
         }
     }
-    if( gLipsUnk03 != gLipsPhoneme ){
-        gLipsUnk03 = gLipsPhoneme;
-        gLipsUnk04 = 1;
+    if( gLipsPrevPhoneme != gLipsPhoneme ){
+        gLipsPrevPhoneme = gLipsPhoneme;
+        gLipsNewPhonemeFlag = 1;
     }
-    gLipsPosition = v0;
+    gLipsPosition = i;
     SoundUpdateAll();
 }
 
 int LipsyncSpeechStart()
 {
-    gLipsync.Status |= 0x02;
-    if( SoundSpeechPlay(gLipsync.Snd, gLipsync.Unk15) ) eprintf( "Failed set of start_offset!\n" );
-    
-    for( gLipsPosition = 0; gLipsync.Markers[ gLipsPosition ].Pos < gLipsync.Unk15; gLipsPosition++ ){
+    gLipsync.Status |= LIPS_ANIMATE;
+
+    if( SoundSpeechSetOffset( gLipsync.Snd, gLipsync.Position ) ) eprintf( "Failed set of start_offset!\n" );
+
+    for( gLipsPosition = 0; gLipsync.Markers[ gLipsPosition ].Pos < gLipsync.Position; gLipsPosition++ ){
         gLipsPhoneme = gLipsync.Phonemes[ gLipsPosition ];        
     }
-//    SoundSetSndVolume( gLipsync.Snd, lround( GSoundGetSpkVolume() * 0.69 ) );
+DD
+printf("*******************************\n* spk vol: %ld %p %i %i\n", lround( GSoundGetSpkVolume() * 0.69 ), gLipsync.Snd, gLipsync.Position, gLipsync.Snd->Volume );
+    SoundSetSndVol( gLipsync.Snd, lround( GSoundGetSpkVolume() * 0.69 ) );
     gLipsTime = TimerGetSysTime();
     if( SoundPlayAcm( gLipsync.Snd ) ){
         eprintf( "Failed play!\n" );
         gLipsPosition = 0;
         SoundStop( gLipsync.Snd );
-        gLipsync.Status &= 0x03;
+        gLipsync.Status &= LIPS_CLRMASK;
     }
     return 0;
 }
@@ -95,7 +81,7 @@ int LipsyncRewind()
 {
     gLipsPosition = 0;
     SoundStop( gLipsync.Snd );
-    gLipsync.Status &= ~0x03;
+    gLipsync.Status &= LIPS_CLRMASK;
     return 0;
 }
 
@@ -125,7 +111,7 @@ int LipsyncLoadDataOldFmt( Lips_t *lp, xFile_t *fh )
     if( dbgetBei( fh, &z3 ) == -1 ) return -1; 
     if( dbgetBei( fh, &z2 ) == -1 ) return -1;
     if( dbgetBei( fh, &lp->Unk14 ) == -1 ) return -1; 
-    if( dbgetBei( fh, &lp->Unk15 ) == -1 ) return -1;
+    if( dbgetBei( fh, &lp->Position ) == -1 ) return -1;
     if( dbgetBei( fh, &lp->PhonemesCnt ) == -1 ) return -1;
     if( dbgetBei( fh, &lp->Unk16 ) == -1 ) return -1;
     if( dbgetBei( fh, &lp->MarkersCnt ) == -1 ) return -1;
@@ -212,14 +198,14 @@ int LipsyncLoadFile( char *a1, char *DirName )
 	if( gLipsync.Markers[ 0 ].Pos != 0 ) eprintf( "\nLoad error: Speech marker 0 has invalid position(%d)!", gLipsync.Markers[ 0 ].Pos );	
         for( i = 1; i < gLipsync.MarkersCnt; i++ ){
             if( gLipsync.Markers[ i ].Type >= 2 ) eprintf( "\nLoad error: Speech marker %d is invalid (%d)!", i, gLipsync.Markers[ i ].Type );
-//            if( gLipsync.Markers[ i ].Pos < gLipsync.Markers[ i - 1 ] ) eprintf( "\nLoad error: Speech marker %d has invalid position(%d)!", i, gLipsync.Markers[ i ].Pos );
+            if( gLipsync.Markers[ i ].Pos < gLipsync.Markers[ i - 1 ].Pos ) eprintf( "\nLoad error: Speech marker %d has invalid position(%d)!", i, gLipsync.Markers[ i ].Pos );
         }
     }
     if( fh ) dbClose( fh );
     gLipsync.i15 = 0;
     gLipsync.MarkerSize = 0;
     gLipsync.i19 = 0;
-    gLipsync.Unk15 = 0;
+    gLipsync.Position = 0;
     gLipsync.i16 = 50;
     gLipsync.i17 = 100;
     if( gLipsync.Version == 1 ) gLipsync.Magic = LIPMAGIC;
@@ -235,7 +221,7 @@ int LipsyncLoadFile( char *a1, char *DirName )
 int LipsyncMakeSpeech()
 {
     char fname[ 260 ];
-
+DD
     if( gLipsync.Unk12 ){
         Free( gLipsync.Unk12 );
         gLipsync.Unk12 = NULL;
@@ -255,6 +241,7 @@ int LipsyncMakeSpeech()
         eprintf( "%s -- file probably doesn't exist.\n", fname );
         return -1;
     }
+printf("=>freq:%i, ch:%i, samples:%i\n", gLipsync.Snd->Freq, gLipsync.Snd->Channels, gLipsync.Snd->Samples );
     gLipsync.MarkerSize = sizeof( LipsMarker_t ) * (gLipsync.Unk14 / gLipsync.MarkersCnt );
     return 0;    
 }
@@ -268,7 +255,7 @@ int LipsyncClose()
     if( gLipsync.Snd ){
         gLipsPosition = 0;
         SoundStop( gLipsync.Snd );
-        gLipsync.Status &= ~0x03;
+        gLipsync.Status &= LIPS_CLRMASK;
         SoundDelete( gLipsync.Snd );
         gLipsync.Snd = NULL;
     }

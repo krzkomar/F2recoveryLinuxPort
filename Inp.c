@@ -71,7 +71,8 @@ int InpUpdate()
     KbdUpdate();
     if( !gSDLReady ) KbdThreadSync();
     InpWinUpdate();    
-    if( (n = InpPopBuffer()) == -1 ){
+    n = InpPopBuffer();
+    if( n == -1 ){
 	if( MseGetButtons() & ( MSE_LBUTT | MSE_RBUTT | MSE_LBHOLD | MSE_RBHOLD ) ){
     	    MseGetCursorPosition( &gInpMouseX, &gInpMouseY );
     	    return -2;

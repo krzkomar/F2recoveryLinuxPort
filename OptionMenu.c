@@ -45,7 +45,7 @@ static int	gOptSpeechVolume;
 static int 	gOptSetFxVolume;
 static int 	gOptSetSubtitles;
 static int 	gOptSetLangFilter;
-static int 	gOptSetSpeachVolume;
+static int 	gOptSetSpeechVolume;
 static int 	gOptSetMasterVolume;
 static int 	gOptSetPlayerSpeed;
 static int 	gOptSetCombatTaunts;
@@ -95,7 +95,7 @@ OptPref_t gOptPrefKnobs[ 19 ] = {
     { 4, 0, 374, 196, 0, 0, { 202, 221, 209, 222 }, 0, 0, "master_volume",      0.0, 32767.0, .iVal = &gOptSetMasterVolume },
     { 4, 0, 374, 247, 0, 0, { 202, 221, 209, 222 }, 0, 0, "music_volume",       0.0, 32767.0, .iVal = &gOptSetMusicVolume },
     { 4, 0, 374, 298, 0, 0, { 202, 221, 209, 222 }, 0, 0, "sndfx_volume",       0.0, 32767.0, .iVal = &gOptSetFxVolume },
-    { 4, 0, 374, 349, 0, 0, { 202, 221, 209, 222 }, 0, 0, "speech_volume",      0.0, 32767.0, .iVal = &gOptSetSpeachVolume },
+    { 4, 0, 374, 349, 0, 0, { 202, 221, 209, 222 }, 0, 0, "speech_volume",      0.0, 32767.0, .iVal = &gOptSetSpeechVolume },
     { 2, 0, 374, 400, 0, 0, { 207, 223, 0,   0   }, 0, 0, "brightness",         1.0, 1.18,    .iVal = NULL },
     { 2, 0, 374, 451, 0, 0, { 207, 218, 0,   0   }, 0, 0, "mouse_sensitivity",  1.0, 2.5,     .iVal = NULL }
 };
@@ -699,7 +699,7 @@ void  OptPrefHandler( int WgCode )
                 case 5:
                     *gOptPrefKnobs[ WgNo ].iVal = lround( NewVal );
                     Step = 15;
-                    GSoundSetSpkVolume(gOptSetSpeachVolume);
+                    GSoundSetSpkVolume(gOptSetSpeechVolume);
                     if( Spk ){
                         Spk -= 15;
                     } else {
@@ -857,7 +857,7 @@ int OptPrefUpdate( int WgNo )
                 case 13: GSoundSetMasterVolume( gOptSetMasterVolume ); break;
                 case 14: GSoundSetMusicVolume( gOptSetMusicVolume ); break;
                 case 15: GSoundSetSfxVolume( gOptSetFxVolume ); break;
-                case 16: GSoundSetSpkVolume( gOptSetSpeachVolume ); break;
+                case 16: GSoundSetSpkVolume( gOptSetSpeechVolume ); break;
             }
             break;
         case 17:
@@ -981,7 +981,7 @@ void OptLoad()
     CfgGetInteger(&gConfiguration, "sound",       "master_volume",     &gOptSetMasterVolume );
     CfgGetInteger(&gConfiguration, "sound",       "music_volume",      &gOptSetMusicVolume );
     CfgGetInteger(&gConfiguration, "sound",       "sndfx_volume",      &gOptSetFxVolume );
-    CfgGetInteger(&gConfiguration, "sound",       "speech_volume",     &gOptSetSpeachVolume );
+    CfgGetInteger(&gConfiguration, "sound",       "speech_volume",     &gOptSetSpeechVolume );
     CfgGetFloat(  &gConfiguration, "preferences", "brightness",        &gOptSetBrightness );
     CfgGetFloat(  &gConfiguration, "preferences", "mouse_sensitivity", &gOptSetMouseSens );
     OptRealize();
@@ -1012,7 +1012,7 @@ void OptSaveConfig( int ModifyFileFlg )
     CfgSetInteger(&gConfiguration, "sound", "master_volume", gOptSetMasterVolume);
     CfgSetInteger(&gConfiguration, "sound", "music_volume", gOptSetMusicVolume);
     CfgSetInteger(&gConfiguration, "sound", "sndfx_volume", gOptSetFxVolume);
-    CfgSetInteger(&gConfiguration, "sound", "speech_volume", gOptSetSpeachVolume);
+    CfgSetInteger(&gConfiguration, "sound", "speech_volume", gOptSetSpeechVolume);
     CfgSetDouble(&gConfiguration, "preferences", "brightness", gOptSetBrightness);
     CfgSetDouble(&gConfiguration, "preferences", "mouse_sensitivity", gOptSetMouseSens);
 
@@ -1042,7 +1042,7 @@ void OptSetDefault( int UpdateFlg )
     gOptSetMasterVolume = 22281;
     gOptSetMusicVolume = 22281;
     gOptSetFxVolume = 22281;
-    gOptSetSpeachVolume = 22281;
+    gOptSetSpeechVolume = 22281;
     if( !UpdateFlg ) return;    
 
     for( i = 0; i < 19; i++ ) OptPrefUpdate( i );
@@ -1073,7 +1073,7 @@ void OptPrefLoad()
     gOptBrightness       = gOptSetBrightness;
     gOptSndFxVolume      = gOptSetFxVolume;
     gOptMouseSensitivity = gOptSetMouseSens;
-    gOptSpeechVolume     = gOptSetSpeachVolume;
+    gOptSpeechVolume     = gOptSetSpeechVolume;
 }
 
 void OptPrefSave()
@@ -1097,7 +1097,7 @@ void OptPrefSave()
     gOptSetBrightness = gOptBrightness;
     gOptSetFxVolume = gOptSndFxVolume;
     gOptSetMouseSens = gOptMouseSensitivity;
-    gOptSetSpeachVolume = gOptSpeechVolume;
+    gOptSetSpeechVolume = gOptSpeechVolume;
     OptRealize();
 }
 
@@ -1122,7 +1122,7 @@ void OptRealize()
     LIMIT( gOptSetMasterVolume, 0,0x7FFF );
     LIMIT( gOptSetMusicVolume, 0, 0x7FFF );
     LIMIT( gOptSetFxVolume, 0, 0x7FFF );
-    LIMIT( gOptSetSpeachVolume, 0, 0x7FFF );
+    LIMIT( gOptSetSpeechVolume, 0, 0x7FFF );
     LIMIT( gOptSetBrightness, 1.0, 1.18 );
     LIMIT( gOptSetMouseSens, 1.0, 2.5 );
 
@@ -1136,7 +1136,7 @@ void OptRealize()
     GSoundSetMasterVolume( gOptSetMasterVolume );
     GSoundSetMusicVolume( gOptSetMusicVolume );
     GSoundSetSfxVolume( gOptSetFxVolume );
-    GSoundSetSpkVolume( gOptSetSpeachVolume );
+    GSoundSetSpkVolume( gOptSetSpeechVolume );
     MseSetSpeed( gOptSetMouseSens );
     PalSetBrightness( gOptSetBrightness );
 }
@@ -1161,7 +1161,7 @@ int OptSaveData( xFile_t *fh )
 	dbputBei( fh, gOptSetMasterVolume) == -1 || 
 	dbputBei( fh, gOptSetMusicVolume) == -1 || 
 	dbputBei( fh, gOptSetFxVolume) == -1 || 
-	dbputBei( fh, gOptSetSpeachVolume) == -1 || 
+	dbputBei( fh, gOptSetSpeechVolume) == -1 || 
 	dbputBed( fh, gOptSetBrightness ) == -1 || 
 	dbputBed( fh, gOptSetMouseSens ) == -1 
     ){
@@ -1194,7 +1194,7 @@ int OptLoadData( xFile_t *fh )
 	dbgetBei( fh, &gOptSetMasterVolume ) == -1 || 
 	dbgetBei( fh, &gOptSetMusicVolume ) == -1 || 
 	dbgetBei( fh, &gOptSetFxVolume ) == -1 || 
-	dbgetBei( fh, &gOptSetSpeachVolume ) == -1 || 
+	dbgetBei( fh, &gOptSetSpeechVolume ) == -1 || 
 	dbgetBei( fh, &brt ) == -1 || 
 	dbgetBei( fh, &mse ) == -1 
     ) err = 0;
