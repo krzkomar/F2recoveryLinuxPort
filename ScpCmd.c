@@ -48,7 +48,7 @@ void ScpA_802B( Intp_t *scr ) // 802B push_base( ArgsCnt ) ?
 void ScpA_PopBase( Intp_t *scr ) // 8029 'pop_base( base )'
 {
     SCP_DBG_VAR;
-    unsigned short type;
+    uint16_t type;
     int base;
     char stmp[ 256 ];
 
@@ -61,10 +61,10 @@ void ScpA_PopBase( Intp_t *scr ) // 8029 'pop_base( base )'
 void ScpA_Ret( Intp_t *scr ) // 802A 'Ret( ... )
 {
     SCP_DBG_VAR;
-    short Type;
+    uint16_t Type;
     int val;
 
-    SCP_DBGA( "  LEAVE_FRM" );
+    SCP_DBGA( "  LEAVE_FRM %i -> %i", scr->StackApos, scr->Base );
     while( scr->StackApos != scr->Base ){
         SCP_GETARG( Type, val, scr );
     }    
@@ -81,7 +81,7 @@ void ScpA_802C( Intp_t *scr ) // 802C save_stack() ?
 void ScpA_Dump( Intp_t *scr ) // 802E dump( arg_cnt, ... )
 {
     SCP_DBG_VAR;
-    short type;
+    uint16_t type;
     int arg_cnt, argn;
     char stmp[ 256 ];
 
@@ -96,7 +96,7 @@ void ScpA_Dump( Intp_t *scr ) // 802E dump( arg_cnt, ... )
 void ScpA_Call( Intp_t *scr ) // 8006 'call( procedure, procedure_time )
 {
     SCP_DBG_VAR;
-    unsigned short type1, type2;
+    uint16_t type1, type2;
     int addr, time, NameIdx;
 
     SCP_GETARG( type1, addr, scr );
@@ -117,7 +117,7 @@ void ScpA_CondCall( Intp_t *scr ) // 8007 cond_call( procedure, procedure_addres
 {
     SCP_DBG_VAR;
     int ProcIdx, addr, NameIdx;
-    unsigned short type1, type2;
+    uint16_t type1, type2;
 
     SCP_GETARG( type1, ProcIdx, scr );
     SCP_ERRTYPE( SCRTYPE( type1 ) != SCR_INT, "Invalid procedure type given to conditional call" );
@@ -134,7 +134,7 @@ void ScpA_CondCall( Intp_t *scr ) // 8007 cond_call( procedure, procedure_addres
 void ScpA_Wait( Intp_t *scr ) // 8047 'wait( time )'
 {
     SCP_DBG_VAR;
-    short type;
+    uint16_t type;
     int time;
 
     SCP_GETARG( type, time, scr );
@@ -149,7 +149,7 @@ void ScpA_Wait( Intp_t *scr ) // 8047 'wait( time )'
 void ScpA_Cancel( Intp_t *scr ) // 8048 'cancel( proc )'
 {
     SCP_DBG_VAR;
-    short type;
+    uint16_t type;
     int ProcOffs;
 
     SCP_GETARG( type, ProcOffs, scr );
@@ -190,7 +190,11 @@ void ScpA_If( Intp_t *scr ) // 802F ifcon( skip_addr, cond ) -> 'if( Cond == 0 )
 
     SCP_GETARGX( type[ 0 ], Cond, ptr, scr );
     SCP_GETARG( type[ 1 ], addr, scr );
-    SCP_DBGA( "IF( [%x]%x == 0 ) GOTO [%x]%x", type[ 0 ], Cond, type[ 1 ], addr );
+    SCP_DBG_IF( type[ 0 ] == SCR_PTR ){
+	SCP_DBGA( "IF( [%x]%p == 0 ) GOTO [%x]%x", type[ 0 ], ptr, type[ 1 ], addr );
+    } else {
+	SCP_DBGA( "IF( [%x]%x == 0 ) GOTO [%x]%x", type[ 0 ], Cond, type[ 1 ], addr );
+    }
     if( type[ 0 ] == SCR_PTR ){
 	if( !ptr ) scr->CodePC = addr;    
     } else {
@@ -201,7 +205,7 @@ void ScpA_If( Intp_t *scr ) // 802F ifcon( skip_addr, cond ) -> 'if( Cond == 0 )
 void ScpA_WhileDo( Intp_t *scr ) // 8030 while( Cond, SkipAddress ) -> 'while( Cond ) do begin'
 {
     SCP_DBG_VAR;
-    short type1, type2;
+    uint16_t type1, type2;
     int Cond, BreakAddr;
 
     SCP_GETARG( type1, Cond, scr );
@@ -215,47 +219,52 @@ void ScpA_WhileDo( Intp_t *scr ) // 8030 while( Cond, SkipAddress ) -> 'while( C
 
 }
 
-void ScpA_8031( Intp_t *scr ) // 8031 ?( arg1, arg2 )
+/*
+    Set local variable
+*/
+void ScpA_SetLVar( Intp_t *scr ) // 8031 ?( arg1, arg2 ) set local var
 {
     SCP_DBG_VAR;
-    short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2, k;
     char *stack;
 
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
-    SCP_DBGA( "8031( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "SetLVar( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+
     k = IntpReadBei( scr->StackA, 6 * Arg1 + scr->Base );
     if( *(&scr->StackA[6 * Arg1 + 4] + scr->Base) == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, k );
     IntpWriteBew( Arg2 >> 16, scr->StackA, 6 * Arg1 + scr->Base );
     IntpWriteBew( Arg2, scr->StackA, 6 * Arg1 + scr->Base + 2 );
     stack = &scr->StackA[ 6 * Arg1 + 4 ] + scr->Base;
-    stack[ 0 ] = Type2 >> 16;
-    stack[ 1 ] = Type2;
+    stack[ 0 ] = Type2 >> 8; stack[ 1 ] = Type2;
     if( Type2 == SCR_FSTRING ) INTP_STR_REF( scr->Strings + Arg2 )++;
 }
 
-void ScpA_Fetch( Intp_t *scr ) // 8032
+/*
+    Get local variable
+*/
+void ScpA_GetLVar( Intp_t *scr ) // 8032
 {
     SCP_DBG_VAR;
-    unsigned short Type1;
+    uint16_t Type1;
     int Arg1, k;
     char stmp[264];
     uint8_t *p;
     
     SCP_GETARG( Type1, Arg1, scr );
-    SCP_DBGA( "FETCH( [%x]%x )", Type1, Arg1 );
+    SCP_DBGA( "GetLVar( [%x]%x )", Type1, Arg1 );
     SCP_ERRTYPEF( Type1 != SCR_INT, stmp, "Invalid type given to fetch, %x", Type1 );
-    k = IntpReadBei( scr->StackA, scr->Base + 6 * Arg1 );
-    
-    p = (uint8_t *)&scr->StackA[ 6 * Arg1 + 4 ];
-    SCP_PUSHARG_A( (((uint16_t)p[ scr->Base + 0 ] << 8) | (uint16_t)p[ scr->Base + 1 ]), k, scr );
+    k = IntpReadBei( scr->StackA, scr->Base + 6 * Arg1 );    
+    p = (uint8_t *)(scr->StackA + 6 * Arg1 + 4 + scr->Base);
+    SCP_PUSHARG_A( (((uint16_t)p[ 0 ] << 8) | (uint16_t)p[ 1 ]), k, scr );
 }
 
 void ScpA_CmpNE( Intp_t *scr ) // 8034 'stack:=p2<>p1'
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     float Arg1f, Arg2f;
     int Arg2,Arg1;
     char *s, stmp[ 80 ];
@@ -353,7 +362,7 @@ void ScpA_CmpNE( Intp_t *scr ) // 8034 'stack:=p2<>p1'
 void ScpA_CmpEQ( Intp_t *scr ) // 8033 'stack:= p2==p1'
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     float Arg1f, Arg2f;
     int Arg2,Arg1;
     char *s, stmp[ 80 ];
@@ -743,8 +752,8 @@ void ScpA_CmpGT( Intp_t *scr ) // 8038 'stack:=p2>p1''
 void ScpA_Add( Intp_t *scr ) // 8039
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
-    int Arg1, Arg2;
+    uint16_t Type1, Type2;
+    int Arg1, Arg2, PtrArg;
     float Arg2f, Arg1f;
     unsigned int t2;
     char *s, *pd, *p, *q;
@@ -763,6 +772,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
     		if( Type2 & 0x1000 ) s = &scr->StringsConst[ Arg2 + 4 ];
     	    }
 	    q = NULL;
+	    PtrArg = 0;
 	    switch( Type1 & 0xF7FF ){
     		case SCR_STRING:
         	    if( Type1 & 0x800 ){
@@ -785,15 +795,15 @@ void ScpA_Add( Intp_t *scr ) // 8039
     		    break;
 		case SCR_PTR:
 		    q = Arg1p;
+		    PtrArg = 1;
     		    break;
     	    }
     	    p = dbg_malloc( strlen( s ) + strlen( q ) + 1 ); //!!
     	    strcpy( p, s );
     	    strcpy( p + strlen( p ), q );
-//printf("-SUMA->'%s'\n", p );
     	    IntpPushIntStack( scr->StackA, &scr->StackApos, IntpAddString( scr, p ) ); 
     	    IntpPushwA( scr, SCR_FSTRING );
-    	    dbg_free( q );
+    	    if( !PtrArg ) dbg_free( q );
     	    dbg_free( p );
     	    return;
     }
@@ -876,7 +886,7 @@ void ScpA_Add( Intp_t *scr ) // 8039
 void ScpA_Sub( Intp_t *scr ) // 803A
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f;
 
@@ -903,23 +913,23 @@ void ScpA_Sub( Intp_t *scr ) // 803A
 void ScpA_Mul( Intp_t *scr ) // 803B
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f;
 
     SCP_GETARGF( Type1, Arg1, Arg1f, scr );
     SCP_GETARGF( Type2, Arg2, Arg2f, scr );
     SCP_DBGA( "( [%x]%x * [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( Type2 < SCR_FLOAT ) return;
     if( Type2 == SCR_FLOAT ){
         IntpPushIntStack( scr->StackA, &scr->StackApos, ( Type1 == SCR_FLOAT ) ? Arg2f * Arg1f : Arg1f * Arg2f );
         IntpPushwA( scr, SCR_FLOAT );
-    } else { // ? * int
-        if( Type2 != SCR_INT ) return;
+        return;
+    }
+    if( Type2 == SCR_INT ){
         if( Type1 == SCR_FLOAT ){
     	    IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 * Arg1f ); IntpPushwA( scr, SCR_FLOAT );
         } else { // int * int
-            IntpPushIntStack(scr->StackA, &scr->StackApos, Arg1f * Arg2 ); IntpPushwA( scr, SCR_INT );
+            IntpPushIntStack(scr->StackA, &scr->StackApos, Arg2 * Arg1 ); IntpPushwA( scr, SCR_INT );
         }
     }            
 }
@@ -927,7 +937,7 @@ void ScpA_Mul( Intp_t *scr ) // 803B
 void ScpA_Div( Intp_t *scr ) // 803C
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f, tmp;
     
@@ -958,7 +968,7 @@ void ScpA_Div( Intp_t *scr ) // 803C
 void ScpA_Mod( Intp_t *scr ) // 803D
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
 
     SCP_GETARG( Type1, Arg1, scr );
@@ -985,7 +995,7 @@ void ScpA_Mod( Intp_t *scr ) // 803D
 void ScpA_LogAnd( Intp_t *scr ) // 803E
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f;
 
@@ -1027,7 +1037,7 @@ void ScpA_LogAnd( Intp_t *scr ) // 803E
 void ScpA_LogOr( Intp_t *scr ) // 803F ||( p1 , p2 )
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f;
 
@@ -1070,7 +1080,7 @@ void ScpA_LogOr( Intp_t *scr ) // 803F ||( p1 , p2 )
 void ScpA_LogNot( Intp_t *scr ) // 8045 !( arg )
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
@@ -1081,7 +1091,7 @@ void ScpA_LogNot( Intp_t *scr ) // 8045 !( arg )
 void ScpA_Neg( Intp_t *scr ) // 8046 -( arg )
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
@@ -1092,7 +1102,7 @@ void ScpA_Neg( Intp_t *scr ) // 8046 -( arg )
 void ScpA_BinNot( Intp_t *scr ) // 8043 ~( arg )
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
@@ -1103,7 +1113,7 @@ void ScpA_BinNot( Intp_t *scr ) // 8043 ~( arg )
 void ScpA_Floor( Intp_t *scr ) // 8044 floor( float arg )
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
@@ -1120,7 +1130,7 @@ void ScpA_Floor( Intp_t *scr ) // 8044 floor( float arg )
 void ScpA_BinAnd( Intp_t *scr ) // 8040 &( p1, p2 )
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f;
 
@@ -1147,7 +1157,7 @@ void ScpA_BinAnd( Intp_t *scr ) // 8040 &( p1, p2 )
 void ScpA_BinOr( Intp_t *scr ) // 8041 |( p1, p2 )
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f;
 
@@ -1174,7 +1184,7 @@ void ScpA_BinOr( Intp_t *scr ) // 8041 |( p1, p2 )
 void ScpA_BinXor( Intp_t *scr ) // 8042  = ^( a, b )
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f;
 
@@ -1227,7 +1237,7 @@ void ScpA_StartCritical( Intp_t *scr ) // 8002, 804A O_CRITICAL_START
 void ScpA_Jump( Intp_t *scr ) // 8004 jmp()
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     char stmp[256];
     int Arg;
 
@@ -1242,7 +1252,7 @@ void ScpA_Jump( Intp_t *scr ) // 8004 jmp()
 void ScpA_CallExt( Intp_t *scr ) // 8005 call( adres ) or call( ?, adres )
 {
     SCP_DBG_VAR;
-    unsigned short Type, Type1;
+    uint16_t Type, Type1;
     char *ExtName, stmp[256], *s;
     int Arg,i,ArgL, ArgC_got, flags;
     short TypeL, ArgC_expected;    
@@ -1265,7 +1275,7 @@ void ScpA_CallExt( Intp_t *scr ) // 8005 call( adres ) or call( ?, adres )
 DD
 printf("=>%p, %x\n", ExtName, flags );
 printf("==>%s\n", ExtName );
-    SCP_ERRTYPEF( !ExportGetProcedure( ExtName, &ArgV, &ArgC_expected ), "External procedure %s not found", ExtName );
+    SCP_ERRTYPEF( !ExportGetProcedure( ExtName, &ArgV, &ArgC_expected ), stmp, "External procedure %s not found", ExtName );
     SCP_GETARG( Type1, ArgC_got, scr );
     SCP_ERRTYPEF( SCRTYPE( Type1 ) != SCR_INT || ArgC_got != ArgC_expected, stmp, "Wrong number of arguments to external procedure %s.Expecting %d, got %d.", ExtName, ArgC_expected, ArgC_got );
     SCP_DBGA( "CALL_EXT( [%x]%x, %s )", Type1, ArgC_got, ExtName );
@@ -1313,7 +1323,7 @@ printf("==>%x\n", ArgV);
 void ScpA_ExitProc( Intp_t *scr ) // 801F ?( arg1, arg2, arg3 )
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2, Type3;
+    uint16_t Type1, Type2, Type3;
     int Arg1, Arg3;
 
     SCP_GETARG( Type1, Arg1, scr ); scr->i34 = Arg1; // window
@@ -1368,7 +1378,7 @@ void ScpA_8021( Intp_t *scr ) // 8021 O_POP_FLAGS_EXIT
 void ScpA_8025( Intp_t *scr ) // 8025 O_POP_FLAGS_RETURN_VAL_EXIT
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
@@ -1384,7 +1394,7 @@ void ScpA_8026( Intp_t *scr ) // 8026 O_POP_FLAGS_RETURN_VAL_EXIT_EXTERN
     SCP_DBG_VAR;
     int Arg;
     Intp_t *p;
-    unsigned short Type;
+    uint16_t Type;
 
     SCP_GETARG( Type, Arg, scr );
     SCP_DBGA( "O_POP_FLAGS_RETURN_VAL_EXIT_EXTERN( [%x]%x )", Type, Arg );
@@ -1428,7 +1438,7 @@ void ScpA_8024( Intp_t *scr ) // 8024 O_POP_FLAGS_RETURN_VAL_EXTERN
     SCP_DBG_VAR;
     Intp_t *p;
     char *s;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
@@ -1465,7 +1475,7 @@ void ScpA_801E( Intp_t *scr ) // 801E
 void ScpA_800C( Intp_t *scr ) // 800C
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG_B( Type, Arg, scr );
@@ -1476,7 +1486,7 @@ void ScpA_800C( Intp_t *scr ) // 800C
 void ScpA_800D( Intp_t *scr ) // 800D O_D_TO_A
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
@@ -1497,37 +1507,59 @@ void ScpA_8011( Intp_t *scr ) // 8011
     scr->Flags |= 0x08;
 }
 
-void ScpA_8012( Intp_t *scr ) // 8012 GetLocVar() ?
+void ScpA_8012( Intp_t *scr ) // 8012 pop ?
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type,t1;
     int Arg, val;
+    void *p;
 
-    SCP_GETARG( Type, Arg, scr );
+    SCP_GETARGX( Type, Arg, p, scr );
     SCP_DBGA( "?8012?( [%x]%x )",Type, Arg );
-    Type = *( (uint16_t *)&scr->StackA[ 6 * Arg + 4 + scr->SaveStack ] );
+    Type = *( (uint16_t *)(&scr->StackA[ 6 * Arg + scr->SaveStack + 4 ]) );
     Type = ((Type & 0x00ff) << 8) | ( (Type & 0xff00) >> 8 );
-    val = IntpReadBei( scr->StackA, 6 * Arg + scr->SaveStack );
-    SCP_PUSHARG_A( Type, val, scr );
+    t1 = *( (uint16_t *)(&scr->StackA[ 6 * Arg + scr->SaveStack + 8 ]) );
+    t1 = ((t1 & 0x00ff) << 8) | ( (t1 & 0xff00) >> 8 );
+        if( Type != SCR_INT && Type != SCR_FLOAT && (Type & ~0x800) != SCR_STRING && t1 == SCR_PTR ){
+	p = IntpReadBep( scr->StackA, 6 * Arg + scr->SaveStack );
+	SCP_PUSHARG_AP( t1, p, scr );	
+    } else {
+	val = IntpReadBei( scr->StackA, 6 * Arg + scr->SaveStack );
+	SCP_PUSHARG_A( Type, val, scr );
+    }
 }
 
-void ScpA_8013( Intp_t *scr ) // 8013 SetLocVar( )?
+void ScpA_8013( Intp_t *scr ) // 8013 push ?
 {
     SCP_DBG_VAR;
-    int Arg1,Arg2, tmp;
-    unsigned short Type1, Type2;
+    unsigned int Arg1,Arg2, tmp, i;
+    uint16_t Type1, Type2;
+    void *p;
     
     SCP_GETARG( Type1, Arg1, scr );
-    SCP_GETARG( Type2, Arg2, scr );
-    SCP_DBGA( "?8013?( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
-
+    SCP_GETARGX( Type2, Arg2, p, scr );
+    SCP_DBG_IF( Type2 == SCR_PTR ){
+	SCP_DBGA( "?8013?( [%x]%p, [%x]%x )", Type2, p, Type1, Arg1 );
+    }SCP_DBG_ELSE{
+	SCP_DBGA( "?8013?( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    }
     tmp = IntpReadBei( scr->StackA, 6 * Arg1 + scr->SaveStack );
     if( *(uint16_t *)&scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack ] == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, tmp );
 
-    IntpWriteBew( Arg2 >> 8, scr->StackA, 6 * Arg1 + scr->SaveStack );
-    IntpWriteBew( Arg2, scr->StackA, 6 * Arg1 + scr->SaveStack + 2 );
-    scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 0 ] = Type2 >> 8;
-    scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 1 ] = Type2;
+    // data
+    if( Type2 == SCR_PTR ){ // pointer
+	for( i = 0; i < sizeof( void * ) / 2; i++ )
+	    IntpWriteBew( ((uint64_t)p) >> (48 - i*16), scr->StackA, 6 * Arg1 + scr->SaveStack + i*2 );
+	// type
+	scr->StackA[ 6 * Arg1 + 8 + scr->SaveStack + 0 ] = Type2 >> 8;
+	scr->StackA[ 6 * Arg1 + 8 + scr->SaveStack + 1 ] = Type2;
+    } else { // int
+	IntpWriteBew( Arg2 >> 16, scr->StackA, 6 * Arg1 + scr->SaveStack );
+	IntpWriteBew( Arg2, scr->StackA, 6 * Arg1 + scr->SaveStack + 2 );
+	// type
+	scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 0 ] = Type2 >> 8;
+	scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 1 ] = Type2;
+    }
     if( Type2 == SCR_FSTRING ) (*(uint16_t *)&scr->Strings[ Arg2 + 2 ] )++;
 
 }
@@ -1535,7 +1567,7 @@ void ScpA_8013( Intp_t *scr ) // 8013 SetLocVar( )?
 void ScpA_8018( Intp_t *scr ) // 8018
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     int Arg1, Arg2;
 
     SCP_GETARG( Type1, Arg1, scr );
@@ -1548,7 +1580,7 @@ void ScpA_8018( Intp_t *scr ) // 8018
 void ScpA_FetchAddr( Intp_t *scr ) // 802D
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
     char stmp[ 260 ];
 
@@ -1561,7 +1593,7 @@ void ScpA_FetchAddr( Intp_t *scr ) // 802D
 void ScpA_801A( Intp_t *scr ) // 801A O_POP
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );
@@ -1571,7 +1603,7 @@ void ScpA_801A( Intp_t *scr ) // 801A O_POP
 void ScpA_801B( Intp_t *scr ) // 801B
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     int Arg;
 
     SCP_GETARG( Type, Arg, scr );    
@@ -1608,9 +1640,9 @@ void ScpA_SetExportedVar( Intp_t *scr ) // 8015
 void ScpA_GetExportedVar( Intp_t *scr ) // 8014
 {
     SCP_DBG_VAR;
-    short Type;
+    uint16_t Type;
     char stmp[ 256 ];
-    int Arg, tmp[ sizeof( void *) / 4 ];
+    int Arg, tmp[ sizeof( void *) / sizeof( int ) ];
 
     SCP_GETARG( Type, Arg, scr );
     SCP_DBGA( "GET_EXPORTED_VAR( %s )", SCP_DNAME( Arg ) );
@@ -1618,8 +1650,9 @@ void ScpA_GetExportedVar( Intp_t *scr ) // 8014
         sprintf( stmp, "External variable %s does not exist\n", IntpGetName( scr, Arg ) );
         IntpError( stmp );
     }
+
     if( Type == SCR_PTR )
-	IntpPushPtrStack( scr->StackA, &scr->StackApos, *((void **)tmp) ); 		
+	IntpPushPtrStack( scr->StackA, &scr->StackApos, *((void **)tmp) );
     else
 	IntpPushIntStack( scr->StackA, &scr->StackApos, *tmp ); 
     IntpPushwA( scr, Type );
@@ -1628,7 +1661,7 @@ void ScpA_GetExportedVar( Intp_t *scr ) // 8014
 void ScpA_ExportProcedure( Intp_t *scr ) // 8017
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     char stmp[ 256 ], *tmp;
     int Arg1, Arg2;
     void *n;
@@ -1644,7 +1677,7 @@ void ScpA_ExportProcedure( Intp_t *scr ) // 8017
 void ScpA_ExportVariable( Intp_t *scr ) // 8016
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     char stmp[ 256 ];
     int Arg;
     
@@ -1679,7 +1712,7 @@ void ScpA_CallStart( Intp_t *scr ) // 8008 callstart()
 {
     SCP_DBG_VAR;
     Intp_t *LocScr;
-    unsigned short Type;
+    uint16_t Type;
     char stmp[ 256 ], *v10;
     int Arg;
 
@@ -1710,7 +1743,7 @@ void ScpA_Spawn( Intp_t *scr ) // 800A
 {
     SCP_DBG_VAR;
     Intp_t *LocScr;
-    unsigned short Type;
+    uint16_t Type;
     char stmp[ 256 ], *v10;
     int Arg;
 
@@ -1745,7 +1778,7 @@ void ScpA_Fork( Intp_t *scr ) // 800B fork()
 {
     SCP_DBG_VAR;
     Intp_t *LocScr;
-    short Type;
+    uint16_t Type;
     char stmp[ 256 ], *v6;
     int Arg;
 
@@ -1788,7 +1821,7 @@ void ScpA_8009( Intp_t *scr ) // 8009
 void ScpA_8027( Intp_t *scr ) // 8027 ?( arg1, arg2 )
 {
     SCP_DBG_VAR;
-    unsigned short Type1, Type2;
+    uint16_t Type1, Type2;
     char stmp[ 256 ];
     int Arg1, Arg2;
 
@@ -1804,7 +1837,7 @@ void ScpA_8027( Intp_t *scr ) // 8027 ?( arg1, arg2 )
 void ScpA_LookupStringProc( Intp_t *scr ) // 8028
 {
     SCP_DBG_VAR;
-    unsigned short Type;
+    uint16_t Type;
     char stmp[ 256 ], *s, *a;
     int Arg, i, cnt;
     void *p;
@@ -1884,8 +1917,8 @@ void ScpAInitCommands()
     SciAddOpcode( 0x802E, ScpA_Dump );
     SciAddOpcode( 0x802F, ScpA_If );
     SciAddOpcode( 0x8030, ScpA_WhileDo );
-    SciAddOpcode( 0x8031, ScpA_8031 );
-    SciAddOpcode( 0x8032, ScpA_Fetch );
+    SciAddOpcode( 0x8031, ScpA_SetLVar );
+    SciAddOpcode( 0x8032, ScpA_GetLVar );
     SciAddOpcode( 0x8033, ScpA_CmpEQ );
     SciAddOpcode( 0x8034, ScpA_CmpNE );
     SciAddOpcode( 0x8035, ScpA_CmpLE );

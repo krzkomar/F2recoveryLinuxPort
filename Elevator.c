@@ -147,7 +147,7 @@ int ElevatorMenuCreate( int style )
     PosXY_t *pSize;
     int i, win, bt, flg;
 
-    gElevMap = MapUnk35();
+    gElevMap = MapAmbientDisable();
     CycleColorStop();
     flg = 1;
     GmouseLoadCursor( 1 );
@@ -159,7 +159,7 @@ int ElevatorMenuCreate( int style )
     }
     if( i < 3 ){
         for( ; !i; i-- ) ArtClose( gElevButtImgObj[ i ] );
-        if( gElevMap ) MapUnk34();
+        if( gElevMap ) MapAmbientEnable();
         CycleColorStart();
         GmouseLoadCursor(1);
         return -1;
@@ -183,7 +183,7 @@ int ElevatorMenuCreate( int style )
         if( gElevBgImg != ART_NULL ) ArtClose( gElevBgImgObj );
         if( gElevImg1 != ART_NULL ) ArtClose( gElevImgObj1 );
         for( i = 0; i != 3; i++ ) ArtClose( gElevButtImgObj[ i ] );
-        if( gElevMap ) MapUnk34();
+        if( gElevMap ) MapAmbientEnable();
         CycleColorStart();
         GmouseLoadCursor( 1 );
         return -1;
@@ -192,7 +192,7 @@ int ElevatorMenuCreate( int style )
         if( gElevBgImg != ART_NULL ) ArtClose( gElevBgImgObj );
         if( gElevImg1 != ART_NULL ) ArtClose( gElevImgObj1 );
         for( i = 0; i != 3; i++ ) ArtClose( gElevButtImgObj[ i ] );
-        if( gElevMap ) MapUnk34();
+        if( gElevMap ) MapAmbientEnable();
         CycleColorStart();
         GmouseLoadCursor( 1 );
         return -1;
@@ -216,7 +216,7 @@ void ElevatorMenuClose()
     if( gElevImg1 != ART_NULL ) ArtClose( gElevImgObj1 );
     for( i = 0; i != 3; i++ ) ArtClose( gElevButtImgObj[ i ] );
     ScptEnable();
-    if( gElevMap ) MapUnk34();
+    if( gElevMap ) MapAmbientEnable();
     CycleColorStart();
     GmouseLoadCursor( 1 );
 }

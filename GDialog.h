@@ -11,6 +11,8 @@
 #define DLG_COLOR_9	gPalColorCubeRGB[31][0][0]
 #define DLG_COLOR_10	gPalColorCubeRGB[31][31][11]
 
+#define IN_DIALOG	GdialogInDialog()
+
 typedef struct{
     int 	ReplyMsgList;
     int 	ReplyMsgNum;	
@@ -53,7 +55,7 @@ extern int gDlgPmExchangeMode;
 
 int  GdialogInit();
 int  GdialogClose();
-int  GdialogUnk01();
+int  GdialogInDialog(); // true if player is in dialog
 void GdialogEnter( Obj_t *target, int flg );
 int  GdialogFloatingMessages();
 int  GdialogLipsyncStart( char *DirName );

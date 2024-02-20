@@ -436,7 +436,7 @@ int UseReadBook( Obj_t *obj )
     }
     FadeStep( gFadePaletteC );
     ScptTimeCap2( 3600 * (11 - FeatGetVal( gObjDude, FEAT_INTELLIGENCE ) ) );
-    ScptUnk30();
+    ScptMapUpdate();
     FadeStep( gPalBase );
     msg.Id = 800; // 'You read the book.'
     if( MessageGetMsg( &gProtoMessages, &msg ) == 1 ) IfcMsgOut( msg.Text );
@@ -653,7 +653,7 @@ int UseUnk15( Obj_t *crit, Obj_t *obj )
         }
         v3 = 0;
     }
-    ScptUnk30();
+    ScptMapUpdate();
     return v3;
 }
 
@@ -781,7 +781,7 @@ DD
         UseUnk06( a2 );
         n = 0;
     }
-    ScptUnk30();
+    ScptMapUpdate();
     return n;
 }
 
@@ -813,7 +813,7 @@ int UseObject( Obj_t *crit, Obj_t *obj, Obj_t *objn )
     MsgLine_t msg;
     Scpt_t *scr;
     Proto_t *proto;
-
+DD
     type = OBJTYPE( obj->ImgId );
     if( crit == gObjDude ){
         if( type != TYPE_SCEN ) return -1;
@@ -834,9 +834,9 @@ DD
     }
     if( !v3 && OBJTYPE( obj->Pid ) == TYPE_SCEN ){ // no script
         switch( proto->Critt.Type ){
-    	    case PR_SCN_LADDER_TOP: if( !UseUnk22( crit, obj ) ) v3 = 1; break;
-    	    case PR_SCN_LADDER_BOT: if( !UseUnk23( crit, obj ) ) v3 = 1; break;
-    	    case PR_SCN_STAIRS: if( !UseUnk24( crit, obj ) ) v3 = 1; break;
+    	    case PR_SCN_LADDER_TOP: DD if( !UseUnk22( crit, obj ) ) v3 = 1; break;
+    	    case PR_SCN_LADDER_BOT: DD if( !UseUnk23( crit, obj ) ) v3 = 1; break;
+    	    case PR_SCN_STAIRS: DD if( !UseUnk24( crit, obj ) ) v3 = 1; break;
         }
     }
     // print info
@@ -846,7 +846,8 @@ DD
         sprintf( stmp, msg.Text, ObjGetName( obj ) );
         IfcMsgOut( stmp );
     }
-    ScptUnk30();
+DD
+    ScptMapUpdate();
     return 0;
 }
 

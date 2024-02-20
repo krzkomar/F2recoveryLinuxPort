@@ -152,7 +152,7 @@ int ExportSetVar( char *Name, short Type, char *Str )
     return 0;
 }
 
-int ExportGetVarArg( Intp_t *intp, char *Name, short *pFlags, int *pArg )
+int ExportGetVarArg( Intp_t *intp, char *Name, uint16_t *pFlags, int *pArg )
 {
     Export_t *exp;
     

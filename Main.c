@@ -223,11 +223,11 @@ void MainGameLoop()
     while( !gMenuEscape ){
         sel = InpUpdate();
         GameProcess( sel, 0 );
-        ScptProcess();
+        ScptActionExec();
         MapJump();
         if( gMainUnk05 ) gMainUnk05 = 0;
         if( gObjDude->Critter.State.CombatResult & 0x81 ){
-            EndGameSetupDeathEnding(0);
+            EndGameSetupDeathEnding( 0 );
             gMainUnk08 = 1;
             gMenuEscape = 2;
         }

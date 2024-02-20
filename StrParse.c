@@ -84,7 +84,8 @@ int StrParseFromFunc( char **pStr, int *ElementFoundIdx, int (*Func)(int *, char
 
     if( !*pStr ) return 0;
     s = *pStr;
-    StrLwr(*pStr);
+printf("=>'%s'\n", s);
+    StrLwr( *pStr );
     n = strspn(s, " ");
     s += n;
     comma = strcspn(s, ",");

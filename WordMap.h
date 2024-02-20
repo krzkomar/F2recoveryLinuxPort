@@ -160,7 +160,7 @@ typedef struct
   int MapIdxPool[6];
   int i01;
   int TabIdxCnt;
-  WmIdx_t TabIdx[ 41 ];
+  WmIdx_t EncounterMaps[ 41 ];
 } WmEnctr_t;
 
 typedef struct 
@@ -354,7 +354,7 @@ int WmLoadWmapDatFile( xFile_t *fh );
 int WmSaveWmapDat();
 int WmLoadWmapDat();
 int WmLoadWmapTxt();
-int WmLoadEncounterTable( Config_t *cfg, char *SectionName );
+int WmLoadEncounterTable( Config_t *cfg, char *, char *SectionName );
 int WmLoadEncounters( WmIdx_t *EncIdx, char *line );
 int WmParseEnc( WmIdx_t *xx, char **pline );
 int WmParseEncPlayer( char *line, int *PlayerId );
@@ -393,7 +393,7 @@ int WmMenu();
 int WmMenu1( int a1 );
 int WmUnk47();
 int WmUnk48();
-int WmUnk49();
+int WmRandomEncounter();
 int WmGetCurTile();
 int WmGetTile( int x, int y, WmTileDsc_t **pTile );
 int WmDrawEncounter();
@@ -439,7 +439,7 @@ int WmSetPos( int Location, int WmX, int WmY );
 int WmGetWorldPos( int *pWmX, int *pWmY );
 int WmGetCurrentLocation( int *pLocId );
 void WmClearTerrain( int Terrain );
-int WmUnk10( int a1 );
+int WmUnk10();
 int WmTownMap( int *a1 );
 int WmCreateTownMenu();
 int WmGetCityEntryName();

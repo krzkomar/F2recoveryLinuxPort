@@ -16,9 +16,7 @@ int GlobVarGet( int GlobIdx )
 
 int GlobVarSet( int Idx, int Val )
 {
-DD
     if( Idx < 0 || Idx >= gGValCount ){
-DD
         eprintf( "ERROR: attempt to reference global var out of range: %d", Idx );
         return -1;
     }
@@ -69,15 +67,15 @@ int GlobFloatMsgState()
     return gGlobFloatMsg;
 }
 
-int GlobVarFloatMsgInc( unsigned int a1 )
+int GlobVarFloatMsgInc( unsigned int val )
 {
-    switch( a1 ){
-	case 0: a1 = 1; break;
-	case 2: a1 = 3; break;
-	case 4: a1 = 5; break;
+    switch( val ){
+	case 0: val = 1; break;
+	case 2: val = 3; break;
+	case 4: val = 5; break;
     }
-    if( gGlobFloatMsg == 4 && a1 == 5 ) return -1;
-    gGlobFloatMsg = a1;
+    if( (gGlobFloatMsg == 4) && (val == 5) ) return -1;
+    gGlobFloatMsg = val;
     return 0;
 }
 
@@ -91,3 +89,5 @@ int GlobVarFloatMsgDec()
     }
     return 0;
 }
+
+

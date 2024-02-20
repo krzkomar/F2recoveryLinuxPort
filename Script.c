@@ -38,7 +38,7 @@ ScptBook_t gScrScripts[ SCR_TYPES ] = { NULL };
 char *gScptPath = "scripts/";
 
 int gScptEnable = 0;
-int gScptUnk07 = 0;
+int gScptAmbient = 0;
 int gScptUnk03 = 0;
 unsigned int gScptInGameDekaSeconds = 302400;
 
@@ -200,7 +200,7 @@ int ScptUnk146()
     eprintf( "\nQUEUE PROCESS: Midnight!" );
     if( GMovieGetError() ) return 0;
     UseUnjamAll();
-    if( !GdialogUnk01() ) ScptPlayMovieEv( &v4, -1 );
+    if( !IN_DIALOG ) ScptPlayMovieEv( &v4, -1 );
     CritterRadSetDose( gObjDude );
     EvQeRun( 4, 0 );
     ScptClockInit();
@@ -250,7 +250,7 @@ int ScptPlayMovieEv( int *pMovieId, int WinId )
 
 int ScptUnk144()
 {
-    ScptExecMapUpdateScripts( 23 );
+    ScptExecMapUpdateScripts( SCPT_AEV_MAP_UPDATE_P_PROC );
     EvQeRun( 12, 0 );
     if( !gMap.Name[0] ) return 0;
     if( EvQeSchedule( 600, 0, 0, 12 ) == -1 ) return -1;
@@ -399,10 +399,11 @@ void ScptTaskCb( int arg )
         while( --i != -1 ) SciUnk19();
     }
     WinRun();
-    if( gScptEnable == 1 && gScptEnable == gScptUnk07 && !GdialogUnk01() ){
-        ScptUnk133();
-        ScptUnk132();
-    }
+    if( gScptEnable != 1) return;
+    if( gScptAmbient != 1 ) return;
+    if( IN_DIALOG ) return;
+    ScptUnk133();
+    ScptUnk132();    
 }
 
 int ScptUnk133()
@@ -411,7 +412,7 @@ int ScptUnk133()
     int result, proc, ScrCnt, v5;
 
     proc = SCPT_AEV_CRITTER_P_PROC;
-    if( GdialogUnk01() || IN_COMBAT ) return 1;
+    if( IN_DIALOG || IN_COMBAT ) return 1;
     ScrCnt = 0;
     for( p = gScrScripts[ SCR_TYPE_CRT ].First; p; p = p->Next ) ScrCnt += p->ScptUsed;
     v5 = gScptUnk109 + 1;
@@ -441,7 +442,7 @@ void ScptUnk132()
     v1 = 0;
     if( GlobFloatMsgState() != 4 && TimerDiff( Time, gScptUnk111 ) >= 30000 ){
         gScptUnk111 = Time;
-        ScptExecMapUpdateScripts( 23 );
+        ScptExecMapUpdateScripts( SCPT_AEV_MAP_UPDATE_P_PROC );
     }
     if( TimerDiff( Time, gScptUnk110 ) >= 100 ){
         gScptUnk110 = Time;
@@ -475,9 +476,9 @@ int ScptAddTimerEvent( int ScrId, int a1, int a2 )
     if( !p ) return -1;
     p[0] = a1;
     p[1] = a2;
-//    if( ScptPtr( a1, &scr ) != -1 && EvQeSchedule( a1, scr->TimeEv, p, 3 ) != -1 ) return 0;
-    Free( p );
-    return -1;
+    if( ScptPtr( a1, &scr ) == -1 ){ Free( p ); return -1; }
+    if( EvQeSchedule( a1, scr->TimeEv, p, 3 ) == -1 ){ Free( p ); return -1; }
+    return 0;    
 }
 
 int ScptUnk128( xFile_t *a1, int *a2 )
@@ -509,7 +510,7 @@ int ScptUnk126( int Unused, Obj_t *obj )
     return 0;
 }
 
-void ScptResetActionFlags()
+void ScptResetActionFlags() // not used
 {
     gScptActionFlags = 0;
 }
@@ -519,20 +520,17 @@ void ScptUnk124( Scpt_t *a1 )
     if( (gScptActionFlags & SCP_ACT_01 ) && (gScptUnk15.obj == a1->TimeEv) )  gScptActionFlags &= ~( SCP_ACT_400 | SCP_ACT_01 );
 }
 
-void ScptProcess()
+void ScptActionExec()
 {
-    int v0;
-    Obj_t *p;
-    Obj_t *i;
-    Map01_t v13;
-    short a4;
-    int a3;
-    int MapId;
+    Obj_t *p, *i;
+    Map01_t jmp;
+    short pos;
+    int lvl, MapId;
 
-    if( gScptActionFlags ){
-        if( gScptActionFlags & SCP_ACT_01 ){
-            v0 = ActionUnk13();
-            if( !v0 ){
+    if( gScptActionFlags == 0 ) return;
+    if( gScptActionFlags & SCP_ACT_01 ){
+DD
+        if( !ActionUnk13() ){
                 gScptActionFlags &=  ~( SCP_ACT_400 | SCP_ACT_01 );
                 memcpy( &gScptUnk114, &gScptUnk15, sizeof( gScptUnk114 ) );
                 if( gScptActionFlags & SCP_ACT_COMBAT ){
@@ -542,29 +540,29 @@ void ScptProcess()
                     CombatStart( &gScptUnk114 );
                     memset( &gScptUnk114, 0, sizeof( gScptUnk114 ) );
                 }
-            }
         }
-        if( gScptActionFlags & SCP_ACT_02 ){ gScptActionFlags &= ~SCP_ACT_02; WmUnk10( v0 ); }
-        if( gScptActionFlags & SCP_ACT_WORLDMAP ){ gScptActionFlags &= ~SCP_ACT_WORLDMAP; WmMenu(); }
-        if( gScptActionFlags & SCP_ACT_ELEVATOR ){
-            MapId = gMap.MapId;
-            a3 = gScptUnk118;
-            a4 = -1;
+    }
+    if( gScptActionFlags & SCP_ACT_02 ){ DD gScptActionFlags &= ~SCP_ACT_02; WmUnk10(); }
+    if( gScptActionFlags & SCP_ACT_WORLDMAP ){ DD gScptActionFlags &= ~SCP_ACT_WORLDMAP; WmMenu(); }
+    if( gScptActionFlags & SCP_ACT_ELEVATOR ){
             gScptActionFlags &= ~SCP_ACT_ELEVATOR;
-            if( ElevatorMenu( gScptUnk115, &MapId, &a3, &a4 ) != -1 ){
+            MapId = gMap.MapId;
+            lvl = gScptUnk118;
+            pos = -1;
+            if( ElevatorMenu( gScptUnk115, &MapId, &lvl, &pos ) != -1 ){
                 AutomapSave();
                 if( MapId == gMap.MapId ){
-                    if( a3 == gCurrentMapLvl ){
+                    if( lvl == gCurrentMapLvl ){
                         AnimClear( gObjDude );
                         ObjSetRotation( gObjDude, 2, NULL );
-                        UseUnk46( gObjDude, a4, a3, 0 );
+                        UseUnk46( gObjDude, pos, lvl, 0 );
                     } else {
                         for( i = ObjGetVisibleObjectFirst( gObjDude->Elevation ); i; i = ObjGetVisibleObjectNext() ){
                             if( (i->Pid >> 24) == 2 && (i->Pid == 0x2000099 || i->Pid == 0x20001A5 || i->Pid == 0x20001D6 ) && TileGetDistance( i->GridId, gObjDude->GridId ) <= 4 ) break;
                         }
                         AnimClear( gObjDude );
                         ObjSetRotation( gObjDude, 2, 0 );
-                        UseUnk46( gObjDude, a4, a3, 0 );
+                        UseUnk46( gObjDude, pos, lvl, 0 );
                         if( i ){
                             ObjSetFrame( i, 0, 0 );
                             ObjMoveToTile( i, i->GridId, i->Elevation, NULL );
@@ -588,20 +586,19 @@ void ScptProcess()
                     } else {
                         eprintf( "\nWarning: Elevator: Couldn't find old elevator doors!" );
                     }
-                    v13.MapId = MapId;
-                    v13.Frame = a3;
-                    v13.PosY = a4;
-                    v13.Orientation = 2;
-                    MapSetPos( &v13 );
+                    jmp.MapId = MapId;
+                    jmp.Frame = lvl;
+                    jmp.PosY = pos;
+                    jmp.Orientation = 2;
+                    MapSetPos( &jmp );
                 }
             }
-        }
-        if( gScptActionFlags & SCP_ACT_EXPLOSION ){ gScptActionFlags &= ~SCP_ACT_EXPLOSION; ActionExplode( gScptUnk121, gScptUnk122, gScptUnk116, gScptUnk117, 0, 1 ); }
-        if( gScptActionFlags & SCP_ACT_TALK ){ gScptActionFlags &= ~SCP_ACT_TALK; GdialogEnter( gScptTalkObject, 0 ); }
-        if( gScptActionFlags & SCP_ACT_ENDGAME ){ gScptActionFlags &= ~SCP_ACT_ENDGAME; EndGameRun(); EndGameMoviePlay(); }
-        if( gScptActionFlags & SCP_ACT_STEAL_MENU ){ gScptActionFlags &= ~SCP_ACT_STEAL_MENU; InvMenuSteal( gScptUnk100, gScptUnk101 ); }
-        if( gScptActionFlags & SCP_ACT_STEAL_ATTEMPT ){ gScptActionFlags &= ~SCP_ACT_STEAL_ATTEMPT; InvStealAttempt( gScptUnk119, gScptUnk120 ); }
     }
+    if( gScptActionFlags & SCP_ACT_EXPLOSION ){ gScptActionFlags &= ~SCP_ACT_EXPLOSION; ActionExplode( gScptUnk121, gScptUnk122, gScptUnk116, gScptUnk117, 0, 1 ); }
+    if( gScptActionFlags & SCP_ACT_TALK ){ gScptActionFlags &= ~SCP_ACT_TALK; GdialogEnter( gScptTalkObject, 0 ); }
+    if( gScptActionFlags & SCP_ACT_ENDGAME ){ gScptActionFlags &= ~SCP_ACT_ENDGAME; EndGameRun(); EndGameMoviePlay(); }
+    if( gScptActionFlags & SCP_ACT_STEAL_MENU ){ gScptActionFlags &= ~SCP_ACT_STEAL_MENU; InvMenuSteal( gScptUnk100, gScptUnk101 ); }
+    if( gScptActionFlags & SCP_ACT_STEAL_ATTEMPT ){ gScptActionFlags &= ~SCP_ACT_STEAL_ATTEMPT; InvStealAttempt( gScptUnk119, gScptUnk120 ); }    
 }
 
 void ScptUnk122()
@@ -611,7 +608,9 @@ void ScptUnk122()
     short PosY;
     int Lvl, pMapId;
 
+DD
     if( gScptActionFlags & SCP_ACT_ELEVATOR ){
+DD
         pMapId = gMap.MapId;
         PosY = -1;
         Lvl = gScptUnk118;
@@ -687,12 +686,13 @@ int ScptWorldMap()
     return 0;
 }
 
-int ScptRequestElevator( Scpt_t *a1, int Reaction )
+int ScptRequestElevator( Obj_t *a1, int en )
 {
     Obj_t *p;
-    int i, j, n;
+    int i, j, n, lvl;
     
-    n = a1->i01;
+    n = a1->GridId;
+    lvl = gCurrentMapLvl;
     if( n == -1 ){
 	eprintf( "\nError: scripts_request_elevator! Bad tile num" );
 	return -1;
@@ -700,17 +700,21 @@ int ScptRequestElevator( Scpt_t *a1, int Reaction )
     n -= 1005;
     for( i = -5; i < 5; i++, n += 190 ){	
 	for( j = -5; j < 5; j++, n++ ){
-	    for( p = ObjGetVisibleObjectFirst( a1->i11 ); p; p = ObjGetVisibleObjectNext() ){
+	    for( p = ObjGetVisibleObjectFirst( a1->Elevation ); p; p = ObjGetVisibleObjectNext() ){
 		if( n == p->GridId && p->Pid == 0x200050d ) break;
 	    }
 	    if( p ) break;
 	}
-	if( p != 0 ) break;
+	if( p ) break;
     }
-    if( Reaction == -1 ) return -1;
+    if( p ){
+	en = p->Scenery.i05;
+	lvl = p->Scenery.i06;
+    }
+    if( en == -1 ) return -1;
     gScptActionFlags |= SCP_ACT_ELEVATOR;
-    gScptUnk115 = Reaction;
-    gScptUnk118 = gCurrentMapLvl;
+    gScptUnk115 = en;
+    gScptUnk118 = lvl;
     return 0;	
 }
 
@@ -961,7 +965,7 @@ int ScptClearDudeScript()
 int ScptInit()
 {
     int i;
-
+DD
     if( MessageInit(&gScptMsg) != 1 ) return -1;
     for( i = 0; i < 1450; i++ ){
         if( MessageInit( &gScptMsgBook[ i ]) != 1 ) return -1;
@@ -978,6 +982,7 @@ int ScptInit()
 
 int ScptUnk01()
 {
+DD
     ScptFlush();
     gScptActionFlags = 0;
     PartyUnk06( 0 );
@@ -1002,6 +1007,7 @@ int ScptGameInit()
     InpTaskStart( ScptTaskCb );
     if( ScptSetDudeScript() == -1 ) return -1;
     gScptUnk52 = 1;
+DD
     gScptActionFlags = 0;
     return 0;
 }
@@ -1019,7 +1025,7 @@ int ScptGameReset()
 int ScptClose()
 {
     gScptEnable = 0;
-    gScptUnk07 = 0;
+    gScptAmbient = 0;
     if( MessageClose( &gScptMsg ) != 1 ){
         eprintf( "\nError exiting script message file!" );
         return -1;
@@ -1029,6 +1035,7 @@ int ScptClose()
     SciUnk01();
     SciUnk20();
     InpTaskStop( ScptTaskCb );
+DD
     gScptActionFlags = 0;
     if( gScptLocVarTable ){
         Free( gScptLocVarTable );
@@ -1057,13 +1064,14 @@ int ScptReset()
 {
     gScptUnk03 = 0;
     gScptEnable = 0;
-    gScptUnk07 = 0;
+    gScptAmbient = 0;
     ScptMsgFree();
     ScptFlush();
     SciUnk20();
     InpTaskStop( ScptTaskCb );
     MessageClose( &gScptMsg );
     if( ScptClearDudeScript() == -1 ) return -1;
+DD
     gScptActionFlags = 0;
     return 0;    
 }
@@ -1071,7 +1079,7 @@ int ScptReset()
 int ScptEnable()
 {
     if( !gScptUnk03 ) return -1;
-    gScptUnk07 = 1;
+    gScptAmbient = 1;
     gScptEnable = 1;
     return 0;
 }
@@ -1082,14 +1090,14 @@ int ScptDisable()
     return 0;
 }
 
-void ScptEnableUnk07()
+void ScptAmbientEnable()
 {
-    gScptUnk07 = 1;
+    gScptAmbient = 1;
 }
 
-void ScptDisableUnk07()
+void ScptAmbientDisable()
 {
-    gScptUnk07 = 0;
+    gScptAmbient = 0;
 }
 
 int ScptSaveVariables( xFile_t *fh )
@@ -1320,13 +1328,11 @@ int ScptLoadScript( xFile_t *fh )
                 NewPage->Script[ j ].Flags &= ~0x01;
             }
             NewPage->Next = NULL;
-	    if( !p ){
-		p = NewPage;
-		dir->First = p;
-	    } else {
-        	p->Next = NewPage;
-        	p = NewPage;
-    	    }
+	    if( !p )
+		dir->First = NewPage;
+	    else
+        	p->Next = NewPage;    	    
+    	    p = NewPage;
         }
         dir->Current = NewPage;
     }
@@ -1708,62 +1714,61 @@ int ScptLoadAllScripts()
     return 0;
 }
 
-void ScptUnk29()
+void ScptMapEnter()
 {
-    ScptExecMapUpdateScripts(15);
+    ScptExecMapUpdateScripts( SCPT_AEV_MAP_ENTER_P_PROC );
 }
 
-void ScptUnk30()
+void ScptMapUpdate()
 {
-    ScptExecMapUpdateScripts( 23 );
+    ScptExecMapUpdateScripts( SCPT_AEV_MAP_UPDATE_P_PROC );
 }
 
 void ScptExecMapUpdateScripts( int ProcIdx )
 {
     ScptCache_t *p;
     Scpt_t *scr;
-    int v1,v5,j,*v9,i,*v11,v15,v16,*n;
+    int used,j,i,flg, *ScriptsId;
 
-    v16 = ProcIdx;
-    v1 = 0;
-    v15 = 0;
+    used = 0;
+    flg = 0;
     gScptUnk52 = 0;
+
     if( ProcIdx == SCPT_AEV_MAP_ENTER_P_PROC )
-        v15 = (gMap.MapFlags & 1) == 0;
+        flg = (gMap.MapFlags & 1) == 0;
     else
         ScptRun( gMapScriptId, SCPT_AEV_NO_P_PROC );
-    for( i = 0; i < 5; i++ ){
-        for( p = gScrScripts[ i ].First; p; p = p->Next ) v1 += p->ScptUsed;
+    // count all used scripts
+    for( i = 0; i < SCR_TYPES; i++ ){
+        for( p = gScrScripts[ i ].First; p; p = p->Next ) used += p->ScptUsed;
     }
-    if( v1 == 0 ) return;    
-    n = Malloc( v1 * sizeof( int ) );
-    if( !n ){ eprintf( "\nError: scr_exec_map_update_scripts: Out of memory for sidList!"); return; }            
-    v5 = 0;
+    if( used == 0 ) return;    
+    // create script table    
+    if( !(ScriptsId = Malloc( used * sizeof( int ) ) ) ){ eprintf( "\nError: scr_exec_map_update_scripts: Out of memory for sidList!"); return; }
+    used = 0;
     for( i = 0; i < 5; i++ ){
         for( p = gScrScripts[ i ].First; p; p = p->Next ){
             for( j = 0; j < p->ScptUsed; j++ ){
-                if( p->Script[ j ].Id != gScptUnk14 && p->Script[ j ].ActionEventsIdx[ v16 ] > 0 ) n[ v5++ ] = p->Script[ j ].Id;
+                if( p->Script[ j ].Id != gScptUnk14 && p->Script[ j ].ActionEventsIdx[ ProcIdx ] > 0 ) ScriptsId[ used++ ] = p->Script[ j ].Id;
             }            
         }        
     }
-    
-    if( v16 == SCPT_AEV_MAP_ENTER_P_PROC ){
-        v11 = n;
-        for( i = 0; i < v5; i++, v11++ ){
-            if( ScptPtr( *v11, &scr ) != -1 ) scr->ArgVal = v15;
-            ScptRun( *v11, ProcIdx );
+    // execute scripts
+    if( ProcIdx == SCPT_AEV_MAP_ENTER_P_PROC ){
+        for( i = 0; i < used; i++ ){
+            if( ScptPtr( ScriptsId[ i ], &scr ) != -1 ) scr->ArgVal = flg;
+            ScptRun( ScriptsId[ i ], ProcIdx );
         }
     } else {
-    	v9 = n;
-    	for( i = 0; i < v5; i++, v9++ ) ScptRun( *v9, ProcIdx );
+    	for( i = 0; i < used; i++ ) ScptRun( ScriptsId[ i ], ProcIdx );
     }
-    Free( n );
+    Free( ScriptsId );
     gScptUnk52 = 1;
 }
 
-void ScptUnk32()
+void ScptMapExit()
 {
-    ScptExecMapUpdateScripts( 16 );
+    ScptExecMapUpdateScripts( SCPT_AEV_MAP_EXIT_P_PROC );
 }
 
 void ScptPrintScriptUsage()
@@ -1839,7 +1844,7 @@ char *ScptGetDialog( int MsgPage, int MsgId, int SpkFlg )
     if( ( gDlgHeadId & 0xF000000 ) >> 24 != 8 ) SpkFlg = 0;
     MsgList.Id = MsgId;
     if( MessageGetMsg( Message, &MsgList ) != 1 ){ eprintf( "\nError: can't find message: List: %d, Num: %d!", MsgPage, MsgId ); return "Error"; }
-    if( !SpkFlg || !GdialogUnk01() ) return MsgList.Text;
+    if( !SpkFlg || !IN_DIALOG ) return MsgList.Text;
     if( !( MsgList.Audio && *MsgList.Audio ) ){ eprintf( "Missing speech name: %d\n", MsgList.Id ); return MsgList.Text; }
     GdialogLipsyncStart( ( MsgList.Unk & 0x01 ) ? 0 : MsgList.Audio );
     return MsgList.Text;    
@@ -1904,50 +1909,46 @@ int ScptUnk39()
     return ScptPtr( gMapScriptId, &scr ) != -1 && scr->OverrideFlag;
 }
 
-int ScptUnk40( Obj_t *a1, int edx0,int a3, int a4 )
+int ScptAreaDamage( Obj_t *obj, int MapIdx, int InRange, int MapLvl )
 {
-    Scpt_t *Scr, *a2;
-    ScptCache_t *i, *j;
-    int err,v6,v7,v14,*v19,v21,*n,v30,v31;
+    Scpt_t *Scr;
+    ScptCache_t *p;
+    int ScriptCnt, i, *Scripts;
 
-    err = 16 * (gScrScripts[1].Blocks + gScrScripts[3].Blocks);
-    v6 = 0;
-    if( !err ) return 0;    
-    n = Malloc((gScrScripts[1].Blocks + gScrScripts[3].Blocks) << 6);
-    if( !n ) return -1;    
+    i = 16 * ( gScrScripts[ SCR_TYPE_SPT ].Blocks + gScrScripts[ SCR_TYPE_ITM ].Blocks );
+    if( i == 0 ) return 0;    
+    ScriptCnt = 0;
+    Scripts = Malloc( i * sizeof( int ) );
+    if( !Scripts ) return -1;    
     gScptUnk52 = 0;
-    for( i = gScrScripts[3].First; i; i = i->Next ){                
-    	v31 = v6;
-    	for( v7 = 0; v7 < i->ScptUsed; v7++, v31++, v6++ ){
-    	    if( i->Script[ v7 ].ActionEventsIdx[ 14 ] <= 0 && !i->Script[ v7 ].Intp ) ScptRun( i->Script[ v7 ].Id, SCPT_AEV_START );
-    	    if( i->Script[ v7 ].ActionEventsIdx[ 14 ] <= 0 ) continue;    
-    	    if( !i->Script[ v7 ].TimeEv ) continue;            	    
-            if( i->Script[ v7 ].TimeEv->Elevation != a4 ) continue;
-            if( TileGetDistance(i->Script[ v7 ].TimeEv->GridId, edx0) > a3 ) continue;            
-            n[ v31 + 1 ] = i->Script[ v7 ].Id;
+    for( p = gScrScripts[ SCR_TYPE_ITM ].First; p; p = p->Next ){                
+    	for( i = 0; i < p->ScptUsed; i++ ){
+    	    if( p->Script[ i ].ActionEventsIdx[ SCPT_AEV_DAMAGE_P_PROC  ] <= 0 && !p->Script[ i ].Intp ) ScptRun( p->Script[ i ].Id, SCPT_AEV_START );
+    	    if( p->Script[ i ].ActionEventsIdx[ SCPT_AEV_DAMAGE_P_PROC  ] <= 0 ) continue;    
+    	    if( !p->Script[ i ].TimeEv ) continue;            	    
+            if( p->Script[ i ].TimeEv->Elevation != MapLvl ) continue;
+            if( TileGetDistance( p->Script[ i ].TimeEv->GridId, MapIdx ) > InRange ) continue;
+            Scripts[ ScriptCnt++ ] = p->Script[ i ].Id;
     	}
     }
-    for( j = gScrScripts[ SCR_TYPE_SPT ].First; j; j = j->Next ){                
-        v14 = v6;
-        for( v30 = 0; v30 < j->ScptUsed; v30++ ){
-            if( j->Script[ v30 ].ActionEventsIdx[ 14 ] <= 0 && !j->Script[ v30 ].Intp ) ScptRun( j->Script[ v30 ].Id, SCPT_AEV_START );
-            if( j->Script[ v30 ].ActionEventsIdx[ 14 ] <= 0 ) continue;
-            if( (j->Script[ v30 ].HexOrTimer & 0xE0000000) >> 29 != a4 ) continue;
-            if( TileGetDistance( j->Script[ v30 ].HexOrTimer & 0x3FFFFFF, edx0 ) > a3 ) continue;
-            v6++, v14++;
-            n[ v14 ] = j->Script[ v30 ].Id;
+    for( p = gScrScripts[ SCR_TYPE_SPT ].First; p; p = p->Next ){                
+        for( i = 0; i < p->ScptUsed; i++ ){
+            if( p->Script[ i ].ActionEventsIdx[ SCPT_AEV_DAMAGE_P_PROC  ] <= 0 && !p->Script[ i ].Intp ) ScptRun( p->Script[ i ].Id, SCPT_AEV_START );
+            if( p->Script[ i ].ActionEventsIdx[ SCPT_AEV_DAMAGE_P_PROC ] <= 0 ) continue;
+            if( (p->Script[ i ].HexOrTimer & 0xE0000000) >> 29 != MapLvl ) continue;
+            if( TileGetDistance( p->Script[ i ].HexOrTimer & 0x3FFFFFF, MapIdx ) > InRange ) continue;
+            Scripts[ ScriptCnt++ ] = p->Script[ i ].Id;
         }
     }
-    v19 = n;
-    for( v21 = 0; v21 < v6; v19++, v21++ ){
-        if( ScptPtr( *v19, &Scr ) != -1 ) Scr->ArgVal = 20;
-        if( ScptPtr( *v19, &a2 ) != -1 ){
-            a2->SourceObj = NULL;
-            a2->TargetObj = a1;
+    for( i = 0; i < ScriptCnt; i++ ){
+        if( ScptPtr( Scripts[ i ], &Scr ) != -1 ){
+    	    Scr->ArgVal = 20;
+            Scr->SourceObj = NULL;
+            Scr->TargetObj = obj;
         }
-        ScptRun( *v19, SCPT_AEV_DAMAGE_P_PROC );
+        ScptRun( Scripts[ i ], SCPT_AEV_DAMAGE_P_PROC );
     }
-    if( n ) Free( n );
+    if( Scripts ) Free( Scripts );
     gScptUnk52 = 1;
     return 0;
 }

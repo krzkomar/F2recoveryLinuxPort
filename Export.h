@@ -7,7 +7,7 @@ typedef struct
 	char *Fname;	// file name
 	Intp_t *Itp;	// interpreter script
     };
-    short Flags;	// variable type -> !0 - interrupt context
+    uint16_t Flags;	// variable type -> !0 - interrupt context
     union{
 	char *ValStr;	
 	float ValFloat;
@@ -26,7 +26,7 @@ int ExporSetFVar( char *Name, char *FloatStr );
 int ExportSetVarArg( Intp_t *intp, char *Name, short Type, int Val );
 int ExportSetVarArgP( Intp_t *intp, char *Name, void *Val );
 int ExportSetVar( char *Name, short Type, char *Str );
-int ExportGetVarArg( Intp_t *intp, char *Name, short *pFlags, int *pArg );
+int ExportGetVarArg( Intp_t *intp, char *Name, uint16_t *pFlags, int *pArg );
 int ExportCreateIVar( char **a1, char *Name );
 int ExportDeleteProc( Intp_t *Itp );
 void ExportFlushProc();

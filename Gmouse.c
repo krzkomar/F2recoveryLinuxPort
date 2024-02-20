@@ -513,7 +513,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
     if( ObjSetShape( gGmouseObjB, ArtMakeId( 6, 283, 0, 0, 0 ), &Area1 ) != 0 ) return;
     if( GmouseCursorUpdate( MseX, MseY, gCurrentMapLvl, &Area1 ) ) return;
     TileUpdateArea( &Area1, gCurrentMapLvl );
-    MapUnk35();
+    MapAmbientDisable();
     tmp = MseY;
     sel = 0;
     // select 
@@ -530,7 +530,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             tmp = bottom;
         }
     }
-    MapUnk34();
+    MapAmbientEnable();
     gGmouseOldX = MseX;
     gGmouseOldY = MseY;
     gGmouseStay = 0;

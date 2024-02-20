@@ -3,7 +3,7 @@
 void (*gMapRedrawIsoCb)( VidRect_t * ) = MapRedrawIso; 
 int gMapGridFlags[ 3 ] = { 2, 4, 8 };
 int gMapSysTime = 0;
-int gMapUnk38 = 0;
+int gMapAmbientEnable = 0;
 int gMapIsoPlayerElev =  0;
 int gMapIsoUnk04 = -1;
 int gMapIsoUnk05 = 0;
@@ -144,32 +144,32 @@ int MapExitMsg()
     return 1;
 }
 
-void MapUnk34()
+void MapAmbientEnable()
 {
-    if( gMapUnk38 ) return;    
+    if( gMapAmbientEnable ) return;    
     TextEvEnable();
     if( !GameIfaceStat() ) GmouseSetIsoMode();
     InpTaskStart( AnimProcess );
     InpTaskStart( AnimAmbient );
-    ScptEnableUnk07();
-    gMapUnk38 = 1;    
+    ScptAmbientEnable();
+    gMapAmbientEnable = 1;    
 }
 
-int MapUnk35()
+int MapAmbientDisable()
 {
-    if( !gMapUnk38 ) return 0;
-    ScptDisableUnk07();
+    if( !gMapAmbientEnable ) return 0;
+    ScptAmbientDisable();
     InpTaskStop( AnimAmbient );
     InpTaskStop( AnimProcess );
     GmouseSetIfaceMode( 0 );
     TextEvDisable();
-    gMapUnk38 = 0;
+    gMapAmbientEnable = 0;
     return 1;
 }
 
 int MapUnk21()
 {
-    return gMapUnk38 == 0;
+    return gMapAmbientEnable == 0;
 }
 
 int MapSetLvl( unsigned int a1 )
@@ -188,7 +188,7 @@ int MapSetLvl( unsigned int a1 )
     AnimClear( gObjDude );
     AnimUnk24( gObjDude, gObjDude->Orientation, gObjDude->ImgId );
     PartyUnk07();
-    if( gMapScriptId != -1 ) ScptUnk30();
+    if( gMapScriptId != -1 ) ScptMapUpdate();
     if( v1 ) GmouseIsoEnter();
     return 0;
 }
@@ -253,7 +253,7 @@ void MapSetStart( int GridPos, int MapLvl, int Rotation )
     gMapUnk34 = GridPos;
 }
 
-void MapNewScript( int ScriptId )
+void MapNewScript( int ScriptId ) // not used
 {
     Obj_t *obj;
     Scpt_t *scr;
@@ -507,6 +507,7 @@ int MapOpenById( int MapIdx )
 
     ScptSetArg( gMapScriptId, MapIdx );
     if( WmGetMapFileName( MapIdx, stmp ) == -1 ) return -1;    
+
     gMapUnk03 = MapIdx;
     err = MapLoadMAP( stmp );
     WmStartMapMusic();
@@ -522,7 +523,7 @@ int MapLoadMapFile( xFile_t *fh )
 
     MapSavingRandomEncounter( 1 );
     GSoundLoadBg( "wind2", 12, 13, 16 );
-    MapUnk35();
+    MapAmbientDisable();
     PartyLoad();//-->
     GmouseScrollDisable();
     MseCursor = GmouseGetCursorId();
@@ -531,6 +532,7 @@ int MapLoadMapFile( xFile_t *fh )
     TileUpdateDisable();
     err = 0;
     // clear screen
+DD
     WinDrawFilledRect( gMapIsoWin, 0, 0, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99, gPalColorCubeRGB[0][0][0] );
     WinUpdate( gMapIsoWin );
     AnimReset();
@@ -550,6 +552,7 @@ int MapLoadMapFile( xFile_t *fh )
     ObjClear();
     if( gMap.VarsCnt < 0 ) gMap.VarsCnt = 0;
     if( gMap.LocVarsCnt < 0 ) gMap.LocVarsCnt = 0;
+DD
 // load variables
     MapFreeVars();
     if( gMap.VarsCnt == 0 ){
@@ -580,6 +583,7 @@ int MapLoadMapFile( xFile_t *fh )
     ObjMoveToTile( gObjDude, gTileCentIdx, gCurrentMapLvl, NULL );
     ObjSetRotation(gObjDude, gMapIsoUnk05, 0);
     gMap.MapId = WmGetMapIdxByFileName( gMap.Name );
+DD
     if( !(gMap.MapFlags & MAPFLG_SAV) ){
         sprintf( stmp2, "maps/%s", gMap.Name );            
         if( (v14 = strstr( stmp2, ".MAP" )) ){
@@ -593,7 +597,8 @@ int MapLoadMapFile( xFile_t *fh )
     }
     ScptEnable();
     errmsg = NULL;
-    if( gMap.ScriptId > 0 && ScptNewScript(&gMapScriptId, 0) == -1 ) goto Error;
+    if( gMap.ScriptId > 0 && ScptNewScript( &gMapScriptId, 0 ) == -1 ) goto Error;
+printf("MapScriptId:%x\n", gMapScriptId);
     p = NULL;
     ObjCreate( &p, ArtMakeId( 5, 12, 0, 0, 0 ), -1 ); // scrblk.frm
     p->Flags |= 0x20000005; // PRFLG_LIGHTTHROU
@@ -606,11 +611,12 @@ int MapLoadMapFile( xFile_t *fh )
     p->TimeEv = ScptNewObjId();
     scr->i08 = p->TimeEv;
     scr->TimeEv = p;
-SCP_DBG_EN;
+//SCP_DBG_EN;
+DD
     ScptUnk23();
     ScptRun( gMapScriptId, SCPT_AEV_MAP_ENTER_P_PROC );
     ScptUnk22();
-SCP_DBG_DIS;
+//SCP_DBG_DIS;
     if( WmSetupRandomEncounter() == -1 ) errmsg = "Error Setting up random encounter";
 Error:
     if( errmsg ){
@@ -621,18 +627,20 @@ Error:
     } else {
         ObjUnk80( gMap.MapFlags );
     }
+DD
     PartyRecoverLoad();
     IfacePanelDisable();
     ProtoDudeImgInit();
     MapUnk01();
     dbSetRWFunc( NULL, 0 );
-    MapUnk34();
+    MapAmbientEnable();
     GmouseScrollDisable();
     GmouseLoadCursor( 25 );
     if( ScptLoadAllScripts() == -1 ) eprintf( "\n   Error: scr_load_all_scripts failed!" );
-    ScptUnk29();
-    ScptUnk30();
+    ScptMapEnter();
+    ScptMapUpdate();
     TileUpdateEnable();
+DD
     if( gMapCurrentPos.MapId > 0 ){
 
         if( gMapCurrentPos.Orientation >= 0 ) ObjSetRotation( gObjDude, gMapCurrentPos.Orientation, 0 );
@@ -648,13 +656,13 @@ Error:
     dbSetRWFunc( NULL, 0 );
     if( !GameIfaceStat() ) GmouseScrollEnable();
     GmouseLoadCursor( MseCursor );
-
+DD
     gMapIsoPlayerElev = -1;
     gMapIsoUnk04 = -1;
     gMapIsoUnk05 = -1;
     GMovieFade();
     gMap.Version = 20;
-
+DD
     return err;
 }
 
@@ -922,12 +930,15 @@ int MapSavingRandomEncounter( int a1 )
 
     if( !gMap.Name[0] ) return 0;
     AnimReset();
-    PartyUnk21();
+    PartySave();
     if( a1 & 0x01 ){
         EvQeRunAll();
+DD
         PartyLoad();
-        PartyUnk15();
-        ScptUnk32();
+DD
+        PartySaveBox();
+DD
+        ScptMapExit();
         if( gMapScriptId != -1 ) ScptPtr( gMapScriptId, &res );
         ScptClockInit();
         ObjUnk19();

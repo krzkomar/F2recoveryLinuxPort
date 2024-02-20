@@ -20,15 +20,19 @@
 
 #ifdef SCP_DEBUG
 extern int scp_dbg;
-#define SCP_DBG_EN	scp_dbg = 1
-#define SCP_DBG_DIS	scp_dbg = 0
-#define SCP_DBG( s, n, m... )	if( scp_dbg ){ printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s->FileName, s->Opcode & 0xffff, s->CodePC - 2, ##m ); }
+#define SCP_DBG_IF( cond )	if( scp_dbg && (cond) )
+#define SCP_DBG_ELSE		else
+#define SCP_DBG_EN		scp_dbg = 1
+#define SCP_DBG_DIS		scp_dbg = 0
+#define SCP_DBG( s, n, m... )	if( scp_dbg ){ printf( "SCRIPT{A:%i}['%s':<%x>:%x]>"#n"\n",s->StackApos,s->FileName, s->Opcode & 0xffff, s->CodePC - 2, ##m ); }
 #define SCP_DBG_VAR		Intp_t *s_dbg = scr;
-#define SCP_DBGA( n, m... )	if( scp_dbg ){ printf( "SCRIPT['%s':<%x>:%x]>"#n"\n",s_dbg->FileName, s_dbg->Opcode & 0xffff, s_dbg->CodePC - 2, ##m ); }
+#define SCP_DBGA( n, m... )	if( scp_dbg ){ printf( "SCRIPT{A:%i}['%s':<%x>:%x]>"#n"\n",s_dbg->StackApos,s_dbg->FileName, s_dbg->Opcode & 0xffff, s_dbg->CodePC - 2, ##m ); }
 #define SCP_DNAME( Idx )	INTP_VNAME( s_dbg, Idx )
 #define SCP_DECHO( str )	if( scp_dbg ){ printf( "%s\n", str ); }
 #define SCP_DBGP( fmt, m... )	if( scp_dbg ){ printf( fmt, ##m ); }
 #else
+#define SCP_DBG_IF( cond )
+#define SCP_DBG_ELSE
 #define SCP_DBG_EN
 #define SCP_DBG_DIS
 #define SCP_DBG( s, n, m... )
@@ -160,6 +164,7 @@ typedef struct
     int  LocalVars;
 } ScptVars_t;
 
+extern const char *gScptP_proc[ 28 ];
 /*
 int gScptUnk02;
 int gScptUnk15[ 10 ];
@@ -309,13 +314,13 @@ int ScptLoadUnk17( xFile_t *fh, int **ptr );
 int ScptUnk126( int Unused, Obj_t *obj );
 void ScptUnk125();
 void ScptUnk124( Scpt_t *a1 );
-void ScptProcess();
+void ScptActionExec();
 void ScptUnk122();
 int ScptUnk121( Scpt01_t *a1 );
 int ScptUnk120( Scpt01_t *scr );
 int ScptUnk119();
 int ScptWorldMap();
-int ScptRequestElevator( Scpt_t *a1, int Reaction );
+int ScptRequestElevator( Obj_t *a1, int Reaction );
 void ScptExplosion( unsigned int tilenum, int a2, int a3, int a4 );
 void ScptTalkTo( Obj_t *a1 );
 void ScptSlideShow();
@@ -343,8 +348,8 @@ int ScptMsgFree();
 int ScptReset();
 int ScptEnable();
 int ScptDisable();
-void ScptEnableUnk07();
-void ScptDisableUnk07();
+void ScptAmbientEnable();
+void ScptAmbientDisable();
 int ScptSaveVariables( xFile_t *fh );
 int ScptLoadVariables( xFile_t *fh );
 int ScptLoadVarTest( xFile_t *fh );
@@ -373,10 +378,10 @@ int ScptUnk25( int a1, int a2, int a3 );
 int ScptGetUsage( int Type );
 int ScptCountUsage( int Type );
 int ScptLoadAllScripts();
-void ScptUnk29();
-void ScptUnk30();
+void ScptMapEnter();
+void ScptMapUpdate();
 void ScptExecMapUpdateScripts( int a1 );
-void ScptUnk32();
+void ScptMapExit();
 void ScptPrintScriptUsage();
 int ScptGetMsgStr( int MsgIdx, Msg_t **Msg );
 char *ScptGetDialogA( int a1, int a2 );
@@ -384,7 +389,7 @@ char *ScptGetDialog( int MsgPage, int MsgId, int SpkFlg );
 int ScptGetLocVar( int ScrId, int VarIdx, int *pValue );
 int ScptSetLocVar( int ScrId, int VarIdx, int Value );
 int ScptUnk39();
-int ScptUnk40( Obj_t *a1, int edx0,int a3, int a4 );
+int ScptAreaDamage( Obj_t *a1, int edx0,int a3, int a4 );
 
 
 

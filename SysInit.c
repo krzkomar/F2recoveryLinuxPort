@@ -61,7 +61,7 @@ void SysHelpDialog()
     char *Surface, *p;
     CachePool_t *Block;
 
-    v9 = MapUnk35();
+    v9 = MapAmbientDisable();
     GmouseUnk03();
     GmouseLoadCursor( 0 );
     IsEnabled = CycleColorIsEnabled();
@@ -88,7 +88,7 @@ void SysHelpDialog()
     }
     if( IsEnabled ) CycleColorStart();
     GmouseIsoEnter();
-    if( v9 ) MapUnk34();
+    if( v9 ) MapAmbientEnable();
 }
 
 void SysQuitDlg()
@@ -96,7 +96,7 @@ void SysQuitDlg()
     int k, e, IsCursorClear, CursorId, CursorUpdate;
     MsgLine_t msg;
 
-    if( (k = MapUnk35()) )
+    if( (k = MapAmbientDisable()) )
         e = GmouseUnk58();
     else
         e = 0;
@@ -113,7 +113,7 @@ void SysQuitDlg()
     GmouseLoadCursor( CursorId );
     if( !CursorUpdate ) MseCursorRedraw();
     if( e ) GmouseIsoEnter();
-    if( k ) MapUnk34();
+    if( k ) MapAmbientEnable();
 }
 
 int SysOpenDataBase()

@@ -220,7 +220,7 @@ int OptMenuCreate()
         MessageClose( &gOptPrefMsgBase );
         return -1;
     }
-    gOptSetUnk20 = MapUnk35();
+    gOptSetUnk20 = MapAmbientDisable();
     gOptionUnk15 = GmouseUnk58();
     if( gOptionUnk15 ) GmouseUnk03();
     GmouseLoadCursor( 1 );
@@ -264,7 +264,7 @@ void OptMenuDestroy()
     for( i = 0; i < 10; i++ ) Free( gOptMenuImgs[ i ] );
     for( i = 0; i != 3; i++ ) ArtClose( gOptionMenuWallpImg[ i ] );
     if( gOptionUnk15 ) GmouseIsoEnter();
-    if( gOptSetUnk20 ) MapUnk34();
+    if( gOptSetUnk20 ) MapAmbientEnable();
 }
 
 int OptPauseWindow( int Flg )
@@ -279,7 +279,7 @@ int OptPauseWindow( int Flg )
 
     memcpy( ImgIds, gOptPauseImgIds, 4 * sizeof(int) );
     if( !Flg ){
-        gOptSetUnk20 = MapUnk35();
+        gOptSetUnk20 = MapAmbientDisable();
         CycleColorStop();
         if( (flg2 = GmouseUnk58()) ) GmouseUnk03();
     }
@@ -342,7 +342,7 @@ int OptPauseWindow( int Flg )
     MessageClose( &gOptPrefMsgBase );
     if( !Flg ){
         if( flg2 ) GmouseIsoEnter();
-        if( gOptSetUnk20 ) MapUnk34();
+        if( gOptSetUnk20 ) MapAmbientEnable();
         CycleColorStart();
         GmouseLoadCursor( 1 );
     }

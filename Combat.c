@@ -955,7 +955,7 @@ void CombatStart( Combat02_t *pObj )
         IfaceCombatClose( 1 );
         GmouseScrollEnable();
         CombatUnk20();
-        ScptUnk30();
+        ScptMapUpdate();
     }
     gCombatTacticMode = 0;
     if( gMenuEscape == 1 ) gMenuEscape = 0;        
@@ -1305,7 +1305,7 @@ LABEL_19:
                 	if( ecx0 ){
                 	    v5 = TileGetTileNumInDir( v22, 0, 1 );
                 	} else {
-                	    if( Item71() >= v25 )
+                	    if( ItemExplosionRange() >= v25 )
                     		v5 = TileGetTileNumInDir( v22, 0, 1 );
                 	    else
                     		v5 = -1;
@@ -2417,7 +2417,7 @@ int CombatGetGroupId()
 
 int CombatUnk77( Obj_t *obj )
 {
-    ScptUnk40( obj, obj->GridId, Item71(), obj->Elevation );
+    ScptAreaDamage( obj, obj->GridId, ItemExplosionRange(), obj->Elevation );
     return 0;
 }
 

@@ -467,7 +467,7 @@ int CharEditMenuCreate()
     }
     gChrEditOptionalTraitsCnt = i; // optioned traits
 
-    if( gChrEditMenuMode == 0 ) gChrEditUnk13 = MapUnk35();
+    if( gChrEditMenuMode == 0 ) gChrEditUnk13 = MapAmbientDisable();
 
     CycleColorStop();
     GmouseLoadCursor( 1 );
@@ -489,7 +489,7 @@ int CharEditMenuCreate()
         }
         ArtClose( gChrEditWpImg );
         MessageClose( &gChrEditMsg );
-        if( gChrEditUnk13 ) MapUnk34();
+        if( gChrEditUnk13 ) MapAmbientEnable();
         CycleColorStart(); GmouseLoadCursor( 1 ); return -1;
     }
     SoundUpdateAll();
@@ -515,7 +515,7 @@ int CharEditMenuCreate()
         }
         ArtClose( gChrEditWpImg );
         MessageClose( &gChrEditMsg );
-        if( gChrEditUnk13 ) MapUnk34();
+        if( gChrEditUnk13 ) MapAmbientEnable();
         CycleColorStart(); GmouseLoadCursor( 1 ); return -1;
     }
 
@@ -528,7 +528,7 @@ int CharEditMenuCreate()
         }
         ArtClose( gChrEditWpImg );
         MessageClose( &gChrEditMsg );
-        if( gChrEditUnk13 ) MapUnk34();
+        if( gChrEditUnk13 ) MapAmbientEnable();
         CycleColorStart(); GmouseLoadCursor( 1 ); return -1;
     }
     gChrEditSurface = WinGetSurface( win );
@@ -672,7 +672,7 @@ void CharEditClose()
     gChrEditMsgKarmaCount = 0;
     MessageClose( &gChrEditMsg );
     IfaceUnk09();
-    if( gChrEditUnk13 ) MapUnk34();
+    if( gChrEditUnk13 ) MapAmbientEnable();
     CycleColorStart();
     GmouseLoadCursor( 1 );
     FontSet( gChrEditFontSave );
@@ -687,7 +687,7 @@ void CharEditClose()
 
 void CharEditClean()
 {
-    if( gChrEditUnk13 ) MapUnk34();
+    if( gChrEditUnk13 ) MapAmbientEnable();
     CycleColorStart();
     GmouseLoadCursor(1);
 }

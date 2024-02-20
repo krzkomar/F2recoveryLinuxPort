@@ -1,6 +1,6 @@
 #include "FrameWork.h"
 
-int   gDlgUnk06 = 0;
+int   gDlgInDialog = 0;
 int   gDlgOptionCnt = 0;
 int   gDlgReviewCount = 0;
 char  *gDlgSurf = NULL;
@@ -142,9 +142,9 @@ int GdialogClose()
     return 0;
 }
 
-int GdialogUnk01()
+int GdialogInDialog()
 {
-    return gDlgUnk06 != 0;
+    return gDlgInDialog != 0;
 }
 
 void GdialogEnter( Obj_t *target, int flg )
@@ -180,27 +180,26 @@ void GdialogEnter( Obj_t *target, int flg )
     gDlgUnk12 = gTileCentIdx;
     gDlgBarterModifier = 0;
     gDlgUnk11 = gObjDude->GridId;
-    MapUnk35();
-    gDlgUnk06 = 1;
+    MapAmbientDisable();
+    gDlgInDialog = 1;
     gDlgPartyMemberObj = target;
     gDlgPmExchangeMode = PartyMembRdy( target );
     gDlgUnk10 = 1;
-DD
 //SCP_DBG_EN;
     if( target->ScrId != -1 ) ScptRun( target->ScrId, SCPT_AEV_TALK_P_PROC );
 //SCP_DBG_DIS;
     if( ScptPtr( target->ScrId, &scr ) == -1 ){
         GmouseIsoEnter();
-        MapUnk34();
-        ScptUnk30();
-        gDlgUnk06 = 0;
+        MapAmbientEnable();
+        ScptMapUpdate();
+        gDlgInDialog = 0;
         return;
     }
     if( scr->OverrideFlag || gDlgUnk09 != 4 ){
         gDlgUnk10 = 0;
-        MapUnk34();
-        ScptUnk30();
-        gDlgUnk06 = 0;
+        MapAmbientEnable();
+        ScptMapUpdate();
+        gDlgInDialog = 0;
         return;
     }
     GdialogLipsyncEnd();
@@ -215,15 +214,14 @@ DD
     gDlgUnk09 = 0;
     if( gDlgUnk11 != gObjDude->GridId ) gDlgUnk12 = gObjDude->GridId;
     if( gDlgUnk13 ) TileUnk49( gDlgUnk12, 2 );
-    MapUnk34();
-    ScptUnk30();
-    gDlgUnk06 = 0;
+    MapAmbientEnable();
+    ScptMapUpdate();
+    gDlgInDialog = 0;
     return;    
 }
 
 int GdialogFloatingMessages()
 {
-return 0;
     GlobVarFloatMsgDec();
     gDlgUnk18 = 1;
     SoundUpdateAll();
@@ -231,7 +229,7 @@ return 0;
     SoundUpdateAll();
     if( gDlgUnk11 != gObjDude->GridId ) gDlgUnk12 = gObjDude->GridId;
     if( gDlgUnk13 ) TileUnk49( gDlgUnk12, 2 );
-    GlobVarFloatMsgInc();
+    GlobVarFloatMsgInc( 2 );
     return GlobVarFloatMsgDec();
 }
 
@@ -456,7 +454,7 @@ int GdialogEnd()
 void GdialogJoinLeavePM()
 {
     int v0;
-
+DD
     if( gDlgUnk09 != 1 ) return;
     v0 = PartyMembRdy( gDlgPartyMemberObj );
     if( v0 == gDlgPmExchangeMode ) return;
@@ -1593,7 +1591,7 @@ int GdialogSetBarterModifier( int mod )
 
 int GdialogBarterMenu( int BarterMod )
 {
-    if( !gDlgUnk06 ) return -1;
+    if( !gDlgInDialog ) return -1;
     gDlgBarterModifier = BarterMod;
     GdialogBarter();
     gDlgUnk09 = 4;

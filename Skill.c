@@ -418,7 +418,7 @@ int SkillAttempt( Obj_t *dude1, Obj_t *dude2, unsigned int SkillIdx, int a4 )
                         sprintf(stmp, MsgLineA.Text, v47);
                         IfcMsgOut(stmp);
                     }
-                    ScptUnk30();
+                    ScptMapUpdate();
                     FadeStep(gPalBase);
                 }
                 if( crit == gObjDude ) ScptTimeCap2(1800);
@@ -496,14 +496,14 @@ int SkillAttempt( Obj_t *dude1, Obj_t *dude2, unsigned int SkillIdx, int a4 )
                     if( dude2 == dd ) IfaceRenderHP(1);
                     SkillHoningAward(crit, SkillIdx, v57, a4);
                     v55 = 0;
-                    ScptUnk30();
+                    ScptMapUpdate();
                     FadeStep(gPalBase);
                 } else {
                     MsgLineA.Id = 503; // 'You fail to do any healing.'
                     if( MessageGetMsg(&gSkillMsg, &MsgLineA) != 1 ) return -1;
                     sprintf(stmp, MsgLineA.Text, v47);
                     IfcMsgOut(stmp);
-                    ScptUnk30();
+                    ScptMapUpdate();
                     FadeStep(gPalBase);
                 }
             } else if ( crit == gObjDude ){
@@ -603,14 +603,14 @@ LABEL_103:
                             if( dude2 == db ) IfaceRenderHP(1);
                             SkillHoningAward( crit, SkillIdx, v57, a4 );
                             v55 = 0;
-                            ScptUnk30();
+                            ScptMapUpdate();
                             FadeStep(gPalBase);
                         } else {
                             MsgLineA.Id = 503;
                             if( MessageGetMsg( &gSkillMsg, &MsgLineA ) != 1 ) return -1;
                             sprintf( stmp, MsgLineA.Text, v47 );
                             IfcMsgOut( stmp );
-                            ScptUnk30();
+                            ScptMapUpdate();
                             FadeStep( gPalBase );
                         }
                     } else if( crit == gObjDude ){
@@ -627,7 +627,7 @@ LABEL_94:
                 }
 LABEL_43:
                 if( v55 ) SkillHoningAward( crit, SkillIdx, v57, a4 );
-                if( SkillIdx == SKILL_FIRSTAID || SkillIdx == SKILL_DOCTOR ) ScptUnk30();
+                if( SkillIdx == SKILL_FIRSTAID || SkillIdx == SKILL_DOCTOR ) ScptMapUpdate();
                 return 0;
             } else {
                 MsgLineA.Id = 553; // ' You cannot repair that.'
@@ -846,7 +846,7 @@ int SkillMenuOpen()
         MessageClose( &gSkillMenuMsg ); 
         return -1; 
     }
-    gSkillMenuInited = MapUnk35();
+    gSkillMenuInited = MapAmbientDisable();
     CycleColorStop();
     GmouseLoadCursor(1);
 
@@ -894,7 +894,7 @@ void SkillMenuClose()
     for( i = 0; i != 6;  i++ ) ArtClose( gSkillMenuImgs[ i ] );
     MessageClose(&gSkillMenuMsg);
     FontSet( gSkillMenuFontSave );
-    if( gSkillMenuInited ) MapUnk34();
+    if( gSkillMenuInited ) MapAmbientEnable();
     CycleColorStart();
     GmouseLoadCursor( 1 );
 }

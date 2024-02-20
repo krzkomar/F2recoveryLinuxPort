@@ -21,6 +21,15 @@
         if( type == SCR_FSTRING ) IntpStringDeRef( scr, type, PTR2INT( arg ) );\
         if( (type & 0xF7FF) != SCR_PTR ) IntpError( "script error: %s: invalid arg %d to "#name, scr->FileName, arg_num );
 
+#define GETARGIP( scr, type, argi, argp, arg_num, name )	\
+        type = IntpPopwA( scr );\
+        if( type == SCR_PTR ) \
+    	    argp = IntpPopPtrA( scr );\
+        else \
+    	    argi = IntpPopiA( scr );\
+        if( type == SCR_FSTRING ) IntpStringDeRef( scr, type, PTR2INT( argi ) );\
+        if( (type & 0xF7FF) != SCR_PTR && (type & 0xF7FF) != SCR_INT) IntpError( "script error: %s: invalid arg %d to "#name, scr->FileName, arg_num );
+
 #define GETARGS( scr, type, arg, arg_num, name )	\
         type = IntpPopwA( scr );\
         arg = IntpPopiA( scr );		\
@@ -263,7 +272,7 @@ void ScrGame_RollVsSkill( Intp_t *scr )
     sk = 0;
     if( critter ){
         if( OBJTYPE( critter->Pid ) == TYPE_CRIT ){
-            if( ScptPtr( ScptGetActionSource( scr ), &script ) != -1 ) sk = SkillUse( critter, skill, script->i20, modifier );
+            if( ScptPtr( ScptGetActionSource( scr ), &script ) != -1 ) sk = SkillUse( critter, skill, &script->i20, modifier );
         }
     } else {
         ScrGameErrorMsg( scr, "roll_vs_skill", 1 );
@@ -1384,20 +1393,20 @@ void ScrGame_ObjCanSeeObj( Intp_t *scr )
     SCP_DBG_VAR;
     int n;
     uint16_t type[ 2 ];
-    Obj_t *obj[ 2 ], *pObj;    
+    Obj_t *DstObj, *pObj, *SrcObj;    
 
     pObj = NULL;
     n = 0;
-    GETARGP( scr, type[ 0 ], obj[ 0 ], 0, "obj_can_see_obj" );
-    GETARGP( scr, type[ 1 ], obj[ 1 ], 1, "obj_can_see_obj" );
-    SCP_DBGA( "obj_can_see_obj( [%x]%p, [%x]%p )", type[1], obj[1], type[0], obj[0] );
-    if( obj[0] && obj[1] ){
-        if ( obj[0]->GridId != -1 ){
-            if( obj[0] == gObjDude ) CritterUsingSkill( 0 );
-//            FeatGetVal( obj[1], 1 ); // return not used
-            if( AiObjCanHearObj( obj[1], obj[0] ) ){
-                AnimUnk06( obj[1], obj[1]->GridId, obj[0]->GridId, 0, &pObj, 16 );
-                if( obj[0] == pObj ) n = 1;
+    GETARGP( scr, type[ 0 ], DstObj, 0, "obj_can_see_obj" );
+    GETARGP( scr, type[ 1 ], SrcObj, 1, "obj_can_see_obj" );
+    SCP_DBGA( "obj_can_see_obj( [%x]%p, [%x]%p )", type[1], SrcObj, type[0], DstObj );
+    if( DstObj && SrcObj ){
+        if ( DstObj->GridId != -1 ){
+            if( DstObj == gObjDude ) CritterUsingSkill( 0 );
+//            FeatGetVal( SrcObj, FEAT_PERCEPTION ); // return ignored !
+            if( AiObjCanHearObj( SrcObj, DstObj ) ){
+                AnimUnk06( SrcObj, SrcObj->GridId, DstObj->GridId, 0, &pObj, 16 );
+                if( DstObj == pObj ) n = 1;
             }
         }
     } else {
@@ -1462,31 +1471,30 @@ void ScrGame_Attack( Intp_t *scr )
         scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
-    if( !GdialogUnk01() ){
-        if( IN_COMBAT ){
-            if( !(p->Critter.State.Reaction & 0x01) ){
-                p->Critter.State.Reaction |= 0x01;
-                p->Critter.State.WhoHitMeObj = who;
-            }
-        } else {
-            tmp.i03[ 0 ] = 0;
-            tmp.i03[ 1 ] = bonus;
-            tmp.i03[ 2 ] = 0;
-            tmp.i03[ 3 ] = min_damage;
-            tmp.obj = p;
-            tmp.i07 = max_damage;
-            tmp.crit = who;
-            if( attacker_results == target_results ){
-                tmp.i08 = 1;
-                tmp.i10 = target_results;
-                tmp.i09 = attacker_results;
-            } else {
-                tmp.i08 = 0;
-            }
-            ScptUnk121( &tmp );
+    if( IN_DIALOG ) return;
+    if( IN_COMBAT ){
+        if( !(p->Critter.State.Reaction & 0x01) ){
+            p->Critter.State.Reaction |= 0x01;
+            p->Critter.State.WhoHitMeObj = who;
         }
-        scr->Flags &= ~SCR_FPROC_RUN;
+    } else {
+        tmp.i03[ 0 ] = 0;
+        tmp.i03[ 1 ] = bonus;
+        tmp.i03[ 2 ] = 0;
+        tmp.i03[ 3 ] = min_damage;
+        tmp.obj = p;
+        tmp.i07 = max_damage;
+        tmp.crit = who;
+        if( attacker_results == target_results ){
+            tmp.i08 = 1;
+            tmp.i10 = target_results;
+            tmp.i09 = attacker_results;
+        } else {
+            tmp.i08 = 0;
+        }
+        ScptUnk121( &tmp );
     }
+    scr->Flags &= ~SCR_FPROC_RUN;
 }
 
 /*
@@ -1565,34 +1573,22 @@ void ScrGame_DialogueReaction( Intp_t *scr )
     GdialogReaction( val );
 }
 
-void ScrGameUnk04( int x0, int y0, int x1, int y1, int a5 )
+void ScrGameUnk04( int x0, int y0, int x1, int y1, int a5, int a6 )
 {
-    ScrGameUnk05( x0, y0, x1, y1, a5 );
+    ScrGameUnk05( x0, y0, x1, y1, a5, a6 );
 }
 
-void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5 )
+void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5, int v9 )
 {
-    int v5; // ebp
-    int v6; // eax
-    int rt; // edi
-    int v8; // esi
-    int v9; // ecx
-    Obj_t *i; // ebx
-    int GridId; // eax
-    int v12; // ecx
-    int bm; // ebx
-    int v14; // edx
-    VidRect_t v15; // [esp-8h] [ebp-3Ch] BYREF
-    char v16[8]; // [esp+8h] [ebp-2Ch] BYREF
-    VidRect_t Area2; // [esp+10h] [ebp-24h]
-    int a2; // [esp+20h] [ebp-14h]
-    int v19; // [esp+24h] [ebp-10h]
+    VidRect_t v15, v16, Area2;
+    Obj_t *i;
+    int v5, v6, rt, v8, a2;
 
     Area2.rt = x0;
     Area2.bm = y0;
     v5 = x1;
     a2 = y1;
-    memset( &v15, 0, sizeof(v15) );
+    memset( &v15, 0, sizeof( VidRect_t ) );
     if( x0 > y0 ){
         Area2.bm = x0;
         Area2.rt = y0;
@@ -1610,7 +1606,7 @@ void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5 )
             if( v5 > i->GridId || i->GridId > a2 ) continue;
             if( (i->GridId - v5) / 200 <= v8 ){
                 ObjGetRadiusArea( i, &v16 );
-                if( v12 )
+                if( v9 )
             	    i->Flags &= ~0x01;
                 else
                     i->Flags |= 0x01;
@@ -1633,66 +1629,63 @@ void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5 )
 void ScrGame_Metarule3( Intp_t *scr )
 {
     SCP_DBG_VAR;
-    Obj_t *i;
-    Obj_t *obj;
-    Obj_t *v22;
-    Obj_t *v23;
+    Obj_t *p;
+    int obj;
+    int v22, v23;
     VidRect_t Area;
-    int KillStat;
-    int v13;
     int Id;
     int arg0;
     int arg1;
     int v24;
     int result;
-    int meat3_switch;
     int meta3_switch;
+    Obj_t *p2, *p0;
     uint16_t type[4];
 
-//return;
     v23 = 0;
-    GETARGI( scr, type[ 0 ], arg0, 0, "metarule3" );
+    GETARGIP( scr, type[ 0 ], arg0, p0,0, "metarule3" );
     GETARGI( scr, type[ 1 ], arg1, 1, "metarule3" );
-    GETARGI( scr, type[ 2 ], obj, 2, "metarule3" );
+    GETARGIP( scr, type[ 2 ], obj, p2,2, "metarule3" );
     GETARGI( scr, type[ 3 ], meta3_switch, 3, "metarule3" );
+    SCP_DBGA( "metarule3( [%x]%x, [%x]%x,  [%x]%x,  [%x]%x)", type[3], meta3_switch, type[2], obj, type[1], arg1, type[0], arg0 );
     switch( meta3_switch ){
 	case 'd':
-	    ScptUnk131( (int)obj, arg1 );
+	    ScptUnk131( obj, arg1 );
 	    EvQeRun( 3, (void *)ScptUnk130 );
 	    result = 0;
 	    break;
         case 'e':
-            result = WmUnk70( (int)obj, arg1, arg0 );
+            result = WmUnk70( obj, arg1, arg0 );
             break;
         case 'g':
-            result = CritterGetKillStat( (int)obj );
+            result = CritterGetKillStat( obj );
             break;
         case 'h':
-            result = WmUnk45( (int)obj, arg0, arg1 );
+            result = WmUnk45( obj, arg0, arg1 );
             break;
         case 'i':
-            if( !WmUnk71( (int)obj, arg1, (int *)&v22 ) ) v23 = v22;
+            if( !WmUnk71( obj, arg1, &v22 ) ) v23 = v22;
             result = v23;
             break;
         case 'j':
             if( !arg0 ) v24 = 1;
-            for( i = ObjGetFirst( arg1, (int)obj ); i; i = ObjGetNext() ){
-                if( OBJTYPE( i->Pid ) == 1 && v24 ) break;
-                if( i == (Obj_t *)arg0 ) v24 = 1;
+            for( p = ObjGetFirst( arg1, obj ); p; p = ObjGetNext() ){
+                if( OBJTYPE( p->Pid ) == 1 && v24 ) break;
+                if( p == p0 ) v24 = 1;
             }
-            RETPTR( scr, i );
+            RETPTR( scr, p );
             return;
         case 'k':
-            Id = ArtMakeId((obj->ImgId & 0xF000000) >> 24, arg1, (obj->ImgId & 0xFF0000u) >> 16, (obj->ImgId & 0xF000) >> 12, (obj->ImgId & 0x70000000) >> 28);
-            ObjSetShape(obj, Id, &Area);
+            Id = ArtMakeId((p2->ImgId & 0xF000000) >> 24, arg1, (p2->ImgId & 0xFF0000u) >> 16, (p2->ImgId & 0xF000) >> 12, (p2->ImgId & 0x70000000) >> 28);
+            ObjSetShape(p2, Id, &Area);
             TileUpdateArea( &Area, gCurrentMapLvl );
-            result = (int)v23;
-            break;
+            result = v23;
+            return;
         case 'l':
-    	    result = TileSetCenter( (int)obj, 1 );
+    	    result = TileSetCenter( obj, 1 );
             break;
         case 'm':
-    	    result = AiGetChemUse( obj );
+    	    result = AiGetChemUse( p2 );
             break;
         case 'n':
             result = ( WmCarNoFuel() == 1 );
@@ -1737,6 +1730,7 @@ void ScrGame_SetObjVisibility( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val, 0, "set_obj_visibility" );
     GETARGP( scr, type[ 1 ], obj, 1, "set_obj_visibility" );
     SCP_DBGA( "set_obj_visibility( [%x]%p, [%x]%x )", type[1], obj, type[0], val );
+
     if( !obj ){
         ScrGameErrorMsg( scr, "set_obj_visibility", 1 );
         return;
@@ -1922,7 +1916,7 @@ void ScrGame_SetLightLevel( Intp_t *scr)
 void ScrGame_GameTime( Intp_t *scr )
 {
     SCP_DBG_VAR;
-    int time;
+    uint32_t time;
 
     SCP_DBGA( "game_time" );
     time = ScptGetGameDekaSeconds();
@@ -2727,7 +2721,7 @@ void ScrGame_FloatMsg( Intp_t *scr )
     if( gCurrentMapLvl != obj->Elevation ) return;
     if( Idx[0] == -1 ){
         Idx[0] = stat_zm1 + 1;
-        if( (unsigned int)(stat_zm1 + 1) > 12 ) Idx[0] = 1;
+        if( Idx[0] > 12 ) Idx[0] = 1;
         stat_zm1 = Idx[0];
     }
     switch( Idx[0] ){
@@ -2780,7 +2774,7 @@ void ScrGame_MetaRule( Intp_t *scr )
 	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
 	SCP_DBGA( "metarule( [%x]%x, [%x]%x )", type[1], sel, type[0], meta_par );
     }
-printf("----->%i\n", sel);
+printf("-metarule---->%i\n", sel);
     switch( sel ){
 	case 13: gMenuEscape = 2; RETINT( scr, 0 ); break;	    
         case 14: RETINT( scr, (gMap.MapFlags & 0x01) == 0 ); break;
@@ -2863,6 +2857,7 @@ printf("----->%i\n", sel);
 	    RETINT( scr, WeaponBase );
 	    break;
     }    
+//SCP_DBG_EN;
 }
 
 /*
@@ -3429,29 +3424,24 @@ void ScrGame_GsayMessage( Intp_t *scr )
 void ScrGame_GigOption( Intp_t *scr )
 {
     SCP_DBG_VAR;
-    int i;
-    int v12;
-    int v13;
-    int v14;
-//char *Arg;
-    int val[5];
+    int i, v12, v13, v14, val[5];
     uint16_t type[5];
     char *a3;
+//char *Arg;
 
     scr->Flags |= SCR_FPROC_RUN;
     for( i = 0; i < 5; i++ ){
         type[ i ] = IntpPopwA( scr );
         val[ i ] = IntpPopiA( scr );
         if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], val[ i ] );
-        if( (type[ i ] & 0xF7FF) != SCR_INT ){
-            if( i == 2 ){
-                if( type[ i ] == SCR_STRING )
-                    a3 = IntpGetString( scr, type[ i ] >> 8, val[ i ] );
-                else
-                    IntpError( "script error: %s: invalid arg %d to giq_option", scr->FileName, 2 );
-            } else {
-                IntpError( "script error: %s: invalid arg %d to giq_option", scr->FileName, i );
-            }
+        if( (type[ i ] & 0xF7FF) == SCR_INT ) continue;
+        if( i == 2 ){
+            if( type[ i ] == SCR_STRING )
+                a3 = IntpGetString( scr, type[ i ] >> 8, val[ i ] );
+            else
+                IntpError( "script error: %s: invalid arg %d to giq_option", scr->FileName, 2 );
+        } else {
+            IntpError( "script error: %s: invalid arg %d to giq_option", scr->FileName, i );
         }
     }
     SCP_DBGA( "giq_option( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[4], val[4], type[3], val[3], type[2], val[2], type[1], val[1], type[0], val[0] );
@@ -4175,6 +4165,7 @@ void ScrGame_AttackSetup( Intp_t *scr )
             memset( tmp.i03, 0, sizeof( tmp.i03 ) );
             tmp.i07 = 0x7FFFFFFF;
             if( WhoObj == VictimObj ) {
+DD
 //                tmp.i10 = VictimObj;
 //                tmp.i09 = WhoObj;
                 tmp.i08 = 1;

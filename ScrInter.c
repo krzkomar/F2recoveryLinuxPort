@@ -40,7 +40,7 @@ void SciOpcodeExec( Intp_t *Scp, int Steps )
 {
     Intp_t *ScrSave;
     char errstr[256], stmp[276];
-
+//SCP_DBG_EN;
     ScrSave = gIntpCurScript;
     if( !gScpUnk01 || gSciUnk03 || Scp->i35 || ( Scp->Flags & 0x120 ) ) return;
     if( Scp->TimeAtExec == -1 ) Scp->TimeAtExec = 1000 * (unsigned int)gIntpGetTime() / gIntpTimeDiv;
@@ -48,6 +48,8 @@ void SciOpcodeExec( Intp_t *Scp, int Steps )
     if( setjmp( Scp->EnvSave ) ){ // jumping target point, error handler
         gIntpCurScript = ScrSave;
         Scp->Flags |= ( SCR_FERROR | SCR_FEXIT );
+DD
+exit(0);
         return;
     }
     if( (Scp->Flags & SCR_FCRITICAL ) && (Steps < 3) ) Steps = 3; // minimum 3 steps
@@ -530,6 +532,7 @@ void SciRunProcedure( Intp_t *scr, int ProcIdx )
     Intp_t *p;
 
     SCP_DBGP( "Run script procedure: %x\n", ProcIdx );
+    SCP_DBGP( "Procedure name: '%s'\n", gScptP_proc[ ProcIdx ] );
     if( IntpReadBei( (char *)&scr->ProcTable->Flags + 24 * ProcIdx, 0 ) & INTP_P_IMPORT ){ // Imported procedure
         ofs = IntpReadBei( (char *)&scr->ProcTable->NameOfst + 24 * ProcIdx, 0 );
         procname = scr->ProcVarNames + ofs;

@@ -267,8 +267,8 @@ void ScrGame_Unk01( Intp_t *scr );
     void dialogue_reaction (int mood); - animates an emotional reaction in the dialogue
 */
 void ScrGame_DialogueReaction( Intp_t *scr );
-void ScrGameUnk04( int x0, int y0, int x1, int y1, int a5 );
-void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5 );
+void ScrGameUnk04( int x0, int y0, int x1, int y1, int a5, int a6 );
+void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5, int a6 );
 /*
     => another feature of working with a variety of options for the game, is different from the number of arguments metarule
     int metarule3(

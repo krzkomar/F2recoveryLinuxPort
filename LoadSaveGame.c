@@ -577,7 +577,7 @@ int LsgMenuCreate( unsigned int mode )
 
     gLsgThumbnailP = gLsgThumbnailBuffer;
     gLsgThumbnailEnd = gLsgThumbnailBuffer + THUMBNAIL_SIZE;
-//    if( mode != 3 ) gLsgUnk18 = MapUnk35();
+//    if( mode != 3 ) gLsgUnk18 = MapAmbientDisable();
     CycleColorStop();
     GmouseLoadCursor(1);
 /*
@@ -599,7 +599,7 @@ int LsgMenuCreate( unsigned int mode )
         Free( gLsgThumbnailBuffer );
         MessageClose( &gLsgMsg );
         FontSet( gLsgFontSave );
-        if( mode != 3 && gLsgUnk18 ) MapUnk34();
+        if( mode != 3 && gLsgUnk18 ) MapAmbientEnable();
         CycleColorStart();
         GmouseLoadCursor( 1 );
         return -1;
@@ -609,7 +609,7 @@ int LsgMenuCreate( unsigned int mode )
         Free( gLsgThumbnailBuffer );
         MessageClose( &gLsgMsg );
         FontSet( gLsgFontSave );
-        if( mode != 3 && gLsgUnk18 ) MapUnk34();
+        if( mode != 3 && gLsgUnk18 ) MapAmbientEnable();
         CycleColorStart();
         GmouseLoadCursor( 1 );
         return -1;
@@ -649,7 +649,7 @@ void LsgClose( int Mode )
     MessageClose(&gLsgMsg);
     for( i = 0; i < 9; i++)  ArtClose( gLsgArt[ i ] );
     Free( gLsgThumbnailBuffer );
-    if( Mode != 3 && gLsgUnk18 ) MapUnk34();
+    if( Mode != 3 && gLsgUnk18 ) MapAmbientEnable();
     CycleColorStart();
     GmouseLoadCursor(1);
 }

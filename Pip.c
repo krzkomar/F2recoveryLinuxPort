@@ -113,7 +113,7 @@ int PipCreate( int a1 )
     char stmp[260];
     int win,i,bt,n,w,h,Day,Month;
 
-    gPipUnk04 = MapUnk35();
+    gPipUnk04 = MapAmbientDisable();
     CycleColorStop();
     GmouseUnk03();
     IfaceIndicatorBoxHide();
@@ -205,7 +205,7 @@ void PipClose()
     i = 0;
     CfgGetInteger( &gConfiguration, "debug", "show_script_messages", &i );
     if( i ) eprintf( "\nScript <Map Update>" );
-    ScptUnk30();
+    ScptMapUpdate();
     WinClose( gPipWin );
     MessageClose( &gPipMsg );
     if( gPipHoloTapes ){
@@ -216,7 +216,7 @@ void PipClose()
     for( i = 0; i < 11; i++ ) ArtClose( gPipImgHan[ i ] );
     PipDeleteLineRegions();
     FontSet( gPipFontSave );
-    if( gPipUnk04 ) MapUnk34();
+    if( gPipUnk04 ) MapAmbientEnable();
     CycleColorStart();
     IfaceIndicatorBoxShow();
     GmouseLoadCursor(1);

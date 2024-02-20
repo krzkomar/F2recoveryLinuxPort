@@ -48,7 +48,7 @@ void EndGameRun()
 void EndGameMoviePlay()
 {
     GSoundBgClose();
-    MapUnk35();
+    MapAmbientDisable();
     FadeStep( gFadePaletteC );
     EndGameUnk22 = 0;
     InpTaskStart( (void *)EndGameUnk16 );
@@ -63,7 +63,7 @@ void EndGameMoviePlay()
     GSoundBgClose();
     PalLoadFromFile( "color.pal" );
     FadeStep( gPalBase );
-    MapUnk34();
+    MapAmbientEnable();
     EndGameUnk02();
 }
 
@@ -73,7 +73,7 @@ void EndGameUnk02()
     MsgLine_t msg;
 
     flg1 = 0;
-    if( (flg2 = MapUnk35()) ) flg1 = GmouseUnk58();
+    if( (flg2 = MapAmbientDisable()) ) flg1 = GmouseUnk58();
     if( flg1 ) GmouseUnk03();
     IsCursorClear = MseIsCursorClear();
     if( IsCursorClear ) MseDrawCursor();
@@ -84,7 +84,7 @@ void EndGameUnk02()
     GmouseLoadCursor( CursorId );
     if( IsCursorClear ) MseCursorRedraw();
     if( flg1 ) GmouseIsoEnter();
-    if( flg2 ) MapUnk34();
+    if( flg2 ) MapAmbientEnable();
 }
 
 int EndGameUnk03()
@@ -94,7 +94,7 @@ int EndGameUnk03()
 
     if( EndGameUnk17() ) return -1;
     GSoundBgClose();
-    gEndGameUnk10 = MapUnk35();
+    gEndGameUnk10 = MapAmbientDisable();
     CycleColorStop();
     GmouseLoadCursor( 0 );
     IsCursorClear = MseIsCursorClear();
@@ -140,7 +140,7 @@ void EndGameUnk04()
     PalLoadFromFile( "color.pal" );
     FadeStep( gPalBase );
     CycleColorStart();
-    if( gEndGameUnk10 ) MapUnk34();
+    if( gEndGameUnk10 ) MapAmbientEnable();
 }
 
 void EndGameUnk05( int a1, char *a2 )

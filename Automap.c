@@ -133,7 +133,7 @@ void AutomapScanner( int a1, int MotionFlg )
     if( MotionFlg ) gAutomapScannerStatus |= 0x04; // motion scanner enabled
     AutomapRender( win, gCurrentMapLvl, Imgs[ 0 ], gAutomapScannerStatus );
     flg = 0;
-    k = MapUnk35();
+    k = MapAmbientDisable();
     GmouseLoadCursor( 1 );    
     for( ExitFlg = 0; !ExitFlg; ){
         sel = InpUpdate();
@@ -190,7 +190,7 @@ void AutomapScanner( int a1, int MotionFlg )
             flg = 0;
         }
     }        
-    if( k ) MapUnk34();
+    if( k ) MapAmbientEnable();
     WinClose( win );
     FontSet( FontSave );
     for( i = 0; i < 5; i++ ) ArtClose( ImgObj[ i ] );

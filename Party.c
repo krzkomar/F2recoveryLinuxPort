@@ -179,7 +179,7 @@ int PartyAddMember( Obj_t *dude )
     }
     AiUnk53( dude, 0 );
     EvQeDelB( dude, 3 );
-    if( GdialogUnk01() ){
+    if( IN_DIALOG ){
         if( dude == gDlgPartyMemberObj ) GdialogJoinLeavePM();
     }
     return 0;
@@ -202,7 +202,7 @@ int PartyRemoveMember( Obj_t *dude )
     gPartyMembersCount--;
     if( ScptPtr( dude->ScrId, &scr ) != -1 ) scr->Flags &= 0x18;
     EvQeDelB( dude, 3 );
-    if( GdialogUnk01() ){
+    if( IN_DIALOG ){
         if( dude == gDlgPartyMemberObj ) GdialogJoinLeavePM();
     }
     return 0;    
@@ -264,10 +264,11 @@ Obj_t *PartyUnk03( int Pid )
 int PartyLoad()
 {
     int i;
-
+DD
     if( gPartyLock ) return -1;
     gPartyLock = 1;
     for( i = 0; i < gPartyMembersCount; i++ ){
+printf(">>%i/%i\n", i, gPartyMembersCount);
 	if( PartyPrepLoadInstance( &gParty[ i ] ) ) return -1;
     }
     return 0;
@@ -307,8 +308,12 @@ int PartyPrepLoadInstance( Party_t *pm )
             memset( pm->LocalVars, 0, scr->LocVarsCnt * sizeof( int ) );
         }
     }
-    for( i = 1; i < pm->dude->Critter.Box.Cnt; i++ ) PartyItemSave( pm->dude->Critter.Box.Box[ i ].obj );
+DD
+    for( i = 1; i < pm->dude->Critter.Box.Cnt; i++ ){
+	PartyItemSave( pm->dude->Critter.Box.Box[ i ].obj );
+    }
     scr->Flags &= ~0x18;
+DD
     ScptRemove( scr->Id );
     if( OBJTYPE( pm->dude->Pid ) == TYPE_CRIT ) AnimUnk24( pm->dude, pm->dude->Orientation, -1 );
     return 0;
@@ -540,7 +545,7 @@ int PartyUnk14( Obj_t *a1, int pid )
     return 0;    
 }
 
-int PartyUnk15()
+int PartySaveBox()
 {
     int i, j;
     Obj_t *dude;
@@ -586,7 +591,13 @@ int PartyItemSave( Obj_t *item )
     Scpt_t *scr;
 
      if( item->ScrId != -1 ){
-        if( ScptPtr( item->ScrId, &scr ) == -1 ){ WinMsgError( "\n  Error!: partyMemberItemSave: Can't find script!" ); eprintf("\nMissing script Id: %i (0x%x)\n", item->ScrId, item->ScrId); exit( 1 ); }
+DD
+        if( ScptPtr( item->ScrId, &scr ) == -1 ){ 
+    	    WinMsgError( "\n  Error!: partyMemberItemSave: Can't find script!" ); 
+    	    eprintf("\nMissing script Id: %i (0x%x)\n", item->ScrId, item->ScrId); 
+    	    exit( 1 ); 
+    	}
+DD
         if( item->TimeEv < 20000 ){
             scr->i08 = PartyUnk13();
             item->TimeEv = scr->i08;
@@ -596,6 +607,7 @@ int PartyItemSave( Obj_t *item )
         if( !(p->Script = Malloc( sizeof( Scpt_t ) )) ){ WinMsgError( "\n  Error!: partyMemberItemSave: Out of memory!" ); exit( 1 ); }
         memcpy( p->Script, scr, sizeof( Scpt_t ) );
         LocVarsCnt = scr->LocVarsCnt;
+DD
         if( !LocVarsCnt || scr->LocVarsIdx == -1 ){
             p->LocalVars = NULL;
         } else {            
@@ -776,7 +788,7 @@ int PartyFix()
     return 0;
 }
 
-void PartyUnk21()
+void PartySave()
 {
     int i;
 

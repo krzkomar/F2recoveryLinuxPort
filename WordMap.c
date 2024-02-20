@@ -451,13 +451,13 @@ int WmSaveWmapDatFile( xFile_t *fh )
     n = 0;
     for( j = 0 ;j < gWmEncounterTableCnt; j++ ){
         for( k = 0; k < gWmEncounterTable[ j ].TabIdxCnt; k++ ){
-            if( gWmEncounterTable[ j ].TabIdx[ k ].Counter != -1 ) n++;
+            if( gWmEncounterTable[ j ].EncounterMaps[ k ].Counter != -1 ) n++;
         }
     }                        
     if( dbputBei( fh, n ) == -1 ) return -1;
     for( i = 0; i < gWmEncounterTableCnt; i++ ){
         for( j = 0; j < gWmEncounterTable[ i ].TabIdxCnt; j++ ){
-            if( (n = gWmEncounterTable[ i ].TabIdx[ j ].Counter) != -1 ){
+            if( (n = gWmEncounterTable[ i ].EncounterMaps[ j ].Counter) != -1 ){
                 if( dbputBei( fh, i ) == -1 ) return -1;
                 if( dbputBei( fh, j ) == -1 ) return -1;
                 if( dbputBei( fh, n ) == -1 ) return -1;
@@ -509,7 +509,7 @@ int WmLoadWmapDatFile( xFile_t *fh )
         if( dbgetBei( fh, &b ) == -1 ) return -1; // Encounter table number
         if( dbgetBei( fh, &c ) == -1 ) return -1; // enc_X (number in the encounter table )
         if( dbgetBei( fh, &pint ) == -1 ) return -1; // already encountered (or not )
-        gWmEncounterTable[ b ].TabIdx[ c ].Counter = pint;
+        gWmEncounterTable[ b ].EncounterMaps[ c ].Counter = pint;
     }
     WmUnk48(); 
     return 0;
@@ -557,7 +557,7 @@ int WmLoadWmapTxt()
         for( j = 0; ;j++ ){
             sprintf( stmp1, "Encounter Table %d", j );
             if( !CfgGetString( &WmCfg, stmp1, "lookup_name", &s ) ) break;
-            if( WmLoadEncounterTable( &WmCfg, s ) == -1 ) return -1;
+            if( WmLoadEncounterTable( &WmCfg, s, stmp1 ) == -1 ) return -1;
         }
 
         if( !CfgGetInteger( &WmCfg, "Tile Data", "num_horizontal_tiles", &gWmHorizTileCnt ) ){ WinMsgError( "\nwmConfigInit::Error loading tile data!" ); exit( 1 ); }
@@ -591,48 +591,46 @@ int WmLoadWmapTxt()
     return 0; 
 }
 
-int WmLoadEncounterTable( Config_t *cfg, char *SectionName )
+int WmLoadEncounterTable( Config_t *cfg, char *a2, char *SectionName )
 {
-    WmEnctr_t *enct, *enc;
-    int cnt, i;
-    unsigned int tmp;
-    char stmp[40], *s;
+    WmEnctr_t *enct;
+    WmEnctr_t *enc;
+    WmIdx_t *EncounterMaps;
+    int cnt, i, *p;
+    char stmp[40], *s, *ss;
 
-    s = NULL;
+    s = 0;
     gWmEncounterTableCnt++;
-    enct = Realloc( gWmEncounterTable, gWmEncounterTableCnt * sizeof( WmEnctr_t ) );
+    enct = (WmEnctr_t *)Realloc( gWmEncounterTable, gWmEncounterTableCnt * sizeof( WmEnctr_t ) );
     if( !enct ){ WinMsgError( "\nwmConfigInit::Error loading Encounter Table!" ); exit( 1 ); }
     cnt = gWmEncounterTableCnt - 1;
     gWmEncounterTable = enct;
-
-    enc = &enct[ cnt ];
+    enc = &enct[ gWmEncounterTableCnt - 1 ];
     enc->Name[ 0 ] = '\0';
     enc->IdxCnt = 0;
     enc->i01 = 0;
     enc->TabIdxCnt = 0;
     enc->EncIdx = cnt;
-    strncpy( enc->Name, SectionName, 40 );
-
+    strncpy( enc->Name, a2, 40 );
     if( CfgGetString( cfg, SectionName, "maps", &s ) == 1 ){
-        do{
-            if( enc->IdxCnt >= 6 ) break;
-            tmp = strlen( s );
-            if( StrParseFromFunc( &s, &enc->MapIdxPool[ enc->IdxCnt ], (void *)WmLookupMapByName ) == -1 ) break;
-            enc->IdxCnt++;
+        p = enc->MapIdxPool;
+        for( ;enc->IdxCnt < 6; enc->IdxCnt++ ){
+            ss = s + strlen( s );
+            if( StrParseFromFunc( &s, &p[ enc->IdxCnt ], WmLookupMapByName ) == -1 ) break;
             if( !*s ) break;
-        }while( (tmp + s) > s );
+            if( ss <= s ) break;
+        }
     }
-
-    i = 0;
-    while( 1 ){
+    
+    EncounterMaps = enc->EncounterMaps;
+    for( i = 0; i < 41; i++, enc->TabIdxCnt++ ){
         sprintf( stmp, "enc_%02d", i );
-        if( !CfgGetString( cfg, SectionName, stmp, &s ) ) break;
-        if( i >= 40 ){ WinMsgError( "\nwmConfigInit::Error: Encounter Table: Too many table indexes!!" ); exit( 1 ); }
+        if( !CfgGetString( cfg, SectionName, stmp, &s ) ) return 0;
         gWmCfg = cfg;
-        if( WmLoadEncounters( &enc->TabIdx[ enc->TabIdxCnt ], s ) == -1 ) return -1;
-        i++; enc->TabIdxCnt++;
+        if( WmLoadEncounters( &EncounterMaps[ enc->TabIdxCnt ], s ) == -1 ) return -1;        
     }
-    return 0;
+    WinMsgError( "\nwmConfigInit::Error: Encounter Table: Too many table indexes!!" );
+    exit( 1 );
 }
 
 int WmLoadEncounters( WmIdx_t *EncIdx, char *line )
@@ -1532,7 +1530,7 @@ int WmMenu1( int UnusedArg )
             WmDrawMapScreen();
             if( WmWait( 18000 ) && gMenuEscape ) break;
             if( gWmUnk13 == 1 ){
-                if( WmUnk49() ){
+                if( WmRandomEncounter() ){
                     if( gWmRandMapId != -1 ){
                         if( gWmUnk13 == gWmTravelByCar ) WmFindAreaByEntranceId( gWmRandMapId, &gWmCurrentArea );
                         MapOpenById( gWmRandMapId );
@@ -1626,7 +1624,9 @@ int WmMenu1( int UnusedArg )
 	    break;        
         }
     }
+DD
     if( WmMenuDestroy() == -1 ) return -1;
+DD
     return v28;    
 }
 
@@ -1658,25 +1658,23 @@ int WmUnk48()
     return 0;
 }
 
-int WmUnk49()
+int WmRandomEncounter()
 {
     MsgLine_t v17, Line;
     Obj_t *ob;
     char *Message, v16[120], *eax0, *Str2;
-    int SysTime,v2,GameTime,v5,v6,v7,v8,i,v12,v13,v14,pAreaId,EntryValue,v24,v25,v26,zz;
+    int SysTime,GameTime,v5,v6,v7,v8,i,v13,v14,pAreaId,EntryValue,v24,v25,v26,zz;
 
     v25 = 0;
     EntryValue = 1;
     SysTime = TimerGetSysTime();
     if( TimerDiff( SysTime, gWmTimeStamp ) < 1500 ) return 0;
     gWmTimeStamp = SysTime;
-    if( abs32( gWmUnk36 - gWmWorldPosX ) < 3 ) return 0;
-    if( abs32( gWmUnk37 - gWmWorldPosY ) < 3 ) return 0;
+    if( abs32( gWmUnk36 - gWmWorldPosX ) < 3 || abs32( gWmUnk37 - gWmWorldPosY ) < 3 ) return 0;
     WmGetArea( gWmWorldPosX, gWmWorldPosY, &pAreaId );
     if( pAreaId != -1 ) return 0;
     if( !gWmUnk23 ){
-        v2 = ScptGetGameDekaSeconds();
-        if( (v2 / 864000) > 35 ){
+        if( (ScptGetGameDekaSeconds() / 864000) > 35 ){
             gWmRandMapId = -1;
             gWmUnk23 = 1;
             if( gWmTravelByCar == 1 ) WmFindAreaByEntranceId( 149, &gWmCurrentArea );
@@ -1714,7 +1712,7 @@ int WmUnk49()
     v7 = 1;
     gWmUnk31 = 1;
     gWmUnk35 = 0;
-    if( gWmEncounterTable[ gWmEncounterType ].TabIdx[ gWmUnk34 ].Flags & 0x01 ){
+    if( gWmEncounterTable[ gWmEncounterType ].EncounterMaps[ gWmUnk34 ].Flags & 0x01 ){
         gWmUnk35 = 2;
         WmFindAreaByEntranceId( gWmRandMapId, &pAreaId );
         v8 = 5 * gWmAreas[ pAreaId ].Size;
@@ -1741,9 +1739,8 @@ int WmUnk49()
 	if( v13 > 95 ) v13 = 95;
         zz = gWmWorldPosY / 300 * gWmHorizTileCnt + gWmWorldPosX / 350 % gWmHorizTileCnt;
         eprintf( "\nEncounter Difficulty Mod: %d", gWmTiles[ zz ].Difficulty );
-        v12 = RandMinMax( 1, 100 );
         v13 = gWmTiles[ zz ].Difficulty + v13;
-        if( v12 < v13 ){
+        if( RandMinMax( 1, 100 ) < v13 ){
             v25 = 1;
             if( v13 < 100 ){
                 v14 = 100 - v13;
@@ -1805,11 +1802,11 @@ int WmDrawEncounter()
 
     EncListNum = MaxChance = 0;
     for( i = 0; i < Enc->TabIdxCnt; i++ ){
-        tmp = WmCompare( &Enc->TabIdx[ i ].Expr, 0 ) != 0;
-        if( Enc->TabIdx[ i ].Counter == 0 ) continue;
+        tmp = WmCompare( &Enc->EncounterMaps[ i ].Expr, 0 ) != 0;
+        if( Enc->EncounterMaps[ i ].Counter == 0 ) continue;
         if( tmp ){
             EncList[ EncListNum++ ] = i;
-            MaxChance += Enc->TabIdx[ i ].Chance;
+            MaxChance += Enc->EncounterMaps[ i ].Chance;
         }            
     }
 
@@ -1830,22 +1827,22 @@ int WmDrawEncounter()
     }
 
     for( i = 0; i < EncListNum; i++ ){
-        tmp = Enc->TabIdx[ EncList[ i ] ].Chance;
+        tmp = Enc->EncounterMaps[ EncList[ i ] ].Chance;
         if( chance < tmp ) break;
         chance -= tmp;
     }
     if( i == EncListNum ) i = EncListNum - 1;
     gWmUnk34 = EncList[ i ];
 
-    if( Enc->TabIdx[ gWmUnk34 ].Counter > 0 ) Enc->TabIdx[ gWmUnk34 ].Counter--;
-    if( Enc->TabIdx[ gWmUnk34 ].MapId == -1 ){
+    if( Enc->EncounterMaps[ gWmUnk34 ].Counter > 0 ) Enc->EncounterMaps[ gWmUnk34 ].Counter--;
+    if( Enc->EncounterMaps[ gWmUnk34 ].MapId == -1 ){
         if( Enc->IdxCnt <= 0 ){
             gWmRandMapId = gWmTerrainTypes[ gWmTile->TerrainType ].MapName[ RandMinMax( 0, gWmTerrainTypes[ gWmTile->TerrainType ].MapId - 1 ) ];
         } else {
             gWmRandMapId = Enc->MapIdxPool[ RandMinMax( 0, Enc->IdxCnt - 1 ) ];
         }
     } else {
-        gWmRandMapId = Enc->TabIdx[ gWmUnk34 ].MapId;
+        gWmRandMapId = Enc->EncounterMaps[ gWmUnk34 ].MapId;
     }
     return 0;
 }
@@ -1862,7 +1859,7 @@ int WmSetupRandomEncounter()
     difficulty = 1;
     a1 = NULL;
     if( gWmRandMapId == -1 ) return 0;    
-    enc = &gWmEncounterTable[ gWmEncounterType ].TabIdx[ gWmUnk34 ];
+    enc = &gWmEncounterTable[ gWmEncounterType ].EncounterMaps[ gWmUnk34 ];
     IfcMsgOut( MessageGetMessage( &gWmMsg, &Line, 2998 ) );
     IfcMsgOut( MessageGetMessage( &gWmMsg, &Line, 50 * gWmEncounterType + 3000 + gWmUnk34 ) );
     switch( enc->SceneryType ){
@@ -2489,7 +2486,7 @@ int WmMenuDestroy()
     gWmEncounterType = -1;
     gWmUnk34 = -1;
     IfaceIndicatorBoxShow();
-    MapUnk34();
+    MapAmbientEnable();
     CycleColorStart();
     FontSet(gWmFontSave);
     if( gWmKnownLocations ){
@@ -3060,9 +3057,9 @@ void WmClearTerrain( int Terrain )
     }        
 }
 
-int WmUnk10( int a1 )
+int WmUnk10()
 {
-    return WmMenu1( a1 );
+    return WmMenu1( 1 );
 }
 
 int WmTownMap( int *a1 )

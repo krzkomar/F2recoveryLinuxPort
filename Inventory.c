@@ -466,7 +466,7 @@ int InvMenuCreate( unsigned int idx )
     if( gInvRHandObj && gInvRHandObj != gInvLHandObj ) ItemUseItem( gInvSelectedDude, gInvRHandObj, 1 );
     if( gInvArmorObj ) ItemUseItem( gInvSelectedDude, gInvArmorObj, 1 );
     InvSetBodyImg();
-    k = MapUnk35();
+    k = MapAmbientDisable();
     GmouseSetIfaceMode( 0 );
     return k;
 }
@@ -499,7 +499,7 @@ void InvMenuClose( int eax0 )
     do{
         ArtClose( gInvUnk20[v9++ ] );
     } while ( v9 != 12 );
-    if( eax0 ) MapUnk34();
+    if( eax0 ) MapAmbientEnable();
     WinClose(gInvWin);
     GmouseSetIsoMode();
     if( gInvUnk83 ){
@@ -1282,7 +1282,7 @@ Obj_t *InvGetItem( Obj_t *Obj, int Pid )
     int i;
     Obj_t *item;
 
-    for( i = 0; i >= Obj->Container.Box.Cnt; i++ ){
+    for( i = 0; i < Obj->Container.Box.Cnt; i++ ){
         item = Obj->Container.Box.Box[ i ].obj;
         if( Pid == item->Pid ) return item;
         if( (item = InvGetItem( item, Pid ) ) ) return item;

@@ -243,9 +243,9 @@ int GameProcess( int sel, int a2 )
 	case 'C': case 'c': // character screen
 		if( !IfaceGetUiState() ) break;    
     		GSoundPlay( "ib1p1xx1" );
-    		tmp = MapUnk35();
+    		tmp = MapAmbientDisable();
     		CharEditMenu( 0 );
-    		if( tmp ) MapUnk34();	    
+    		if( tmp ) MapAmbientEnable();	    
 		break;    
 	case 'I': case 'i': if( IfaceGetUiState() ){ GSoundPlay( "ib1p1xx1" ); InvMenu(); } break; // inventory
 	case 'M': case 'm': GmouseCycleMode(); break; // toggle mouse mode

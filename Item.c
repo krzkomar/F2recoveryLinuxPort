@@ -1287,7 +1287,7 @@ int Item70()
     return 2;
 }
 
-int Item71()
+int ItemExplosionRange()
 {
     return 3;
 }

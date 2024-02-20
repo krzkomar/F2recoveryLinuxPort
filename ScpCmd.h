@@ -1,8 +1,10 @@
 #pragma once
 
+
 #define SCP_GETARG_A( type, val, p ) 	type = IntpPopShortStack( (p)->StackA, &(p)->StackApos ); val = IntpPopIntStack( (p)->StackA, &(p)->StackApos );
 #define SCP_GETARG_B( type, val, p )    type = IntpPopwB( (p) ); val = IntpPopIntStack( (p)->StackB, &(p)->StackIdxB );
 #define SCP_PUSHARG_A( type, val, p )	IntpPushIntStack( (p)->StackA, &(p)->StackApos, val ); IntpPushwA( (p), type );
+#define SCP_PUSHARG_AP( type, val, p )	IntpPushPtrStack( (p)->StackA, &(p)->StackApos, val ); IntpPushwA( (p), type );
 #define SCP_PUSHARG_B( type, val, p )  	IntpPushIntStack( (p)->StackB, &(p)->StackIdxB, val ); IntpPushwB( (p), type );
 #define SCP_ERRTYPE( cond, str )  if( cond ) IntpError( str )
 #define SCP_ERRTYPEF( cond, s, fmt, m... )  if( cond ){ sprintf( s, fmt, ##m ); IntpError( s ); }
@@ -49,8 +51,8 @@ void ScpA_Cancel( Intp_t *scr ); // 8048 'cancel( proc )'
 void ScpA_CancelAll( Intp_t *scr ); // 8049 'CancelAll()'
 void ScpA_If( Intp_t *scr ); // 802F ifcon( Cond, skip_addr ) -> 'if( Cond ) then begin'
 void ScpA_WhileDo( Intp_t *scr ); // 8030 while( Cond, SkipAddress ) -> 'while( Cond ) do begin'
-void ScpA_8031( Intp_t *scr ); // 8031 ?( arg1, arg2 )
-void ScpA_Fetch( Intp_t *scr ); // 8032
+void ScpA_SetLVar( Intp_t *scr ); // 8031 ?( arg1, arg2 )
+void ScpA_GetLVar( Intp_t *scr ); // 8032
 void ScpA_CmpNE( Intp_t *scr ); // 8034 'stack:=p2<>p1'
 void ScpA_CmpEQ( Intp_t *scr ); // 8033 'stack:= p2==p1'
 void ScpA_CmpLE( Intp_t *scr ); // 8035 'stack:= p2<=p1'
