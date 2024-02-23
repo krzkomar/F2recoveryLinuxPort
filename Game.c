@@ -49,51 +49,51 @@ int GameSysInit( char *ProgName, int flag1, int Font, int Flags, int argc, char 
     CritterInit();
     AiLoadCfg();
     InvSelectMain();
-    if( GSoundInit() ) eprintf("Sound initialization failed.\n"); 
-    eprintf(">gsound_init\t\n");
+    if( GSoundInit() ) eprintf("Sound initialization failed."); 
+    eprintf(">gsound_init\t");
     MveInit(); 
-    eprintf( ">initMovie\t\t\n" );
-    if( GMovieInit() ){ eprintf("Failed on gmovie_init\n"); return -1; } 
-    eprintf(">gmovie_init\t\n");
-    if( MveFxInit() ){ eprintf("Failed on moviefx_init\n"); return -1; } 
-    eprintf(">moviefx_init\t\n");
-    if( MapIsoInit() ){ eprintf("Failed on iso_init\n"); return -1; }  
-    eprintf(">iso_init\t\t\n");
-    if( GmouseInit() ){ eprintf("Failed on gmouse_init\n"); return -1; }  
-    eprintf(">gmouse_init\t\n");
-    if( ProtoInit() ){ eprintf("Failed on proto_init\n"); return -1; }
-    eprintf(">proto_init\t\t\n");
-    AnimInit(); eprintf(">anim_init\t\t\n");
-    if( ScptInit() ){ eprintf("Failed on scpt_init\n"); return -1; }
-    eprintf(">scpt_init\t\t\n");
-    if( GlobVarLoad() ){ eprintf("Failed on game_load_info\n"); return -1; }
-    eprintf(">game_load_info\t\n");
-    if( ScptGameInit() ){ eprintf("Failed on scr_game_init\n"); return -1; }
-    eprintf(">scr_game_init\t\n");
-    if( WmWorldMapInit() ){ eprintf("Failed on wmWorldMap_init\n"); return -1; }
-    eprintf(">wmWorldMap_init\t\n");
-    CharEditInit(); eprintf(">CharEditInit\t\n");
-    PipInit();  eprintf(">pip_init\t\t\n");
+    eprintf( ">initMovie\t\t" );
+    if( GMovieInit() ){ eprintf("Failed on gmovie_init"); return -1; } 
+    eprintf(">gmovie_init\t");
+    if( MveFxInit() ){ eprintf("Failed on moviefx_init"); return -1; } 
+    eprintf(">moviefx_init\t");
+    if( MapIsoInit() ){ eprintf("Failed on iso_init"); return -1; }  
+    eprintf(">iso_init\t\t");
+    if( GmouseInit() ){ eprintf("Failed on gmouse_init"); return -1; }  
+    eprintf(">gmouse_init\t");
+    if( ProtoInit() ){ eprintf("Failed on proto_init"); return -1; }
+    eprintf(">proto_init\t\t");
+    AnimInit(); eprintf(">anim_init\t\t");
+    if( ScptInit() ){ eprintf("Failed on scpt_init"); return -1; }
+    eprintf(">scpt_init\t\t");
+    if( GlobVarLoad() ){ eprintf("Failed on game_load_info"); return -1; }
+    eprintf(">game_load_info\t");
+    if( ScptGameInit() ){ eprintf("Failed on scr_game_init"); return -1; }
+    eprintf(">scr_game_init\t");
+    if( WmWorldMapInit() ){ eprintf("Failed on wmWorldMap_init"); return -1; }
+    eprintf(">wmWorldMap_init\t");
+    CharEditInit(); eprintf(">CharEditInit\t");
+    PipInit();  eprintf(">pip_init\t\t");
     LsgClean();
     LsgDeleteMapFiles(); 
-    eprintf( ">InitLoadSave\t\n" );
-    if( GdialogInit() ){ eprintf("Failed on gdialog_init\n"); return -1; }
-    eprintf(">gdialog_init\t\n");
-    if( CombatInit() ){ eprintf("Failed on combat_init\n"); return -1; }
-    eprintf(">combat_init\t\n");
-    if( AutomapInit() ){ eprintf("Failed on automap_init\n"); return -1; }
-    eprintf(">automap_init\t\n");
-    if( MessageInit( &gMessage ) != 1 ){ eprintf("Failed on message_init\n"); return -1; }
-    eprintf(">message_init\t\n");
+    eprintf( ">InitLoadSave\t" );
+    if( GdialogInit() ){ eprintf("Failed on gdialog_init"); return -1; }
+    eprintf(">gdialog_init\t");
+    if( CombatInit() ){ eprintf("Failed on combat_init"); return -1; }
+    eprintf(">combat_init\t");
+    if( AutomapInit() ){ eprintf("Failed on automap_init"); return -1; }
+    eprintf(">automap_init\t");
+    if( MessageInit( &gMessage ) != 1 ){ eprintf("Failed on message_init"); return -1; }
+    eprintf(">message_init\t");
     sprintf(stmp, "%s%s", gGamePath, "misc.msg");
-    if( MessageLoad( &gMessage, stmp ) != 1 ){ eprintf("Failed on message_load\n"); return -1; }
-    eprintf(">message_load\t\n");
-    if( ScptDisable() ){ eprintf("Failed on scr_disable\n"); return -1; }
-    eprintf(">scr_disable\t\n");
-    if( OptMenuInit() ){ eprintf("Failed on init_options_menu\n"); return -1; }
-    eprintf( ">init_options_menu\n" );
+    if( MessageLoad( &gMessage, stmp ) != 1 ){ eprintf("Failed on message_load"); return -1; }
+    eprintf(">message_load\t");
+    if( ScptDisable() ){ eprintf("Failed on scr_disable"); return -1; }
+    eprintf(">scr_disable\t");
+    if( OptMenuInit() ){ eprintf("Failed on init_options_menu"); return -1; }
+    eprintf( ">init_options_menu" );
     if( EndGameDeathEndingInit() ){ eprintf("Failed on endgameDeathEndingInit"); return -1; }
-    eprintf(">endgameDeathEndingInit\n");
+    eprintf(">endgameDeathEndingInit");
     return 0;        
 }
 

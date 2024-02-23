@@ -6,6 +6,8 @@
 //#define ASSERT( cond )		_assert_( cond, ##cond, __LINE__, __FILE_NAME__ )
 #define DD	{ static int cnt=0; printf("<!debug %i!> file %s -> function %s() -> line %i\n", cnt++, __FILE_NAME__,__func__, __LINE__ ); }
 
+#define DBG_CRASH	*(char *)0 = 1;
+
 int  ErrorCloseLogTaskAtExit();
 void ErrorSetOutMGA();
 void ErrorSetOutFile( const char *fpath, const char *mode );

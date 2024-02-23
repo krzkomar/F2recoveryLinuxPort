@@ -19,7 +19,7 @@ void FadeInit()
     PalSetFadeSndCb( NULL );
     time = TimerCurrDiff( t0 );
     gFadeSteps = lround( FADE_TIME_MS * time / 60.0 ); // lround( 60.0 / (time * 0.0014) );
-    eprintf( "\nFade time is %ums\nFade steps are %d\n", time, gFadeSteps );
+    eprintf( "\nFade time is %ums\nFade steps are %d", time, gFadeSteps );
 }
 
 void FadeStep( Pal8_t *pal )

@@ -230,15 +230,15 @@ void *IntpPopPtrStack( char *Base, int *pidx )
 
 void IntpPushIntStack( char *Base, int *pIdx, int idata )
 {
-    if( (*pIdx + 4) >= INTP_STACK_SIZE ) IntpError( "pushIntStack: Stack overflow." );
+    if( (*pIdx + sizeof( void *)) >= INTP_STACK_SIZE ) IntpError( "pushIntStack: Stack overflow." );
     IntpWriteBei( idata, Base, *pIdx );
-    (*pIdx) += 4;
+    (*pIdx) += sizeof( void *);
 }
 
 int IntpPopIntStack( char *Base, int *pidx )
 {
-    if( *pidx < 4 ) IntpError("\nStack underflow long.");
-    (*pidx) -= 4;
+    if( *pidx < sizeof( void *) ) IntpError("\nStack underflow long.");
+    (*pidx) -= sizeof( void *);
     return IntpReadBei( Base, *pidx );
 }
 
@@ -269,8 +269,8 @@ void IntpPushwA( Intp_t *scr, short wdata )
 {
     IntpPushShortStack( scr->StackA, &scr->StackApos, wdata );
     if( wdata != SCR_FSTRING ) return;
-    if( scr->StackApos < 6 )  return;
-    INTP_STR_REF( scr->Strings + IntpReadBei( scr->StackA, scr->StackApos - 6 ) )++;
+    if( scr->StackApos < 10 )  return;
+    INTP_STR_REF( scr->Strings + IntpReadBei( scr->StackA, scr->StackApos - 10 ) )++;
 }
 
 void IntpPushiA( Intp_t *scr, int idata )
@@ -302,8 +302,8 @@ void IntpPushwB( Intp_t *scr, short opcode )
 {
     IntpPushShortStack( scr->StackB, &scr->StackIdxB, opcode );
     if( opcode != SCR_FSTRING ) return;
-    if( scr->StackApos < 6 ) return;
-    INTP_STR_REF( &scr->Strings[ IntpReadBei( scr->StackB, scr->StackIdxB - 6 ) ] )++;
+    if( scr->StackApos < 10 ) return;
+    INTP_STR_REF( &scr->Strings[ IntpReadBei( scr->StackB, scr->StackIdxB - 10 ) ] )++;
 }
 
 void IntpPushiB( Intp_t *scr, int idata )
@@ -317,8 +317,8 @@ int IntpPopwB( Intp_t *scr )
 
     tmp = IntpPopShortStack( scr->StackB, &scr->StackIdxB );
     if( tmp != SCR_FSTRING ) return tmp;
-    if( scr->StackApos < 4 ) return tmp;
-    IntpStringDeRef( scr, SCR_FSTRING, IntpReadBei( scr->StackB, scr->StackIdxB - 4 ) );
+    if( scr->StackApos < 8 ) return tmp;
+    IntpStringDeRef( scr, SCR_FSTRING, IntpReadBei( scr->StackB, scr->StackIdxB - 8 ) );
     return tmp;
 }
 

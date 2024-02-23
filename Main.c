@@ -23,7 +23,6 @@ void MainGame( int argc, char **argv )
     int ExitFlg, MenuSelection, lang, Window, zm;
 
     if( MainInit( argc, argv ) != 1 ) return;
-//GMoviePlay( 2, 4 );
 //    GMoviePlay( 0, MOVIE_FADE_IN );
 //    GMoviePlay( 1, 0  );
 //    GMoviePlay( 16, 0 );

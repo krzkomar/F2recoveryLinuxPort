@@ -654,7 +654,7 @@ int WmLoadEncounters( WmIdx_t *EncIdx, char *line )
         if( line ){            
             if( ( s = strstr( line, "map:" ) ) ){
                 line = s + 4;
-                StrParseFromFunc( &line, &EncIdx->MapId, (void *)WmLookupMapByName );
+                StrParseFromFunc( &line, &EncIdx->MapId, WmLookupMapByName );
             }
         }
         if( WmParseEnc( EncIdx, &line ) == -1 ) break;
@@ -674,19 +674,18 @@ int WmParseEnc( WmIdx_t *xx, char **pline )
     WmEnc_t *e;
     char *s;
     char *line;
-    char *ps;
+    char *separator;
 
     line = *pline;
-    if( strncasecmp( line, "Enc:", 4 ) ) return -1;
-    line += 4;
-    ps = strstr( line, "," );
-    if( ps ){
-        *pline = ps + 1;
-        *ps = '\0';
+    if( strncasecmp( line, "Enc:", 4 ) ) return -1; // sequence starts with 'enc:' if not error
+    line += 4; // skip key 'enc:'
+    separator = strstr( line, "," );
+    if( separator ){
+        *pline = separator + 1;
+        *separator = '\0';
     } else {
         *pline = NULL;
     }
-
     while( line ){
         e = &xx->Enc[ xx->EncCnt ];
         e->RandMin = 1;
@@ -706,11 +705,10 @@ int WmParseEnc( WmIdx_t *xx, char **pline )
             }
             if( *line == ')' ) line++;
         }
-        while( *line == ' ' ) line++;
-
+        while( *line == ' ' ) line++; // remove trailing spaces
         s = strchr( line, ' ');
         if( s ) *s = '\0'; // cut string
-        if( StrParseFromFunc( &line, &e->i03, (void *)WmParseEncPlayer ) == -1 ) return -1;
+        if( StrParseFromFunc( &line, &e->i03, WmParseEncPlayer ) == -1 ) return -1;
         if( s ){ // restore string
     	    line = s + 1;
             *s = ' ';
@@ -725,14 +723,14 @@ int WmParseEnc( WmIdx_t *xx, char **pline )
         for( ; *line == ' '; line++ );
         if( *line == '\0' ) line = NULL;
     }
-    if( ps ) *ps = ',';
+    if( separator ) *separator = ',';
     return 0;
 }
 
 int WmParseEncPlayer( char *line, int *PlayerId )
 {
     int err;
-    
+
     *PlayerId = 0;
     if( (err = strcasecmp( line, "player" ) ) ){
         if( WmGetPlayerId( line, PlayerId ) != -1 ) return 0;
@@ -760,13 +758,13 @@ int WmGetPlayerId( char *PlayerName, int *PlayerId )
 
 int WmParseAddEncounter( char *line, int *PlayerId )
 {
-    char stmp1[80], stmp2[80], *s, *EncType;
+    char stmp1[80], stmp2[80], *s;
     WmPlayer_t *pl, *p;
     int i, tmp;
 
     sprintf( stmp1, "Encounter: %s", line );
     sprintf( stmp2, "type_00" );
-    if( !CfgGetString( gWmCfg, stmp1, stmp2, &EncType ) ) return -1;
+    if( !CfgGetString( gWmCfg, stmp1, stmp2, &s ) ) return -1;
     gWmPlayersCnt++;
     if( !(pl = Realloc( gWmPlayers, gWmPlayersCnt * sizeof( WmPlayer_t )) ) ){ WinMsgError( "\nwmConfigInit::Error Reading EncBaseType!" ); exit( 1 ); }
     gWmPlayers = pl;
@@ -903,7 +901,7 @@ int WmSetRandTerrMap( Config_t *cfg, WmTerrain_t *terr )
     do{
         sprintf( stmp1, "map_%02d", terr->MapId );
         if( !CfgGetString( cfg, stmp2, stmp1, &s ) ) return 0;
-        if( StrParseFromFunc( &s, &terr->MapName[ terr->MapId ], (void *)WmLookupMapByName ) == -1 ) return -1;
+        if( StrParseFromFunc( &s, &terr->MapName[ terr->MapId ], WmLookupMapByName ) == -1 ) return -1;
         terr->MapId++;
     }while( terr->MapId < 20 );        
     return -1;
@@ -926,7 +924,7 @@ int WmSetTileDsc( WmTile_t *tile, int a2, int a3, char *text )
     return 0;
 }
 
-int WmFindMatchForEncounterType( int *pIdx, char *EncTypeName )
+int WmFindMatchForEncounterType( char *EncTypeName, int *pIdx )
 {
     int i;
 
@@ -942,7 +940,7 @@ int WmFindMatchForEncounterType( int *pIdx, char *EncTypeName )
     return 0;
 }
 
-int WmFindMatchForTerrainType( int *pIdx, char *TerrainTypeName ) 
+int WmFindMatchForTerrainType( char *TerrainTypeName, int *pIdx ) 
 {
     int i;
 
@@ -1210,7 +1208,7 @@ int WmAreaInit()
                 if( StrParseFromList( &tmp, &Entrance->i01, gWmOffOnList, 2 ) == -1 ) return -1;
                 if( StrParseGetInt( &tmp, &Entrance->i02 ) == -1 ) return -1;
                 if( StrParseGetInt( &tmp, &Entrance->i03 ) == -1 ) return -1;
-                if( StrParseFromFunc( &tmp, &Entrance->Id, (void *)WmLookupMapByName ) == -1 ) return -1;
+                if( StrParseFromFunc( &tmp, &Entrance->Id, WmLookupMapByName ) == -1 ) return -1;
                 if( StrParseGetInt( &tmp, &Entrance->i05 ) == -1 ) return -1;
                 if( StrParseGetInt( &tmp, &Entrance->i06 ) == -1 ) return -1;
                 if( StrParseGetInt( &tmp, &Entrance->i07 ) == -1 ) return -1;
@@ -1223,7 +1221,7 @@ int WmAreaInit()
     return 0;                
 }
 
-int WmLookupMapByName( int *Idx, char *Name )
+int WmLookupMapByName( char *Name, int *Idx )
 {
     int i;
 

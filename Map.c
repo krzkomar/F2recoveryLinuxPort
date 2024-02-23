@@ -51,10 +51,12 @@ int MapIsoInit()
         return -1;
     }
     eprintf( ">tile_init\t\t" );
+
     if( ObjInit( gMapIsoSurf, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99, gVidMainGeo.rt - gVidMainGeo.lt + 1 ) ){ 
 	eprintf( "obj_init failed in iso_init\n" ); 
 	return -1; 
     }
+
     eprintf( ">obj_init\t\t" );
     CycleColorsInit();
     eprintf( ">cycle_init\t\t" );
@@ -167,7 +169,7 @@ int MapAmbientDisable()
     return 1;
 }
 
-int MapUnk21()
+int MapAmbientEnabled()
 {
     return gMapAmbientEnable == 0;
 }
@@ -611,7 +613,7 @@ printf("MapScriptId:%x\n", gMapScriptId);
     p->TimeEv = ScptNewObjId();
     scr->i08 = p->TimeEv;
     scr->TimeEv = p;
-//SCP_DBG_EN;
+SCP_DBG_EN;
 DD
     ScptUnk23();
     ScptRun( gMapScriptId, SCPT_AEV_MAP_ENTER_P_PROC );
@@ -650,7 +652,7 @@ DD
     }
     ScptClockInit();
     if( GSoundMapInit() == -1 ) err = -1;
-    WmUnk41(gMap.MapId);
+    WmUnk41( gMap.MapId );
     WmUnk45( gMap.MapId, gCurrentMapLvl, 1 );
     if( WmUnk47() ) err = -1;
     dbSetRWFunc( NULL, 0 );

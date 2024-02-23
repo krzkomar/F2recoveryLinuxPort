@@ -19,7 +19,7 @@
         type = IntpPopwA( scr );\
         arg = IntpPopPtrA( scr );\
         if( type == SCR_FSTRING ) IntpStringDeRef( scr, type, PTR2INT( arg ) );\
-        if( (type & 0xF7FF) != SCR_PTR ) IntpError( "script error: %s: invalid arg %d to "#name, scr->FileName, arg_num );
+        if( (type & 0xF7FF) != SCR_PTR ) IntpError( "script error: %s: invalid arg %d[%x] to "#name, scr->FileName, arg_num, type );
 
 #define GETARGIP( scr, type, argi, argp, arg_num, name )	\
         type = IntpPopwA( scr );\
@@ -185,32 +185,31 @@ void ScrGame_SetMapStart( Intp_t *scr )
 void ScrGame_OverrideMapStart( Intp_t *scr )
 {
     SCP_DBG_VAR;
-    unsigned int Val[ 4 ], GridPos;
+    unsigned int GridPos, x, y, lvl, rotation;
     char stmp[ 60 ];
     uint16_t type[ 4 ];
 
     scr->Flags |= SCR_FPROC_RUN;
-    GETARGI( scr, type[ 0 ], Val[ 0 ], 0, "override_map_start" );
-    GETARGI( scr, type[ 1 ], Val[ 1 ], 1, "override_map_start" );
-    GETARGI( scr, type[ 2 ], Val[ 2 ], 2, "override_map_start" );
-    GETARGI( scr, type[ 3 ], Val[ 3 ], 3, "override_map_start" );
-    SCP_DBGA( "override_map_start( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], Val[3], type[2], Val[2], type[1], Val[1], type[0], Val[0] );
-    sprintf( stmp, "OVERRIDE_MAP_START: x: %d, y: %d", Val[ 3 ], Val[ 2 ] );
+    GETARGI( scr, type[ 0 ], rotation, 0, "override_map_start" );
+    GETARGI( scr, type[ 1 ], lvl, 1, "override_map_start" );
+    GETARGI( scr, type[ 2 ], y, 2, "override_map_start" );
+    GETARGI( scr, type[ 3 ], x, 3, "override_map_start" );
+    SCP_DBGA( "override_map_start( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], x, type[2], y, type[1], lvl, type[0], rotation );
+    sprintf( stmp, "OVERRIDE_MAP_START: x: %d, y: %d", x, y );
     eprintf( "%s\n", stmp );
     
-    GridPos = 200 * Val[ 2 ] + Val[ 3 ];
-    if( GridPos != -1 ){
-        if( ObjSetRotation( gObjDude, Val[ 0 ], 0 ) ) ScrGameEprintf("\nError: %s: obj_set_rotation failed in override_map_start!", scr->FileName);
-        if( ObjMoveToTile( gObjDude, GridPos, Val[ 1 ], 0 ) ){
-            ScrGameEprintf( "\nError: %s: obj_move_to_tile failed in override_map_start!", scr->FileName );
-            if( ObjMoveToTile( gObjDude, gTileCentIdx, Val[ 1 ], 0 ) ){
-                ScrGameEprintf( "\nError: %s: obj_move_to_tile RECOVERY Also failed!", scr->FileName );
-                exit( 1 );
-            }
+    GridPos = 200 * y + x;
+    if( GridPos == -1 ) return;
+    if( ObjSetRotation( gObjDude, rotation, 0 ) ) ScrGameEprintf( "\nError: %s: obj_set_rotation failed in override_map_start!", scr->FileName );
+    if( ObjMoveToTile( gObjDude, GridPos, lvl, NULL ) ){
+        ScrGameEprintf( "\nError: %s: ObjMoveToTile failed in override_map_start!", scr->FileName );
+        if( ObjMoveToTile( gObjDude, gTileCentIdx, lvl, NULL ) ){
+            ScrGameEprintf( "\nError: %s: ObjMoveToTile RECOVERY Also failed!", scr->FileName );
+            exit( 1 );
         }
-        TileSetCenter( GridPos, 1 );
-        TileUpdate();
     }
+    TileSetCenter( GridPos, 1 );
+    TileUpdate();
     scr->Flags &= ~SCR_FPROC_RUN;
 }
 
@@ -1625,6 +1624,18 @@ void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5, int v9 )
 1	    int meta3_par2, 
 0	    int meta3_par3
 	) 
+    100 -> METARULE3_CLR_FIXED_TIMED_EVENTS
+    101 -> METARULE3_MARK_SUBTILE
+    102 -> METARULE3_SET_WM_MUSIC // not implemented
+    103 -> METARULE3_GET_KILL_COUNT
+    104 -> METARULE3_MARK_MAP_ENTRANCE
+    105 -> METARULE3_WM_SUBTILE_STATE
+    106 -> METARULE3_TILE_GET_NEXT_CRITTER
+    107 -> METARULE3_ART_SET_BASE_FID_NUM
+    108 -> METARULE3_TILE_SET_CENTER
+    109 -> METARULE3_CHEM_USE_LEVEL
+    110 -> METARULE3_CAR_OUT_OF_FUEL
+    111 -> METARULE3_MAP_GET_LOAD_AREA
 */
 void ScrGame_Metarule3( Intp_t *scr )
 {
@@ -1649,25 +1660,25 @@ void ScrGame_Metarule3( Intp_t *scr )
     GETARGI( scr, type[ 3 ], meta3_switch, 3, "metarule3" );
     SCP_DBGA( "metarule3( [%x]%x, [%x]%x,  [%x]%x,  [%x]%x)", type[3], meta3_switch, type[2], obj, type[1], arg1, type[0], arg0 );
     switch( meta3_switch ){
-	case 'd':
+	case 100:
 	    ScptUnk131( obj, arg1 );
 	    EvQeRun( 3, (void *)ScptUnk130 );
 	    result = 0;
 	    break;
-        case 'e':
+        case 101:
             result = WmUnk70( obj, arg1, arg0 );
             break;
-        case 'g':
+        case 103:
             result = CritterGetKillStat( obj );
             break;
-        case 'h':
+        case 104:
             result = WmUnk45( obj, arg0, arg1 );
             break;
-        case 'i':
+        case 105:
             if( !WmUnk71( obj, arg1, &v22 ) ) v23 = v22;
             result = v23;
             break;
-        case 'j':
+        case 106:
             if( !arg0 ) v24 = 1;
             for( p = ObjGetFirst( arg1, obj ); p; p = ObjGetNext() ){
                 if( OBJTYPE( p->Pid ) == 1 && v24 ) break;
@@ -1675,22 +1686,22 @@ void ScrGame_Metarule3( Intp_t *scr )
             }
             RETPTR( scr, p );
             return;
-        case 'k':
+        case 107:
             Id = ArtMakeId((p2->ImgId & 0xF000000) >> 24, arg1, (p2->ImgId & 0xFF0000u) >> 16, (p2->ImgId & 0xF000) >> 12, (p2->ImgId & 0x70000000) >> 28);
             ObjSetShape(p2, Id, &Area);
             TileUpdateArea( &Area, gCurrentMapLvl );
             result = v23;
             return;
-        case 'l':
+        case 108:
     	    result = TileSetCenter( obj, 1 );
             break;
-        case 'm':
+        case 109:
     	    result = AiGetChemUse( p2 );
             break;
-        case 'n':
+        case 110:
             result = ( WmCarNoFuel() == 1 );
     	    break;
-        case 'o':
+        case 111:
     	    result = MapGetAreaByEntrance();
     	    break;
         default: return;                
@@ -2752,6 +2763,31 @@ void ScrGame_FloatMsg( Intp_t *scr )
 
 /*
     int metarule( int meta_switch, int meta_par ) - function works with a variety of gaming options, has a huge number of variations
+    
+    13 -> METARULE_SIGNAL_END_GAME
+    14 -> METARULE_TEST_FIRSTRUN
+    15 -> METARULE_ELEVATOR
+    16 -> METARULE_PARTYCOUNT
+    17 -> METARULE_AREA_KNOWN
+    18 -> METARULE_WHO_ON_DRUGS
+    19 -> METARULE_MAP_KNOWN        
+    22 -> METARULE_IS_LOADGAME
+    30 -> METARULE_CAR_CURRENT_TOWN
+    31 -> METARULE_GIVE_CAR_TO_PARTY
+    32 -> METARULE_GIVE_CAR_GAS
+    40 -> METARULE_SKILL_CHECK_TAG
+    42 -> METARULE_DROP_ALL_INVEN
+    43 -> METARULE_INVEN_UWIELD_WHO
+    44 -> METARULE_GET_WORLDMAP_XPOS
+    45 -> METARULE_GET_WORLDMAP_YPOS
+    46 -> METARULE_CURRENT_TOWN
+    47 -> METARULE_LANGUAGE_FILTER
+    48 -> METARULE_VIOLENCE_FILTER
+    49 -> METARULE_W_DAMAGE_TYPE // weapon
+    50 -> METARULE_CRITTER_BARTERS
+    51 -> METARULE_CRITTER_KILL_TYPE
+    52 -> METARULE_SET_CAR_CARRY_AMOUNT
+    53 -> METARULE_GET_CAR_CARRY_AMOUNT
 */
 void ScrGame_MetaRule( Intp_t *scr ) 
 {
@@ -2774,7 +2810,6 @@ void ScrGame_MetaRule( Intp_t *scr )
 	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
 	SCP_DBGA( "metarule( [%x]%x, [%x]%x )", type[1], sel, type[0], meta_par );
     }
-printf("-metarule---->%i\n", sel);
     switch( sel ){
 	case 13: gMenuEscape = 2; RETINT( scr, 0 ); break;	    
         case 14: RETINT( scr, (gMap.MapFlags & 0x01) == 0 ); break;

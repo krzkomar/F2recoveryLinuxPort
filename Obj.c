@@ -2404,15 +2404,17 @@ void ObjFreeList( ObjList_t **list )
 int ObjFindInList( Obj_t *obj, ObjList_t **list_cur, ObjList_t **list_prev )
 {
     if( !obj || !list_cur ) return -1;
-
     *list_cur = (obj->GridId == -1 ) ? gObjOffGridObjs : gObjGridObjects[ obj->GridId ];
+    *list_prev = NULL;
     if( list_prev ){
-        *list_prev = NULL;
-        for( ; *list_cur && (obj != (*list_cur)->object); *list_cur = (*list_cur)->Next ){
-            *list_prev = *list_cur;
+        for( ; *list_cur; *list_cur = (*list_cur)->Next ){
+    	    if( obj == (*list_cur)->object ) break;
+            *list_prev = *list_cur;            
         }
     } else {
-        for( ; *list_cur && ( obj != ( *list_cur)->object ); *list_cur = (*list_cur)->Next );
+        for( ; *list_cur; *list_cur = (*list_cur)->Next ){
+    	    if( obj == (*list_cur)->object ) break;
+        }
     }
     return ( *list_cur ) ? 0 : -1;
 }
@@ -2499,31 +2501,79 @@ int ObjAddObjToList( ObjList_t *pList, int GridPos, int MapLvl, VidRect_t *Area 
 
 int ObjLight( Obj_t *obj, int Dark, VidRect_t *a3 )
 {
-    VidRect_t *v32,*v33,*v35,Area2,RectRadius,*r;
-    Proto_t *proto;
-    ObjList_t *v23;
-    Obj_t *v34, *object, *v27;
-    unsigned int j,idx, i_, v47, v48;
-    char *v44, *v49, flg;
-    int v444,i,v77,v21,v24;
-    int Elevation,v28,v29,FlgExt,v31,Tab[36],pY,pX,v50,Pos,v53;
-    void (*Cb)(int, int, int);
+    char flg; // bl
+    int v444; // edx
+    int i; // ebp
+    unsigned int j; // ecx
+    int v77; // edx
+    int v88; // edx
+    int v99; // ebx
+    int v10; // eax
+    int v11; // ebx
+    int v12; // edx
+    int v13; // edi
+    int v14; // edx
+    int v15; // edx
+    int v16; // edx
+    int v17; // esi
+    int v18; // edx
+    int v19; // edx
+    int v20; // edx
+    int v21; // edx
+    unsigned int idx; // eax
+    ObjList_t *v23; // esi
+    int v24; // edi
+    Obj_t *object; // eax
+    int Elevation; // edx
+    Obj_t *v27; // eax
+    int v28; // edx
+    int v29; // ebx
+    int FlgExt; // eax
+    int v31; // ebx
+    VidRect_t *v32; // edi
+    VidRect_t *v33; // esi
+    Obj_t *v34; // eax
+    VidRect_t *v35; // edx
+    int Tab[36]; // [esp+0h] [ebp-F8h]
+    VidRect_t Area2; // [esp+90h] [ebp-68h] BYREF
+    VidRect_t RectRadius; // [esp+A0h] [ebp-58h] BYREF
+    Proto_t *proto; // [esp+B0h] [ebp-48h] BYREF
+    int pY; // [esp+B4h] [ebp-44h] BYREF
+    int pX; // [esp+B8h] [ebp-40h] BYREF
+    VidRect_t *r; // [esp+BCh] [ebp-3Ch]
+    char *v44; // [esp+C0h] [ebp-38h]
+    unsigned int i_; // [esp+C4h] [ebp-34h]
+    void (*Cb)(int, int, int); // [esp+C8h] [ebp-30h]
+    unsigned int v47; // [esp+CCh] [ebp-2Ch]
+    unsigned int v48; // [esp+D0h] [ebp-28h]
+    char *v49; // [esp+D4h] [ebp-24h]
+    int v50; // [esp+D8h] [ebp-20h]
+    int Pos; // [esp+DCh] [ebp-1Ch]
+    int v53; // [esp+E4h] [ebp-14h]
 
     r = a3;
-    if( !obj ) return -1;
-    if( obj->LightIntensity <= 0 ) return -1;
+    if ( !obj )
+        return -1;
+    if ( obj->LightIntensity <= 0 )
+        return -1;
     flg = obj->Flags;
-    if( (flg & 1) != 0 || (flg & 0x20) == 0 || obj->GridId > 39999u ) return -1;
-    if( Dark ){
-        Cb = (void (*)(int, int, int))ItemGridLightDec;
+    if ( (flg & 1) != 0 || (flg & 0x20) == 0 || obj->GridId > 39999u )
+        return -1;
+    if ( Dark )
+    {
+        Cb = ItemGridLightDec;
         ItemGridLightDec(obj->Elevation, obj->GridId, obj->LightIntensity);
-    } else {
-        Cb = (void (*)(int, int, int))ItemGridLightInc;
+    }
+    else
+    {
+        Cb = ItemGridLightInc;
         ItemGridLightInc(obj->Elevation, obj->GridId, obj->LightIntensity);
     }
     ObjGetRadiusArea(obj, &RectRadius);
-    if( obj->LightRadius > 8 ) obj->LightRadius = 8;
-    if( obj->LightIntensity > 0x10000 ) obj->LightIntensity = 0x10000;
+    if ( obj->LightRadius > 8 )
+        obj->LightRadius = 8;
+    if ( obj->LightIntensity > 0x10000 )
+        obj->LightIntensity = 0x10000;
     v44 = &gObjLight[864 * (obj->GridId & 1)];
     v444 = (obj->LightIntensity - 655) / (obj->LightRadius + 1);
     Tab[0] = obj->LightIntensity - v444;
@@ -2564,17 +2614,22 @@ int ObjLight( Obj_t *obj, int Dark, VidRect_t *a3 )
     Tab[32] = Tab[6] - v444;
     Tab[34] = Tab[6] - v444;
     Tab[35] = Tab[6] - v444;
-    do{
-        if( obj->LightRadius >= gObjUnk38[i_ / 4] ){
+    do
+    {
+        if ( obj->LightRadius >= gObjUnk38[i_ / 4] )
+        {
             v48 = i_;
             v47 = i_;
             v49 = &v44[i_];
             j = 0;
             v50 = i_;
-            do{
+            do
+            {
                 v77 = (int)(j + 1) % 6;
-                if( (unsigned int)i <= 35 ){
-                    switch( v47 ){
+                if ( (unsigned int)i <= 35 )
+                {
+                    switch ( v47 )
+                    {
                         case 0u:
                             v53 = 0;
                             break;
@@ -2624,143 +2679,115 @@ int ObjLight( Obj_t *obj, int Dark, VidRect_t *a3 )
                             v53 = gObjUnk52[v77][1] & gObjUnk52[j][8];
                             break;
                         case 16u:
-                            v53 = gObjUnk52[j][15] & (gObjUnk52[j][9] | gObjUnk52[j][8]);
+                            v53 = gObjUnk52[j][15] & gObjUnk52[j][9] | gObjUnk52[j][8];
                             break;
                         case 17u:
-                            v53 = 
-                        	((gObjUnk52[j][15] | gObjUnk52[j][10]) & gObjUnk52[j][9]) | 
-                        	(gObjUnk52[j][16] & (gObjUnk52[j][10] | gObjUnk52[j][9])) | 
-                        	((gObjUnk52[j][10] | gObjUnk52[j][9]) & gObjUnk52[j][8]);
-                            break;
+                            v88 = gObjUnk52[j][10] | gObjUnk52[j][9];
+                            v99 = gObjUnk52[j][16] & v88 | v88 & gObjUnk52[j][8];
+                            v10 = (gObjUnk52[j][15] | gObjUnk52[j][10]) & gObjUnk52[j][9];
+                            goto LABEL_54;
                         case 18u:
-                            v53 = (gObjUnk52[j][11] | gObjUnk52[j][10] | gObjUnk52[j][9] | gObjUnk52[j][0]) & (gObjUnk52[j][17] | gObjUnk52[j][9] | gObjUnk52[j][16]) & gObjUnk52[j][10];
+                            v53 = (gObjUnk52[j][11] | gObjUnk52[j][10] | gObjUnk52[j][9] | gObjUnk52[j][0]) & gObjUnk52[j][17] | gObjUnk52[j][9] | gObjUnk52[j][16] & gObjUnk52[j][10];
                             break;
                         case 19u:
-                            v53 = 
-                        	(gObjUnk52[j][18] & (gObjUnk52[j][12] | gObjUnk52[j][10] | gObjUnk52[j][9])) | 
-                        	((gObjUnk52[j][18] | gObjUnk52[j][17]) & gObjUnk52[j][11]);
-                            break;
+                            v11 = gObjUnk52[j][18] & gObjUnk52[j][12] | gObjUnk52[j][10] | gObjUnk52[j][9] | (gObjUnk52[j][18] | gObjUnk52[j][17]) & gObjUnk52[j][11];
+                            goto LABEL_55;
                         case 20u:
-                            v53 = 
-                        	((gObjUnk52[j][19] | gObjUnk52[j][18] | gObjUnk52[j][17] | gObjUnk52[j][16]) & gObjUnk52[j][11]) | 
-                        	((gObjUnk52[j][10] | gObjUnk52[j][9]) & (gObjUnk52[j][12] | gObjUnk52[j][11] | gObjUnk52[j][2]))| 
-                        	((gObjUnk52[j][12] | gObjUnk52[j][11] | gObjUnk52[j][2]) & gObjUnk52[j][8]);
-                            break;
+                            v12 = gObjUnk52[j][12] | gObjUnk52[j][11] | gObjUnk52[j][2];
+                            v99 = gObjUnk52[j][10] | gObjUnk52[j][9] & v12 | v12 & gObjUnk52[j][8];
+                            v10 = (gObjUnk52[j][19] | gObjUnk52[j][18] | gObjUnk52[j][17] | gObjUnk52[j][16]) & gObjUnk52[j][11];
+                            goto LABEL_54;
                         case 21u:
-                            v53 = (gObjUnk52[v77][2] & gObjUnk52[j][15]) | (gObjUnk52[v77][1] & gObjUnk52[j][8]);
+                            v53 = gObjUnk52[v77][2] & gObjUnk52[j][15] | gObjUnk52[v77][1] & gObjUnk52[j][8];
                             break;
                         case 22u:
-                            v53 = 
-                        	(gObjUnk52[j][16] & (gObjUnk52[j][21] | gObjUnk52[j][15])) | 
-                        	(gObjUnk52[j][15] & (gObjUnk52[j][21] | gObjUnk52[j][9])) | 
-                        	((gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][1]) & gObjUnk52[j][8]);
-                            break;
+                            v11 = gObjUnk52[j][16] & (gObjUnk52[j][21] | gObjUnk52[j][15]) | gObjUnk52[j][15] & (gObjUnk52[j][21] | gObjUnk52[j][9]) | (gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][1]) & gObjUnk52[j][8];
+                            goto LABEL_55;
                         case 23u:
-                            v53 = gObjUnk52[j][22] & ( gObjUnk52[j][17] | gObjUnk52[j][15] ) & ( gObjUnk52[j][9] | gObjUnk52[j][3] | gObjUnk52[j][16] );
-                            break;
+                            v11 = gObjUnk52[j][22] & gObjUnk52[j][17] | gObjUnk52[j][15] & gObjUnk52[j][9] | gObjUnk52[j][3] | gObjUnk52[j][16];
+                            goto LABEL_55;
                         case 24u:
-                            v53 = 
-                        	( gObjUnk52[j][23] & gObjUnk52[j][18] ) | 
-                        	( gObjUnk52[j][17] & (gObjUnk52[j][23] | gObjUnk52[j][22] | gObjUnk52[j][15]) ) | 
-                        	(( gObjUnk52[j][8] | gObjUnk52[j][9] ) & (gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][15] ) ) | 
-                        	( ( gObjUnk52[j][18] | gObjUnk52[j][17] | gObjUnk52[j][10] | gObjUnk52[j][9] | gObjUnk52[j][0]) & gObjUnk52[j][16] );
-                            break;
+                            v13 = gObjUnk52[j][23];
+                            v11 = v13 & gObjUnk52[j][18] | gObjUnk52[j][17] & (v13 | gObjUnk52[j][22] | gObjUnk52[j][15]) | gObjUnk52[j][8] | gObjUnk52[j][9] & (v13 | gObjUnk52[j][16] | gObjUnk52[j][15]) | (gObjUnk52[j][18] | gObjUnk52[j][17] | gObjUnk52[j][10] | gObjUnk52[j][9] | gObjUnk52[j][0]) & gObjUnk52[j][16];
+                            goto LABEL_55;
                         case 25u:
-                            v53 = 
-                        	( (gObjUnk52[j][19] | gObjUnk52[j][0]) & gObjUnk52[j][24] ) | 
-                        	( gObjUnk52[j][18] & (gObjUnk52[j][24] | gObjUnk52[j][23] | (gObjUnk52[j][16] | gObjUnk52[j][8])) ) | 
-                        	( (gObjUnk52[j][17] | gObjUnk52[j][10]) & (gObjUnk52[j][24] | (gObjUnk52[j][16] | gObjUnk52[j][8]) | gObjUnk52[j][17])) | 
-                        	( gObjUnk52[j][1] & (gObjUnk52[j][8] | (gObjUnk52[j][24] | gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][15] | gObjUnk52[j][8])) & gObjUnk52[j][9]);
-                            break;
+                            v14 = gObjUnk52[j][16] | gObjUnk52[j][8];
+                            v99 = gObjUnk52[j][18] & (gObjUnk52[j][24] | gObjUnk52[j][23] | v14) | gObjUnk52[j][17] | gObjUnk52[j][10] & (gObjUnk52[j][24] | v14 | gObjUnk52[j][17]) | gObjUnk52[j][1] & gObjUnk52[j][8] | (gObjUnk52[j][24] | gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][15] | gObjUnk52[j][8]) & gObjUnk52[j][9];
+                            v10 = (gObjUnk52[j][19] | gObjUnk52[j][0]) & gObjUnk52[j][24];
+                            goto LABEL_54;
                         case 26u:
-                            v53 = 
-                        	( gObjUnk52[v77][3] & gObjUnk52[j][21]) |
-                        	( gObjUnk52[j][8] & gObjUnk52[v77][1] ) | 
-                        	( gObjUnk52[v77][2] & gObjUnk52[j][15] );
-                            break;
+                            v15 = v77;
+                            v99 = gObjUnk52[j][8] & gObjUnk52[v15][1] | gObjUnk52[v15][2] & gObjUnk52[j][15];
+                            v10 = gObjUnk52[v15][3] & gObjUnk52[j][21];
+                            goto LABEL_54;
                         case 27u:
-                            v53 = 
-                        	( gObjUnk52[j][16] | gObjUnk52[j][8] ) & 
-                        	( gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][1] ) & 
-                        	( (gObjUnk52[j][8] | ( gObjUnk52[j][26] | gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][0] )) & gObjUnk52[j][22] );
+                            v53 = (gObjUnk52[j][16] | gObjUnk52[j][8]) & gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][1] & gObjUnk52[j][8] | (gObjUnk52[j][26] | gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][0]) & gObjUnk52[j][22];
                             break;
                         case 28u:
-                            v53 = 
-                        	( gObjUnk52[j][27] & gObjUnk52[j][23] ) | 
-                        	( gObjUnk52[j][22] & (gObjUnk52[j][23] | gObjUnk52[j][17] | gObjUnk52[j][9]) ) | 
-                        	( gObjUnk52[j][16] & (gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][21] | gObjUnk52[v77][0]) ) | 
-                        	( ( gObjUnk52[j][8] | gObjUnk52[j][15]) & (gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][9] ) );
-                            break;
+                            v11 = gObjUnk52[j][27] & gObjUnk52[j][23] | gObjUnk52[j][22] & (gObjUnk52[j][23] | gObjUnk52[j][17] | gObjUnk52[j][9]) | gObjUnk52[j][16] & (gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][21] | gObjUnk52[v77][0]) | gObjUnk52[j][8] | gObjUnk52[j][15] & (gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][9]);
+                            goto LABEL_55;
                         case 29u:
-                            v53 = 
-                        	( gObjUnk52[j][28] & gObjUnk52[j][24] ) | 
-                        	( gObjUnk52[j][22] & gObjUnk52[j][17] ) | 
-                        	( gObjUnk52[j][15] & ( gObjUnk52[j][9] | gObjUnk52[j][16] | gObjUnk52[j][8] | gObjUnk52[j][23] ) );
-                            break;
+                            v11 = gObjUnk52[j][28] & gObjUnk52[j][24] | gObjUnk52[j][22] & gObjUnk52[j][17] | gObjUnk52[j][15] & gObjUnk52[j][9] | gObjUnk52[j][16] | gObjUnk52[j][8] | gObjUnk52[j][23];
+                            goto LABEL_55;
                         case 30u:
-                            v53 = 
-                        	( gObjUnk52[v77][4] & gObjUnk52[j][26] ) | 
-                        	( gObjUnk52[v77][2] & gObjUnk52[j][15] ) | 
-                        	( gObjUnk52[ j ][8] & gObjUnk52[v77][1] ) | 
-                        	( gObjUnk52[v77][3] & gObjUnk52[j][21] );
-                            break;
+                            v16 = v77;
+                            v99 = gObjUnk52[v16][2] & gObjUnk52[j][15] | gObjUnk52[j][8] & gObjUnk52[v16][1] | gObjUnk52[v16][3] & gObjUnk52[j][21];
+                            v10 = gObjUnk52[v16][4] & gObjUnk52[j][26];
+                            goto LABEL_54;
                         case 31u:
-                            v53 = 
-                        	( gObjUnk52[j][30] & gObjUnk52[j][27] ) | 
-                        	( gObjUnk52[j][26] & (gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][8]) ) | 
-                        	(( gObjUnk52[j][15] | gObjUnk52[v77][1] ) & ( gObjUnk52[j][8] | gObjUnk52[j][21] ));
-                            break;
+                            v11 = gObjUnk52[j][30] & gObjUnk52[j][27] | gObjUnk52[j][26] & (gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][8]) | gObjUnk52[j][15] | gObjUnk52[v77][1] & gObjUnk52[j][8] | gObjUnk52[j][21];
+                            goto LABEL_55;
                         case 32u:
-                            v53 = 
-                        	( gObjUnk52[j][28] & (gObjUnk52[j][31] | gObjUnk52[j][0]) ) | 
-                        	( gObjUnk52[j][27] & (gObjUnk52[j][28] | gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][8]) ) | gObjUnk52[j][22] | 
-                        	( gObjUnk52[v77][1] & gObjUnk52[j][8] ) | 
-                        	( ( gObjUnk52[j][28] | gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][9] | gObjUnk52[j][8]) & gObjUnk52[j][15] ) |
-                        	( gObjUnk52[j][21] & ( gObjUnk52[j][16] | gObjUnk52[j][8] | gObjUnk52[j][28] ) );
-                            break;
+                            v17 = gObjUnk52[v77][1] & gObjUnk52[j][8] | (gObjUnk52[j][28] | gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][9] | gObjUnk52[j][8]) & gObjUnk52[j][15];
+                            v18 = gObjUnk52[j][16] | gObjUnk52[j][8];
+                            v11 = gObjUnk52[j][28] & (gObjUnk52[j][31] | gObjUnk52[j][0]) | gObjUnk52[j][27] & (gObjUnk52[j][28] | gObjUnk52[j][23] | v18) | gObjUnk52[j][22] | v17 | gObjUnk52[j][21] & (v18 | gObjUnk52[j][28]);
+                            goto LABEL_55;
                         case 33u:
-                            v53 = 
-                        	( gObjUnk52[v77][5] & gObjUnk52[j][30] ) |                         	
-                        	( gObjUnk52[v77][3] & gObjUnk52[j][21] ) | 
-                        	( gObjUnk52[v77][2] & gObjUnk52[j][15] ) | 
-                        	( gObjUnk52[v77][1] & gObjUnk52[j][ 8] ) | 
-                        	( gObjUnk52[v77][4] & gObjUnk52[j][26] );
-                            break;
+                            v19 = v77;
+                            v99 = gObjUnk52[v19][3] & gObjUnk52[j][21] | gObjUnk52[v19][2] & gObjUnk52[j][15] | gObjUnk52[v19][1] & gObjUnk52[j][8] | gObjUnk52[v19][4] & gObjUnk52[j][26];
+                            v10 = gObjUnk52[v19][5] & gObjUnk52[j][30];
+                            goto LABEL_54;
                         case 34u:
-                            v53 = 
-                        	( ( gObjUnk52[j][31] | gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][16]) & gObjUnk52[j][26] ) | 
-                        	( ( gObjUnk52[j][21] | gObjUnk52[j][15] ) & ( gObjUnk52[j][30] | gObjUnk52[j][26] | gObjUnk52[v77][2] ) ) | 
-                        	( ( gObjUnk52[j][30] | gObjUnk52[j][26] | gObjUnk52[v77][2] ) & gObjUnk52[j][8] );
-                            break;
+                            v20 = gObjUnk52[j][30] | gObjUnk52[j][26] | gObjUnk52[v77][2];
+                            v99 = gObjUnk52[j][21] | gObjUnk52[j][15] & v20 | v20 & gObjUnk52[j][8];
+                            v10 = (gObjUnk52[j][31] | gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][16]) & gObjUnk52[j][26];
+                            goto LABEL_54;
                         case 35u:
                             v21 = v77;
-                            v53 = 
-                        	( gObjUnk52[v21][4] & gObjUnk52[ j ][26] ) | 
-                        	( gObjUnk52[v21][3] & gObjUnk52[ j ][21] ) | 
-                        	( gObjUnk52[v21][2] & gObjUnk52[ j ][15] ) | 
-                        	( gObjUnk52[ j ][8] & gObjUnk52[v21][ 1] ) | 
-                        	( gObjUnk52[v21][5] & gObjUnk52[ j ][30] ) |
-                        	( gObjUnk52[v21][6] & gObjUnk52[ j ][33] );
+                            v99 = gObjUnk52[v21][4] & gObjUnk52[j][26] | gObjUnk52[v21][3] & gObjUnk52[j][21] | gObjUnk52[v21][2] & gObjUnk52[j][15] | gObjUnk52[j][8] & gObjUnk52[v21][1] | gObjUnk52[v21][5] & gObjUnk52[j][30];
+                            v10 = gObjUnk52[v21][6] & gObjUnk52[j][33];
+LABEL_54:
+                            v11 = v10 | v99;
+LABEL_55:
+                            v53 = v11;
                             break;
                     }
                 }
-                if( !v53 ){
+                if ( !v53 )
+                {
                     idx = *(int *)v49 + obj->GridId;
                     Pos = idx;
-                    if( idx <= 39999 ){
+                    if ( idx <= 39999 )
+                    {
                         v23 = gObjGridObjects[idx];
                         v24 = 1;
-                        if( v23 ){
-                            while( 1 ){
+                        if ( v23 )
+                        {
+                            while ( 1 )
+                            {
                                 object = v23->object;
-                                if( (v23->object->Flags & 1) == 0 ){
+                                if ( (v23->object->Flags & 1) == 0 )
+                                {
                                     Elevation = object->Elevation;
-                                    if( Elevation > obj->Elevation ) goto LABEL_94;
-                                    if( Elevation == obj->Elevation ) break;
+                                    if ( Elevation > obj->Elevation )
+                                        goto LABEL_94;
+                                    if ( Elevation == obj->Elevation )
+                                        break;
                                 }
 LABEL_93:
                                 v23 = v23->Next;
-                                if( !v23 ) goto LABEL_94;
+                                if ( !v23 )
+                                    goto LABEL_94;
                             }
                             ObjGetRadiusArea(object, &Area2);
                             RegionExpand(&RectRadius, &Area2, &RectRadius);
@@ -2768,43 +2795,61 @@ LABEL_93:
                             v28 = (v23->object->Flags & 0x20000000) == 0;
                             v29 = (v23->object->ImgId & 0xF000000) >> 24;
                             v53 = v28;
-                            if( v29 == 3 ){
-                                if( (v27->Flags & 8) == 0 ){
+                            if ( v29 == 3 )
+                            {
+                                if ( (v27->Flags & 8) == 0 )
+                                {
                                     ProtoGetObj(v27->Pid, &proto);
                                     FlgExt = proto->FlgExt;
-                                    if( (FlgExt & 0x8000000) != 0 || (FlgExt & 0x40000000) != 0 ){
+                                    if ( (FlgExt & 0x8000000) != 0 || (FlgExt & 0x40000000) != 0 )
+                                    {
                                         if ( j != 4 && j != 5 && (j || i >= 8) && (j != 3 || i <= 15) )
 LABEL_91:
                                             v24 = 0;
-                                    }else if( (FlgExt & 0x10000000) != 0 ){
-                                        if( j && j != 5 ) goto LABEL_91;
-                                    } else if ( (FlgExt & 0x20000000) != 0 ){
-                                        if ( j >= 2 && j != 4 && j != 5 && (j != 3 || i <= 15) ) goto LABEL_91;
-                                    } else if ( j >= 2 && (j != 5 || i <= 7) ){
+                                    }
+                                    else if ( (FlgExt & 0x10000000) != 0 )
+                                    {
+                                        if ( j && j != 5 )
+                                            goto LABEL_91;
+                                    }
+                                    else if ( (FlgExt & 0x20000000) != 0 )
+                                    {
+                                        if ( j >= 2 && j != 4 && j != 5 && (j != 3 || i <= 15) )
+                                            goto LABEL_91;
+                                    }
+                                    else if ( j >= 2 && (j != 5 || i <= 7) )
+                                    {
                                         goto LABEL_91;
                                     }
                                 }
-                            } else if ( v28 && j && j <= 3 ){
+                            }
+                            else if ( v28 && j && j <= 3 )
+                            {
                                 goto LABEL_91;
                             }
-                            if( v53 ) goto LABEL_94;
+                            if ( v53 )
+                                goto LABEL_94;
                             goto LABEL_93;
                         }
 LABEL_94:
-                        if( v24 ) Cb(obj->Elevation, Pos, *(int *)((char *)Tab + v48));
+                        if ( v24 )
+                            Cb(obj->Elevation, Pos, *(int *)((char *)Tab + v48));
                     }
                 }
                 v31 = v50;
-                j++;
+                ++j;
                 *(int *)((char *)gObjUnk52[0] + v50) = v53;
                 v50 = v31 + 144;
                 v49 += 144;
-            }while( j < 6 );
+            }
+            while ( (int)j < 6 );
         }
-        i++;
+        ++i;
         i_ += 4;
-    }while( i < 36 );
-    if( r ){
+    }
+    while ( i < 36 );
+    if ( r )
+    {
         v32 = r;
         v33 = &gObjUnk39[obj->LightRadius];
         v34 = obj;
@@ -2931,8 +2976,7 @@ void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
             surf[ 0 ] = ( v52 ) ? Palette[ surf[ 0 ] + 256 * Shade[ ColorCycle ] ] : ColorCycle;
         }
     }
-
-    for( i = 0; i < Width; ++i ){        
+    for( i = 0; i < Width; ++i ){
         toggle = 1;
         surf = (unsigned char *)&surface[i];
         ColorCycle = Color;
@@ -2971,6 +3015,7 @@ void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
 
 void ObjRender( Obj_t *obj, VidRect_t *Area, int Shade )
 {
+
     ArtFrmHdr_t *Img, *Data;
     VidRect_t v28[ 4 ], AreaOut, rect, Area1;
     CachePool_t *Obj, *ImgObj;

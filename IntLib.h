@@ -1,6 +1,6 @@
 #pragma once
 
-#define INTP_STACK_SIZE	0x1000
+#define INTP_STACK_SIZE	0x2000
 
 #define SCR_OPCODE	0x8000		// 1000
 #define SCR_STRING	0x9001		// 1001 stala
@@ -45,6 +45,16 @@ typedef struct // size of 6
     short Type;
     int	  Var;
 } __attribute__ (( packed )) IntpArg_t;
+
+typedef struct // in original size of 6
+{
+    short Type;
+    union{
+	void 	  *Ptr;
+	uint32_t  Int;
+    };
+} IntpStk_t;
+
 
 //typedef struct // size of 4
 //{

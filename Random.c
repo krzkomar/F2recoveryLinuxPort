@@ -115,18 +115,18 @@ int RandTest()
     memset( noise, 0x00, 25 * sizeof( int ) );
     for( i = 0;i < 100000; i++ ){
         r = RandMinMax( 1, 25 );
-        if( r - 1 < 0 ) eprintf( "I made a negative number %d\n", r - 1 );
+        if( r - 1 < 0 ) eprintf( "I made a negative number %d", r - 1 );
         noise[ r - 1 ]++;
     }
     fmt = 0.0;
     for( i = 0; i < 25; i++ ){
         fmt += ((double)noise[ i ] - 4000.0) * ((double)noise[ i ] - 4000.0) / 4000.0;
     }
-    eprintf( "Chi squared is %lf, P = %lf at 0.05\n", fmt, 36.42 );
+    eprintf( "Chi squared is %lf, P = %lf at 0.05", fmt, 36.42 );
     if( fmt <= 36.42 )
-        return eprintf( "Sequence is random, 95%% confidence.\n" );
+        return eprintf( "Sequence is random, 95%% confidence." );
     else
-        return eprintf( "Warning! Sequence is not random, 95%% confidence.\n" );
+        return eprintf( "Warning! Sequence is not random, 95%% confidence." );
 }
 
 int RandUnk03()

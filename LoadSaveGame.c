@@ -336,7 +336,7 @@ int LsgSaveGameMenu( int Mode )
             } while( ExtCode == -1 );
             GmouseLoadCursor( 1 );
             LsgClose( 0 );
-//            OptPauseUnk02();
+            TileUpdate();
             if( Mode == 2 && ExtCode == 1 ) gLsgUnk01 = 1;
             return ExtCode;
         }
@@ -345,19 +345,17 @@ int LsgSaveGameMenu( int Mode )
 
 int LsgMakeThumbnail()
 {
-/*
     int n;
     
     if( !(gLsgThumbnailBuffer = Malloc( THUMBNAIL_SIZE )) ) return -1;
-    n = FuncUnk02();
+    n = GmouseUnk58();
     if( n ) GmouseUnk03();
     MseCursorRedraw();
-    OptPauseUnk02();
+    TileUpdate();
     MseDrawCursor();
-    if( n ) OptMenuUnk01();
+    if( n ) GmouseIsoEnter();
     ScrScaleImg( WinGetSurface( gMapIsoWin ), 640, 380, 640, gLsgThumbnailBuffer, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH );
     gLsgThumbnailEnd = gLsgThumbnailBuffer;
-*/
     return 1;
 }
 
@@ -577,19 +575,17 @@ int LsgMenuCreate( unsigned int mode )
 
     gLsgThumbnailP = gLsgThumbnailBuffer;
     gLsgThumbnailEnd = gLsgThumbnailBuffer + THUMBNAIL_SIZE;
-//    if( mode != 3 ) gLsgUnk18 = MapAmbientDisable();
+    if( mode != 3 ) gLsgUnk18 = MapAmbientDisable();
     CycleColorStop();
     GmouseLoadCursor(1);
-/*
     if( mode <= 1 ){ // save
-        if( (i = FuncUnk02()) ) GmouseUnk03();
+        if( (i = GmouseUnk58()) ) GmouseUnk03();
         MseCursorRedraw();
-        OptPauseUnk02();
+        TileUpdate();
         MseDrawCursor();
-        if( i ) OptMenuUnk01();
+        if( i ) GmouseIsoEnter();
         ScrScaleImg( WinGetSurface( gMapIsoWin ), 640, 380, 640, gLsgThumbnailEnd, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH );
     }
-*/
     for( i = 0; i < 9; i++ ){
         if( !(gLsgImg[ i ] = ArtLoadBmp( ArtMakeId( 6, gLsgImgIds[ i ], 0, 0, 0 ), &gLsgArt[ i ], &gLsgGeo[ i ].Width, &gLsgGeo[ i ].Height ) ) ) break;
     }
@@ -975,7 +971,7 @@ void LsgDescription( int SlotNo )
         	4 * (25 * (t / 60 % 24)) + (t % 60) 
     	    );
             gFont.Print( gLsgSurf + 640 * (h + 256) + 397, gLsgMsgPath, 640, 640, col );
-//            sprintf( gLsgMsgPath, "%s %s", MapGetCityName( gLsgSlots[ SlotNo ].MapNum ), MapCityLvlName( gLsgSlots[ SlotNo ].MapNum, gLsgSlots[ SlotNo ].MapLvl ) );
+            sprintf( gLsgMsgPath, "%s %s", MapGetCityName( gLsgSlots[ SlotNo ].MapNum ), MapCityLvlName( gLsgSlots[ SlotNo ].MapNum, gLsgSlots[ SlotNo ].MapLvl ) );
             if( !WinTextWrap( gLsgMsgPath, 164, WrapLines, &WrapLinesNo ) ){                
         	y = 2 * h + 3 + 256;
                 for( i = 0; WrapLinesNo - 1 > i; y += h + 2, i++ ){
@@ -1158,7 +1154,7 @@ int LsgFSaveMaps( xFile_t *fh1 )
     xFile_t *fh2;
 
     if( PartyLeaveAll() == -1 ) return -1;
-//    if( MapSavingRandomEncounter( 0 ) == -1 ) return -1;
+    if( MapSavingRandomEncounter( 0 ) == -1 ) return -1;
     if( gPartyCount > 1 ){
 	for( i = 1; i < gPartyCount; i++ ){
     	    if( (t = gPartyPids[ i ]) == -2 ) continue;
@@ -1329,7 +1325,7 @@ int LsgBackup()
     CharEditFnameChgExt( gLsgCurFileName, gLsgBakFileName, "BAK" );
     if( (fh = dbOpen( gLsgBakFileName, "rb") ) ){
         dbClose( fh );
-//        if( Unk7689( gLsgBakFileName, gLsgCurFileName ) ) return -1;
+        if( FileRename( gLsgBakFileName, gLsgCurFileName ) ) return -1;
     }
     sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
     sprintf( gLsgBakFileName, "%s*.%s", gLsgFileName, "SAV" );
@@ -1340,7 +1336,7 @@ int LsgBackup()
         strcpy( gLsgBakFileName, gLsgFileName );
         strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), FileList[ i ] );
         CharEditFnameChgExt( gLsgCurFileName, gLsgBakFileName, "BAK" );
-//        if( Unk7689( gLsgBakFileName, gLsgCurFileName ) ){ dbDelFileList( FileList ); return -1; }
+        if( FileRename( gLsgBakFileName, gLsgCurFileName ) ){ dbDelFileList( FileList ); return -1; }
     }
     dbDelFileList( FileList );
     eprintf( "\nLOADSAVE: %d map files backed up.\n", files );
@@ -1368,7 +1364,7 @@ int LsgBackupRestore()
     strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), "SAVE.DAT" );
     CharEditFnameChgExt( gLsgCurFileName, gLsgBakFileName, "BAK" );
     xFileRemove( gLsgBakFileName );
-//    if( Unk7689(gLsgCurFileName, gLsgBakFileName) ){ LsgEraseBadSlot(); return -1; }
+    if( FileRename(gLsgCurFileName, gLsgBakFileName) ){ LsgEraseBadSlot(); return -1; }
     sprintf(gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1);
     sprintf(gLsgBakFileName, "%s*.%s", gLsgFileName, "BAK");
     files = dbGetFileList( gLsgBakFileName, &FileList );
@@ -1382,7 +1378,7 @@ int LsgBackupRestore()
         strcpy( s + strlen( s ), FileList[ i ] );
         CharEditFnameChgExt( gLsgCurFileName, s, "SAV" );
         xFileRemove( gLsgCurFileName );
-//        if( Unk7689( s, gLsgCurFileName ) ){ LsgEraseBadSlot(); return -1; }
+        if( FileRename( s, gLsgCurFileName ) ){ LsgEraseBadSlot(); return -1; }
     }
     dbDelFileList( FileList );
     if( !gLsgUnk56 ) return 0;
@@ -1391,7 +1387,7 @@ int LsgBackupRestore()
     strcpy( &gLsgBakFileName[ strlen( gLsgBakFileName ) ], CharEditFnameChgExt( gLsgUnk38, "AUTOMAP.DB", "BAK" ) );
     strcpy( gLsgCurFileName, gLsgFileName );
     strcpy( &gLsgCurFileName[ strlen( gLsgCurFileName ) ], CharEditFnameChgExt( gLsgUnk38, "AUTOMAP.DB", "SAV" ) );
-//    if( Unk7689( gLsgBakFileName, gLsgCurFileName ) ){  LsgEraseBadSlot();  return -1; }
+    if( FileRename( gLsgBakFileName, gLsgCurFileName ) ){  LsgEraseBadSlot();  return -1; }
     return 0;            
 }
 

@@ -456,7 +456,7 @@ int IfaceHandSlotUpdate( int a1, int LhandArg, int RhandArg )
     Obj_t *HandObj, *obj;
     int AgPts,PePts,StPts,UnArmPts,tmp;
 
-    if( MapUnk21() ) a1 = 0;
+    if( MapAmbientEnabled() ) a1 = 0;
     if( gIfcWin == -1 ) return -1;
     obj = gIfcHandSlot[ gIfcHandSlotState ].obj;
     

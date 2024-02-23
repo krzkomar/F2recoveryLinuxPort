@@ -61,6 +61,7 @@ extern char *gGamePath;
 
 char **FileListMake( char *path, int *pCnt );
 void FileListFree( char **FileList );
+int FileRename( char *, char * );
 
 void SysQuitDlg();
 

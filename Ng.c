@@ -52,109 +52,50 @@ int gNgDudePremadesCount = NG_DUDE_PREMADES;
 
 int NgNewGame()
 {
-    int a, v1, sel;
-    int b, c;
+    int ExtCode, brk, clr;
 
-    a = 0;
-    v1 = 0;
-    b = 0;
+    ExtCode = 0;
+    brk = 0;
     if( NgCharMenuCreate() != 1 ) return 0;    
-    if( (c = MseIsCursorClear()) ) MseDrawCursor();
+    if( (clr = MseIsCursorClear()) ) MseDrawCursor();
     PalLoadFromFile( "color.pal" );
     FadeStep( gPalBase );
-    if( !v1 ){
-        do{
-            if( gMenuEscape ) break;
-            sel = InpUpdate();
-            if( sel < 'T' ){
-        	if( sel >= '-' ){
-        	    if( sel <= '-' ){ OptBrightDec(); continue; }
-        	    if( sel < 'B' ){ if( sel == '=' ) OptBrightInc(); continue; }
-        	    if( sel <= 'B' ){
-            		a = 3;            	    
-            		b = 1;
-            		continue;
-        	    }
-        	    if( sel <= 'C' ){
-            		ProtoReset( a );
-            		if( !CharEditMenu( 1 ) ){ a = 2; b = 1; continue; }
-        		NgDudeInit();
-        		continue;
-        	    }
-        	    if( sel == 'M' ){
-        		if( !CharEditMenu( 1 ) ){ a = 2; b = 1; continue; }
-        		NgDudeInit();
-        	    }
-        	    continue;
-        	}
-        	if( sel < 24 ){
-        	    if( sel == 17 ) SysQuitDlg();
-        	    continue;
-        	}
-        	if( sel == 24 ){ SysQuitDlg(); continue; }
-        	if( sel >= KEY_ESC ){
-            	    if( sel > KEY_ESC ){
-            		if( sel == '+' ) OptBrightInc();
-        	    } else {
-            		a = 3;
-            		b = 1;
-            	    }
-        	}
-    	    } else {
-        	if( sel == 0x54 ){ a = 2; b = 1; continue; }
-        	if( sel < 0x74 ){
-            	    if( sel < 'b' ){ if( sel == '_' ) OptBrightDec(); continue; }
-            	    if( sel <= 'b' ){
-            		a = 3;
-            		b = 1;
-            		continue;
-            	    }
-            	    if( sel > 'c' ){
-            		if( sel == 'm' ){ // modify character
-        		    if( !CharEditMenu(1) ){ a = 2; b = 1; continue; }
-        		    NgDudeInit();
-            		}
-            	    } else { // == 99 -> create new
-            		ProtoReset();
-            		if( !CharEditMenu(1) ){ a = 2; b = 1; continue; }
-        		NgDudeInit();
-        	    }
-        	    continue;
-        	}
-        	if( sel <= 't' ){ a = 2; b = 1; continue; }
-        	if( sel < 333 ){
-            	    if( sel >= 324 ){
-                	if( sel <= 324 ){ SysQuitDlg(); continue; }
-                	if( sel != 331 ) continue;
-                	GSoundPlay("ib2p1xx1");
-                	if( --gNgDudeSel < 0 ) gNgDudeSel = gNgDudePremadesCount - 1;
-        		NgDudeInit();
-        		continue;
-            	    }
-        	} else {
-            	    if( sel <= 333 ){
-                	GSoundPlay("ib2p1xx1");
-                	if( ++gNgDudeSel >= gNgDudePremadesCount ) gNgDudeSel = 0;
-        		NgDudeInit();
-        		continue;
-            	    }
-            	    if( sel >= 500 ){
-            		if( sel <= 500 ){
-                    	    if( --gNgDudeSel < 0 ) gNgDudeSel = gNgDudePremadesCount - 1;
-                	} else {
-                    	    if( sel != 501 ) continue;
-                    	    if( ++gNgDudeSel >= gNgDudePremadesCount ) gNgDudeSel = 0;
-                	}
-        		NgDudeInit();
-            	    }
-        	}
-    	    }
-	} while ( !b );
-    }
+    while( !brk ){
+        if( gMenuEscape ) break;
+        switch( InpUpdate() ){
+            case 324: case 17: case 24: SysQuitDlg(); break;
+            case KEY_ESC: ExtCode = 3; brk = 1; break;
+            case '_': case '-': OptBrightDec(); break;
+            case '+': case '=': OptBrightInc(); break;
+            case 'b': case 'B': ExtCode = 3; brk = 1; break; // back
+    	    case 't': case 'T': ExtCode = 2; brk = 1; break; // take
+            case 'c': case 'C':  // create character
+        	ProtoReset( ExtCode ); 
+        	if( !CharEditMenu( 1 ) ){ 
+        	    ExtCode = 2; 
+        	    brk = 1; 
+        	    break; 
+        	} 
+        	NgDudeInit(); 
+        	break;
+            case 'm': case 'M': 
+        	if( !CharEditMenu( 1 ) ){ 
+        	    ExtCode = 2; 
+        	    brk = 1; 
+        	    break; 
+        	} 
+        	NgDudeInit(); 
+        	break;
+            case 331: GSoundPlay( "ib2p1xx1" ); if( --gNgDudeSel < 0 ) gNgDudeSel = gNgDudePremadesCount - 1; NgDudeInit(); break;
+    	    case 333: GSoundPlay( "ib2p1xx1" ); if( ++gNgDudeSel >= gNgDudePremadesCount ) gNgDudeSel = 0; NgDudeInit(); break;
+    	    case 500: if( --gNgDudeSel < 0 ) gNgDudeSel = gNgDudePremadesCount - 1; NgDudeInit(); break;
+            case 501: if( ++gNgDudeSel >= gNgDudePremadesCount ) gNgDudeSel = 0; NgDudeInit(); break;
+        } 		
+    } 
     FadeStep( gFadePaletteC );
     NgClose();
-    if( c ) MseCursorRedraw();
-    return a;
+    if( clr ) MseCursorRedraw();
+    return ExtCode;
 }
 
 int NgCharMenuCreate()

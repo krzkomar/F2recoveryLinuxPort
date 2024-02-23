@@ -1493,7 +1493,7 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
     int tmp;
     int SelectedHand;
 
-    if( a4 && !MapUnk21() ) AnimStart( 2 );
+    if( a4 && !MapAmbientEnabled() ) AnimStart( 2 );
     if( ItemGetObjType(a2) ){
         SelectedHand = ( a1 == gObjDude ) ? IfaceGetSelectedHand() : 1;        
         if( !ArtFileExist( ArtMakeId( 1, a1->ImgId & 0xFFF, Item45( a2, 2 ), Item58( a2 ), a1->Orientation + 1 ) ) ){ 
@@ -1531,11 +1531,11 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
         }
         tmp = ( ItemGetObjType(a2) == 3 ) ? Item58( a2 ) : 0;
         if( SelectedHand == a3 ){
-            if( (a1->ImgId & 0xF000) >> 12 && a4 && !MapUnk21() ){
+            if( (a1->ImgId & 0xF000) >> 12 && a4 && !MapAmbientEnabled() ){
                 AnimRegPlaySfx( a1, GSoundCharacterFileName( a1, 39, 0 ), 0 );
                 AnimRegAnim( a1, 39, 0 );
             }
-            if( !a4 || MapUnk21() ){
+            if( !a4 || MapAmbientEnabled() ){
                 AnimUnk24( a1, a1->Orientation, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, tmp, a1->Orientation + 1 ) );
             } else if( tmp ){
                 AnimUnk63( a1, tmp, -1 );
@@ -1549,14 +1549,14 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
         a2->Flags |= 0x04000000;
         tmp = ( FeatGetVal( a1, FEAT_GENDER ) == 1 ) ? Item81( a2 ) : Item80( a2 );
         if( a1 == gObjDude ){
-            if( !MapUnk21() ){
+            if( !MapAmbientEnabled() ){
                 AnimUnk62( a1, ArtMakeId(1, tmp, 0, (a1->ImgId & 0xF000) >> 12, a1->Orientation + 1), 0 );
             }
         } else {
             InvUpdateStatistics( a1, ArmorObj, a2 );
         }
     }
-    if( !a4 || MapUnk21() ) return 0;
+    if( !a4 || MapAmbientEnabled() ) return 0;
     return AnimBegin();
 }
 
@@ -1575,7 +1575,7 @@ int InvUnk30( Obj_t *a1, int Lhand, int a3 )
     HandObj = ( Lhand ) ? InvGetRHandObj( a1 ) : InvGetLHandObj( a1 );
     if( HandObj ) HandObj->Flags &= ~0x03000000;
     if( hand == Lhand && (a1->ImgId & 0xF000) >> 12 ){
-        if( a3 && !MapUnk21() ){
+        if( a3 && !MapAmbientEnabled() ){
             AnimStart( 2 );
             AnimRegPlaySfx( a1, GSoundCharacterFileName( a1, 39, 0 ), 0 );
             AnimRegAnim( a1, 39, 0 );

@@ -926,12 +926,8 @@ void TileSketchIso( int MapIdx, int a2 )
 
 void TileSketchDraw( int GridIdx, int MapLvl, VidRect_t *a3 )
 {
-    int v5;
-    int v6;
-    int v7;
     VidRect_t Alpha;
-    int w;
-    int v10;
+    int v5, v6, v7, w, v10;
     
     if( GridIdx == -1 ) return;    
     TileGetScrCoordinates( GridIdx, &v10, &w );
@@ -974,6 +970,7 @@ void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
 
     if( ArtIsHidden( OBJTYPE( ArtId ) ) ) return;
     if( !(Image = ArtLoadImg( ArtId, &ImgObj )) ) return;
+
     lt = area->lt;
     tp = area->tp;
     v74 = area->rt - area->lt + 1;
@@ -1037,24 +1034,24 @@ void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
                     for( i = 0; i < 13; i++, v28 += v32 ){
                         v37 = v28;
                         v33 += gTileUnk71[ i ].i01;
-                        for( j = 0; j < gTileUnk71[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
+//                        for( j = 0; j < gTileUnk71[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
                 }
                 } else {
                     for( i = 0; i != 13; i++ ){
                         v37 = v28;
                         v33 += gTileUnk71[ i ].i01;
-                        for( j = 0; j < gTileUnk71[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
+//                        for( j = 0; j < gTileUnk71[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
                     }
                 }
             } else if( v32 ){
                  for( i = 0; i != 13; i++, v28 += v32 ){
                     v33 += gTileUnk71[ i ].i01;
-                    for( j = 0; j < gTileUnk71[ i ].Width; j++ ) *v33++ = v28;
+//                    for( j = 0; j < gTileUnk71[ i ].Width; j++ ) *v33++ = v28;
                 }
             } else {
                 for( i = 0; i != 13; i++ ){
                     v33 += gTileUnk71[ i ].i01;
-                    for( j = 0; j < gTileUnk71[ i ].Width; j++, v33++ ) *v33 = v28;
+//                    for( j = 0; j < gTileUnk71[ i ].Width; j++, v33++ ) *v33 = v28;
                 }
             } 
         }
@@ -1069,24 +1066,24 @@ void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
                     for( i = 0; i != 13; i++, v28 += v32 ){
                         v37 = v28;
                         v33 += gTileUnk65[ i ].i01;
-                        for( j = 0; j < gTileUnk65[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
+//                        for( j = 0; j < gTileUnk65[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
                     }
                 } else {
                     for( i = 0; i != 13; i++ ){
                         v37 = v28;
                         v33 += gTileUnk65[ i ].i01;
-                        for( j = 0; j < gTileUnk65[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
+//                        for( j = 0; j < gTileUnk65[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
                     }
                 }
             } else if( v32 ){
                 for( i = 0; i != 13; i++, v28 += v32 ){
                     v33 += gTileUnk65[ i ].i01;
-                    for( j = 0; j < gTileUnk65[ i ].Width; j++ ) *v33++ = v28;
+//                    for( j = 0; j < gTileUnk65[ i ].Width; j++ ) *v33++ = v28;
                 }
             } else {
                 for( i = 0; i != 13; i++ ){
                     v33 += gTileUnk65[ i ].i01;
-                    for( j = 0; j < gTileUnk65[ i ].Width; j++) *v33++ = v28;
+//                    for( j = 0; j < gTileUnk65[ i ].Width; j++) *v33++ = v28;
                 }
             }
         }

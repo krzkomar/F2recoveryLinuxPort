@@ -16,12 +16,12 @@ void ScpA_Nop( Intp_t *scr )
 }
 
 /*
-    name: ?
-    code 0x8001, 0xC001, 0x9001, 0x9801, 
-    ret: ?
-    dsc: ?
+    name: Const
+    dsc:  Copy constant value from code to argument stack
+    code  0x8001, 0xC001, 0x9001, 0x9801, 0xA001
+    ret:  none
 */
-void ScpA_PushConst( Intp_t *scr ) // Fetch INT from Code and push it on to stack A
+void ScpA_PushConst( Intp_t *scr ) // 0x8001
 {
     SCP_DBG_VAR;
     uint32_t addr;
@@ -30,7 +30,7 @@ void ScpA_PushConst( Intp_t *scr ) // Fetch INT from Code and push it on to stac
     IntpPushIntStack( scr->StackA, &scr->StackApos, addr );
     IntpPushwA( scr, scr->Opcode ); // copy constant type
     scr->CodePC += 4;
-    SCP_DBGA( "  PUSHD( [%x]%x )", scr->Opcode, addr );
+    SCP_DBGA( "  Const( [%x]%x )", scr->Opcode, addr );
 }
 
 void ScpA_802B( Intp_t *scr ) // 802B push_base( ArgsCnt ) ?
@@ -42,7 +42,7 @@ void ScpA_802B( Intp_t *scr ) // 802B push_base( ArgsCnt ) ?
     SCP_GETARG( type, ArgsCnt, scr );
     SCP_DBGA( "  PUSHA_BASE( [%x]%x base:%d )", type, ArgsCnt, scr->Base );
     SCP_PUSHARG_B( SCR_INT, scr->Base, scr );
-    scr->Base = scr->StackApos - 6 * ArgsCnt;
+    scr->Base = scr->StackApos - 10 * ArgsCnt;
 }
 
 void ScpA_PopBase( Intp_t *scr ) // 8029 'pop_base( base )'
@@ -227,18 +227,26 @@ void ScpA_SetLVar( Intp_t *scr ) // 8031 ?( arg1, arg2 ) set local var
     SCP_DBG_VAR;
     uint16_t Type1, Type2;
     int Arg1, Arg2, k;
-    char *stack;
+    char *stack, *p;
 
     SCP_GETARG( Type1, Arg1, scr );
-    SCP_GETARG( Type2, Arg2, scr );
-    SCP_DBGA( "SetLVar( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
-
-    k = IntpReadBei( scr->StackA, 6 * Arg1 + scr->Base );
-    if( *(&scr->StackA[6 * Arg1 + 4] + scr->Base) == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, k );
-    IntpWriteBew( Arg2 >> 16, scr->StackA, 6 * Arg1 + scr->Base );
-    IntpWriteBew( Arg2, scr->StackA, 6 * Arg1 + scr->Base + 2 );
-    stack = &scr->StackA[ 6 * Arg1 + 4 ] + scr->Base;
-    stack[ 0 ] = Type2 >> 8; stack[ 1 ] = Type2;
+    SCP_GETARGX( Type2, Arg2, p, scr );
+    k = IntpReadBei( scr->StackA, 10 * Arg1 + scr->Base );
+    if( *(&scr->StackA[10 * Arg1 + 8] + scr->Base) == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, k );
+    if( Type2 == SCR_PTR ){
+	SCP_DBGA( "SetLVarp( [%x]%p, [%x]%x )", Type2, p, Type1, Arg1 );
+	IntpWriteBew( (uint64_t)p >> 48, scr->StackA, 10 * Arg1 + scr->Base );
+	IntpWriteBew( (uint64_t)p >> 32, scr->StackA, 10 * Arg1 + scr->Base + 2 );
+	IntpWriteBew( (uint64_t)p >> 16, scr->StackA, 10 * Arg1 + scr->Base + 4 );
+	IntpWriteBew( (uint64_t)p, scr->StackA, 10 * Arg1 + scr->Base + 6 );
+    } else {
+	SCP_DBGA( "SetLVari( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );    
+	IntpWriteBew( Arg2 >> 16, scr->StackA, 10 * Arg1 + scr->Base );
+	IntpWriteBew( Arg2, scr->StackA, 10 * Arg1 + scr->Base + 2 );
+    }
+    stack = &scr->StackA[ 10 * Arg1 + 8 ] + scr->Base;
+    stack[ 0 ] = Type2 >> 8; 
+    stack[ 1 ] = Type2;
     if( Type2 == SCR_FSTRING ) INTP_STR_REF( scr->Strings + Arg2 )++;
 }
 
@@ -248,17 +256,23 @@ void ScpA_SetLVar( Intp_t *scr ) // 8031 ?( arg1, arg2 ) set local var
 void ScpA_GetLVar( Intp_t *scr ) // 8032
 {
     SCP_DBG_VAR;
-    uint16_t Type1;
+    uint16_t Type1, t;
     int Arg1, k;
     char stmp[264];
-    uint8_t *p;
+    uint8_t *p;    
     
     SCP_GETARG( Type1, Arg1, scr );
     SCP_DBGA( "GetLVar( [%x]%x )", Type1, Arg1 );
     SCP_ERRTYPEF( Type1 != SCR_INT, stmp, "Invalid type given to fetch, %x", Type1 );
-    k = IntpReadBei( scr->StackA, scr->Base + 6 * Arg1 );    
-    p = (uint8_t *)(scr->StackA + 6 * Arg1 + 4 + scr->Base);
-    SCP_PUSHARG_A( (((uint16_t)p[ 0 ] << 8) | (uint16_t)p[ 1 ]), k, scr );
+    k = IntpReadBei( scr->StackA, scr->Base + 10 * Arg1 );    
+    p = &scr->StackA[ scr->Base + 10 * Arg1 + 8 ];
+    t = (((uint16_t)p[ 0 ] << 8) | (uint16_t)p[ 1 ]);
+    if( t == SCR_PTR ){
+	p = IntpReadBep( scr->StackA, scr->Base + 10 * Arg1 );    
+	SCP_PUSHARG_AP( t, p, scr );
+    } else {
+	SCP_PUSHARG_A( t, k, scr );
+    }    
 }
 
 void ScpA_CmpNE( Intp_t *scr ) // 8034 'stack:=p2<>p1'
@@ -998,9 +1012,10 @@ void ScpA_LogAnd( Intp_t *scr ) // 803E
     uint16_t Type1, Type2;
     int Arg1, Arg2;
     float Arg2f, Arg1f;
+    void *Arg1p, *Arg2p;
 
-    SCP_GETARGF( Type1, Arg1, Arg1f, scr );
-    SCP_GETARGF( Type2, Arg2, Arg2f, scr );
+    SCP_GETARGFX( Type1, Arg1, Arg1f, Arg1p, scr );
+    SCP_GETARGFX( Type2, Arg2, Arg2f, Arg2p, scr );
     SCP_DBGA( "( [%x]%x && [%x]%x )", Type2, Arg2, Type1, Arg1 );
     
     switch( Type2 ){
@@ -1011,6 +1026,7 @@ void ScpA_LogAnd( Intp_t *scr ) // 803E
     		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, 1 ); break;
     		case SCR_FLOAT: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1f != 0.0 ); break;
     		case SCR_INT: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1 != 0 ); break;
+    		case SCR_PTR:	  IntpPushIntStack( scr->StackA, &scr->StackApos, Arg1p != 0 ); break;
     	    }
     	    break;    
 	case SCR_FLOAT:
@@ -1019,6 +1035,7 @@ void ScpA_LogAnd( Intp_t *scr ) // 803E
     		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f != 0 ); break;
     		case SCR_FLOAT:   IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg2f != 0.0) && (Arg1f != 0.0) ); break;
         	case SCR_INT:     IntpPushIntStack( scr->StackA, &scr->StackApos, (Arg2f != 0.0 ) && Arg1 ); break;
+    		case SCR_PTR:	  IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2f && Arg1p ); break;
 	    }        
     	    break;        
 	case SCR_INT:
@@ -1027,7 +1044,17 @@ void ScpA_LogAnd( Intp_t *scr ) // 803E
 		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 != 0 ); break;
     		case SCR_FLOAT:   IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 && (Arg1f != 0.0) ); break;
     		case SCR_INT:     IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 && Arg1 ); break;
+    		case SCR_PTR:	  IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 && Arg1p ); break;
 	    }
+	    break;
+	case SCR_PTR:
+	    switch( Type1 ){
+    		case SCR_STRING: 
+		case SCR_FSTRING: IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 != 0 ); break;
+    		case SCR_FLOAT:   IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 && (Arg1f != 0.0) ); break;
+    		case SCR_INT:     IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2 && Arg1 ); break;
+    		case SCR_PTR:	  IntpPushIntStack( scr->StackA, &scr->StackApos, Arg2p && Arg1p ); break;
+	    }	
 	    break;
     }
     IntpPushwA( scr, SCR_INT );
@@ -1270,7 +1297,7 @@ void ScpA_CallExt( Intp_t *scr ) // 8005 call( adres ) or call( ?, adres )
         return;
     }
     // Imported procedure
-    flags = IntpReadBei( (char *)scr->ProcTable + 24 * Arg + 4, 0 );
+    flags = IntpReadBei( (char *)scr->ProcTable + 10 * Arg + 8, 0 );
     ExtName = scr->ProcVarNames + flags;
 DD
 printf("=>%p, %x\n", ExtName, flags );
@@ -1314,7 +1341,7 @@ printf("==>%s\n", ExtName );
     IntpPushIntStack( scr->StackA, &scr->StackApos, ArgC_expected ); IntpPushwA( scr, SCR_INT );
     scr->Flags |= 0x20;
     scr->Flags = 0;
-    i = IntpReadBei( &scr->ProcTable[ 6 * Arg ].NameOfst, 4 );
+    i = IntpReadBei( &scr->ProcTable[ 10 * Arg ].NameOfst, 4 );
     scr->CodePC = ArgV;
 printf("==>%x\n", ArgV);
     if( (i & 0x10) || (scr->Flags & SCR_FCRITICAL) ) scr->Flags |= SCR_FCRITICAL;
@@ -1510,21 +1537,20 @@ void ScpA_8011( Intp_t *scr ) // 8011
 void ScpA_8012( Intp_t *scr ) // 8012 pop ?
 {
     SCP_DBG_VAR;
-    uint16_t Type,t1;
+    uint16_t Type;
     int Arg, val;
     void *p;
 
     SCP_GETARGX( Type, Arg, p, scr );
-    SCP_DBGA( "?8012?( [%x]%x )",Type, Arg );
-    Type = *( (uint16_t *)(&scr->StackA[ 6 * Arg + scr->SaveStack + 4 ]) );
+    SCP_DBGA( "POP( [%x]%x )",Type, Arg );
+    Type = *( (uint16_t *)(&scr->StackA[ 10 * Arg + scr->SaveStack + 8 ]) );
     Type = ((Type & 0x00ff) << 8) | ( (Type & 0xff00) >> 8 );
-    t1 = *( (uint16_t *)(&scr->StackA[ 6 * Arg + scr->SaveStack + 8 ]) );
-    t1 = ((t1 & 0x00ff) << 8) | ( (t1 & 0xff00) >> 8 );
-        if( Type != SCR_INT && Type != SCR_FLOAT && (Type & ~0x800) != SCR_STRING && t1 == SCR_PTR ){
-	p = IntpReadBep( scr->StackA, 6 * Arg + scr->SaveStack );
-	SCP_PUSHARG_AP( t1, p, scr );	
+
+    if( Type != SCR_INT && Type != SCR_FLOAT && (Type & ~0x800) != SCR_STRING ){
+	p = IntpReadBep( scr->StackA, 10 * Arg + scr->SaveStack );
+	SCP_PUSHARG_AP( Type, p, scr );	
     } else {
-	val = IntpReadBei( scr->StackA, 6 * Arg + scr->SaveStack );
+	val = IntpReadBei( scr->StackA, 10 * Arg + scr->SaveStack );
 	SCP_PUSHARG_A( Type, val, scr );
     }
 }
@@ -1543,22 +1569,22 @@ void ScpA_8013( Intp_t *scr ) // 8013 push ?
     }SCP_DBG_ELSE{
 	SCP_DBGA( "?8013?( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
     }
-    tmp = IntpReadBei( scr->StackA, 6 * Arg1 + scr->SaveStack );
-    if( *(uint16_t *)&scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack ] == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, tmp );
+    tmp = IntpReadBei( scr->StackA, 10 * Arg1 + scr->SaveStack );
+    if( *(uint16_t *)&scr->StackA[ 10 * Arg1 + 8 + scr->SaveStack ] == 0x0198 ) IntpStringDeRef( scr, SCR_FSTRING, tmp );
 
     // data
     if( Type2 == SCR_PTR ){ // pointer
 	for( i = 0; i < sizeof( void * ) / 2; i++ )
-	    IntpWriteBew( ((uint64_t)p) >> (48 - i*16), scr->StackA, 6 * Arg1 + scr->SaveStack + i*2 );
+	    IntpWriteBew( ((uint64_t)p) >> (48 - i*16), scr->StackA, 10 * Arg1 + scr->SaveStack + i*2 );
 	// type
-	scr->StackA[ 6 * Arg1 + 8 + scr->SaveStack + 0 ] = Type2 >> 8;
-	scr->StackA[ 6 * Arg1 + 8 + scr->SaveStack + 1 ] = Type2;
+	scr->StackA[ 10 * Arg1 + 8 + scr->SaveStack + 0 ] = Type2 >> 8;
+	scr->StackA[ 10 * Arg1 + 8 + scr->SaveStack + 1 ] = Type2;
     } else { // int
-	IntpWriteBew( Arg2 >> 16, scr->StackA, 6 * Arg1 + scr->SaveStack );
-	IntpWriteBew( Arg2, scr->StackA, 6 * Arg1 + scr->SaveStack + 2 );
+	IntpWriteBew( Arg2 >> 16, scr->StackA, 10 * Arg1 + scr->SaveStack );
+	IntpWriteBew( Arg2, scr->StackA, 10 * Arg1 + scr->SaveStack + 2 );
 	// type
-	scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 0 ] = Type2 >> 8;
-	scr->StackA[ 6 * Arg1 + 4 + scr->SaveStack + 1 ] = Type2;
+	scr->StackA[ 10 * Arg1 + 8 + scr->SaveStack + 0 ] = Type2 >> 8;
+	scr->StackA[ 10 * Arg1 + 8 + scr->SaveStack + 1 ] = Type2;
     }
     if( Type2 == SCR_FSTRING ) (*(uint16_t *)&scr->Strings[ Arg2 + 2 ] )++;
 
@@ -1669,8 +1695,8 @@ void ScpA_ExportProcedure( Intp_t *scr ) // 8017
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
     SCP_DBGA( "EXPORT_PROCEDURE: [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    tmp = &scr->ProcVarNames[ IntpReadBei( &scr->ProcTable[ 6 * Arg1 ].NameOfst, 0 ) ];
-    n = IntpReadBep( &scr->ProcTable[ 6 * Arg1 ].NameOfst, 16 );
+    tmp = &scr->ProcVarNames[ IntpReadBei( &scr->ProcTable[ 10 * Arg1 ].NameOfst, 0 ) ];
+    n = IntpReadBep( &scr->ProcTable[ 10 * Arg1 ].NameOfst, 16 );
     SCP_ERRTYPEF( ExportSetProcedure( scr, tmp,  n, Arg2 ),stmp, "Error exporting procedure %s", tmp );
 }
 
@@ -1828,8 +1854,8 @@ void ScpA_8027( Intp_t *scr ) // 8027 ?( arg1, arg2 )
     SCP_GETARG( Type1, Arg1, scr );
     SCP_GETARG( Type2, Arg2, scr );
     SCP_DBGA( "PROCEDURE[?]( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
-    if( IntpReadBei( &scr->ProcTable->NameOfst + 6 * Arg2, 20 ) != Arg1 ){
-        sprintf( stmp, "Wrong number of args to procedure %s\n", IntpGetName( scr, IntpReadBei( &scr->ProcTable->NameOfst + 6 * Arg2, 0 ) ) );
+    if( IntpReadBei( &scr->ProcTable->NameOfst + 10 * Arg2, 20 ) != Arg1 ){
+        sprintf( stmp, "Wrong number of args to procedure %s\n", IntpGetName( scr, IntpReadBei( &scr->ProcTable->NameOfst + 10 * Arg2, 0 ) ) );
         IntpError( stmp );
     }
 }

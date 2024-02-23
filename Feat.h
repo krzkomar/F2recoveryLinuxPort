@@ -55,16 +55,17 @@ enum{
     FEAT_PSNRES,	// 32 poison resistance
     FEAT_33,		// 33 players starting age
     FEAT_GENDER,	// 34 gender 0 - male, 1 - female
-    FEAT_35,		// 35 FEAT_CURHP current HP
-    FEAT_36,		// 36 FEAT_POISONED
-    FEAT_37,		// 37 FEAT_RADIATED
+    FEAT_35,		// 35 FEAT_CUR_HP
+    FEAT_36,		// 36 FEAT_CUR_POISON
+    FEAT_37,		// 37 FEAT_CUR_RAD
     // unspent skill points, level, experience, reputation, karma
-    FEAT_PTS = 38,
-    FEAT_PTS_SKILL = 0, // 0 38 unspent skill points
+    FEAT_PTS = 38,	// 
+    FEAT_PTS_SKILL = 0, // 0 38
     FEAT_PTS_LVL,	// 1 39
     FEAT_PTS_EXP,	// 2 40
     FEAT_PTS_REP,	// 3 41
-    FEAT_PTS_KARMA	// 4 42
+    FEAT_PTS_KARMA,	// 4 42
+    FEAT_MAX_PC_STAT	// 4 43
 };
 
 // condition

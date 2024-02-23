@@ -77,7 +77,7 @@ void MapStartA();
 int MapExitMsg();
 void MapAmbientEnable();
 int MapAmbientDisable();
-int MapUnk21();
+int MapAmbientEnabled();
 int MapSetLvl( unsigned int a1 );
 int MapUnk23( unsigned int a1 );
 int MapSetVar( int VarId , int Val );

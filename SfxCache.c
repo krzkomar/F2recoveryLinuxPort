@@ -363,7 +363,7 @@ int SfxCacheLoadSfxList( const char *path, int FileFrm, int a3 )
             dbgets( p, 255, fh ); gSfxCacheList[ i ].c = strtol( p, NULL, 10 );
         }
         dbClose( fh );
-        eprintf( "Reading SNDLIST.LST Sound FX Count: %d\n", gSfxCacheSfxCount );
+        eprintf( "Reading SNDLIST.LST Sound FX Count: %d", gSfxCacheSfxCount );
     } else {
         if( (err = SfxCacheCreateFileList()) ){
             Free( gSfxCacheListPath );
@@ -385,7 +385,7 @@ int SfxCacheLoadSfxList( const char *path, int FileFrm, int a3 )
             }
             dbClose( fh );
         } else {
-            eprintf( "SFXLIST: Can't open file for write %s\n", p );
+            eprintf( "SFXLIST: Can't open file for write %s", p );
         }
     }
     gSfxCacheUnk10 = 1;

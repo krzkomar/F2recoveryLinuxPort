@@ -81,7 +81,11 @@ void FileListFree( char **FileList )
     dbDelFileList( FileList );
 }
 
-
+int FileRename( char *a, char *b )
+{
+DD
+    return -1;
+}
 
 
 // dummies

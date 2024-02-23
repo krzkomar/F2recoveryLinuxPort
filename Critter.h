@@ -13,6 +13,8 @@
 #define CRITT_CRIP_RLEG		0x08
 #define CRITT_CRIP_LLEG		0x04
 
+
+
 /*
 typedef struct {
     int Ac;		// 0 armor class
