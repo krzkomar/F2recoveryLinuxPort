@@ -473,7 +473,10 @@ int CharEditMenuCreate()
     GmouseLoadCursor( 1 );
     if( MessageInit( &gChrEditMsg ) != 1 ) return -1;
     sprintf( stmp1, "%s%s", gGamePath, "editor.msg" );
+DD
+printf("=>'%s'\n", stmp1);
     if( MessageLoad( &gChrEditMsg, stmp1 ) != 1 ) return -1;
+DD
     gChrEditWpPix = ArtLoadBmp( ArtMakeId( 6, ( gChrEditMenuMode == 1 ) ? 169 : 177, 0, 0, 0 ), &gChrEditWpImg, &gChrEditImgGeo[0].Width, &gChrEditImgGeo[0].Height );
     if( !gChrEditWpPix ){ MessageClose( &gChrEditMsg ); return -1; }
     if( CharEditLoadKarma() == -1 ) return -1;

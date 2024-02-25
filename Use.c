@@ -7,39 +7,33 @@ int UseGetScriptId( Obj_t *obj, int *pScrId )
     return ((*pScrId = obj->ScrId) != -1) - 1;
 }
 
-int UseCreateScript( Obj_t *ObjPid, int *ScrId )
+int UseCreateScript( Obj_t *Obj, int *ScrId )
 {
-    unsigned int Pid_high;
     int Flags;
     Scpt_t *scr;
     Proto_t *proto;
 
     *ScrId = -1;
-    if( ProtoGetObj( ObjPid->Pid, &proto ) == -1 ) return -1;
-    Pid_high = OBJTYPE(ObjPid->Pid);
-    if( Pid_high < 4 ){
-	Flags = proto->AttackMode;
-    } else {
-	if( Pid_high <= 4 ){
-    	    Flags = proto->Flags;
-	} else {
-	    Flags = ( Pid_high == 5 ) ? -1 : proto->AttackMode;
-	}
+    if( ProtoGetObj( Obj->Pid, &proto ) == -1 ) return -1;
+    switch( OBJTYPE( Obj->Pid ) ){
+	case 0 ... 3: Flags = proto->AttackMode; break;
+	case 4: Flags = proto->Flags; break;
+	case 5: Flags = -1; break;
+	default: Flags = proto->AttackMode; break;
     }
     if( Flags == -1 ) return -1;
-
     if( ScptNewScript( ScrId, Flags >> 24 ) == -1 ) return -1;
     if( ScptPtr( *ScrId, &scr ) == -1 ) return -1;
     scr->LocVarId = Flags & 0xFFFFFF;
-    if( OBJTYPE( ObjPid->Pid ) == TYPE_CRIT ) ObjPid->ScrFNameId = scr->LocVarId;
+    if( OBJTYPE( Obj->Pid ) == TYPE_CRIT ) Obj->ScrFNameId = scr->LocVarId;
     if( Flags >> 24 == 1 ){
-        scr->HexOrTimer = (ObjPid->Elevation << 29) | ObjPid->GridId;
+        scr->HexOrTimer = (Obj->Elevation << 29) | Obj->GridId;
         scr->Radius = 3;
     }
-    if( ObjPid->TimeEv == -1 ) ObjPid->TimeEv = ScptNewObjId();
-    scr->i08 = ObjPid->TimeEv;
-    scr->TimeEv = ObjPid;
-    ScptUnk102( Flags & 0xFFFFFF, *ScrId );
+    if( Obj->TimeEv == -1 ) Obj->TimeEv = ScptNewObjId();
+    scr->i08 = Obj->TimeEv;
+    scr->TimeEv = Obj;
+    ScptSetupLocalVars( Flags & 0xFFFFFF, *ScrId );
     return 0;
 }
 
@@ -61,7 +55,7 @@ int UseUnk03( Obj_t *obj, int ObjType, int VarPid )
     obj->TimeEv = v6;
     pScript->i08 = v6;
     pScript->TimeEv = obj;
-    ScptUnk102( VarPid & 0xFFFFFF, Id );
+    ScptSetupLocalVars( VarPid & 0xFFFFFF, Id );
     if( OBJTYPE( obj->Pid ) == 1 ) obj->ScrFNameId = pScript->LocVarId;
     return 0;        
 }

@@ -132,22 +132,10 @@ int MessageLoad( Msg_t *Msg, const char *fname )
     ml.Audio = AudioField;
     ml.Text  = TextField;
     while( !(exit = MessageGetParameter( fh, tmp )) ){
-        if( MessageGetParameter( fh, AudioField ) ){
-            ErrorPrintf("\nError loading audio field.\n", stmp);
-    	    break;
-        }
-        if( MessageGetParameter( fh, TextField ) ){
-            ErrorPrintf("\nError loading text field.\n", stmp);
-    	    break;
-        }
-        if( MessageNumberParse( &ml.Id, tmp ) != 1 ){
-            ErrorPrintf("\nError parsing number.\n", stmp);
-    	    break;
-        }
-        if( MessageAddRemoveLine( Msg, &ml ) != 1 ){
-            ErrorPrintf( "\nError adding message.\n", stmp );
-    	    break;
-        }
+        if( MessageGetParameter( fh, AudioField ) ){ ErrorPrintf( "\nError loading audio field.\n", stmp ); break; }
+        if( MessageGetParameter( fh, TextField ) ){ ErrorPrintf( "\nError loading text field.\n", stmp ); break; }
+        if( MessageNumberParse( &ml.Id, tmp ) != 1 ){ ErrorPrintf( "\nError parsing number.\n", stmp ); break; }
+        if( MessageAddRemoveLine( Msg, &ml ) != 1 ){ ErrorPrintf( "\nError adding message.\n", stmp ); break; }
     }
     if( exit == 1 ){
 	ErrorPrintf( "\nError loading message file %s at offset %x.\n.", stmp, dbtell( fh ) );
@@ -190,7 +178,7 @@ int MessageMakeFilePath( char *fpath, const char *fname )
 
 int MessageFindLineInsertPos( Msg_t *msg, int Id, int *LineNo )
 {
-    unsigned int a, b, n;
+    int a, b, n;
 
     *LineNo = 0;
     if( msg->Count <= 0 ) return 0;

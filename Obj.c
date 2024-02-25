@@ -512,7 +512,7 @@ int ObjCreate( Obj_t **obj, int ArtId, int Pid )
 {
     Proto_t *proto;
     ObjList_t *p;
-
+DD
     if( !obj ) return -1;
     
     p = Malloc( sizeof( ObjList_t ) );
@@ -2405,16 +2405,10 @@ int ObjFindInList( Obj_t *obj, ObjList_t **list_cur, ObjList_t **list_prev )
 {
     if( !obj || !list_cur ) return -1;
     *list_cur = (obj->GridId == -1 ) ? gObjOffGridObjs : gObjGridObjects[ obj->GridId ];
-    *list_prev = NULL;
-    if( list_prev ){
-        for( ; *list_cur; *list_cur = (*list_cur)->Next ){
-    	    if( obj == (*list_cur)->object ) break;
-            *list_prev = *list_cur;            
-        }
-    } else {
-        for( ; *list_cur; *list_cur = (*list_cur)->Next ){
-    	    if( obj == (*list_cur)->object ) break;
-        }
+    if( list_prev ) *list_prev = NULL;
+    for( ; *list_cur; *list_cur = (*list_cur)->Next ){
+    	if( obj == (*list_cur)->object ) break;
+        if( list_prev ) *list_prev = *list_cur;
     }
     return ( *list_cur ) ? 0 : -1;
 }
@@ -2429,10 +2423,12 @@ void ObjAddObject( ObjList_t *NewObj )
 
     if( !NewObj ) return;        
     if( (GridId = NewObj->object->GridId) == -1 ){
+DD
     	NewObj->Next = gObjOffGridObjs;
     	gObjOffGridObjs = NewObj;
     	return;
     }    
+DD
     Art2 = NULL;
     for( p = &gObjGridObjects[ GridId ]; *p; p = &(*p)->Next ){ // add object on the same grid position
         object = (*p)->object;
@@ -2442,7 +2438,6 @@ void ObjAddObject( ObjList_t *NewObj )
         if( (object->Flags & PRFLG_FLAT) != (NewObj->object->Flags & PRFLG_FLAT) ) continue;
         if( !( Art1 = ArtLoadImg( object->ImgId, &ImgObj1 ) ) ) continue;
         if( !Art2 ) Art2 = ArtLoadImg( NewObj->object->ImgId, &ImgObj2 );
-if( !Art2 ) break; // added
         a = Art1->PixShiftY[ object->Orientation ] + object->PosY;
         b = Art2->PixShiftY[ NewObj->object->Orientation ] + NewObj->object->PosY;
         if( b < a ){ ArtClose( ImgObj1 ); break; }

@@ -335,7 +335,7 @@ int ScptIsFileOnListA( char *fname );
 int ScptIsFileOnList( char *fname, int *pLine);
 int ScptLoadFileList();
 void ScpVarNamesFree();
-int ScptUnk102( int a1, int Pid );
+int ScptSetupLocalVars( int a1, int Pid );
 int ScptGetScriptFname( int ScriptFileIdx, char *stmp );
 int ScptSetDudeScript();
 int ScptClearDudeScript();

@@ -918,12 +918,12 @@ void ScpVarNamesFree()
     gScptFiles = 0;
 }
 
-int ScptUnk102( int a1, int Pid )
+int ScptSetupLocalVars( int LocalTableIdx, int sid )
 {
     Scpt_t *scr;
 
-    if( ScptPtr( Pid, &scr ) == -1 ) return -1;    
-    scr->LocVarsCnt = gScptLocVarTable[ a1 ].LocalVars;
+    if( ScptPtr( sid, &scr ) == -1 ) return -1;    
+    scr->LocVarsCnt = gScptLocVarTable[ LocalTableIdx ].LocalVars;
     return 0;
 }
 
