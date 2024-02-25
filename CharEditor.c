@@ -473,10 +473,7 @@ int CharEditMenuCreate()
     GmouseLoadCursor( 1 );
     if( MessageInit( &gChrEditMsg ) != 1 ) return -1;
     sprintf( stmp1, "%s%s", gGamePath, "editor.msg" );
-DD
-printf("=>'%s'\n", stmp1);
     if( MessageLoad( &gChrEditMsg, stmp1 ) != 1 ) return -1;
-DD
     gChrEditWpPix = ArtLoadBmp( ArtMakeId( 6, ( gChrEditMenuMode == 1 ) ? 169 : 177, 0, 0, 0 ), &gChrEditWpImg, &gChrEditImgGeo[0].Width, &gChrEditImgGeo[0].Height );
     if( !gChrEditWpPix ){ MessageClose( &gChrEditMsg ); return -1; }
     if( CharEditLoadKarma() == -1 ) return -1;
@@ -1400,7 +1397,6 @@ int CharEditDialogAge()
             WinClose( win );
             return 0;
         }
-
         switch( sel ){
     	    case 13:
 		GSoundPlay( "ib1p1xx1" );
@@ -1411,7 +1407,7 @@ int CharEditDialogAge()
                 if( FeatGetVal( gObjDude, 33 ) >= 35 ) continue;
                 Update = 1;
                 break;
-            case 333: case 43: case 78:
+            case 333: case '+': case 'N':
                 if( (k = FeatGetVal( gObjDude, 33 )) >= 35 ) continue;
                 n = FeatIncVal( gObjDude, 33 ) >= 0;
                 CharEditCounterDisplay( 55, 10, n, FeatGetVal( gObjDude, 33 ), k, win );
@@ -1421,7 +1417,7 @@ int CharEditDialogAge()
                 if( FeatGetVal( gObjDude, 33 ) <= 16 ) continue;
                 Update = -1;
                 break;
-            case 331: case 45: case 74:
+            case 331: case '-': case 'J':
                 if( (k = FeatGetVal( gObjDude, 33 )) <= 16 ) continue;
                 n = FeatDecVal( gObjDude, 33 ) >= 0;
                 CharEditCounterDisplay( 55, 10, n, FeatGetVal( gObjDude, 33 ), k, win );
@@ -1429,9 +1425,8 @@ int CharEditDialogAge()
                 break;
         }
 
-        if( !Update ){ WinUpdate( win ); TIMER_WAIT( gChrEditTime, 41 ); usleep( 41*100 ); continue; }
+        if( Update == 0 ){ WinUpdate( win ); TIMER_WAIT( gChrEditTime, 41 ); usleep( 41*100 ); continue; }
         gChrEditUnk65 = 4;
-
         do{
             gChrEditTime = TimerGetSysTime();
             m = 1;
@@ -1446,7 +1441,7 @@ int CharEditDialogAge()
         	} else {
         	    if( k >= 16 ) n = FeatDecVal( gObjDude, 33 );
         	}
-        	if( n < 0 ) m = 0;
+        	if( n < 0 ) m = 0; // error
         	CharEditCounterDisplay( 55, 10, m, FeatGetVal( gObjDude, 33 ), k, win );
     		if( m == 1 ){
             	    CharEditShowHeroAge();

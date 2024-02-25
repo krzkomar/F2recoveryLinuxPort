@@ -274,23 +274,30 @@ int FeatGetBoost( Obj_t *dude, int Id )
 
 int FeatSetBase( Obj_t *dude, int Id, int NewVal )
 {
+    int Penalty;
     Proto_t *proto;
 
-    switch( Id ){
-	case 0 ... 6:
-            if( dude == gObjDude ) NewVal -= TraitSpecBonus( Id );
-            if( NewVal < gFeats[ Id ].Min ) return -2;
-            if( NewVal > gFeats[ Id ].Max ) return -3;
-            ProtoGetObj( dude->Pid, &proto );
-            proto->Critt.BaseStat[ Id ] = NewVal;
-            if( Id <= 6 ) FeatStatsRecalculate( dude );
-            return 0;		
-	case 7 ... 32: return -1;
-	case 35: return CritterHeal( dude, NewVal - CritterGetHp( dude ) );
-	case 36: return CritterPoisonInc( dude, NewVal - CritterPoisoned( dude ) );
-	case 37: return CritterRadInc( dude, NewVal - CritterRadiated( dude ) );
-    }        
-    return -5;
+    if( Id < 35 || Id >= 38 ){
+        if( Id >= 35 ) return -5;
+        if( Id > 6 && Id <= 32 ) return -1;
+        if( dude == gObjDude ) NewVal -= TraitSpecBonus(Id);
+        if( NewVal < gFeats[ Id ].Min )return -2;
+        if( NewVal > gFeats[ Id ].Max ) return -3;
+        ProtoGetObj( dude->Pid, &proto );
+        proto->Critt.BaseStat[ Id ] = NewVal;
+        if( Id <= 6 ) FeatStatsRecalculate( dude );
+        return 0;
+    } else {
+        if( Id == 35 ){ 
+    	    Penalty = CritterGetHp( dude ); 
+    	    return CritterHeal( dude, NewVal - Penalty );
+    	} else if( Id == 36 ){
+            Penalty = CritterPoisoned( dude );
+            return CritterPoisonInc( dude, NewVal - Penalty );
+        }
+        Penalty = CritterRadiated( dude );
+        return CritterRadInc( dude, NewVal - Penalty );        
+    }
 }
 
 int FeatIncVal( Obj_t *dude, int Id )
