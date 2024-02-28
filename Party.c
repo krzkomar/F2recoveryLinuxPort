@@ -299,10 +299,10 @@ int PartyPrepLoadInstance( Party_t *pm )
     }    
     if( !(pm->Script = Malloc( sizeof( Scpt_t ) ) ) ){ WinMsgError( "\n  Error!: partyMemberPrepLoad: Out of memory!" ); exit( 1 ); }
     memcpy( pm->Script, scr, sizeof( Scpt_t ) );
-    if( scr->LocVarsCnt && scr->LocVarsIdx != -1 ){
+    if( scr->LocVarsCnt && scr->LocalVarBase != -1 ){
         if( !(pm->LocalVars = Malloc( scr->LocVarsCnt * sizeof( int ) ) ) ){ WinMsgError( "\n  Error!: partyMemberPrepLoad: Out of memory!" ); exit( 1 ); }
         if( gMapLocalVars ){
-            memcpy( pm->LocalVars, &gMapLocalVars[scr->LocVarsIdx], scr->LocVarsCnt * sizeof( int ) );
+            memcpy( pm->LocalVars, &gMapLocalVars[scr->LocalVarBase], scr->LocVarsCnt * sizeof( int ) );
         } else {
             eprintf( "\nWarning: partyMemberPrepLoadInstance: No map_local_vars found, but script references them!" );
             memset( pm->LocalVars, 0, scr->LocVarsCnt * sizeof( int ) );
@@ -372,10 +372,9 @@ int PartyRecoverLoadInstance( Party_t *party )
     Free( party->Script );
     party->Script = 0;
     scr->Flags |= 0x18;
-    if( party->LocalVars ){
-        MapVarsAdd( scr->LocVarsCnt );
-        scr->LocVarsIdx = scr->LocVarsCnt;
-        memcpy( &gMapLocalVars[ scr->LocVarsIdx ], party->LocalVars, scr->LocVarsCnt * sizeof( int ) );
+    if( party->LocalVars ){        
+        scr->LocalVarBase = MapAddLocalVars( scr->LocVarsCnt );
+        memcpy( &gMapLocalVars[ scr->LocalVarBase ], party->LocalVars, scr->LocVarsCnt * sizeof( int ) );
     }
     return 0;
 }
@@ -608,11 +607,11 @@ DD
         memcpy( p->Script, scr, sizeof( Scpt_t ) );
         LocVarsCnt = scr->LocVarsCnt;
 DD
-        if( !LocVarsCnt || scr->LocVarsIdx == -1 ){
+        if( !LocVarsCnt || scr->LocalVarBase == -1 ){
             p->LocalVars = NULL;
         } else {            
             if( !(p->LocalVars = Malloc( LocVarsCnt * sizeof( int ) ) ) ){ WinMsgError( "\n  Error!: partyMemberItemSave: Out of memory!" ); exit( 1 ); }
-            memcpy( p->LocalVars, &gMapLocalVars[ scr->LocVarsIdx ], scr->LocVarsCnt * sizeof( int ) );
+            memcpy( p->LocalVars, &gMapLocalVars[ scr->LocalVarBase ], scr->LocVarsCnt * sizeof( int ) );
         }
         tmp = gPartyUnk06;
         gPartyUnk06 = p;
@@ -648,10 +647,9 @@ void PartyItemRecover( Party_t *party )
     Free( Script );
     LocalVars = party->LocalVars;
     party->Script = 0;
-    if( LocalVars ){
-        MapVarsAdd( scr->LocVarsCnt );
-        scr->LocVarsIdx = scr->LocVarsCnt;
-        memcpy( &gMapLocalVars[ scr->LocVarsIdx ], party->LocalVars, scr->LocVarsCnt * sizeof(int) );
+    if( LocalVars ){        
+        scr->LocalVarBase = MapAddLocalVars( scr->LocVarsCnt );
+        memcpy( &gMapLocalVars[ scr->LocalVarBase ], party->LocalVars, scr->LocVarsCnt * sizeof(int) );
     }
 }
 

@@ -9,8 +9,6 @@ int gScptActionFlags;
 Scpt01_t gScptUnk15;
 Combat02_t gScptUnk114;
 
-int gScptUnk18;
-
 Msg_t gScptMsgBook[ 1450 ];
 Msg_t gScptMsg;
 char gScptTimeStr[ 7 ];
@@ -529,7 +527,6 @@ void ScptActionExec()
 
     if( gScptActionFlags == 0 ) return;
     if( gScptActionFlags & SCP_ACT_01 ){
-DD
         if( !ActionUnk13() ){
                 gScptActionFlags &=  ~( SCP_ACT_400 | SCP_ACT_01 );
                 memcpy( &gScptUnk114, &gScptUnk15, sizeof( gScptUnk114 ) );
@@ -608,9 +605,7 @@ void ScptUnk122()
     short PosY;
     int Lvl, pMapId;
 
-DD
     if( gScptActionFlags & SCP_ACT_ELEVATOR ){
-DD
         pMapId = gMap.MapId;
         PosY = -1;
         Lvl = gScptUnk118;
@@ -882,7 +877,7 @@ int ScptLoadFileList()
     ScptVars_t *p;
     xFile_t *fh;
     int tmp;
-    
+
     strcpy( stmp1, gProtoDataFilePath );
     strcpy( &stmp1[ strlen( stmp1 ) ], gScptPath );
     strcpy( &stmp1[ strlen( stmp1 ) ], "scripts.lst" );    
@@ -912,7 +907,7 @@ int ScptLoadFileList()
 void ScpVarNamesFree()
 {
     if( gScptLocVarTable ){
-        Free(gScptLocVarTable);
+        Free( gScptLocVarTable );
         gScptLocVarTable = NULL;
     }
     gScptFiles = 0;
@@ -965,7 +960,7 @@ int ScptClearDudeScript()
 int ScptInit()
 {
     int i;
-DD
+
     if( MessageInit(&gScptMsg) != 1 ) return -1;
     for( i = 0; i < 1450; i++ ){
         if( MessageInit( &gScptMsgBook[ i ]) != 1 ) return -1;
@@ -982,7 +977,6 @@ DD
 
 int ScptUnk01()
 {
-DD
     ScptFlush();
     gScptActionFlags = 0;
     PartyUnk06( 0 );
@@ -1007,7 +1001,6 @@ int ScptGameInit()
     InpTaskStart( ScptTaskCb );
     if( ScptSetDudeScript() == -1 ) return -1;
     gScptUnk52 = 1;
-DD
     gScptActionFlags = 0;
     return 0;
 }
@@ -1035,7 +1028,6 @@ int ScptClose()
     SciUnk01();
     SciUnk20();
     InpTaskStop( ScptTaskCb );
-DD
     gScptActionFlags = 0;
     if( gScptLocVarTable ){
         Free( gScptLocVarTable );
@@ -1071,7 +1063,6 @@ int ScptReset()
     InpTaskStop( ScptTaskCb );
     MessageClose( &gScptMsg );
     if( ScptClearDudeScript() == -1 ) return -1;
-DD
     gScptActionFlags = 0;
     return 0;    
 }
@@ -1162,7 +1153,7 @@ int ScptSaveScpt( Scpt_t *scr, xFile_t *fh )
     if( dbputBei( fh, scr->LocVarId ) == -1 ) return -1; 
     if( dbputBei( fh, 0 ) == -1 ) return -1;  // rubbish, originally -> pointer!
     if( dbputBei( fh, scr->i08 ) == -1 ) return -1; 
-    if( dbputBei( fh, scr->LocVarsIdx ) == -1 ) return -1; 
+    if( dbputBei( fh, scr->LocalVarBase ) == -1 ) return -1; 
     if( dbputBei( fh, scr->LocVarsCnt ) == -1 ) return -1; 
     if( dbputBei( fh, scr->i11 ) == -1 ) return -1; 
     if( dbputBei( fh, scr->ActionEventId ) == -1 ) return -1; 
@@ -1264,7 +1255,7 @@ int ScptLoadScpt( Scpt_t *scp, xFile_t *fh )
     if( dbgetBei( fh, &scp->LocVarId ) == -1 ) return -1; // script id
     if( dbgetBei( fh, &tmp ) == -1 ) return -1; // unk 5
     if( dbgetBei( fh, &scp->i08 ) == -1 ) return -1; // script oid
-    if( dbgetBei( fh, &scp->LocVarsIdx ) == -1 ) return -1; // local var offset
+    if( dbgetBei( fh, &scp->LocalVarBase ) == -1 ) return -1; // local var offset
     if( dbgetBei( fh, &scp->LocVarsCnt ) == -1 ) return -1; // local vars num
     if( dbgetBei( fh, &scp->i11 ) == -1 ) return -1; // unk 9
     if( dbgetBei( fh, &scp->ActionEventId ) == -1 ) return -1; // unk 10
@@ -1279,7 +1270,7 @@ int ScptLoadScpt( Scpt_t *scp, xFile_t *fh )
     scp->SourceObj = NULL;
     scp->TargetObj = NULL;
     memset( scp->ActionEventsIdx, 0, SCPT_AEV_ALL * sizeof( int ) );
-    if( !(gScptUnk18 & 1) ) scp->LocVarsCnt = 0;
+    if( !(gMap.MapFlags & 0x01) ) scp->LocVarsCnt = 0;
     return 0;
 }
 
@@ -1418,7 +1409,7 @@ int ScptNewScript( int *pNewId, int Category )
     scp->Flags = 0;
     scp->LocVarId = -1;
     scp->Intp = NULL;
-    scp->LocVarsIdx = -1;
+    scp->LocalVarBase = -1;
     scp->LocVarsCnt = 0;
     scp->i11 = 0;
     scp->ActionEventId = 0;
@@ -1454,10 +1445,10 @@ int ScptRemoveLocalVars( Scpt_t *Scr )
     if( !Scr ) return -1;
     if( !Scr->LocVarsCnt ) return 0;
     size = gScptLocalVarsCnt;
-    if( gScptLocalVarsCnt <= 0 || Scr->LocVarsIdx < 0 ) return 0;
+    if( gScptLocalVarsCnt <= 0 || Scr->LocalVarBase < 0 ) return 0;
     gScptLocalVarsCnt -= Scr->LocVarsCnt;
-    if( (gScptLocalVarsCnt - Scr->LocVarsCnt) == Scr->LocVarsIdx ) return 0;
-    memmove( &gScptLocalVars[ Scr->LocVarsIdx ], &gScptLocalVars[ Scr->LocVarsIdx + Scr->LocVarsCnt ], (size - Scr->LocVarsCnt - Scr->LocVarsIdx) * sizeof( int ) );
+    if( (gScptLocalVarsCnt - Scr->LocVarsCnt) == Scr->LocalVarBase ) return 0;
+    memmove( &gScptLocalVars[ Scr->LocalVarBase ], &gScptLocalVars[ Scr->LocalVarBase + Scr->LocVarsCnt ], (size - Scr->LocVarsCnt - Scr->LocalVarBase) * sizeof( int ) );
 
     p = Realloc( gScptLocalVars, gScptLocalVarsCnt * sizeof( int ) );
     if( !p ) eprintf( "\nError in mem_realloc in scr_remove_local_vars!\n" );    
@@ -1466,7 +1457,7 @@ int ScptRemoveLocalVars( Scpt_t *Scr )
     for( j = 0; j < 5; j++ ){
         for( q = gScrScripts[ j ].First; q; q = q->Next ){
             for( i = 0; i < q->ScptUsed; i++ ){
-                if( Scr->LocVarsIdx < q->Script[ i ].LocVarsIdx ) q->Script[ i ].LocVarsIdx -= Scr->LocVarsCnt;
+                if( Scr->LocalVarBase < q->Script[ i ].LocalVarBase ) q->Script[ i ].LocalVarBase -= Scr->LocVarsCnt;
             }
             if( i < q->ScptUsed ) break;
         }
@@ -1852,7 +1843,7 @@ char *ScptGetDialog( int MsgPage, int MsgId, int SpkFlg )
 
 int ScptGetLocVar( int ScrId, int VarIdx, int *pValue )
 {
-    Scpt_t *scr, *res;
+    Scpt_t *scr;
 
     scr = 0;
     if( (ScrId >> 24) == 0 ){
@@ -1864,15 +1855,15 @@ int ScptGetLocVar( int ScrId, int VarIdx, int *pValue )
 	return -1;
     }    
     if( ScptPtr( ScrId, &scr ) == -1 ){ *pValue = -1; return -1; }
-    if( !scr->LocVarsCnt ){
-        if( ScptPtr( ScrId, &res ) != -1 ) res->LocVarsCnt = gScptLocVarTable[ scr->LocVarId ].LocalVars;
+    if( scr->LocVarsCnt == 0 ){
+	scr->LocVarsCnt = gScptLocVarTable[ scr->LocVarId ].LocalVars;
     }
     if( scr->LocVarsCnt > 0 ){
-        if( scr->LocVarsIdx == -1 ){
-            scr->LocVarsIdx = MapVarsAdd(scr->LocVarsCnt);
-            *pValue = MapGetLocalVar( scr->LocVarsIdx + VarIdx );
+        if( scr->LocalVarBase == -1 ){
+            scr->LocalVarBase = MapAddLocalVars( scr->LocVarsCnt );
+            *pValue = MapGetLocalVar( scr->LocalVarBase + VarIdx );
         } else {
-            *pValue = MapGetLocalVar( scr->LocVarsIdx + VarIdx );
+            *pValue = MapGetLocalVar( scr->LocalVarBase + VarIdx );
         }
     }
     return 0;
@@ -1888,11 +1879,11 @@ int ScptSetLocVar( int ScrId, int VarIdx, int Value )
         if( ScptPtr( ScrId, &scr ) != -1 ) scr->LocVarsCnt = gScptLocVarTable[ scr->LocVarId ].LocalVars;
     }
     if( scr->LocVarsCnt <= 0 ) return -1;
-    if( scr->LocVarsIdx == -1 ){
-        scr->LocVarsIdx = MapVarsAdd( scr->LocVarsCnt );
-        MapSetLocalVar( scr->LocVarsIdx + VarIdx, Value );
+    if( scr->LocalVarBase == -1 ){
+        scr->LocalVarBase = MapAddLocalVars( scr->LocVarsCnt );
+        MapSetLocalVar( scr->LocalVarBase + VarIdx, Value );
     } else {
-        MapSetLocalVar( scr->LocVarsIdx + VarIdx, Value );
+        MapSetLocalVar( scr->LocalVarBase + VarIdx, Value );
     }
     return 0;
 }

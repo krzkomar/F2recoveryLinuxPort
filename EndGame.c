@@ -202,6 +202,7 @@ void EndGameUnk05( int a1, char *a2 )
             	if( v14 ){            	    
             	    v16 = v31;
             	    for( v15 = 0; v15 < 768; v15++ ){
+DD
 //                v29 = v19[v15];
                         ObjWidth = lround(v16);
                         v19[ v15 + 767 ] = ObjWidth;

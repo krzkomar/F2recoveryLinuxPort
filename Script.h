@@ -108,7 +108,7 @@ typedef struct
   int LocVarId;
     Intp_t *Intp;
     int i08;
-  int LocVarsIdx;
+  int LocalVarBase;	// base position for local variables in gMapLocalVars
   int LocVarsCnt;
   int i11; 	// ret value
   int ActionEventId;	// proc id

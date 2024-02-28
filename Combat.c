@@ -736,6 +736,7 @@ void CombatProcess()
         obj = gCombatCritters[ i ];
         if( obj == gObjDude ) continue;
         if( gObjDude->Critter.State.GroupId == obj->Critter.State.GroupId ){
+DD
 //    	    if( !(obj->Critter.State.WhoHitMe) || (obj->Critter.State.GroupId != obj->Critter.State.WhoHitMe->Critter.State.GroupId ) ) continue;
         }
         if( !AiUnk51( gCombatCritters[ i ] ) ){
@@ -748,6 +749,7 @@ void CombatProcess()
         obj = gCombatCritters[ i ];
         if( obj == gObjDude ) continue;
         if( gObjDude->Critter.State.GroupId == obj->Critter.State.GroupId ){        
+DD
 //    	    if( !(obj->Critter.State.WhoHitMe) || ( obj->Critter.State.GroupId != obj->Critter.State.WhoHitMe->Critter.State.GroupId ) ) continue;
         }
     	if( AiUnk52( obj ) ){
@@ -900,6 +902,7 @@ int CombatUnk34()
     for( i = 0; i < gCombat04; i++ ){
         if( gObjDude->Critter.State.GroupId != gCombatCritters[ i ]->Critter.State.GroupId ) break;
         if( gCombatCritters[ i ]->Critter.State.WhoHitMe ){
+DD
 //            if( gObjDude->Critter.State.GroupId == gCombatCritters[ i ]->Critter.State.WhoHitMe->Critter.State.GroupId ) break;
         }
     }
@@ -995,6 +998,7 @@ int CombatAttack( Obj_t *Critter, Obj_t *a2, int a3, int a4 )
         gCombat20.CompDmg += gCombat07->unk01[ 2 ];
         if( gCombat20.CompDmg < gCombat07->unk01[ 3 ] ) gCombat20.CompDmg = gCombat07->unk01[ 3 ];
         if( gCombat20.CompDmg > gCombat07->unk02 ) gCombat20.CompDmg = gCombat07->unk02;
+DD
 //        if( gCombat07->unk03 ) gCombat20.CompInjuries = gCombat07[1].Target; // ??????
     }
     if( gCombat20.i11 == 3 || gCombat20.i11 == 8 ){

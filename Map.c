@@ -73,6 +73,7 @@ int MapIsoInit()
 
 void MapIsoReset()
 {
+printf("** MAP ISO RESET **\n");
     if( gMapVars ){
         Free( gMapVars );
         gMapVars = NULL;
@@ -93,6 +94,7 @@ void MapIsoReset()
 
 void MapIsoClose()
 {
+printf("** MAP ISO CLOSE **\n");
     IfaceClose();
     CycleColorDisable();
     ObjClose();
@@ -104,7 +106,7 @@ void MapIsoClose()
         gMapVarsCnt = 0;
     }
     if( gMapLocalVars ){
-        Free(gMapLocalVars);
+        Free( gMapLocalVars );
         gMapLocalVars = NULL;
         gMapLocalVarsCnt = 0;
     }
@@ -233,19 +235,23 @@ int MapGetLocalVar( int VarId )
 {
     if( VarId >= 0 && VarId < gMapLocalVarsCnt ) return gMapLocalVars[ VarId ];
     eprintf( "ERROR: attempt to reference local var out of range: %d", VarId );
+exit(0);
     return 0;
 }
 
-int MapVarsAdd( int VarNum )
+int MapAddLocalVars( int VarNum )
 {
-    int *p, id;
+    int *p, base;
 
-    id = gMapLocalVarsCnt;
+    base = gMapLocalVarsCnt;
     gMapLocalVarsCnt += VarNum;    
+DD
+printf("=[%i]=>%i %p\n", VarNum, gMapLocalVarsCnt, gMapLocalVars );
     if( !(p = (int *)Realloc( gMapLocalVars, gMapLocalVarsCnt * sizeof( int ) )) ){ eprintf( "\nError: Ran out of memory!" ); return -1; }
+printf("==>%p\n", p);
     gMapLocalVars = p;
     memset( p + gMapLocalVarsCnt - VarNum, 0, VarNum * sizeof( int ) );
-    return id;
+    return base;
 }
 
 void MapSetStart( int GridPos, int MapLvl, int Rotation )
@@ -429,6 +435,7 @@ int MapUnk10( int a1, int a2, int a3 )
 
 void MapUnk09()
 {
+printf("** MAP Unk09 **\n");
     MapSetLvl(0);
     TileSetCenter( 20100, 2 );
     memset( &gMapCurrentPos, 0, sizeof( gMapCurrentPos ) );
@@ -589,9 +596,9 @@ DD
     if( !(gMap.MapFlags & MAPFLG_SAV) ){
         sprintf( stmp2, "maps/%s", gMap.Name );            
         if( (v14 = strstr( stmp2, ".MAP" )) ){
-	*v14 = '\0';
+	    *v14 = '\0';
         } else {        	
-    	if( (v14 = strstr(stmp2, ".map")) ) *v14 = '\0';
+    	    if( (v14 = strstr(stmp2, ".map")) ) *v14 = '\0';
         }
         strcpy( &stmp2[strlen(stmp2)], ".GAM" );
         GlobVarLoadFile(stmp2, "MAP_GLOBAL_VARS:", &gMapVarsCnt, &gMapVars);
@@ -613,7 +620,7 @@ printf("MapScriptId:%x\n", gMapScriptId);
     p->TimeEv = ScptNewObjId();
     scr->i08 = p->TimeEv;
     scr->TimeEv = p;
-SCP_DBG_EN;
+//SCP_DBG_EN;
 DD
     ScptUnk23();
     ScptRun( gMapScriptId, SCPT_AEV_MAP_ENTER_P_PROC );
@@ -1066,8 +1073,8 @@ int MapAllocLocalVars( int num )
 
 void MapFreeLocalVars()
 {
-    if ( !gMapLocalVars ) return;    
-    Free(gMapLocalVars);
+    if( !gMapLocalVars ) return;    
+    Free( gMapLocalVars );
     gMapLocalVars = NULL;
     gMapLocalVarsCnt = 0;    
 }

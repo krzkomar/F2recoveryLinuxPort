@@ -38,3 +38,4 @@ Acm_t *AcmOpen( int (*ReadCb)( void *file, void *data, int size), void *file, in
 int    AcmInflate( Acm_t *acm, short *data, int nbytes );
 void   AcmClose( Acm_t *acm );
 int AcmUnk01( Acm_t *acm, int Column );
+

@@ -1,5 +1,18 @@
 #include "FrameWork.h"
 
+#define OBJ_UNLINK( p1, p2 )	\
+        if( p1 ){	\
+            p1->Next = p2->Next;	\
+        } else {	\
+	    if( p2->object->GridId == -1 ){	\
+    		printf("  UNLINK:%p\n", gObjOffGridObjs);\
+    		gObjOffGridObjs = gObjOffGridObjs->Next;	\
+    		}\
+	    else	\
+    		gObjGridObjects[p2->object->GridId] = gObjGridObjects[ p2->object->GridId ]->Next;	\    
+        }
+
+
 int gObjUnk52[ 6 ][ 36 ];
 char gObjLight[ 2*6*8*18 ];
 
@@ -75,6 +88,7 @@ int gObjUnk21;
 
 int ObjInit( char *a1, int Width, int Height, int Pitch )
 {
+DD
     memset( gObjUnk01, 0, 5001 );
     gObjViewPortArea.rt = Width + 320;
     gObjViewPortArea.lt = -320;
@@ -635,26 +649,15 @@ int ObjUnk14( Obj_t *obj, unsigned int GridId, int MapLvl, VidRect_t *Area )
 
 int ObjLightItem( Obj_t *Obj, VidRect_t *Area )
 {
-    int GridId;
-    ObjList_t *tmp;
-    ObjList_t *list;
+    ObjList_t *tmp, *list;
 
-    if( !Obj || ObjFindInList( Obj, &list, &tmp ) ) return -1;
-    if ( ObjLight( Obj, 1, Area ) == -1 && Area ) ObjGetRadiusArea( Obj, Area );
-    if ( tmp ){
-        tmp->Next = list->Next;
-    } else {
-        GridId = list->object->GridId;
-        if( GridId == -1 )
-            gObjOffGridObjs = gObjOffGridObjs->Next;
-        else
-            gObjGridObjects[ GridId ] = gObjGridObjects[ GridId ]->Next;
-    }
-    if( &tmp != (void *)-4 ){
-        if( list ){
-            Free( list );
-            list = NULL;
-        }
+    if( !Obj ) return -1;
+    if( ObjFindInList( Obj, &list, &tmp ) ) return -1;
+    if( ObjLight( Obj, 1, Area ) == -1 && Area ) ObjGetRadiusArea( Obj, Area );
+    OBJ_UNLINK( tmp, list );
+    if( list ){
+        Free( list );
+        list = NULL;
     }
     Obj->GridId = -1;
     return 0;
@@ -671,14 +674,7 @@ int ObjMove( Obj_t *Obj, int Xpos, int Ypos, VidRect_t *Area )
         if( Area ){
             ObjGetRadiusArea( gObjRadius, &Rect );
             memcpy( Area, &Rect, sizeof( VidRect_t ) );            
-            if( q ){
-                q->Next = p->Next;
-            } else {
-                if( p->object->GridId == -1 )
-                    gObjOffGridObjs = gObjOffGridObjs->Next;
-                else
-                    gObjGridObjects[p->object->GridId] = gObjGridObjects[ p->object->GridId ]->Next;
-            }
+    	    OBJ_UNLINK( q, p );
             Obj->PosX += Xpos; Obj->Sx += Xpos;
             Obj->PosY += Ypos; Obj->Sy += Ypos;
             ObjAddObject( p );
@@ -687,31 +683,16 @@ int ObjMove( Obj_t *Obj, int Xpos, int Ypos, VidRect_t *Area )
             ObjMove( gObjRadius, Xpos, Ypos, 0 );
             RegionExpand( Area, &Rect, Area );
             return 0;
-        } else {
-            if( q ){
-                q->Next = p->Next;
-            } else {
-                if( p->object->GridId == -1 )
-                    gObjOffGridObjs = gObjOffGridObjs->Next;
-                else
-                    gObjGridObjects[ p->object->GridId ] = gObjGridObjects[ p->object->GridId ]->Next;
-            }
-            Obj->PosX += Xpos; Obj->Sx += Xpos;
-            Obj->PosY += Ypos; Obj->Sy += Ypos;
-            ObjAddObject( p );
-            ObjMove( gObjRadius, Xpos, Ypos, 0 );
-            return 0;
         }
+	OBJ_UNLINK( q, p );
+        Obj->PosX += Xpos; Obj->Sx += Xpos;
+        Obj->PosY += Ypos; Obj->Sy += Ypos;
+        ObjAddObject( p );
+        ObjMove( gObjRadius, Xpos, Ypos, 0 );
+        return 0;        
     } else if ( Area ){
         ObjGetRadiusArea( Obj, Area );
-        if( q ){
-            q->Next = p->Next;
-        } else {
-            if( p->object->GridId == -1 )
-                gObjOffGridObjs = gObjOffGridObjs->Next;
-            else
-                gObjGridObjects[ p->object->GridId ] = gObjGridObjects[ p->object->GridId ]->Next;
-        }
+	OBJ_UNLINK( q, p );
         Obj->PosX += Xpos; Obj->Sx += Xpos;
         Obj->PosY += Ypos; Obj->Sy += Ypos;
         ObjAddObject( p );
@@ -721,14 +702,7 @@ int ObjMove( Obj_t *Obj, int Xpos, int Ypos, VidRect_t *Area )
         RegionExpand( Area, &rect, Area );
         return 0;
     } else {
-        if( q ){
-            q->Next = p->Next;
-        } else {
-            if( p->object->GridId == -1 )
-                gObjOffGridObjs = gObjOffGridObjs->Next;
-            else
-                gObjGridObjects[ p->object->GridId ] = gObjGridObjects[ p->object->GridId ]->Next;
-        }
+	OBJ_UNLINK( q, p );
         Obj->PosX += Xpos; Obj->Sx += Xpos;
         Obj->PosY += Ypos; Obj->Sy += Ypos;
         ObjAddObject( p );
@@ -751,14 +725,7 @@ int ObjPutCursor( Obj_t *Obj, int Xpos, int Ypos, int MapLvl, VidRect_t *Area )
     if( GridIdx <= 39999 ){
         if( ObjFindInList( Obj, &p, &q ) == -1 ) return -1;
         if( ObjLight(Obj, 1, Area) == -1 && Area ) ObjGetRadiusArea( Obj, Area );
-        if( q ){
-            q->Next = p->Next;
-        } else {
-            if( p->object->GridId == -1 )
-                gObjOffGridObjs = gObjOffGridObjs->Next;
-            else
-                gObjGridObjects[ p->object->GridId ] = gObjGridObjects[ p->object->GridId ]->Next;
-        }
+	OBJ_UNLINK( q, p );
         Obj->GridId = -1;
         Obj->Elevation = MapLvl;
         flg = 1;
@@ -768,15 +735,7 @@ int ObjPutCursor( Obj_t *Obj, int Xpos, int Ypos, int MapLvl, VidRect_t *Area )
 	} else {
 	    if( ObjFindInList( Obj, &p, &q ) == -1 ) return -1;
 	    if( Area ) ObjGetRadiusArea( Obj, Area );
-	    if( q ){
-    		q->Next = p->Next;
-	    } else {
-		if( p->object->GridId != -1 ){
-    		    gObjGridObjects[ p->object->GridId ] = gObjGridObjects[ p->object->GridId  ]->Next;
-		} else {
-		    gObjOffGridObjs = gObjOffGridObjs->Next;
-		}
-	    }
+	    OBJ_UNLINK( q, p );
 	    Obj->Elevation = MapLvl;
 	    flg = 1;
 	}
@@ -818,14 +777,7 @@ int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLig
         if( k == -1 ) ObjGetRadiusArea( obj, pLightArea );
         memcpy( &Area2, pLightArea, sizeof( VidRect_t ) );
     }
-    if( ListPrev ){ // found -> unlink
-        ListPrev->Next = ListCur->Next;
-    } else { // not found
-        if( ListCur->object->GridId == -1 )
-            gObjOffGridObjs = gObjOffGridObjs->Next; // remove from list
-        else
-            gObjGridObjects[ ListCur->object->GridId ] = gObjGridObjects[ ListCur->object->GridId ]->Next; // remove from grid
-    }
+    OBJ_UNLINK( ListPrev, ListCur );
     if( ObjAddObjToList( ListCur, GridPos, MapLvl, pLightArea ) == -1 ) return -1;
     if( IN_COMBAT && OBJTYPE( obj->ImgId ) == TYPE_CRIT ) CombatUnk01( obj, obj->OutlineColor && obj->OutlineColor >= 0 );
     if( pLightArea ) RegionExpand( pLightArea, &Area2, pLightArea );
@@ -1086,10 +1038,11 @@ int ObjUnk32( Obj_t *obj, VidRect_t *Area )
 {
     VidRect_t tmp;
 
-    if( !obj || (obj->Flags & 1) == 0 )  return -1;
+    if( !obj ) return -1;
+    if( !( obj->Flags & 0x01 ) ) return -1;
     obj->Flags &= ~0x01;
     obj->OutlineColor &= ~0x8000;
-    if( ObjLight(obj, 0, Area) == -1 && Area ) ObjGetRadiusArea( obj, Area );
+    if( ( ObjLight( obj, 0, Area ) == -1 ) && Area ) ObjGetRadiusArea( obj, Area );
     if( obj != gObjDude ) return 0;
     if( !Area ) return 0;
     ObjGetRadiusArea( gObjRadius, &tmp );
@@ -1137,28 +1090,14 @@ int ObjSetPlayer( Obj_t *obj, VidRect_t *RadArea ) // zla nazwa ?
     if( ObjFindInList( obj, &ObjList, &list ) == -1 ) return -1;
     if( RadArea ){
         ObjGetRadiusArea( obj, RadArea );
-        if( list ){
-            list->Next = ObjList->Next;
-        } else {
-            if( ObjList->object->GridId == -1 )
-                gObjOffGridObjs = gObjOffGridObjs->Next;
-            else
-                gObjGridObjects[ ObjList->object->GridId ] = gObjGridObjects[ ObjList->object->GridId ]->Next;
-        }
+	OBJ_UNLINK( list, ObjList );
         obj->Flags ^= 0x08;
         ObjAddObject( ObjList );
         ObjGetRadiusArea( obj, &Rect );
         RegionExpand( RadArea, &Area, RadArea );
         return 0;
     }
-    if( list ){
-        list->Next = ObjList->Next;
-    } else {
-        if( ObjList->object->GridId == -1 )
-            gObjOffGridObjs = gObjOffGridObjs->Next;
-        else
-            gObjGridObjects[ ObjList->object->GridId ] = gObjGridObjects[ ObjList->object->GridId ]->Next;
-    }
+    OBJ_UNLINK( list, ObjList );
     obj->Flags ^= 0x08;
     ObjAddObject( ObjList );
     return 0;
@@ -1282,7 +1221,8 @@ void ObjClear()
 {
     int i;
     ObjList_t *p, *q, *tmp;
-    
+DD
+printf( "FLUSH:*******************************************************\n" );    
     ScptFlush();
     for( i = 0; i != 200*200; i++ ){
         q = NULL;
@@ -2415,22 +2355,22 @@ int ObjFindInList( Obj_t *obj, ObjList_t **list_cur, ObjList_t **list_prev )
 
 void ObjAddObject( ObjList_t *NewObj )
 {
-    int GridId, a, b;
+    int a, b;
     ObjList_t **p;
     Obj_t *object;
     ArtFrmHdr_t *Art1, *Art2;
     CachePool_t *ImgObj1, *ImgObj2;
 
     if( !NewObj ) return;        
-    if( (GridId = NewObj->object->GridId) == -1 ){
+    if( NewObj->object->GridId == -1 ){
 DD
+printf(">>> ADD OBJECT OFFGRID: %p\n", NewObj );
     	NewObj->Next = gObjOffGridObjs;
     	gObjOffGridObjs = NewObj;
     	return;
     }    
-DD
     Art2 = NULL;
-    for( p = &gObjGridObjects[ GridId ]; *p; p = &(*p)->Next ){ // add object on the same grid position
+    for( p = &gObjGridObjects[ NewObj->object->GridId ]; *p; p = &(*p)->Next ){ // add object on the same grid position
         object = (*p)->object;
         if( object->Elevation > NewObj->object->Elevation ) break;
         if( object->Elevation < NewObj->object->Elevation ) continue;
@@ -2454,7 +2394,6 @@ DD
 int ObjDelete( ObjList_t *obl1, ObjList_t *obl2 )
 {
     Obj_t *obj;
-    int gid;
 
     obj = obl1->object;
     if( !obj || (obj->Flags & 0x400) ) return -1;
@@ -2464,15 +2403,7 @@ int ObjDelete( ObjList_t *obl1, ObjList_t *obl2 )
         ScptRemove( obl1->object->ScrId );
     }
     if( obl2 != obl1 ){
-        if( obl2 ){
-            obl2->Next = obl1->Next;
-        } else {
-            gid = obl1->object->GridId;
-            if( gid == -1 )
-                gObjOffGridObjs = gObjOffGridObjs->Next;
-            else
-                gObjGridObjects[ gid ] = gObjGridObjects[ gid ]->Next;
-        }
+	OBJ_UNLINK( obl2, obl1 );
     }
     if( obl1 && obl1->object ){ Free( obl1->object ); obl1->object = NULL; } // delete object
     if( obl1 ){ Free( obl1 ); obl1 = NULL; } // remove link list

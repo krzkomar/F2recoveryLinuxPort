@@ -52,7 +52,7 @@ void MainGame( int argc, char **argv )
                     GMoviePlay( 16, 0 );
                     break;
                 case 1: // NEW GAME
-                    MainMenuUpdate(1);
+                    MainMenuUpdate( 1 );
                     MainMenuDestroy();
                     if( NgNewGame() == 2 ){
 //                        GMoviePlay( 2, 4 );
@@ -173,9 +173,9 @@ int MainGameCreate( char *MapName )
     gMenuEscape = 0;
     gMainUnk08 = 0;
     gObjDude->Flags &= ~0x08;
-    ObjUnk32( gObjDude, 0 );
+    ObjUnk32( gObjDude, NULL );
     MseCursorRedraw();
-    win = WinCreateWindow(0, 0, 640, 480, gPalColorCubeRGB[0][0][0], 20);
+    win = WinCreateWindow( 0, 0, 640, 480, gPalColorCubeRGB[0][0][0], 20 );
     WinUpdate( win );
     PalLoadFromFile( "color.pal" );
     FadeStep( gPalBase );

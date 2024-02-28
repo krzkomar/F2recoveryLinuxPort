@@ -14,9 +14,7 @@ int GameSysInit( char *ProgName, int flag1, int Font, int Flags, int argc, char 
     gMapperEnable = ( flag1 == 1 );
     if( SysOpenDataBase() == -1 ){ SysUnloadConfiguration( 0 ); return -1; }
     WinSetTitle( ProgName );
-
     WinSetup( 1, Flags );
-
     FadeInit();
     if( CfgGetString( &gConfiguration, "system", "language", &lang ) == 1 ){
         if( !strcasecmp( lang, "french" ) ){

@@ -84,7 +84,7 @@ int gWmGoToLocation;
 int    gWmUnk23;
 WmTileDsc_t    *gWmTile;
 int    gWmUnk22;
-int    gWmUnk13;
+int    gWmTravel;
 int    gWmSteps;
 int    gWmUnk25;
 int    gWmUnk26;
@@ -208,7 +208,7 @@ int WmInitVars1()
     gWmWorldPosY = 122;
     gWmTile = NULL;
     gWmUnk22 = 0;
-    gWmUnk13 = 0;
+    gWmTravel = 0;
     gWmUnk11 = -1;
     gWmUnk12 = -1;
     gWmSteps = 0;
@@ -307,7 +307,7 @@ int WmInitVars2()
     gWmUnk23 = 0;
     gWmTile = NULL;
     gWmUnk22 = 0;
-    gWmUnk13 = 0;
+    gWmTravel = 0;
     gWmSteps = 0;
     gWmUnk25 = 0;
     gWmUnk26 = 0;
@@ -1463,7 +1463,6 @@ int WmUnk45( int MapId, int a2, int Val )
     return 0;
 }
 
-
 int WmMenu()
 {
     return WmMenu1( 0 );
@@ -1474,7 +1473,6 @@ int WmMenu1( int UnusedArg )
     WmArea_t *v18,*area;
     unsigned int SysTime, Sel;
     int AreaMseX,AreaMseY,MseBt,v19,v20,EntranceId,MseY,MseX,v28, Time,sz;
-
     MseX = MseY = 0;
     v28 = 0;
     EntranceId = -1;
@@ -1486,14 +1484,14 @@ int WmMenu1( int UnusedArg )
         SysTime = TimerGetSysTime();
         MseGetCursorPosition( &MseX, &MseY );
         AreaMseX = gWmMapOffsetX + MseX - 22;
-        AreaMseY = MseY + gWmMapOffsetY - 21;
+        AreaMseY = gWmMapOffsetY + MseY - 21;
         if( Sel == 17 || Sel == 24 || Sel == 324 ) SysQuitDlg();
         ScptPlayMovieEv( NULL, gWmMenuWin );
         if( gMenuEscape ) break;
         MseBt = MseGetButtons();
-        if( gWmUnk13 == 1 ){  
+        if( gWmTravel == 1 ){  
     	    WmMoveStep(); 
-    	    if( gWmUnk13 == gWmTravelByCar ){ // car travel
+    	    if( gWmTravelByCar == 1 ){ // car travel
                 WmMoveStep(); WmMoveStep(); WmMoveStep();
                 if( GlobVarGet( 439 ) ) WmMoveStep();
                 if( GlobVarGet( 455 ) ) WmMoveStep();
@@ -1502,7 +1500,7 @@ int WmMenu1( int UnusedArg )
                 if( ArtGetFpd( gWmCarImg ) <= gWmCarFrameNo ) gWmCarFrameNo = 0;
                 WmUnk86( 100 );
                 if( gWmGasoline <= 0 ){
-                    gWmUnk11 = gWmUnk12 = gWmUnk13 = 0;
+                    gWmUnk11 = gWmUnk12 = gWmTravel = 0;
                     WmGetArea( AreaMseX, AreaMseY, &gWmAreaId );
                     gWmTravelByCar = 0;
                     if( gWmAreaId == -1 ){
@@ -1518,19 +1516,20 @@ int WmMenu1( int UnusedArg )
                     eprintf( "\nRan outta gas!" );
                 }
     	    }  
+
             WmDrawMapScreen();
             if( TimerDiff( SysTime, Time ) > 1000 && PartyHeal( 3 ) ){ IfaceRenderHP( 0 ); Time = SysTime; }
             WmUnk69( gWmWorldPosX, gWmWorldPosY );
             if( gWmSteps <= 0 ){ // stop
-        	gWmUnk13 = 0; 
+        	gWmTravel = 0; 
         	WmGetArea( gWmWorldPosX, gWmWorldPosY, &gWmAreaId ); 
     	    }
             WmDrawMapScreen();
             if( WmWait( 18000 ) && gMenuEscape ) break;
-            if( gWmUnk13 == 1 ){
+            if( gWmTravel == 1 ){ // generate chance for random encounter
                 if( WmRandomEncounter() ){
                     if( gWmRandMapId != -1 ){
-                        if( gWmUnk13 == gWmTravelByCar ) WmFindAreaByEntranceId( gWmRandMapId, &gWmCurrentArea );
+                        if( gWmTravel == gWmTravelByCar ) WmFindAreaByEntranceId( gWmRandMapId, &gWmCurrentArea );
                         MapOpenById( gWmRandMapId );
                     }
                     break;
@@ -1540,7 +1539,7 @@ int WmMenu1( int UnusedArg )
         if( (MseBt & 0x01) && !(MseBt & 0x04) ){
     	    if( !MseCursorCenterInArea( 22, 21, 472, 465 ) ) continue;
     	    // click on map area
-    	    if( !gWmUnk13 && !gWmGoToLocation && abs32( gWmWorldPosX - AreaMseX ) < 5 && abs32( gWmWorldPosY - AreaMseY ) < 5 ){
+    	    if( !gWmTravel && !gWmGoToLocation && abs32( gWmWorldPosX - AreaMseX ) < 5 && abs32( gWmWorldPosY - AreaMseY ) < 5 ){
             	gWmGoToLocation = 1;
             	WmDrawMapScreen();
     	    }
@@ -1602,16 +1601,16 @@ int WmMenu1( int UnusedArg )
                     }
                 }
 		break;
-        case 331: WmMoveMap( 20, 20, 0, -1, 0, 1 ); break;
-        case 333: WmMoveMap( 20, 20, 0, 1, 0, 1 ); break;
-        case 336: WmMoveMap( 20, 20, 1, 0, 0, 1 ); break;
+        case 331: WmMoveMap( 20, 20, -1, 0, 0, 1 ); break;
+        case 333: WmMoveMap( 20, 20, 1, 0, 0, 1 ); break;
+        case 336: WmMoveMap( 20, 20, 0, 1, 0, 1 ); break;
              // list of known locations arrows buttons
         case 397: WmListScrollUpDn( -27 ); break;
         case 401: WmListScrollUpDn( 27 ); break;
         case 327: WmUnk48(); break;
-        case 328: WmMoveMap( 20, 20, -1, 0, 0, 1 ); break;
+        case 328: WmMoveMap( 20, 20, 0, -1, 0, 1 ); break;
         case 'T': case 't': // Town/World
-    	    if( gWmUnk13 || gWmAreaId == -1 ) break;
+    	    if( gWmTravel || gWmAreaId == -1 ) break;
             area = &gWmAreas[ gWmAreaId ];
             if( area->LockState[ 1 ] != 2 || area->TnmapArtIdx == -1 ) break;
             if( WmTownMap( &EntranceId ) == -1 ) v28 = -1;
@@ -1622,9 +1621,7 @@ int WmMenu1( int UnusedArg )
 	    break;        
         }
     }
-DD
     if( WmMenuDestroy() == -1 ) return -1;
-DD
     return v28;    
 }
 
@@ -2183,7 +2180,7 @@ int WmMapTravel( int a1, int a2 )
     gWmUnk11 = a1;
     gWmUnk12 = a2;
     gWmAreaId = -1;
-    gWmUnk13 = 1;
+    gWmTravel = 1;
     v2 = abs32(a1 - gWmWorldPosX);
     v3 = abs32(a2 - gWmWorldPosY);
     if( v2 < v3 ){
@@ -2229,7 +2226,7 @@ void WmMoveStep()
     if( gWmUnk130 / TerrainDifficulty < 1 ) return;
     if( gWmUnk25 >= 0 ){
         if( WmIsAreaAccessible( gWmUnk53 + gWmWorldPosX, gWmUnk30 + gWmWorldPosY ) ){
-            gWmUnk11 = gWmUnk12 = gWmUnk13 = 0;
+            gWmUnk11 = gWmUnk12 = gWmTravel = 0;
             WmGetArea( gWmWorldPosX, gWmWorldPosX, &gWmAreaId );
             gWmSteps = 0;
             return;
@@ -2237,10 +2234,10 @@ void WmMoveStep()
         gWmUnk25 += gWmUnk27;
         gWmWorldPosX += gWmUnk53;
         gWmWorldPosY += gWmUnk30;
-        WmMoveMap( 1, 1, gWmUnk30, gWmUnk53, 0, 0 );
+        WmMoveMap( 1, 1, gWmUnk53, gWmUnk30, 0, 0 );
     } else {
         if( WmIsAreaAccessible( gWmUnk28 + gWmWorldPosX, gWmUnk29 + gWmWorldPosY ) ){
-            gWmUnk11 = gWmUnk12 = gWmUnk13 = 0;
+            gWmUnk11 = gWmUnk12 = gWmTravel = 0;
             WmGetArea( gWmWorldPosX, gWmWorldPosX, &gWmAreaId );
             gWmSteps = 0;
             return;
@@ -2248,11 +2245,11 @@ void WmMoveStep()
         gWmUnk25 += gWmUnk26;
         gWmWorldPosY += gWmUnk29;
         gWmWorldPosX += gWmUnk28;
-        WmMoveMap( 1, 1, gWmUnk29, gWmUnk28, 0, 0 );
+        WmMoveMap( 1, 1, gWmUnk28, gWmUnk29, 0, 0 );
     }
     v3 = --gWmSteps;
     if( !gWmSteps ){
-        gWmUnk12 = gWmUnk13 = gWmUnk11 = v3;
+        gWmUnk12 = gWmTravel = gWmUnk11 = v3;
     }        
 }
 
@@ -2497,31 +2494,14 @@ int WmMenuDestroy()
     return 0;
 }
 
-int WmMoveMap( int dy, int dx, int hor, int vert, int *pAllow, int a6 )
+int WmMoveMap( int dx, int dy, int hor, int vert, int *pAllow, int MapUpdate )
 {
-    int x, y;
+    int y, x;
 
-    x = gWmMapOffsetY;
-    y = gWmMapOffsetX;
+    y = gWmMapOffsetY;
+    x = gWmMapOffsetX;
     if( pAllow ) *pAllow = 1;
     if( vert < 0 ){
-        if( x > 0 ){
-            x -= dx;
-            if( x < 0 ) x = 0;
-        } else {
-    	    if( pAllow ) *pAllow = 0;
-        }
-    } else {
-	if( vert > 0 ){
-	    if( x >= gWmUnk17 ){
-    		if( pAllow ) *pAllow = 0;
-	    } else {
-	        x += dx;
-		if( x > gWmUnk17 ) x = gWmUnk17;
-	    }
-	}
-    }
-    if( hor < 0 ){
         if( y > 0 ){
             y -= dy;
             if( y < 0 ) y = 0;
@@ -2529,27 +2509,38 @@ int WmMoveMap( int dy, int dx, int hor, int vert, int *pAllow, int a6 )
     	    if( pAllow ) *pAllow = 0;
         }
     } else {
-	if( hor > 0 ){
-	    if( y >= gWmUnk16 ){
+	if( vert > 0 ){
+	    if( y >= gWmUnk17 ){
     		if( pAllow ) *pAllow = 0;
 	    } else {
 		y += dy;
-		if( y > gWmUnk16 ) y = gWmUnk16;
+		if( y > gWmUnk17 ) y = gWmUnk17;
 	    }
 	}
     }
-    gWmMapOffsetY = x;
-    gWmMapOffsetX = y;
-    if( a6 == 1 ){
-	if( WmDrawMapScreen() == -1 ){
-	    gWmMapOffsetX = gWmMapOffsetX;
-	    gWmMapOffsetY = gWmMapOffsetY;
-	    return -1;
+    if( hor < 0 ){
+        if( x > 0 ){
+            x -= dx;
+            if( x < 0 ) x = 0;
+        } else {
+    	    if( pAllow ) *pAllow = 0;
+        }
+    } else {
+	if( hor > 0 ){
+	    if( x >= gWmUnk16 ){
+    		if( pAllow ) *pAllow = 0;
+	    } else {
+		x += dx;
+		if( x > gWmUnk16 ) x = gWmUnk16;
+	    }
 	}
     }
-    gWmMapOffsetX = gWmMapOffsetX;
-    gWmMapOffsetY = gWmMapOffsetY;
-    return 0;
+    gWmMapOffsetY = y;
+    gWmMapOffsetX = x;
+    if( MapUpdate == 1 ){
+	if( WmDrawMapScreen() == -1 ) return -1;
+    }
+    return 0;    
 }
 
 void WmMouseHandle( int a1 )
@@ -3544,7 +3535,7 @@ int WmSetArea( int AreaId )
     gWmAreaId = AreaId;
     gWmUnk11 = 0;
     gWmUnk12 = 0;
-    gWmUnk13 = 0;
+    gWmTravel = 0;
     gWmWorldPosX = gWmAreas[ AreaId ].WorldPosX;
     gWmWorldPosY = gWmAreas[ AreaId ].WorldPosY;
     return 0;

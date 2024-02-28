@@ -538,14 +538,11 @@ void ScrGame_CreateObject( Intp_t *scr )
         eprintf( "\nError: attempt to Create critter in load/save-game: %s!", scr->FileName );
     } else if( pid ){
         if( ProtoGetObj( pid, &proto ) != -1 ){
-DD
     	    if( ObjCreate( &Obj, proto->ImgId, pid ) != -1 ){
-DD
         	if( tile_num == -1 ) tile_num = 0;
         	if( ObjMoveToTile( Obj, tile_num, lvl, &Area ) != -1 ) TileUpdateArea( &Area, Obj->Elevation );
     	    }
         }
-DD
         if( sid != -1 ){
             Pid_high = OBJTYPE( Obj->Pid );
             if( Pid_high == 1 ){
