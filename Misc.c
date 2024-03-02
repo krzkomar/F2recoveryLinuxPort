@@ -2,7 +2,6 @@
 
 int gDbg = 0;
 int gMenuEscape = 0;
-int gCurrentMapLvl = 0;
 int gCurrentMapId = 0;
 char **gDlgLines;
 int gLangFilter = -1;

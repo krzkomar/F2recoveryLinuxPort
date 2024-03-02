@@ -45,9 +45,7 @@ extern const char IsTable[ 256 ];
 extern int gSDLReady;
 extern int gLanguageId;
 extern Config_t gConfiguration;
-extern int gCurrentMapLvl;
 extern int gCurrentMapId;
-extern char gMapCurrentFName[16];
 
 extern char **gDlgLines;
 extern int gIfcWin;

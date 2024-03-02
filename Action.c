@@ -399,7 +399,7 @@ void ActionUnk28( Obj_t *obj, int ImgId )
 
     eprintf( "\n[throw_change_fid!]: %d", ImgId );
     ObjSetShape( obj, ImgId, &area );
-    TileUpdateArea( &area, gCurrentMapLvl );
+    TileUpdateArea( &area, gMapCurrentLvl );
 }
 
 int ActionUnk27( Combat_t *cmbt, int a2 )
@@ -863,7 +863,7 @@ printf("=Target=>0x%x %i\n", target->Pid, target->Pid );
 	}
 	if( v8 ){
 	    v11 = ObjGetDistance( gObjDude, target ) <= 1;
-    	    if( !TextFloatMessage( v8, SkillUseTryWantMsg( v11 ), 101, gPalColorCubeRGB[31][31][11], gPalColorCubeRGB[0][0][0], &Area) ) TileUpdateArea( &Area, gCurrentMapLvl );
+    	    if( !TextFloatMessage( v8, SkillUseTryWantMsg( v11 ), 101, gPalColorCubeRGB[31][31][11], gPalColorCubeRGB[0][0][0], &Area) ) TileUpdateArea( &Area, gMapCurrentLvl );
     	    if( v11 ){
         	v4 = gObjDude;
     		v8 = NULL;
@@ -921,7 +921,7 @@ Obj_t *ActionUnk18( int a1 )
     		    break;
     		}
 	    } else {
-		Object = GmouseGetObject( a1, 0, gCurrentMapLvl );
+		Object = GmouseGetObject( a1, 0, gMapCurrentLvl );
 		v4 = 0;
 		break;
 	    }
@@ -949,7 +949,7 @@ int ActionUnk17() // no xref
             TileUpdateArea( &area, gGmouseObjA->Elevation );
         }
         if( sel == 329 || sel == 337 ){
-            MapSetLvl( ( sel == 329 ) ? gCurrentMapLvl + 1 : gCurrentMapLvl - 1 );
+            MapSetLvl( ( sel == 329 ) ? gMapCurrentLvl + 1 : gMapCurrentLvl - 1 );
             area.tp = 62;
             area.rt = 50;
             area.bm = 88;

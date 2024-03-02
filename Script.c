@@ -521,7 +521,7 @@ void ScptUnk124( Scpt_t *a1 )
 void ScptActionExec()
 {
     Obj_t *p, *i;
-    Map01_t jmp;
+    MapPosition_t jmp;
     short pos;
     int lvl, MapId;
 
@@ -549,7 +549,7 @@ void ScptActionExec()
             if( ElevatorMenu( gScptUnk115, &MapId, &lvl, &pos ) != -1 ){
                 AutomapSave();
                 if( MapId == gMap.MapId ){
-                    if( lvl == gCurrentMapLvl ){
+                    if( lvl == gMapCurrentLvl ){
                         AnimClear( gObjDude );
                         ObjSetRotation( gObjDude, 2, NULL );
                         UseUnk46( gObjDude, pos, lvl, 0 );
@@ -601,7 +601,7 @@ void ScptActionExec()
 void ScptUnk122()
 {
     Obj_t *i;
-    Map01_t v9;
+    MapPosition_t v9;
     short PosY;
     int Lvl, pMapId;
 
@@ -612,7 +612,7 @@ void ScptUnk122()
         if( ElevatorMenu( gScptUnk115, &pMapId, &Lvl, &PosY ) != -1 ){
             AutomapSave();
             if( pMapId == gMap.MapId ){
-                if( Lvl == gCurrentMapLvl ){
+                if( Lvl == gMapCurrentLvl ){
                     AnimClear( gObjDude );
                     ObjSetRotation( gObjDude, 2, NULL );
                     UseUnk46( gObjDude, PosY, Lvl, 0 );
@@ -687,7 +687,7 @@ int ScptRequestElevator( Obj_t *a1, int en )
     int i, j, n, lvl;
     
     n = a1->GridId;
-    lvl = gCurrentMapLvl;
+    lvl = gMapCurrentLvl;
     if( n == -1 ){
 	eprintf( "\nError: scripts_request_elevator! Bad tile num" );
 	return -1;
@@ -1707,7 +1707,9 @@ int ScptLoadAllScripts()
 
 void ScptMapEnter()
 {
+SCP_DBG_EN;
     ScptExecMapUpdateScripts( SCPT_AEV_MAP_ENTER_P_PROC );
+SCP_DBG_DIS;
 }
 
 void ScptMapUpdate()
@@ -1888,7 +1890,7 @@ int ScptSetLocVar( int ScrId, int VarIdx, int Value )
     return 0;
 }
 
-int ScptUnk39()
+int ScptCombat()
 {
     Scpt_t *scr;
     int gid;

@@ -313,7 +313,7 @@ int GameProcess( int sel, int a2 )
     	    break;    
 	case 324: GSoundPlay( "ib1p1xx1" ); SysQuitDlg(); break;
 	case 327:
-    	    if( gCurrentMapLvl != gObjDude->Elevation ) MapSetLvl( gObjDude->Elevation );
+    	    if( gMapCurrentLvl != gObjDude->Elevation ) MapSetLvl( gObjDude->Elevation );
     	    if( gSysMapperEnable )
         	TileSetCenter( gObjDude->GridId, 1 );
     	    else

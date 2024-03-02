@@ -265,7 +265,7 @@ void ScpA_GetLVar( Intp_t *scr ) // 8032
     SCP_DBGA( "GetLVar( [%x]%x )", Type1, Arg1 );
     SCP_ERRTYPEF( Type1 != SCR_INT, stmp, "Invalid type given to fetch, %x", Type1 );
     k = IntpReadBei( scr->StackA, scr->Base + 10 * Arg1 );    
-    p = &scr->StackA[ scr->Base + 10 * Arg1 + 8 ];
+    p = (void *)&scr->StackA[ scr->Base + 10 * Arg1 + 8 ];
     t = (((uint16_t)p[ 0 ] << 8) | (uint16_t)p[ 1 ]);
     if( t == SCR_PTR ){
 	p = IntpReadBep( scr->StackA, scr->Base + 10 * Arg1 );    
@@ -1270,7 +1270,7 @@ void ScpA_Jump( Intp_t *scr ) // 8004 jmp()
 
     SCP_GETARG( Type, Arg, scr );
     SCP_DBGA( "JUMP [%x]%x", Type, Arg );
-    SCP_DECHO( "\n" );
+    SCP_DECHO( "" );
     Type &= ~0x800;
     SCP_ERRTYPEF( Type != SCR_INT, stmp, "Invalid type given to jmp, %x", Type );
     scr->CodePC = Arg;
@@ -1365,7 +1365,7 @@ void ScpA_ExitProc( Intp_t *scr ) // 801F ?( arg1, arg2, arg3 )
 	SCP_DBGA( "EXIT_PROC( [%x]%p )", Type2, scr->Func );
     }    
     SCP_GETARG( Type3, Arg3, scr ); scr->Flags = Arg3;
-    SCP_DECHO( "---------------------------------------------------\n\n" );
+    SCP_DECHO( "---------------------------------------------------\n" );
 }
 
 void ScpA_RetA( Intp_t *scr ) // 801C
@@ -1375,7 +1375,7 @@ void ScpA_RetA( Intp_t *scr ) // 801C
     SCP_DBGA( "RET" );
     IntpPopwB( scr );
     scr->CodePC = IntpPopIntStack( scr->StackB, &scr->StackIdxB );
-    SCP_DECHO( "\n" );
+    SCP_DECHO( "" );
 }
 
 void ScpA_RetB( Intp_t *scr ) // 801D

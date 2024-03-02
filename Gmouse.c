@@ -243,22 +243,23 @@ void GmouseProcess()
     } else {
 	if( (gGmouseObjB->Flags & 0x01) ) GmouseIsoEnter();
     }
-    if( !GmouseCursorUpdate( MseX, MseY, gCurrentMapLvl, &Area3 ) ) TileUpdateArea( &Area3, gCurrentMapLvl );
+    if( !GmouseCursorUpdate( MseX, MseY, gMapCurrentLvl, &Area3 ) ) TileUpdateArea( &Area3, gMapCurrentLvl );
     if( (gGmouseObjB->Flags & 0x01) || gGmouseUnk10 ) return;
     Time = TimerGetTime();
-    if( MseX == gGmouseOldX && MseY == gGmouseOldY ){
+
+    if( MseX == gGmouseOldX && MseY == gGmouseOldY ){ // ISO AREA
         if( gGmouseStay || TimerDiff( Time, gGmouseRstTime ) < 250 ) return;
         if( gGmouseShape ){
             if( gGmouseShape == 1 ){ // pointed cursor
                 gGmouseRstTime = Time;
                 gGmouseStay = 1;                
-                if( (obj = GmouseGetObject( -1, 1, gCurrentMapLvl )) ){
+                if( (obj = GmouseGetObject( -1, 1, gMapCurrentLvl )) ){
                     Action = -1;
                     switch( OBJTYPE( obj->ImgId ) ){
                         case TYPE_ITEM:
                             Action = ACTION_USE;
                             if( gItemHlShow == 1 && !ObjSetOutline( obj, 16, &v21 ) ){
-                                TileUpdateArea( &v21, gCurrentMapLvl );
+                                TileUpdateArea( &v21, gMapCurrentLvl );
                                 gGmouseObjC = obj;
                             }
                             break;
@@ -276,7 +277,7 @@ void GmouseProcess()
                         default: break;
                     }
                     if( Action != -1 && !GmouseTile( MseX, MseY, Action, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99 ) ){
-                        if( ObjSetShape( gGmouseObjB, ArtMakeId( 6, 282, 0, 0, 0 ), &Area4 ) == 0 ) TileUpdateArea( &Area4, gCurrentMapLvl );
+                        if( ObjSetShape( gGmouseObjB, ArtMakeId( 6, 282, 0, 0, 0 ), &Area4 ) == 0 ) TileUpdateArea( &Area4, gMapCurrentLvl );
                     }
                     if( obj != gGmouseActionObject ){
                         gGmouseActionObject = obj;
@@ -284,8 +285,8 @@ void GmouseProcess()
                     }
                 }
             } else if( gGmouseShape == 2 ){                
-                if( !(obj = GmouseGetObject( 1, 0, gCurrentMapLvl )) ){
-                    obj = GmouseGetObject( -1, 0, gCurrentMapLvl );
+                if( !(obj = GmouseGetObject( 1, 0, gMapCurrentLvl )) ){
+                    obj = GmouseGetObject( -1, 0, gMapCurrentLvl );
                     if( !GmouseUnk43( obj ) ) obj = NULL;
                 }
                 if( obj ){
@@ -309,11 +310,11 @@ void GmouseProcess()
                         }
                     }
                     if( !GmousePrint( stmp2, color ) ){
-                        if( ObjSetShape( gGmouseObjB, ArtMakeId( 6, 284, 0, 0, 0 ), &v20 ) == 0 ) TileUpdateArea( &v20, gCurrentMapLvl );
+                        if( ObjSetShape( gGmouseObjB, ArtMakeId( 6, 284, 0, 0, 0 ), &v20 ) == 0 ) TileUpdateArea( &v20, gMapCurrentLvl );
                     }
                     if( obj != gGmouseActionObject ) gGmouseActionObject = obj;
                 } else if( !GmouseSetShapeB( &Area3 ) ){
-                    TileUpdateArea( &Area3, gCurrentMapLvl );
+                    TileUpdateArea( &Area3, gMapCurrentLvl );
                 }
                 gGmouseRstTime = Time;
                 gGmouseStay = 1;
@@ -357,10 +358,10 @@ void GmouseProcess()
         gGmouseObjC = 0;
     }
     if( flg < 2 ){
-	if( flg == 1 ) TileUpdateArea( &Area1, gCurrentMapLvl );
+	if( flg == 1 ) TileUpdateArea( &Area1, gMapCurrentLvl );
     } else {
-	if( flg <= 2 ){ TileUpdateArea( &Area2, gCurrentMapLvl); return; }
-        if( flg == 3 ){ RegionExpand( &Area1, &Area2, &Area1 ); TileUpdateArea( &Area1, gCurrentMapLvl ); }
+	if( flg <= 2 ){ TileUpdateArea( &Area2, gMapCurrentLvl); return; }
+        if( flg == 3 ){ RegionExpand( &Area1, &Area2, &Area1 ); TileUpdateArea( &Area1, gMapCurrentLvl ); }
     }
 }
 
@@ -392,7 +393,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                 AnimRun( ap );
                 return;
             case 1: // pointed object
-                if( !( obj = GmouseGetObject( -1, 1, gCurrentMapLvl ) ) ) return;
+                if( !( obj = GmouseGetObject( -1, 1, gMapCurrentLvl ) ) ) return;
                 switch( OBJTYPE( obj->ImgId ) ){
                     case TYPE_ITEM: ActionPickupItem( gObjDude, obj ); break;
                     case TYPE_CRIT:
@@ -418,9 +419,9 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                 }                    
                 return;
             case 2:
-                obj = GmouseGetObject( 1, 0, gCurrentMapLvl );
+                obj = GmouseGetObject( 1, 0, gMapCurrentLvl );
                 if( obj ) return;                    
-                obj = GmouseGetObject( -1, 0, gCurrentMapLvl );
+                obj = GmouseGetObject( -1, 0, gMapCurrentLvl );
                 if( !GmouseUnk43( obj ) ) return;                        
                 CombatStartAttack( obj );
                 gGmouseStay = 1;
@@ -429,7 +430,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                 gGmouseRstTime = TimerGetSysTime() - 250;                    
                 return;
             case 3:
-                obj = GmouseGetObject( -1, 1, gCurrentMapLvl );
+                obj = GmouseGetObject( -1, 1, gMapCurrentLvl );
                 if( obj && IfaceGetHandObject( &p ) != -1 ){
                     if( IN_COMBAT ){
                         if( (ap = ItemGetSlotApCost(gObjDude, ( IfaceGetSelectedHand() ) ? 2 : 0, 0)) <= gObjDude->Critter.State.CurrentAP && ActionUseSceneryObject( gObjDude, obj, p ) != -1 ){
@@ -447,7 +448,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                 GmouseSetMode( 0 );
                 return;
             case 4 ... 10:
-                obj = GmouseGetObject( -1, 1, gCurrentMapLvl );
+                obj = GmouseGetObject( -1, 1, gMapCurrentLvl );
                 if( !obj || ActionSkillUse( gObjDude, obj, gGmouseUnk25[ gGmouseShape ] ) != -1 ){
                     GmouseLoadCursor( 0 );
                     GmouseSetMode( 0 );
@@ -458,7 +459,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
     }
     if( (MseButt & 0x05) != 5 || gGmouseShape != 1 ) return;
     // click & hold
-    obj = GmouseGetObject( -1, 1, gCurrentMapLvl );
+    obj = GmouseGetObject( -1, 1, gMapCurrentLvl );
     if( !obj ) return;
     MenuPositions = 0;
     switch( OBJTYPE( obj->ImgId ) ){
@@ -511,8 +512,8 @@ void GmouseAction( int MseX, int MseY, int MseButt )
     // create icon submenu
     if( GmouseCursorMenuCreate( MseX, MseY, IconMenu, MenuPositions, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99 ) ) return;
     if( ObjSetShape( gGmouseObjB, ArtMakeId( 6, 283, 0, 0, 0 ), &Area1 ) != 0 ) return;
-    if( GmouseCursorUpdate( MseX, MseY, gCurrentMapLvl, &Area1 ) ) return;
-    TileUpdateArea( &Area1, gCurrentMapLvl );
+    if( GmouseCursorUpdate( MseX, MseY, gMapCurrentLvl, &Area1 ) ) return;
+    TileUpdateArea( &Area1, gMapCurrentLvl );
     MapAmbientDisable();
     tmp = MseY;
     sel = 0;
@@ -524,7 +525,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
         if( abs32( bottom - tmp ) > 10 ){
             pos = sel + (( tmp >= bottom ) ? -1 : 1);
             if( !GmouseMenuIconHL( pos ) ){
-        	TileUpdateArea( &Area1, gCurrentMapLvl );
+        	TileUpdateArea( &Area1, gMapCurrentLvl );
         	sel = pos;
             }
             tmp = bottom;
@@ -536,7 +537,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
     gGmouseStay = 0;
     gGmouseRstTime = TimerGetSysTime();
     MseSetCursorPosition( MseX, MseY );
-    if( !GmouseSetShapeB( &Area1 ) ) TileUpdateArea( &Area1, gCurrentMapLvl );
+    if( !GmouseSetShapeB( &Area1 ) ) TileUpdateArea( &Area1, gMapCurrentLvl );
     // use selected action
     switch( IconMenu[ sel ] ){
         case INV_ACT_TAKE: InvMenuBackPack( obj ); break;
@@ -643,7 +644,7 @@ void GmouseSetMode( int mode )
     if( ObjSetShape( gGmouseObjB, ArtMakeId( 6, gGmouseShapeIds[ mode ], 0, 0, 0 ), &Area1 ) ) return;    
     MseGetCursorPosition( &MseX, &MseY );
     flg = 0;
-    if( !GmouseCursorUpdate( MseX, MseY, gCurrentMapLvl, &Area2 ) ){
+    if( !GmouseCursorUpdate( MseX, MseY, gMapCurrentLvl, &Area2 ) ){
         RegionExpand( &Area1, &Area2, &Area1 );
     }
     if( gGmouseShape == 2 ) flg = -1;
@@ -658,7 +659,7 @@ void GmouseSetMode( int mode )
     gGmouseShape = mode;
     gGmouseStay = 0;
     gGmouseRstTime = TimerGetSysTime();
-    TileUpdateArea( &Area1, gCurrentMapLvl );
+    TileUpdateArea( &Area1, gMapCurrentLvl );
     if( flg == 1 ){
         CombatTargetHighlight();
     } else if( flg == -1 ){
@@ -708,8 +709,8 @@ void GmouseSetShapeA( int NewImg )
         if( !ObjSetShape( gGmouseObjA, NewImg, &Area2 ) ){ flg |= 0x02; }
         if( gGmouseObjB->Flags & 0x01 ) return;
         switch( flg ){
-            case 1: TileUpdateArea( &Area1, gCurrentMapLvl ); break;
-            case 2: TileUpdateArea( &Area2, gCurrentMapLvl ); break;
+            case 1: TileUpdateArea( &Area1, gMapCurrentLvl ); break;
+            case 2: TileUpdateArea( &Area2, gMapCurrentLvl ); break;
             case 3: RegionExpand( &Area1, &Area2, &Area1 ); break;
         }
     } else {
@@ -753,14 +754,14 @@ void GmouseIsoEnter()
     }
     if( !(flg & 0x02) ){
         if( flg == 1 ){
-	    TileUpdateArea( &Area2, gCurrentMapLvl );
+	    TileUpdateArea( &Area2, gMapCurrentLvl );
 	}
     } else {
         if( flg != 3 ){
-	    TileUpdateArea(  &Area3, gCurrentMapLvl );
+	    TileUpdateArea(  &Area3, gMapCurrentLvl );
         } else {
     	    RegionExpand( &Area2, &Area3, &Area2 );
-	    TileUpdateArea( &Area2, gCurrentMapLvl );
+	    TileUpdateArea( &Area2, gMapCurrentLvl );
 	}
     }
     gGmouseStay = 0;
@@ -777,15 +778,15 @@ void GmouseUnk03()
     if( !ObjUnk33( gGmouseObjA, &Area2 ) ) flg = 0x01;
     if( !ObjUnk33( gGmouseObjB, &Area1 ) ) flg |= 0x02;
     switch( flg ){    
-        case 2: TileUpdateArea( & Area1, gCurrentMapLvl ); break;
-        case 3: RegionExpand( &Area2, &Area1, &Area2 ); TileUpdateArea( &Area2, gCurrentMapLvl ); break;
-	case 1: TileUpdateArea( &Area2, gCurrentMapLvl ); break;
+        case 2: TileUpdateArea( & Area1, gMapCurrentLvl ); break;
+        case 3: RegionExpand( &Area2, &Area1, &Area2 ); TileUpdateArea( &Area2, gMapCurrentLvl ); break;
+	case 1: TileUpdateArea( &Area2, gMapCurrentLvl ); break;
     }
 }
 
 int GmouseUnk58()
 {
-    return (gGmouseObjB->Flags & 0x01) == 0;
+    return (gGmouseObjB->Flags & 0x01) == 0; // ISO area ?
 }
 
 Obj_t *GmouseGetObject( int ObjType, int Flg, int MapLvl )
@@ -1038,7 +1039,7 @@ int GmouseInitA()
     gGmouseObjB->Flags |= 0x00000010;
     ObjSetPlayer( gGmouseObjB, 0 );
     MseGetCursorPosition( &x, &y );
-    GmouseCursorUpdate( x, y, gCurrentMapLvl, &tmp );
+    GmouseCursorUpdate( x, y, gMapCurrentLvl, &tmp );
     gGmouseUnk13 = 1;
     GmouseHLcfg();
     return 0;
@@ -1283,7 +1284,7 @@ void GmouseUnk66( Obj_t *result )
     VidRect_t rect;
 
     if( !gGmouseObjC || result != gGmouseObjC ) return;
-    if( !ObjGetRadius( result, &rect ) ) TileUpdateArea( &rect, gCurrentMapLvl );
+    if( !ObjGetRadius( result, &rect ) ) TileUpdateArea( &rect, gMapCurrentLvl );
     gGmouseObjC = NULL;    
 }
 

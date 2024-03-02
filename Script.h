@@ -388,7 +388,7 @@ char *ScptGetDialogA( int a1, int a2 );
 char *ScptGetDialog( int MsgPage, int MsgId, int SpkFlg );
 int ScptGetLocVar( int ScrId, int VarIdx, int *pValue );
 int ScptSetLocVar( int ScrId, int VarIdx, int Value );
-int ScptUnk39();
+int ScptCombat();
 int ScptAreaDamage( Obj_t *a1, int edx0,int a3, int a4 );
 
 

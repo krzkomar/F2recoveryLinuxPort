@@ -1057,7 +1057,7 @@ Obj_t *AiUnk32( Obj_t *obj, int a2 )
     Obj_t *RHandObj, **ObjList, *v5;
 
     if( CritterGetBodyType( obj ) ) return NULL;
-    if( !( ListCnt = ObjGetObjList( -1, gCurrentMapLvl, 0, &ObjList ) ) ) return NULL;
+    if( !( ListCnt = ObjGetObjList( -1, gMapCurrentLvl, 0, &ObjList ) ) ) return NULL;
     v5 = NULL;
     gAiUnk03 = obj;
     qsort( ObjList, ListCnt, sizeof( Obj_t *), (void *)AiCmpByDistance );

@@ -332,7 +332,7 @@ int Item18( Obj_t *item, int bb )
     }
     if( flg ){
         ObjSetShape( item, ArtMakeId( 1, img, (item->ImgId & 0xFF0000u) >> 16, 0, (item->ImgId & 0x70000000) >> 28 ), &Area );
-        if( !( (item->ImgId & 0xFF0000) >> 16 ) ) TileUpdateArea( &Area, gCurrentMapLvl );
+        if( !( (item->ImgId & 0xFF0000) >> 16 ) ) TileUpdateArea( &Area, gMapCurrentLvl );
     }
     return 0;
 }

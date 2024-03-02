@@ -849,7 +849,7 @@ int UseUnk22( Obj_t *crit, Obj_t *obj )
 {
     int id, v5, v6;
     VidRect_t rect;
-    Map01_t Map;
+    MapPosition_t Map;
 
     id = obj->Scenery.i06;
     if( id == -1 ) return -1;
@@ -865,7 +865,7 @@ int UseUnk22( Obj_t *crit, Obj_t *obj )
         WmUnk45(Map.MapId, Map.Frame, 1);
     } else {
         if( ObjMoveToTile( crit, v5, v6, &rect ) == -1 ) return -1;
-        TileUpdateArea( &rect, gCurrentMapLvl );
+        TileUpdateArea( &rect, gMapCurrentLvl );
     }
     return 0;
 }
@@ -874,7 +874,7 @@ int UseUnk23( Obj_t *crit, Obj_t *obj )
 {
     int id, v5, v6;
     VidRect_t Rect;
-    Map01_t Map;
+    MapPosition_t Map;
 
     id = obj->Scenery.i06;
     if ( id == -1 ) return -1;
@@ -890,7 +890,7 @@ int UseUnk23( Obj_t *crit, Obj_t *obj )
         WmUnk45( Map.MapId, Map.Frame, 1 );
     } else {
         if( ObjMoveToTile(crit, v5, v6, &Rect) == -1 ) return -1;
-        TileUpdateArea( &Rect, gCurrentMapLvl );
+        TileUpdateArea( &Rect, gMapCurrentLvl );
     }
     return 0;
 }
@@ -899,7 +899,7 @@ int UseUnk24( Obj_t *crit, Obj_t *obj )
 {
     int id; int v5; int v6;
     VidRect_t v8;
-    Map01_t ptr;
+    MapPosition_t ptr;
 
     id = obj->Scenery.i06;
     if( id == -1 ) return -1;
@@ -915,7 +915,7 @@ int UseUnk24( Obj_t *crit, Obj_t *obj )
         WmUnk45( ptr.MapId, ptr.Frame, 1 );
     } else {
         if( ObjMoveToTile( crit, v5, v6, &v8 ) == -1 ) return -1;
-        TileUpdateArea( &v8, gCurrentMapLvl );
+        TileUpdateArea( &v8, gMapCurrentLvl );
     }
     return 0;
 }
@@ -957,7 +957,7 @@ int UseDoorLock( Obj_t *door )
         }        
         ObjSetFrame( door, 0, &Area2 );
         RegionExpand( &Area1, &Area2, &Area1 );
-        TileUpdateArea( &Area1, gCurrentMapLvl );
+        TileUpdateArea( &Area1, gMapCurrentLvl );
         ArtClose( ImgObj );
         return 0;
     }
@@ -975,7 +975,7 @@ int UseDoorLock( Obj_t *door )
     }
     ObjSetFrame( door, fr, &Area2 );
     RegionExpand( &Area1, &Area2, &Area1 );
-    TileUpdateArea( &Area1, gCurrentMapLvl );
+    TileUpdateArea( &Area1, gMapCurrentLvl );
     ArtClose( ImgObj );
     return 0;
 }
@@ -1281,7 +1281,7 @@ int UseUnk46( Obj_t *obj, int GridIdx, int lvl, int a4 )
     ObjUnk32( obj, &Area2 );
     if( ObjMoveToTile( obj, GridIdx, lvl, &Area1 ) != -1 ){
         RegionExpand( &Area1, &Area2, &Area1 );
-        if( lvl == gCurrentMapLvl ) TileUpdateArea( &Area1, lvl );
+        if( lvl == gMapCurrentLvl ) TileUpdateArea( &Area1, lvl );
     }
     return 0;
 }

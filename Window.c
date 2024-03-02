@@ -1089,6 +1089,7 @@ int WinMsgError( const char *msg )
     char cmd[ 1024 ];
 
     printf( "<CRITICAL> Windowed Sys Error:%s\n", msg );
+DBG_CRASH
     if( strlen( msg ) > 950 ) return 1;
     // not an elegant way, but it works and is simple, and works before initializing sdl window
     sprintf( cmd, "xmessage -center -font -adobe-*-*-r-*--0-200-*-*-p-*-*-* -center \"%s\"", msg );

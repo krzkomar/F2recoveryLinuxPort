@@ -1697,12 +1697,12 @@ void AnimProcess()
                 ObjMove( obj, xpos + xoffs, ypos + yoffs, &Area2 );
                 RegionExpand( &Area1, &Area2, &Area1 );
                 ArtClose( ImgObj );                    
-            	TileUpdateArea( &Area1, gCurrentMapLvl );
+            	TileUpdateArea( &Area1, gMapCurrentLvl );
             	continue;
     	    }
     	    ObjSetFrame( obj, 0, &Area2 );
     	    RegionExpand( &Area1, &Area2, &Area1 );
-            TileUpdateArea( &Area1, gCurrentMapLvl );
+            TileUpdateArea( &Area1, gMapCurrentLvl );
             continue;
         }
         if( !(gAnimUnk23[ i ].Flags & 0x01) ){
@@ -1722,7 +1722,7 @@ void AnimProcess()
                 RegionExpand( &Area1, &Area2, &Area1 );
                 ArtClose( ImgObj );
             }
-            TileUpdateArea( &Area1, gCurrentMapLvl );
+            TileUpdateArea( &Area1, gMapCurrentLvl );
             continue;
         }
 	if( gAnimUnk23[ i ].Flags < 0 || obj->FrameNo ){
@@ -1734,7 +1734,7 @@ void AnimProcess()
             RegionExpand( &Area1, &Area2, &Area1 );
             ObjMove( obj, -xpos, -ypos, &Area2 );
             RegionExpand( &Area1, &Area2, &Area1 );
-            TileUpdateArea( &Area1, gCurrentMapLvl );
+            TileUpdateArea( &Area1, gMapCurrentLvl );
         } else {
             gAnimUnk23[ i ].Stat = -1000;
     	    AnimUnk70( gAnimUnk23[ i ].AnimIdx, 1 );

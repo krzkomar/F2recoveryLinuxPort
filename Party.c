@@ -54,11 +54,11 @@ int PartyInit()
 
     // alloc for descriptions
     if( !( gPartyMemberDsc = Malloc( sizeof(DudeDsc_t) * gPartyCount ) ) ){ CfgFree( &CfgFile ); return -1; }
-    memset( gPartyMemberDsc, 0, sizeof(DudeDsc_t) * gPartyCount);
+    memset( gPartyMemberDsc, 0, sizeof( DudeDsc_t ) * gPartyCount );
 
     // alloc for ?
     if( !( gPartyUnk05 = Malloc( sizeof(Pamb01_t) * gPartyCount ) ) ){ CfgFree( &CfgFile ); return -1; }
-    memset( gPartyUnk05, 0, sizeof(Pamb01_t) * gPartyCount);
+    memset( gPartyUnk05, 0, sizeof( Pamb01_t ) * gPartyCount );
 
     for( i = 0; i < gPartyCount; i++ ){
 	// get party member PID
@@ -592,7 +592,7 @@ int PartyItemSave( Obj_t *item )
      if( item->ScrId != -1 ){
 DD
         if( ScptPtr( item->ScrId, &scr ) == -1 ){ 
-    	    WinMsgError( "\n  Error!: partyMemberItemSave: Can't find script!" ); 
+//    	    WinMsgError( "\n  Error!: partyMemberItemSave: Can't find script!" ); 
     	    eprintf("\nMissing script Id: %i (0x%x)\n", item->ScrId, item->ScrId); 
     	    exit( 1 ); 
     	}
@@ -768,7 +768,7 @@ int PartyFix()
     	}
     	eprintf( "\nDestroying evil obj doppleganger!" );
     	if( obj->ScrId == -1 ){
-    	    if( EvQeDelB( obj, 3 ) == -1 ) eprintf( "\nERROR Removing Timed Events on FIX remove!!\n" );
+    	    if( EvQeDelB( obj, 3 ) == -1 ) eprintf( "\nERROR Removing Timed Events on FIX remove!!" );
     	} else {
     	    ScptRemove( obj->ScrId );
     	    obj->ScrId = -1;
@@ -782,7 +782,7 @@ int PartyFix()
         else
             scr->TimeEv = gParty[ i ].dude;
     }
-    eprintf( "\nTotal Critter Count: %d\n\n", TotCrittCnt );
+    eprintf( "\nTotal Critter Count: %d\n", TotCrittCnt );
     return 0;
 }
 

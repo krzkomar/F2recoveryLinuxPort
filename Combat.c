@@ -122,7 +122,7 @@ int CombatLoad( xFile_t *fh )
     if( dbgetBei( fh, &gCombat04 ) == -1 ) return -1; // ?
     if( dbgetBei( fh, &gCombat05 ) == -1 ) return -1; // ?
     if( dbgetBei( fh, &gCombatCritCnt ) == -1 ) return -1; // number of NPC at the current map level + player + party at the beginning of the battle ( and corpses ?)
-    if( ObjGetObjList( -1, gCurrentMapLvl, 1, &gCombatCritters ) != gCombatCritCnt ){ // get all critters list
+    if( ObjGetObjList( -1, gMapCurrentLvl, 1, &gCombatCritters ) != gCombatCritCnt ){ // get all critters list
         ObjCritterListDestroy( gCombatCritters );
 	return -1;
     }
@@ -379,7 +379,7 @@ void CombatUnk17( Obj_t *a1 )
     gCombat00 = 0;
     AnimReset();
     InpTaskStop( AnimAmbient );
-    gCombatMapLvl = gCurrentMapLvl;
+    gCombatMapLvl = gMapCurrentLvl;
     if( IN_COMBAT ) return;
 
     gCombat01 = 0;
@@ -912,12 +912,12 @@ DD
 void CombatStart( Combat02_t *pObj )
 {
     int j, i;
-
+DD
     if( pObj ){
-	if( pObj->Critter && gCurrentMapLvl != pObj->Critter->Elevation ) return;
-	if( pObj->Target && gCurrentMapLvl != pObj->Target->Elevation ) return;
+	if( pObj->Critter && gMapCurrentLvl != pObj->Critter->Elevation ) return;
+	if( pObj->Target && gMapCurrentLvl != pObj->Target->Elevation ) return;
     }
-    CombatUnk17( 0 );
+//    CombatUnk17( 0 );
     if( IN_COMBAT ){
         if( CombatUnk33( gObjDude, 1 ) == -1 ){
             j = -1;
@@ -2093,7 +2093,7 @@ void CombatUnk62()
     CombatUnk54(&gCombat20, 1);
     Dude = gCombat20.Dude;
     if( gCombat20.Dude == gObjDude && gTargetHighlightLvl == 2 ) CombatTargetHighlight();
-    if( ScptUnk39() && (gObjDude->Grid.DestMapElev & 1) != 0 ){
+    if( ScptCombat() && (gObjDude->Grid.DestMapElev & 1) != 0 ){
         if ( Dude->Critter.State.GroupId == gObjDude->Critter.State.GroupId )
             gCombat10 = gObjDude->Critter.State.WhoHitMeObj;
         else
@@ -2337,7 +2337,7 @@ void CombatTargetHighlight()
             CombatUnk01( gCombatCritters[ i ], 1 );
         }
     } else {
-        cnt = ObjGetObjList( -1, gCurrentMapLvl, 1, &ObjList );
+        cnt = ObjGetObjList( -1, gMapCurrentLvl, 1, &ObjList );
         for( i = 0; i < cnt; i++ ){
             obj = ObjList[ i ];
             if( obj != gObjDude && !(obj->Critter.State.CombatResult & 0x80 ) ) CombatUnk01( obj, 1 );
@@ -2360,7 +2360,7 @@ void CombatUnk74( )
             ObjUnk35( gCombatCritters[ i ], 0 );
         }
     } else {
-        cnt = ObjGetObjList(-1, gCurrentMapLvl, 1, &ObjList );
+        cnt = ObjGetObjList(-1, gMapCurrentLvl, 1, &ObjList );
         for( i = 0; i < cnt; i++ ){
             ObjUnk35( ObjList[ i ], 0 );
             ObjGetRadius( ObjList[ i ], 0 );

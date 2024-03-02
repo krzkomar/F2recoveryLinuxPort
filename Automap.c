@@ -127,11 +127,11 @@ void AutomapScanner( int a1, int MotionFlg )
     SwRes = WinCreateButton( win, 457, 340, 42, 74, -1, -1, 'l', 'h', Imgs[ 3 ], Imgs[ 4 ], 0, 0x21 );
     if( SwRes != -1 ) WinSetClickSound( SwRes, (void *)GSoundPlayTg, (void *)GSoundPlayTg );
     if( !( gAutomapScannerStatus & 0x02 ) ) WinButtonSet( SwRes, 1, 0 );
-    lvl = gCurrentMapLvl;
+    lvl = gMapCurrentLvl;
     gAutomapScannerStatus &= 0x02; // clear all except resolution mode
     if( a1 ) gAutomapScannerStatus |= 0x01;
     if( MotionFlg ) gAutomapScannerStatus |= 0x04; // motion scanner enabled
-    AutomapRender( win, gCurrentMapLvl, Imgs[ 0 ], gAutomapScannerStatus );
+    AutomapRender( win, gMapCurrentLvl, Imgs[ 0 ], gAutomapScannerStatus );
     flg = 0;
     k = MapAmbientDisable();
     GmouseLoadCursor( 1 );    
@@ -154,9 +154,9 @@ void AutomapScanner( int a1, int MotionFlg )
     		    WinButtonSet( SwRes, 1, 0 );
     		    break;
     	    case 'S': case 's':{
-    		    if( lvl != gCurrentMapLvl ){ 
+    		    if( lvl != gMapCurrentLvl ){ 
     			flg = 1; 
-    			lvl = gCurrentMapLvl; 
+    			lvl = gMapCurrentLvl; 
     		    }
     		    if( gAutomapScannerStatus & 0x04 ) break;
         	    HandObj = InvGetLHandObj( gObjDude );
@@ -303,9 +303,9 @@ int AutomapSave()
 
     MapId = MapGetCurrentMapId();
     v7 = 0;
-    v8 = gAutomap_05.tab[ 3 * MapId + gCurrentMapLvl ];
+    v8 = gAutomap_05.tab[ 3 * MapId + gMapCurrentLvl ];
     if( v8 < 0 ) return 0;
-    eprintf( "\nAUTOMAP: Saving AutoMap DB index %d, level %d\n", MapId, gCurrentMapLvl );
+    eprintf( "\nAUTOMAP: Saving AutoMap DB index %d, level %d\n", MapId, gMapCurrentLvl );
     gAutomapData = (char *)Malloc( 11024 );
     if( gAutomapData ){
         gAutomapRawData = (char *)Malloc( 11024 );
@@ -317,7 +317,7 @@ int AutomapSave()
 	{ eprintf( "\nAUTOMAP: Error opening automap database file!\n" ); eprintf( "Error continued: automap_pip_save: path: %s", stmp ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
     if( AutomapReadHdr( fh2 ) == -1 )
 	{ eprintf( "\nAUTOMAP: Error reading automap database file header!\n" ); Free( gAutomapData ); Free( gAutomapRawData ); dbClose( fh2 ); return -1; }
-    AutomapMakeMinimap( gCurrentMapLvl );    
+    AutomapMakeMinimap( gMapCurrentLvl );    
     if( ( v7 = GrCompress( (unsigned char *)gAutomapData, gAutomapRawData, 10000 ) ) == -1 ) {
         gAutomapUnk102 = 0;
         gAutomapRawSize = 10000;
@@ -335,7 +335,7 @@ int AutomapSave()
             return -1;
         }
         if( AutomapSaveEntryData( fh2 ) == -1 ){ Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
-        gAutomap_05.tab[3 * MapId + gCurrentMapLvl] = gAutomap_05.i01;
+        gAutomap_05.tab[3 * MapId + gMapCurrentLvl] = gAutomap_05.i01;
         gAutomap_05.i01 += gAutomapRawSize + 5;
         if( AutomapWriteHdr( fh2 ) == -1 ){ Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
         dbseek( fh2, 0, 2 );

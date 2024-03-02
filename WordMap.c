@@ -1948,7 +1948,7 @@ int WmSetupCritter( int eax0, Obj_t **edx0, int a3 )
                         UseUnk03( pObj, 4, v5->ScriptId - 1 );
                     }
                     if( player->Position )
-                        ObjMoveToTile( pObj, GridPos, gCurrentMapLvl, 0 );
+                        ObjMoveToTile( pObj, GridPos, gMapCurrentLvl, 0 );
                     else
                         UseUnk46( pObj, GridPos, 0, 0 );
                     ObjSetRotation( pObj, TileTurnAt( GridPos, gObjDude->GridId ), 0 );
@@ -2078,7 +2078,7 @@ int WmSetupRndNextTileNum( WmPlayer_t *player, WmTeam_t *team, int *pTileNum, in
 
 int WmUnk53( int TileNum )
 {
-    return !ObjReach( gObjDude, TileNum, gCurrentMapLvl ) && AnimMakeTrace( gObjDude, gObjDude->GridId, TileNum, 0, 0, (void *)ObjUnk55 ) != 0;
+    return !ObjReach( gObjDude, TileNum, gMapCurrentLvl ) && AnimMakeTrace( gObjDude, gObjDude->GridId, TileNum, 0, 0, (void *)ObjUnk55 ) != 0;
 }
 
 int WmCompare( WmExpr_t *expr, int *var )
@@ -3081,7 +3081,7 @@ int WmTownMap( int *a1 )
             if( sel >= '1' && sel < (gWmAreas[ gWmAreaId ].EntranceCnt + '1') ){
                 id = sel - '1';
                 *a1 = Entrances[ id ].Id;
-                MapUnk10( Entrances[ id ].i05, Entrances[ id ].i06, Entrances[ id ].i07 );
+                MapSetPlayerPosition( Entrances[ id ].i05, Entrances[ id ].i06, Entrances[ id ].i07 );
                 break;
             }
             if( sel < 350 || sel >= 357 ){
@@ -3236,7 +3236,7 @@ int WmUnk90()
 
 int WmUnk91()
 {
-    Map01_t map;
+    MapPosition_t map;
     MsgLine_t msg;
 
     memset( &msg, 0, sizeof( MsgLine_t ) );
@@ -3245,7 +3245,7 @@ int WmUnk91()
         return -1;
     }
     gWmTravelByCar = 1;
-    memset( &map, 0, sizeof( Map01_t ) );
+    memset( &map, 0, sizeof( MapPosition_t ) );
     map.MapId = -1;
     MapSetPos( &map );
     gWmAreas[ 21 ].StartState = 0;

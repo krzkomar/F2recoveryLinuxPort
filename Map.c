@@ -1,26 +1,7 @@
 #include "FrameWork.h"
 
-void (*gMapRedrawIsoCb)( VidRect_t * ) = MapRedrawIso; 
-int gMapGridFlags[ 3 ] = { 2, 4, 8 };
-int gMapSysTime = 0;
-int gMapAmbientEnable = 0;
-int gMapIsoPlayerElev =  0;
-int gMapIsoUnk04 = -1;
-int gMapIsoUnk05 = 0;
-int gMapScriptId = -1;
-int *gMapLocalVars = NULL;
-int *gMapVars = NULL;
-int gMapLocalVarsCnt = 0;
-int gMapVarsCnt = 0;
-char *gMapName = "";
-int gMapUnk43 = 0;
-int gMapUnk03 = -1;
-char gMapCurrentFName[ 16 ];
-int gMapUnk33;
-int gMapUnk35;
-int gMapUnk34;
 int gMapIsoGridData[ 30000 ]; // 3 * 100 * 100
-Map01_t gMapCurrentPos;
+MapPosition_t gMapCurrentPos;
 VidRect_t gMapIsoGeo;
 Msg_t gMapMsg;
 char *gMapIsoSurf;
@@ -30,6 +11,23 @@ int  gMapIsoWin;
 char gMapCityName[ 40 ];
 char gMapFileName[ 260 ];
 
+void (*gMapRedrawIsoCb)( VidRect_t * ) = MapRedrawIso; 
+const int gMapGridFlags[ 3 ] = { 2, 4, 8 };
+int gMapSysTime = 0;
+int gMapAmbientEnable = 0;
+int gMapIsoPlayerElevation =  0;
+int gMapIsoPlayerPosition = -1;
+int gMapIsoPlayerOrientation = 0;
+int gMapScriptId = -1;
+int *gMapLocalVars = NULL;
+int *gMapGlobVars = NULL;
+int gMapLocalVarsCnt = 0;
+int gMapGlobVarsCnt = 0;
+int gMapCurrentLvl = 0;
+char *gMapName = "";
+int gMapLoadSlotNb = 0;
+int gMapId = -1;
+
 /**********************************************************/
 
 int MapIsoInit()
@@ -38,7 +36,7 @@ int MapIsoInit()
 
     TileUnk24();
     TileUnk21();
-    gMapCurrentFName[0] = '\0';
+    gMap.Name[0] = '\0';
     for( i = 0; i != 3; i++ ) gMapIsoGrid[ i ] = &gMapIsoGridData[ i * 100 * 100 ];
     if( (gMapIsoWin = WinCreateWindow( 0, 0, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99, 256, 10 )) == -1 ){ eprintf( "win_add failed in iso_init\n" ); return -1; }
     gMapIsoSurf = WinGetSurface( gMapIsoWin );
@@ -65,19 +63,18 @@ int MapIsoInit()
     if( IfaceInit() ){ eprintf( "intface_init failed int iso_init\n" ); return -1; }
     eprintf( ">intface_init\t" );
     MapUnk08( -1 );
-    gMapIsoPlayerElev = -1;
-    gMapIsoUnk04 = -1;
-    gMapIsoUnk05 = -1;
+    gMapIsoPlayerElevation = -1;
+    gMapIsoPlayerPosition = -1;
+    gMapIsoPlayerOrientation = -1;
     return 0;
 }
 
 void MapIsoReset()
 {
-printf("** MAP ISO RESET **\n");
-    if( gMapVars ){
-        Free( gMapVars );
-        gMapVars = NULL;
-        gMapVarsCnt = 0;
+    if( gMapGlobVars ){
+        Free( gMapGlobVars );
+        gMapGlobVars = NULL;
+        gMapGlobVarsCnt = 0;
     }
     if( gMapLocalVars ){
         Free( gMapLocalVars );
@@ -87,23 +84,22 @@ printf("** MAP ISO RESET **\n");
     ObjReset();
     CycleColorRestart();
     IfaceReset();
-    gMapIsoPlayerElev = -1;
-    gMapIsoUnk04 = -1;
-    gMapIsoUnk05 = -1;
+    gMapIsoPlayerElevation = -1;
+    gMapIsoPlayerPosition = -1;
+    gMapIsoPlayerOrientation = -1;
 }
 
 void MapIsoClose()
 {
-printf("** MAP ISO CLOSE **\n");
     IfaceClose();
     CycleColorDisable();
     ObjClose();
     ArtCacheFree();
     WinClose( gMapIsoWin );
-    if( gMapVars ){
-        Free( gMapVars );
-        gMapVars = NULL;
-        gMapVarsCnt = 0;
+    if( gMapGlobVars ){
+        Free( gMapGlobVars );
+        gMapGlobVars = NULL;
+        gMapGlobVarsCnt = 0;
     }
     if( gMapLocalVars ){
         Free( gMapLocalVars );
@@ -124,7 +120,7 @@ void MapMsgInit()
     } else {
         eprintf( "\nError initing map_msg_file!" );
     }
-    MapUnk09();
+    MapReset();
 
     InpTaskStart( GmouseProcess );
     GmouseSetIfaceMode( 0 );
@@ -133,7 +129,7 @@ void MapMsgInit()
 
 void MapStartA() // no x-ref
 {
-    MapUnk09();
+    MapReset();
     InpTaskStart( GmouseProcess );
     GmouseSetIfaceMode( 0 );
     WinMoveTop( gMapIsoWin );
@@ -176,49 +172,48 @@ int MapAmbientEnabled()
     return gMapAmbientEnable == 0;
 }
 
-int MapSetLvl( unsigned int a1 )
+int MapSetLvl( unsigned int MapLvl )
 {
-    int v1;
+    int iso = 0;
 
-    v1 = 0;
-    if( a1 > 2 ) return -1;
+    if( MapLvl > 2 ) return -1;
     if( GmouseGetCursorId() != 25 ){
-        v1 = GmouseUnk58();
+        iso = GmouseUnk58();
         GmouseUnk03();
         GmouseLoadCursor( 0 );
     }
-    if( a1 != gCurrentMapLvl ) WmUnk45( gCurrentMapId, a1, 1 );
-    gCurrentMapLvl = a1;
+    if( MapLvl != gMapCurrentLvl ) WmUnk45( gCurrentMapId, MapLvl, 1 );
+    gMapCurrentLvl = MapLvl;
     AnimClear( gObjDude );
     AnimUnk24( gObjDude, gObjDude->Orientation, gObjDude->ImgId );
     PartyUnk07();
     if( gMapScriptId != -1 ) ScptMapUpdate();
-    if( v1 ) GmouseIsoEnter();
+    if( iso ) GmouseIsoEnter();
     return 0;
 }
 
-int MapUnk23( unsigned int a1 )
+int MapLvlNotExist( unsigned int MapLvl )
 {
-    return a1 > 2 || (gMap.MapFlags & gMapGridFlags[ a1 ] ) != 0;
+    return ( MapLvl > 2 ) || (gMap.MapFlags & gMapGridFlags[ MapLvl ] );
 }
 
-int MapSetVar( int VarId , int Val )
+int MapSetGlobalVar( int VarId , int Val )
 {
-    if( VarId < 0 || VarId >= gMapVarsCnt ){
+    if( VarId < 0 || VarId >= gMapGlobVarsCnt ){
         eprintf( "ERROR: attempt to reference map var out of range: %d", VarId );
         return -1;
     }
-    gMapVars[ VarId ] = Val;
+    gMapGlobVars[ VarId ] = Val;
     return 0;
 }
 
-int MapGetVar( int VarId )
+int MapGetGlobalVar( int VarId )
 {
-    if( VarId < 0 || VarId >= gMapVarsCnt ){
+    if( VarId < 0 || VarId >= gMapGlobVarsCnt ){
 	eprintf( "ERROR: attempt to reference map var out of range: %d", VarId );
 	return 0;
     }
-    return gMapVars[ VarId ];
+    return gMapGlobVars[ VarId ];
 }
 
 int MapSetLocalVar( int VarId, int Val )
@@ -235,7 +230,6 @@ int MapGetLocalVar( int VarId )
 {
     if( VarId >= 0 && VarId < gMapLocalVarsCnt ) return gMapLocalVars[ VarId ];
     eprintf( "ERROR: attempt to reference local var out of range: %d", VarId );
-exit(0);
     return 0;
 }
 
@@ -245,10 +239,7 @@ int MapAddLocalVars( int VarNum )
 
     base = gMapLocalVarsCnt;
     gMapLocalVarsCnt += VarNum;    
-DD
-printf("=[%i]=>%i %p\n", VarNum, gMapLocalVarsCnt, gMapLocalVars );
     if( !(p = (int *)Realloc( gMapLocalVars, gMapLocalVarsCnt * sizeof( int ) )) ){ eprintf( "\nError: Ran out of memory!" ); return -1; }
-printf("==>%p\n", p);
     gMapLocalVars = p;
     memset( p + gMapLocalVarsCnt - VarNum, 0, VarNum * sizeof( int ) );
     return base;
@@ -256,9 +247,10 @@ printf("==>%p\n", p);
 
 void MapSetStart( int GridPos, int MapLvl, int Rotation )
 {
-    gMapUnk33 = MapLvl;
-    gMapUnk35 = Rotation;
-    gMapUnk34 = GridPos;
+printf(">>>MapSetStart: Lvl:%i, Pos:%i, Pos:%i\n", MapLvl, GridPos, Rotation);
+    gMap.MapLvl = MapLvl;
+    gMap.PlayerOrientation = Rotation;
+    gMap.StartHexGrid = GridPos;
 }
 
 void MapNewScript( int ScriptId ) // not used
@@ -290,12 +282,12 @@ void MapNewScript( int ScriptId ) // not used
 
 void MapCurSetFileName( char *fname )
 {
-    strcpy( gMapCurrentFName, fname );
+    strcpy( gMap.Name, fname );
 }
 
 void MapCurGetFileName( char *fname )
 {
-    strcpy( fname, gMapCurrentFName );
+    strcpy( fname, gMap.Name );
 }
 
 char *MapCityLvlName( int MapId, unsigned int lvl )
@@ -325,8 +317,8 @@ int MapAreaCmpByEntId( int EntId1, int EntId2 )
 
     Area1 = -1;
     Area2 = -2;
-    if( WmFindAreaByEntranceId(EntId1, &Area1) == -1 ) return -1;
-    if( WmFindAreaByEntranceId(EntId2, &Area2) == -1 ) return -1;    
+    if( WmFindAreaByEntranceId( EntId1, &Area1 ) == -1 ) return -1;
+    if( WmFindAreaByEntranceId( EntId2, &Area2 ) == -1 ) return -1;    
     if( Area1 != Area2 ) return -1;    
     return Area1;    
 }
@@ -425,17 +417,17 @@ char *MapGetFilePath( char *fname )
     return gMapFileName;    
 }
 
-int MapUnk10( int a1, int a2, int a3 )
+int MapSetPlayerPosition( int PlayerLvl, int PlayerPosition, int PlayerOrientation )
 {
-    gMapIsoPlayerElev = a1;
-    gMapIsoUnk04 = a2;
-    gMapIsoUnk05 = a3;
+    gMapIsoPlayerElevation = PlayerLvl;
+    gMapIsoPlayerPosition = PlayerPosition;
+    gMapIsoPlayerOrientation = PlayerOrientation;
     return 0;
 }
 
-void MapUnk09()
+void MapReset()
 {
-printf("** MAP Unk09 **\n");
+printf("** MAP Reset **\n");
     MapSetLvl(0);
     TileSetCenter( 20100, 2 );
     memset( &gMapCurrentPos, 0, sizeof( gMapCurrentPos ) );
@@ -447,10 +439,10 @@ printf("** MAP Unk09 **\n");
     gMap.StartHexGrid = 20100;
     ObjClear(); // remove gObjDude
     AnimReset();
-    if( gMapVars ){
-        Free( gMapVars );
-        gMapVars = NULL;
-        gMapVarsCnt = 0;
+    if( gMapGlobVars ){
+        Free( gMapGlobVars );
+        gMapGlobVars = NULL;
+        gMapGlobVarsCnt = 0;
     }
     if( gMapLocalVars ){
         Free( gMapLocalVars );
@@ -469,8 +461,8 @@ void MapLoadMapDialog()
 
     FilePath = MapGetFilePath( "*.map" );
     if( (n = dbGetFileList( FilePath, &FileList ) ) ){
-        if( (gMapUnk43 = TextBoxSelect( "Select a map to load:", FileList, n, 0, 80, 80, gPalColorCubeRGB[15][15][15], gMapUnk43 )) != -1 ){
-            MapLoadMAP( FileList[ gMapUnk43 ] );
+        if( (gMapLoadSlotNb = TextBoxSelect( "Select a map to load:", FileList, n, 0, 80, 80, gPalColorCubeRGB[15][15][15], gMapLoadSlotNb )) != -1 ){
+            MapLoadMAP( FileList[ gMapLoadSlotNb ] );
             WmStartMapMusic();
         }
         dbDelFileList( FileList );
@@ -517,7 +509,7 @@ int MapOpenById( int MapIdx )
     ScptSetArg( gMapScriptId, MapIdx );
     if( WmGetMapFileName( MapIdx, stmp ) == -1 ) return -1;    
 
-    gMapUnk03 = MapIdx;
+    gMapId = MapIdx;
     err = MapLoadMAP( stmp );
     WmStartMapMusic();
     return err;
@@ -551,26 +543,28 @@ DD
     if( !fh ) goto Error;
     // load header
     if( MapLoadHdr( &gMap, fh ) ) goto Error;
+printf("MapScriptId:%x\n", gMap.MapLvl );
     errmsg = "Invalid map version";
     if( gMap.Version != 20 && gMap.Version != 19 ) goto Error;
-    if( gMapIsoPlayerElev == -1 ){
-        gMapIsoPlayerElev = gMap.MapLvl;
-        gMapIsoUnk04 = gMap.StartHexGrid;
-        gMapIsoUnk05 = gMap.PlayerOrientation;
+    if( gMapIsoPlayerElevation == -1 ){
+        gMapIsoPlayerElevation = gMap.MapLvl;
+        gMapIsoPlayerPosition = gMap.StartHexGrid;
+        gMapIsoPlayerOrientation = gMap.PlayerOrientation;
     }
     ObjClear();
-    if( gMap.VarsCnt < 0 ) gMap.VarsCnt = 0;
+    if( gMap.GlobVarsCnt < 0 ) gMap.GlobVarsCnt = 0;
     if( gMap.LocVarsCnt < 0 ) gMap.LocVarsCnt = 0;
 DD
-// load variables
-    MapFreeVars();
-    if( gMap.VarsCnt == 0 ){
-        gMapVarsCnt = 0;
+    // load global variables
+    MapFreeGlobalVars();
+    if( gMap.GlobVarsCnt == 0 ){
+        gMapGlobVarsCnt = 0;
     } else {
-        if( !(gMapVars = Malloc( gMap.VarsCnt * sizeof( int ) )) ) goto Error;
-        gMapVarsCnt = gMap.VarsCnt;
+        if( !(gMapGlobVars = Malloc( gMap.GlobVarsCnt * sizeof( int ) )) ) goto Error;
+        gMapGlobVarsCnt = gMap.GlobVarsCnt;
     }
-    if( dbreadBeiBlk( fh, gMapVars, gMapVarsCnt ) != 0 ) goto Error;
+    if( dbreadBeiBlk( fh, gMapGlobVars, gMapGlobVarsCnt ) != 0 ) goto Error;
+
     // load local variables
     MapFreeLocalVars();
     if( gMap.LocVarsCnt == 0 ){
@@ -580,17 +574,19 @@ DD
         gMapLocalVarsCnt = gMap.LocVarsCnt;
     }
     if( dbreadBeiBlk( fh, gMapLocalVars, gMapLocalVarsCnt ) != 0 ) goto Error;
+
 // load tiles into grid
     if( MapLoadGrid( fh, gMap.MapFlags ) ) goto Error;
 // load script for map
     if( ScptLoadScript( fh ) ) goto Error;
     if( ObjLoadMapObjs( fh ) ) goto Error;
     if( !(gMap.MapFlags & MAPFLG_SAV) ) MapUnk07(); // not savegame map
-    if( MapSetLvl( gMapIsoPlayerElev) ) goto Error;
-    if( TileSetCenter(gMapIsoUnk04, 2) ) goto Error;
+printf("MapLvl+++>%i\n", gMapIsoPlayerElevation);
+    if( MapSetLvl( gMapIsoPlayerElevation) ) goto Error;
+    if( TileSetCenter(gMapIsoPlayerPosition, 2) ) goto Error;
     ItemMapSetLight( 0x10000, 0 );
-    ObjMoveToTile( gObjDude, gTileCentIdx, gCurrentMapLvl, NULL );
-    ObjSetRotation(gObjDude, gMapIsoUnk05, 0);
+    ObjMoveToTile( gObjDude, gTileCentIdx, gMapCurrentLvl, NULL );
+    ObjSetRotation(gObjDude, gMapIsoPlayerOrientation, 0);
     gMap.MapId = WmGetMapIdxByFileName( gMap.Name );
 DD
     if( !(gMap.MapFlags & MAPFLG_SAV) ){
@@ -601,13 +597,13 @@ DD
     	    if( (v14 = strstr(stmp2, ".map")) ) *v14 = '\0';
         }
         strcpy( &stmp2[strlen(stmp2)], ".GAM" );
-        GlobVarLoadFile(stmp2, "MAP_GLOBAL_VARS:", &gMapVarsCnt, &gMapVars);
-        gMap.VarsCnt = gMapVarsCnt;
+        GlobVarLoadFile(stmp2, "MAP_GLOBAL_VARS:", &gMapGlobVarsCnt, &gMapGlobVars);
+        gMap.GlobVarsCnt = gMapGlobVarsCnt;
     }
     ScptEnable();
     errmsg = NULL;
     if( gMap.ScriptId > 0 && ScptNewScript( &gMapScriptId, 0 ) == -1 ) goto Error;
-printf("MapScriptId:%x\n", gMapScriptId);
+
     p = NULL;
     ObjCreate( &p, ArtMakeId( 5, 12, 0, 0, 0 ), -1 ); // scrblk.frm
     p->Flags |= 0x20000005; // PRFLG_LIGHTTHROU
@@ -632,7 +628,7 @@ Error:
         sprintf( stmp1, "%s while loading map.", errmsg );
         eprintf( "%s", stmp1 );
         err = -1;
-        MapUnk09();
+        MapReset();
     } else {
         ObjUnk80( gMap.MapFlags );
     }
@@ -651,7 +647,6 @@ DD
     TileUpdateEnable();
 DD
     if( gMapCurrentPos.MapId > 0 ){
-
         if( gMapCurrentPos.Orientation >= 0 ) ObjSetRotation( gObjDude, gMapCurrentPos.Orientation, 0 );
     } else {
 
@@ -660,17 +655,18 @@ DD
     ScptClockInit();
     if( GSoundMapInit() == -1 ) err = -1;
     WmUnk41( gMap.MapId );
-    WmUnk45( gMap.MapId, gCurrentMapLvl, 1 );
+    WmUnk45( gMap.MapId, gMapCurrentLvl, 1 );
     if( WmUnk47() ) err = -1;
     dbSetRWFunc( NULL, 0 );
     if( !GameIfaceStat() ) GmouseScrollEnable();
     GmouseLoadCursor( MseCursor );
 DD
-    gMapIsoPlayerElev = -1;
-    gMapIsoUnk04 = -1;
-    gMapIsoUnk05 = -1;
+    gMapIsoPlayerElevation = -1;
+    gMapIsoPlayerPosition = -1;
+    gMapIsoPlayerOrientation = -1;
     GMovieFade();
     gMap.Version = 20;
+
 DD
     return err;
 }
@@ -690,10 +686,10 @@ int MapLoadSAV( char *fname )
     }
     if( !WmIsCurrentMapMapSaved() ){
         eprintf( "\nDestroying RANDOM encounter map." );
-        strcpy( stmp1, gMapCurrentFName );
-        CharEditFnameChgExt( gMapCurrentFName, stmp1, "SAV" );
-        LsgDeleteFile( "maps/", gMapCurrentFName );
-        strcpy( gMapCurrentFName, stmp1 );
+        strcpy( stmp1, gMap.Name );
+        CharEditFnameChgExt( gMap.Name, stmp1, "SAV" );
+        LsgDeleteFile( "maps/", gMap.Name );
+        strcpy( gMap.Name, stmp1 );
     }
     return err;    
 }
@@ -776,7 +772,7 @@ int MapGetAreaByEntrance()
     return Area;
 }
 
-int MapSetPos( Map01_t *p )
+int MapSetPos( MapPosition_t *p )
 {
     if( !p ) return -1;
     gMapCurrentPos = *p;
@@ -808,7 +804,7 @@ int MapJump()
     } else {
         v1 = -1;
         if( !IN_COMBAT ){
-            if( gMapCurrentPos.MapId != gMap.MapId || gCurrentMapLvl == gMapCurrentPos.Frame ) MapOpenById( gMapCurrentPos.MapId );
+            if( gMapCurrentPos.MapId != gMap.MapId || gMapCurrentLvl == gMapCurrentPos.Frame ) MapOpenById( gMapCurrentPos.MapId );
             if( gMapCurrentPos.PosY != -1 && gMapCurrentPos.PosY && gMap.MapId != 19 && gMap.MapId != 37 && gMapCurrentPos.Frame <= 2 ){
                 ObjMoveToTile( gObjDude, gMapCurrentPos.PosY, gMapCurrentPos.Frame, 0 );
                 MapSetLvl( gMapCurrentPos.Frame );
@@ -841,7 +837,7 @@ int MapSetMapFname()
     stmp[ 0 ] = '\0';
     if( TextBoxDialogEdit1( stmp, 8, "Save file (no extension):", 80, 80 ) ) return -1;
     strcpy( stmp + strlen( stmp ), ".map" );
-    strcpy( gMapCurrentFName, stmp );
+    strcpy( gMap.Name, stmp );
     MapMapSave();
     return 0;
 }
@@ -860,16 +856,16 @@ int MapMapSave()
         strcpy( stmp + strlen( stmp ), "/MAPS" );
         xDirCreate(stmp);
     }
-    if( !gMapCurrentFName[0] ){ eprintf( "\nError: map_save: map header corrupt!" ); return -1; }
-    FilePath = MapGetFilePath(gMapCurrentFName);    
+    if( !gMap.Name[0] ){ eprintf( "\nError: map_save: map header corrupt!" ); return -1; }
+    FilePath = MapGetFilePath( gMap.Name );    
     if( (fh = dbOpen(FilePath, "wb")) ){
 	err = MapSaving( fh );
         dbClose( fh );
     } else {
-        eprintf( "Unable to open %s to write!", gMapCurrentFName );
+        eprintf( "Unable to open %s to write!", gMap.Name );
     }
     if( !err ){
-        eprintf( "%s saved.", gMapCurrentFName );
+        eprintf( "%s saved.", gMap.Name );
     }
     return err;
 }
@@ -906,10 +902,10 @@ int MapSaving( xFile_t *fh )
         }        
     }
     gMap.LocVarsCnt = gMapLocalVarsCnt;
-    gMap.VarsCnt = gMapVarsCnt;
+    gMap.GlobVarsCnt = gMapGlobVarsCnt;
     gMap.Darkness = 1;
     MapSaveHdr( &gMap, fh );
-    if( gMap.VarsCnt ) dbputBeiBlk( fh, gMapVars, gMap.VarsCnt );
+    if( gMap.GlobVarsCnt ) dbputBeiBlk( fh, gMapGlobVars, gMap.GlobVarsCnt );
     if( gMap.LocVarsCnt ) dbputBeiBlk( fh, gMapLocalVars, gMap.LocVarsCnt );
     for( lvl = 0; lvl < 3; lvl++ ){
         if( (gMap.MapFlags & gMapGridFlags[ lvl ] ) == 0 ) dbputLeiBlk( fh, gMapIsoGrid[ lvl ], 10000 );
@@ -928,7 +924,7 @@ int MapSaving( xFile_t *fh )
 
 int MapSaveMap( char *fName )
 {
-    strcpy( gMapCurrentFName, fName );
+    strcpy( gMap.Name, fName );
     return MapMapSave();
 }
 
@@ -942,11 +938,8 @@ int MapSavingRandomEncounter( int a1 )
     PartySave();
     if( a1 & 0x01 ){
         EvQeRunAll();
-DD
         PartyLoad();
-DD
         PartySaveBox();
-DD
         ScptMapExit();
         if( gMapScriptId != -1 ) ScptPtr( gMapScriptId, &res );
         ScptClockInit();
@@ -1004,10 +997,10 @@ void MapRedrawIso( VidRect_t *Area )
     VidRect_t rect;
     
     if( RegionShrink( Area, &gMapIsoGeo, &rect ) == -1 ) return;
-    TileRenderFloor( &rect, gCurrentMapLvl );
-    TileRenderSketch( &rect, gCurrentMapLvl );
-    ObjRenderObjects( &rect, gCurrentMapLvl );
-    TileRenderRoof( &rect, gCurrentMapLvl );
+    TileRenderFloor( &rect, gMapCurrentLvl );
+    TileRenderSketch( &rect, gMapCurrentLvl );
+    ObjRenderObjects( &rect, gMapCurrentLvl );
+    TileRenderRoof( &rect, gMapCurrentLvl );
     ObjRenderCursor( &rect );    
 }
 
@@ -1020,40 +1013,40 @@ void MapMapperCb( VidRect_t *Area )
     	    (char *)(rect.lt + gMapIsoSurf + (gVidMainGeo.rt - gVidMainGeo.lt + 1) * rect.tp), 
     	    rect.rt - rect.lt + 1, rect.bm - rect.tp + 1, gVidMainGeo.rt - gVidMainGeo.lt + 1, 0
     	);
-        TileRenderFloor( &rect, gCurrentMapLvl );
-        TileRenderSketch( &rect, gCurrentMapLvl);
-        ObjRenderObjects( &rect, gCurrentMapLvl );
-        TileRenderRoof( &rect, gCurrentMapLvl );
+        TileRenderFloor( &rect, gMapCurrentLvl );
+        TileRenderSketch( &rect, gMapCurrentLvl);
+        ObjRenderObjects( &rect, gMapCurrentLvl );
+        TileRenderRoof( &rect, gMapCurrentLvl );
         ObjRenderCursor( &rect );
     }
 }
 
 int MapAllocVars( int num )
 {
-    if( gMapVars ){
-        Free( gMapVars );
-        gMapVars = NULL;
-        gMapVarsCnt = 0;
+    if( gMapGlobVars ){
+        Free( gMapGlobVars );
+        gMapGlobVars = NULL;
+        gMapGlobVarsCnt = 0;
     }
     if( num ){
-        gMapVars = Malloc( num * sizeof( int ) );
-        if( !gMapVars ) return -1;
+        gMapGlobVars = Malloc( num * sizeof( int ) );
+        if( !gMapGlobVars ) return -1;
     }
-    gMapVarsCnt = num;
+    gMapGlobVarsCnt = num;
     return 0;
 }
 
-void MapFreeVars()
+void MapFreeGlobalVars()
 {
-    if( !gMapVars ) return;    
-    Free(gMapVars);
-    gMapVars = NULL;
-    gMapVarsCnt = 0;
+    if( !gMapGlobVars ) return;    
+    Free( gMapGlobVars );
+    gMapGlobVars = NULL;
+    gMapGlobVarsCnt = 0;
 }
 
 int MapLoadVars( xFile_t *fh )
 {
-    return ( dbreadBeiBlk( fh, gMapVars, gMapVarsCnt ) == 0 ) - 1;
+    return ( dbreadBeiBlk( fh, gMapGlobVars, gMapGlobVarsCnt ) == 0 ) - 1;
 }
 
 int MapAllocLocalVars( int num )
@@ -1093,7 +1086,7 @@ void MapUnk01()
             gObjDude->ImgId = ArtMakeId(1, gObjDude->ImgId & 0xFFF, 0, (gObjDude->ImgId & 0xF000) >> 12, gObjDude->Orientation + 1);
         }
         if( gObjDude->GridId == -1 ){
-            ObjMoveToTile( gObjDude, gTileCentIdx, gCurrentMapLvl, 0 );
+            ObjMoveToTile( gObjDude, gTileCentIdx, gMapCurrentLvl, 0 );
             ObjSetRotation( gObjDude, gMap.PlayerOrientation, 0 );
         }
         ObjSetLight( gObjDude, 4, 0x10000, NULL );
@@ -1154,7 +1147,7 @@ int MapSaveHdr( Map_t *map, xFile_t *fh )
     if( dbputBei( fh, map->ScriptId ) == -1 ) return -1; 
     if( dbputBei( fh, map->MapFlags ) == -1 ) return -1; 
     if( dbputBei( fh, map->Darkness ) == -1 ) return -1; 
-    if( dbputBei( fh, map->VarsCnt ) == -1 ) return -1; 
+    if( dbputBei( fh, map->GlobVarsCnt ) == -1 ) return -1; 
     if( dbputBei( fh, map->MapId ) == -1 ) return -1; 
     if( dbputBei( fh, map->Time ) == -1 ) return -1; 
     if( dbputBeiBlk( fh, map->Filler, 44 ) == -1 ) return -1;
@@ -1166,16 +1159,15 @@ int MapLoadHdr( Map_t *map, xFile_t *fh )
     if( dbgetBei( fh, &map->Version ) == -1 ) return -1;
     if( dbreadByteBlk( fh, map->Name, 16 ) == -1 ) return -1;
     if( dbgetBei( fh, &map->StartHexGrid ) == -1 ) return -1;
-    if( dbgetBei( fh, &map->MapLvl ) == -1 ) return -1; // map lvl
+    if( dbgetBei( fh, &map->MapLvl ) == -1 ) return -1; // map lvl***
     if( dbgetBei( fh, &map->PlayerOrientation ) == -1 ) return -1; // player orientation
     if( dbgetBei( fh, &map->LocVarsCnt ) == -1 ) return -1;
     if( dbgetBei( fh, &map->ScriptId ) == -1 ) return -1; // script id
     if( dbgetBei( fh, &map->MapFlags ) == -1 ) return -1; // map flags
     if( dbgetBei( fh, &map->Darkness ) == -1 ) return -1; // darkness
-    if( dbgetBei( fh, &map->VarsCnt ) == -1 ) return -1; 
+    if( dbgetBei( fh, &map->GlobVarsCnt ) == -1 ) return -1; 
     if( dbgetBei( fh, &map->MapId ) == -1 ) return -1; // map id
     if( dbgetBei( fh, &map->Time ) == -1 ) return -1;  // time
-
     if( dbreadBeiBlk( fh, map->Filler, 44 ) == -1 ) return -1; // ??
     return 0;
 }

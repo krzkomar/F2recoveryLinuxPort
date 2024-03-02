@@ -277,7 +277,7 @@ void ObjLookForAgressor()
     ObjCritterCond_t *inj;
     Obj_t **ObjTable;
 
-    ObjCnt = ObjGetObjList( -1, gCurrentMapLvl, TYPE_CRIT, &ObjTable );
+    ObjCnt = ObjGetObjList( -1, gMapCurrentLvl, TYPE_CRIT, &ObjTable );
     hit = gObjDude->Critter.State.WhoHitMe;
     inj = &gObjDude->Critter.State;
     if( hit == -1 ){
@@ -768,7 +768,7 @@ int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLig
     ObjList_t *p, *ListPrev, *ListCur;
     Obj_t *object;
     VidRect_t v22, Area2;
-    Map01_t ptr;
+    MapPosition_t ptr;
 
     if( !obj || GridPos > 39999 || MapLvl > 2 ) return -1;
     if( ObjFindInList( obj, &ListCur, &ListPrev ) == -1 ) return -1;
@@ -1112,8 +1112,8 @@ void ObjUnk37( int Update )
     if( gObjUnk41 ){
         for( i = 0; i != 40000; ++i ){
             for( p = gObjGridObjects[ i ]; p; p = p->Next ){
-                if( gCurrentMapLvl < p->object->Elevation ) break;
-                if( gCurrentMapLvl != p->object->Elevation ) continue;
+                if( gMapCurrentLvl < p->object->Elevation ) break;
+                if( gMapCurrentLvl != p->object->Elevation ) continue;
                 t = OBJTYPE( p->object->ImgId );
                 if( t == 3 || t == 2 ) p->object->Flags |= 0x010000;
             }
@@ -1121,8 +1121,8 @@ void ObjUnk37( int Update )
     } else {
         for( i = 0; i != 40000; i++ ){
             for( p = gObjGridObjects[ i ]; p; p = p->Next ){
-                if( gCurrentMapLvl < p->object->Elevation ) break;
-                if( gCurrentMapLvl != p->object->Elevation ) continue;
+                if( gMapCurrentLvl < p->object->Elevation ) break;
+                if( gMapCurrentLvl != p->object->Elevation ) continue;
                 t = OBJTYPE( p->object->ImgId );
                 if( t == 3 || t == 2 ) p->object->Flags &= ~0x010000;
             }

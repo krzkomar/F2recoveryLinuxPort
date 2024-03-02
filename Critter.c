@@ -724,12 +724,12 @@ int CritterUnk46()
     int CanRestHere,ObjList,i,err,GroupId,RestFlag;
     Obj_t **p;
 
-    CanRestHere = WmCanRestHere(gCurrentMapLvl);
+    CanRestHere = WmCanRestHere( gMapCurrentLvl );
     RestFlag = 0;
     if( !CanRestHere ) RestFlag = 1;
     err = 1;
     GroupId = gObjDude->Critter.State.GroupId;
-    ObjList = ObjGetObjList( -1, gCurrentMapLvl, 1, &p );
+    ObjList = ObjGetObjList( -1, gMapCurrentLvl, 1, &p );
     for( i = 0; i < ObjList; i++ ){
         if( ( p[ i ]->Grid.DestMapElev & 0xff ) < 0 ) continue;
 	if( p[ i ] == gObjDude ) continue;

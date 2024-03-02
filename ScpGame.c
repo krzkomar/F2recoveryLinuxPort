@@ -105,7 +105,7 @@ int ScrGameSetShape( Obj_t *critter, Obj_t *a2, int Flags )
     }
     if( ImageId != -1 ){
         ObjSetShape( critter, ImageId, &Area );
-        TileUpdateArea( &Area, gCurrentMapLvl );
+        TileUpdateArea( &Area, gMapCurrentLvl );
     }
     return 0;
 }
@@ -504,7 +504,7 @@ void ScrGame_MoveTo( Intp_t *scr )
             if( ( lvl != obj->Elevation) && (OBJTYPE( obj->Pid ) == 1 ) ) CombatUnk79( obj );            
             if( ( k = ObjMoveToTile( obj, tile_num, lvl, &Area2 ) ) != -1 ){
                 RegionExpand( &Rect, &Area2, &Area2 );
-                TileUpdateArea( &Area2, gCurrentMapLvl );
+                TileUpdateArea( &Area2, gMapCurrentLvl );
             }
         }
     } else {
@@ -616,7 +616,7 @@ void ScrGame_DestroyObject( Intp_t *scr )
     } else {
         AnimClear( obj );
         ObjDestroy( obj, &Area );
-        TileUpdateArea( &v14, gCurrentMapLvl );
+        TileUpdateArea( &v14, gMapCurrentLvl );
     }
     scr->Flags &= ~SCR_FPROC_RUN;
     if( v3 ) scr->Flags |= 0x1000000;    
@@ -815,7 +815,7 @@ void ScrGame_OpMapVar( Intp_t *scr )
 
     GETARGI( scr, type, var, 0, "op_map_var" );
     SCP_DBGA( "op_map_var( [%x]%x )", type, var );
-    RETINT( scr, MapGetVar( var ) );
+    RETINT( scr, MapGetGlobalVar( var ) );
 }
 
 /*
@@ -830,7 +830,7 @@ void ScrGame_SetMapVar( Intp_t *scr )
     GETARGI( scr, type[ 0 ], var[ 0 ], 0, "set_map_var" );
     GETARGI( scr, type[ 1 ], var[ 1 ], 1, "set_map_var" );
     SCP_DBGA( "set_map_var( [%x]%x, [%x]%x )", type[1], var[1], type[0], var[0] );
-    MapSetVar( var[ 1 ], var[ 0 ] );
+    MapSetGlobalVar( var[ 1 ], var[ 0 ] );
 }
 
 /*
@@ -1689,7 +1689,7 @@ void ScrGame_Metarule3( Intp_t *scr )
         case 107:
             Id = ArtMakeId((p2->ImgId & 0xF000000) >> 24, arg1, (p2->ImgId & 0xFF0000u) >> 16, (p2->ImgId & 0xF000) >> 12, (p2->ImgId & 0x70000000) >> 28);
             ObjSetShape(p2, Id, &Area);
-            TileUpdateArea( &Area, gCurrentMapLvl );
+            TileUpdateArea( &Area, gMapCurrentLvl );
             result = v23;
             return;
         case 108:
@@ -1781,7 +1781,7 @@ void ScrGame_LoadMap( Intp_t *scr )
     int MapIdxByFileName, val1, val2;
     uint16_t type1, type2;
     char *Arg;
-    Map01_t tmp;
+    MapPosition_t tmp;
 
     GETARGI( scr, type1, val1, 0, "load_map" );
     type2 = IntpPopwA(scr);
@@ -2082,7 +2082,7 @@ DD
             } else {
                 AnimClear( v12 );
                 ObjDestroy( v18, &v17 );
-                TileUpdateArea( &v19, gCurrentMapLvl );
+                TileUpdateArea( &v19, gMapCurrentLvl );
             }
             v22 = v16;
             v23++;
@@ -2729,7 +2729,7 @@ void ScrGame_FloatMsg( Intp_t *scr )
         TextUnk10( obj );
         TileUpdate();
     }
-    if( gCurrentMapLvl != obj->Elevation ) return;
+    if( gMapCurrentLvl != obj->Elevation ) return;
     if( Idx[0] == -1 ){
         Idx[0] = stat_zm1 + 1;
         if( Idx[0] > 12 ) Idx[0] = 1;
@@ -2945,11 +2945,11 @@ void ScrGame_OpAnim( Intp_t *scr )
     if( v21 == 1000 ){
         if( Orientation < 6 ){
             ObjSetRotation( obj, Orientation, &Area2 );
-            TileUpdateArea( &Area2, gCurrentMapLvl );
+            TileUpdateArea( &Area2, gMapCurrentLvl );
         }
     } else if( v21 == 1010 ){
         ObjSetFrame( obj, Orientation, &Area1 );
-        TileUpdateArea( &Area1, gCurrentMapLvl );
+        TileUpdateArea( &Area1, gMapCurrentLvl );
     } else {
         ScrGameEprintf( "\nScript Error: %s: op_anim: anim out of range", scr->FileName );
     }
@@ -4251,7 +4251,7 @@ void ScrGame_DestroyMultObjs( Intp_t *scr )
     } else {
         AnimClear( obj );
         ObjDestroy( obj, &Area );
-        TileUpdateArea( &Area, gCurrentMapLvl );
+        TileUpdateArea( &Area, gMapCurrentLvl );
     }
     RETINT( scr, v27 );
     scr->Flags &= ~SCR_FPROC_RUN;
@@ -4473,7 +4473,7 @@ void ScrGame_ObjOnScreen( Intp_t *scr )
     GETARGP( scr, type, obj, 1, "obj_on_screen" );    
     SCP_DBGA( "obj_on_screen( what:[%x]%p )", type, obj );
     if( obj ){
-        if( gCurrentMapLvl == obj->Elevation ){
+        if( gMapCurrentLvl == obj->Elevation ){
             ObjGetRadiusArea( obj, &Area1 );
             if( !RegionShrink( &Area1, &Area2, &Area1 ) ) n = 1;
         }

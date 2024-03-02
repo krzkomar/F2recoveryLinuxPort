@@ -218,7 +218,7 @@ static void TextEvent()
         memmove( t, t + 1, (gTextCount - i - 1) * sizeof( Text_t *) );
         gTextCount--;
     }         
-    if( Update ) TileUpdateArea( &Rect, gCurrentMapLvl );
+    if( Update ) TileUpdateArea( &Rect, gMapCurrentLvl );
 }
 
 void TextUnk09( Text_t *text )

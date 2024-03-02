@@ -242,12 +242,12 @@ void TileUpdateEnable()
 void TileUpdateArea( VidRect_t *Area, int MapLvl )
 {
     if( !gTileUpdateEnable ) return;    
-    if( MapLvl == gCurrentMapLvl ) gTileRedrawCb( Area, MapLvl );
+    if( MapLvl == gMapCurrentLvl ) gTileRedrawCb( Area, MapLvl );
 }
 
 void TileUpdate()
 {
-    if( gTileUpdateEnable ) gTileRedrawCb( &gTileSurfArea, gCurrentMapLvl );
+    if( gTileUpdateEnable ) gTileRedrawCb( &gTileSurfArea, gMapCurrentLvl );
 }
 
 int TileSetCenter( int MapIdx, int MapLvl )
@@ -264,7 +264,7 @@ int TileSetCenter( int MapIdx, int MapLvl )
     }
 
     if( ( gTileUnk62 & MapLvl & 2 ) == 0 ){
-        if( !ObjUnk57( MapIdx, gCurrentMapLvl ) ) return -1;
+        if( !ObjUnk57( MapIdx, gMapCurrentLvl ) ) return -1;
     }
     xgrid = gTileMapWidth - ( MapIdx % gTileMapWidth ) - 1;
     ygrid = MapIdx / gTileMapWidth;
@@ -293,7 +293,7 @@ int TileSetCenter( int MapIdx, int MapLvl )
     }
     gTileCentIdx = MapIdx;
     if( MapLvl & 0x01 ){
-        if( gTileUpdateEnable ) gTileRedrawCb( &gTileSurfArea, gCurrentMapLvl );
+        if( gTileUpdateEnable ) gTileRedrawCb( &gTileSurfArea, gMapCurrentLvl );
     }
     return 0;
 }
@@ -328,7 +328,7 @@ void TileUnk09( int result )
 {
     gTileUnk60 = 1 - gTileUnk60;
     if( !result ) return;    
-    if( gTileUpdateEnable ) gTileRedrawCb( &gTileSurfArea, gCurrentMapLvl );    
+    if( gTileUpdateEnable ) gTileRedrawCb( &gTileSurfArea, gMapCurrentLvl );    
 }
 
 int TileUnk10()
@@ -1011,7 +1011,7 @@ void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
         Light = ItemMapGetLight();        
         v19 = v14 & 0x01;
         for( i = 0; i != 10; v19++, i++ ){
-    	    tmp = ItemGridGetLightA( gCurrentMapLvl, v14 + gTileShade[ v19 ].i02 );
+    	    tmp = ItemGridGetLightA( gMapCurrentLvl, v14 + gTileShade[ v19 ].i02 );
             gTileShade[ i ].i04 = (tmp <= Light ) ? Light : tmp;
         }
         for( i = 0; i < 9; i++ ){
@@ -1183,7 +1183,7 @@ int TileUnk49( int a1, int a2 )
         err = -1;
         TileSetCenter( gTileCentIdx, 0 );
     }
-    if( (a2 & 2) != 0 && gTileUpdateEnable ) gTileRedrawCb( &gTileSurfArea, gCurrentMapLvl );        
+    if( (a2 & 2) != 0 && gTileUpdateEnable ) gTileRedrawCb( &gTileSurfArea, gMapCurrentLvl );        
     return err;
 }
 

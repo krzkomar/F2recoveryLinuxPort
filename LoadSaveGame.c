@@ -393,7 +393,7 @@ int LsgMenuGameLoad( unsigned int arg )
     	    strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 135 ) );
     	    DlgBox( gLsgBakFileName, Str2, 1, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
     	    MessageClose( &gLsgMsg );
-    	    MapUnk09();
+    	    MapReset();
     	    gMenuEscape = 2;
     	    return -1;
         }
@@ -550,7 +550,7 @@ int LsgMenuGameLoad( unsigned int arg )
             	    strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 135 ) );
             	    Exit = -1;
             	    DlgBox(gLsgBakFileName, Str2, 1, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1);
-            	    MapUnk09();
+            	    MapReset();
             	    gMenuEscape = 2;        	
             }
         }
@@ -732,7 +732,7 @@ int LsgLoad( int SlotNo )
 {
     int i, PrevPos;
 
-printf("*********************** LOAD SAVE ******************************* \n");
+printf("*********************** LOAD SAVE *******************************\n");
     gLsgLoadSaveInProcess = 1;
     if( IN_COMBAT ){
         IfaceCombatClose( 0 );
@@ -744,32 +744,32 @@ printf("*********************** LOAD SAVE ******************************* \n");
     eprintf( "\nLOADSAVE: Load name: %s\n", gLsgSlots[SlotNo].SaveName );
     gLsgFileHandler = dbOpen(gLsgFileName, "rb");
     if( !gLsgFileHandler ){
-        eprintf( "\nLOADSAVE: ** Error opening load game file for reading! **\n" );
+        eprintf( "\nLOADSAVE: ** Error opening load game file for reading! **" );
         gLsgLoadSaveInProcess = 0;
         return -1;
     }
     PrevPos = dbtell( gLsgFileHandler );
     if( LsgSlotLoad( SlotNo ) == -1 ){
-        eprintf( "\nLOADSAVE: ** Error reading save game header! **\n" );
+        eprintf( "\nLOADSAVE: ** Error reading save game header! **" );
         dbClose( gLsgFileHandler );
         GameReset();
         gLsgLoadSaveInProcess = 0;
         return -1;
     }
-    eprintf( "LOADSAVE: Load file header size read: %d bytes.\n", dbtell( gLsgFileHandler ) - PrevPos );
+    eprintf( "LOADSAVE: Load file header size read: %d bytes.", dbtell( gLsgFileHandler ) - PrevPos );
     for( i  = 0; i < LSG_FUNC_CNT_LOAD; i++ ){
         PrevPos = dbtell( gLsgFileHandler );
         if( gLsgLoadAction[ i ]( gLsgFileHandler ) == -1 ){
-            eprintf( "\nLOADSAVE: ** Error reading load function #%d data! **\n", i );
-            eprintf( "LOADSAVE: Load function #%d data size read: %d bytes.\n", i, dbtell( gLsgFileHandler ) - PrevPos );
+            eprintf( "\nLOADSAVE: ** Error reading load function #%d data! **", i );
+            eprintf( "LOADSAVE: Load function #%d data size read: %d bytes.", i, dbtell( gLsgFileHandler ) - PrevPos );
             dbClose( gLsgFileHandler );
             GameReset();
             gLsgLoadSaveInProcess = 0;
             return -1;
         }
-        eprintf( "LOADSAVE: Load function #%d data size read: %d bytes.\n", i, dbtell( gLsgFileHandler ) - PrevPos );
+        eprintf( "LOADSAVE: Load function #%d data size read: %d bytes.", i, dbtell( gLsgFileHandler ) - PrevPos );
     }
-    eprintf( "LOADSAVE: Total load data read: %ld bytes.\n", (long int)dbtell( gLsgFileHandler ) );
+    eprintf( "LOADSAVE: Total load data read: %ld bytes.", (long int)dbtell( gLsgFileHandler ) );
     dbClose( gLsgFileHandler );
     sprintf( gLsgMsgPath, "%s/", "maps" );
     LsgDeleteFiles( gLsgMsgPath, "BAK" );
@@ -831,14 +831,14 @@ int LsgSaveHdr( int SlotNo )
     if( dbputBewBlk( gLsgFileHandler, tmp, 3 ) == -1 ) return -1;
     if( dbputLei( gLsgFileHandler, n ) == -1 ) return -1;
     // map level
-    gLsgSlots[ SlotNo ].MapLvl = gCurrentMapLvl;
-    if( dbputBew( gLsgFileHandler, gCurrentMapLvl ) == -1 ) return -1;
+    gLsgSlots[ SlotNo ].MapLvl = gMapCurrentLvl;
+    if( dbputBew( gLsgFileHandler, gMapCurrentLvl ) == -1 ) return -1;
     // map number
     n = MapGetCurrentMapId();
     gLsgSlots[ SlotNo ].MapNum = n;
     if( dbputBew( gLsgFileHandler, n ) == -1 )  return -1;
     // map name
-    strcpy( stmp, gMapCurrentFName );
+    strcpy( stmp, gMap.Name );
     strncpy( gLsgSlots[ SlotNo ].MapFname, CharEditFnameChgExt( gLsgMsgPath, stmp, "sav" ), 16 );
     if( dbwrite( gLsgSlots[ SlotNo ].MapFname, 16, 1, gLsgFileHandler ) != 1 ) return -1;
     // thumbnail

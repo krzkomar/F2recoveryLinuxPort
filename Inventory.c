@@ -874,7 +874,7 @@ void InvLight( Obj_t *item )
 	}
     }
     ObjSetLight( critter, radius, 0x10000, &Area );
-    TileUpdateArea( &Area, gCurrentMapLvl );    
+    TileUpdateArea( &Area, gMapCurrentLvl );    
 }
 
 void InvEquip( int sel, int SlotOffset )
@@ -1527,7 +1527,7 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
             LightIntensity = a2->LightIntensity;
             if( LightIntensity < a1->LightIntensity ) LightIntensity = a1->LightIntensity;
             ObjSetLight( a1, LightRadius, LightIntensity, &Area );
-            TileUpdateArea( &Area, gCurrentMapLvl );
+            TileUpdateArea( &Area, gMapCurrentLvl );
         }
         tmp = ( ItemGetObjType(a2) == 3 ) ? Item58( a2 ) : 0;
         if( SelectedHand == a3 ){
