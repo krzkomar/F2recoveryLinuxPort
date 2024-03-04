@@ -802,12 +802,12 @@ int UseApUpdate( Obj_t *obj, Obj_t *obj1, Obj_t *obj2 )
 
 int UseObject( Obj_t *crit, Obj_t *obj, Obj_t *objn )
 {
-    int v3, type;
+    int override, type;
     char stmp[ 260 ];
     MsgLine_t msg;
     Scpt_t *scr;
     Proto_t *proto;
-DD
+
     type = OBJTYPE( obj->ImgId );
     if( crit == gObjDude ){
         if( type != TYPE_SCEN ) return -1;
@@ -818,104 +818,103 @@ DD
     if( OBJTYPE( obj->Pid ) == TYPE_SCEN ){
 	if( proto->Critt.Type == PR_SCN_DOOR ) return UseDoor( crit, obj, 0 );
     }
-DD
-    v3 = 0;
+
+    override = 0;
     if( obj->ScrId != -1 ){
         ScptSetup( obj->ScrId, crit, obj );
         ScptRun( obj->ScrId, SCPT_AEV_USE_P_PROC );
         if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
-        v3 = scr->OverrideFlag;
+        override = scr->OverrideFlag;
     }
-    if( !v3 && OBJTYPE( obj->Pid ) == TYPE_SCEN ){ // no script
+    if( !override && OBJTYPE( obj->Pid ) == TYPE_SCEN ){ // no script
         switch( proto->Critt.Type ){
-    	    case PR_SCN_LADDER_TOP: DD if( !UseUnk22( crit, obj ) ) v3 = 1; break;
-    	    case PR_SCN_LADDER_BOT: DD if( !UseUnk23( crit, obj ) ) v3 = 1; break;
-    	    case PR_SCN_STAIRS: DD if( !UseUnk24( crit, obj ) ) v3 = 1; break;
+    	    case PR_SCN_LADDER_TOP: if( !UseLadderDn( crit, obj ) ) override = 1; break;
+    	    case PR_SCN_LADDER_BOT: if( !UseLadderUp( crit, obj ) ) override = 1; break;
+    	    case PR_SCN_STAIRS: DD if( !UseStairs( crit, obj ) ) override = 1; break;
         }
     }
     // print info
-    if( !v3 && crit == gObjDude ){
+    if( !override && crit == gObjDude ){
         msg.Id = 480; // 'You see: %s.'
         if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ) return -1;
         sprintf( stmp, msg.Text, ObjGetName( obj ) );
         IfcMsgOut( stmp );
     }
-DD
     ScptMapUpdate();
     return 0;
 }
 
-int UseUnk22( Obj_t *crit, Obj_t *obj )
+int UseLadderDn( Obj_t *crit, Obj_t *obj )
 {
-    int id, v5, v6;
+    int id, pos, lvl;
     VidRect_t rect;
     MapPosition_t Map;
 
-    id = obj->Scenery.i06;
+    id = obj->Grid.DestStartPos;
     if( id == -1 ) return -1;
-    v5 = id & 0x3FFFFFF;
-    v6 = (id & 0xE0000000) >> 29;
-    if( obj->Scenery.i05 ){
+    pos = id & 0x3FFFFFF;
+    lvl = (id & 0xE0000000) >> 29;
+    if( obj->Grid.DestMapId ){
         memset( &Map, 0, sizeof( Map ) );
-        Map.MapId = obj->Scenery.i05;
-        Map.PosY = v5;
-        Map.Frame = v6;
+        Map.MapId = obj->Grid.DestMapId;
+        Map.GridPos = pos;
+        Map.Lvl = lvl;
         Map.Orientation = (id & 0x1C000000) >> 26;
-        MapSetPos(&Map);
-        WmUnk45(Map.MapId, Map.Frame, 1);
+        MapSetPos( &Map );
+        WmUnk45( Map.MapId, Map.Lvl, 1 );
     } else {
-        if( ObjMoveToTile( crit, v5, v6, &rect ) == -1 ) return -1;
+        if( ObjMoveToTile( crit, pos, lvl, &rect ) == -1 ) return -1;
         TileUpdateArea( &rect, gMapCurrentLvl );
     }
     return 0;
 }
 
-int UseUnk23( Obj_t *crit, Obj_t *obj )
+int UseLadderUp( Obj_t *crit, Obj_t *obj )
 {
-    int id, v5, v6;
+    int id, pos, lvl;
     VidRect_t Rect;
     MapPosition_t Map;
 
-    id = obj->Scenery.i06;
-    if ( id == -1 ) return -1;
-    v5 = id & 0x3FFFFFF;
-    v6 = (id & 0xE0000000) >> 29;
-    if( obj->Scenery.i05 ){
+    id = obj->Grid.DestStartPos;
+    if( id == -1 ) return -1;
+    pos = id & 0x3FFFFFF;
+    lvl = (id & 0xE0000000) >> 29;
+    if( obj->Grid.DestMapId ){
         memset( &Map, 0, sizeof( Map ) );
-        Map.MapId = obj->Scenery.i05;
-        Map.PosY = v5;
-        Map.Frame = v6;
+        Map.MapId = obj->Grid.DestMapId;
+        Map.GridPos = pos;
+        Map.Lvl = lvl;
         Map.Orientation = (id & 0x1C000000) >> 26;
         MapSetPos( &Map );
-        WmUnk45( Map.MapId, Map.Frame, 1 );
+        WmUnk45( Map.MapId, Map.Lvl, 1 );
     } else {
-        if( ObjMoveToTile(crit, v5, v6, &Rect) == -1 ) return -1;
+        if( ObjMoveToTile( crit, pos, lvl, &Rect ) == -1 ) return -1;
         TileUpdateArea( &Rect, gMapCurrentLvl );
     }
     return 0;
 }
 
-int UseUnk24( Obj_t *crit, Obj_t *obj )
+int UseStairs( Obj_t *crit, Obj_t *obj )
 {
-    int id; int v5; int v6;
-    VidRect_t v8;
+    int id, pos, lvl;
+    VidRect_t Rect;
     MapPosition_t ptr;
 
-    id = obj->Scenery.i06;
+    id = obj->Grid.DestStartPos;
     if( id == -1 ) return -1;
-    v5 = id & 0x3FFFFFF;
-    v6 = (id & 0xE0000000) >> 29;
+    pos = id & 0x3FFFFFF;
+    lvl = (id & 0xE0000000) >> 29;
     if( obj->Critter.State.Reaction > 0 ){
         memset( &ptr, 0, sizeof( ptr ) );
         ptr.MapId = obj->Critter.State.Reaction;
-        ptr.PosY = v5;
-        ptr.Frame = v6;
+        ptr.GridPos = pos;
+        ptr.Lvl = lvl;
         ptr.Orientation = (id & 0x1C000000) >> 26;
         MapSetPos( &ptr );
-        WmUnk45( ptr.MapId, ptr.Frame, 1 );
+        WmUnk45( ptr.MapId, ptr.Lvl, 1 );
     } else {
-        if( ObjMoveToTile( crit, v5, v6, &v8 ) == -1 ) return -1;
-        TileUpdateArea( &v8, gMapCurrentLvl );
+        if( ObjMoveToTile( crit, pos, lvl, &Rect ) == -1 ) return -1;
+        TileUpdateArea( &Rect, gMapCurrentLvl );
     }
     return 0;
 }

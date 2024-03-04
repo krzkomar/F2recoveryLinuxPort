@@ -584,8 +584,8 @@ void ScptActionExec()
                         eprintf( "\nWarning: Elevator: Couldn't find old elevator doors!" );
                     }
                     jmp.MapId = MapId;
-                    jmp.Frame = lvl;
-                    jmp.PosY = pos;
+                    jmp.Lvl = lvl;
+                    jmp.GridPos = pos;
                     jmp.Orientation = 2;
                     MapSetPos( &jmp );
                 }
@@ -635,8 +635,8 @@ void ScptUnk122()
                 }
             } else {
                 v9.MapId = pMapId;
-                v9.Frame = Lvl;
-                v9.PosY = PosY;
+                v9.Lvl = Lvl;
+                v9.GridPos = PosY;
                 v9.Orientation = 2;
                 MapSetPos( &v9 );
             }

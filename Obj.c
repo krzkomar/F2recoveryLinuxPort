@@ -764,7 +764,7 @@ int ObjPutCursor( Obj_t *Obj, int Xpos, int Ypos, int MapLvl, VidRect_t *Area )
 
 int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLightArea )
 {
-    int v19,xg,yg,v16,v31,k;
+    int v19,xg,yg,v16,v31,k, lvl;
     ObjList_t *p, *ListPrev, *ListCur;
     Obj_t *object;
     VidRect_t v22, Area2;
@@ -777,24 +777,24 @@ int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLig
         if( k == -1 ) ObjGetRadiusArea( obj, pLightArea );
         memcpy( &Area2, pLightArea, sizeof( VidRect_t ) );
     }
+    lvl = obj->Elevation;
     OBJ_UNLINK( ListPrev, ListCur );
     if( ObjAddObjToList( ListCur, GridPos, MapLvl, pLightArea ) == -1 ) return -1;
     if( IN_COMBAT && OBJTYPE( obj->ImgId ) == TYPE_CRIT ) CombatUnk01( obj, obj->OutlineColor && obj->OutlineColor >= 0 );
     if( pLightArea ) RegionExpand( pLightArea, &Area2, pLightArea );
-
     if( obj == gObjDude ){
         for( p = gObjGridObjects[ GridPos ]; p; p = p->Next ){
             object = p->object;
             if( MapLvl < p->object->Elevation ) break;
             if( MapLvl != p->object->Elevation || OBJTYPE( object->ImgId ) != TYPE_MISC ) continue;
             if( object->Pid >= 0x5000010 && object->Pid <= 0x5000017 ){ // Exit Grid
-                    memset( &ptr, 0, sizeof( ptr ) );
-                    ptr.MapId = object->Grid.DestMapId;
-                    ptr.PosY = object->Grid.DestStartPos;
-                    ptr.Frame = object->Grid.DestMapElev;
-                    ptr.Orientation = object->Grid.DestOrientation;
-                    MapSetPos( &ptr );
-                    WmUnk45( ptr.MapId, ptr.Frame, 1 );
+                memset( &ptr, 0, sizeof( ptr ) );
+                ptr.MapId = object->Grid.DestMapId;
+                ptr.GridPos = object->Grid.DestStartPos;
+                ptr.Lvl = object->Grid.DestMapElev;
+                ptr.Orientation = object->Grid.DestOrientation;
+                MapSetPos( &ptr );
+                WmUnk45( ptr.MapId, ptr.Lvl, 1 );
             }            
         }
         gObjUnk01[ GridPos / 8 ] |= 1 << ( GridPos & 7 );
@@ -820,13 +820,15 @@ int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLig
         } else {
             ObjMoveToTile( gObjRadius, GridPos, MapLvl, 0 );
         }
-        if( MapLvl != obj->Elevation ){
+        if( MapLvl != lvl ){
             MapSetLvl( MapLvl );
             TileSetCenter( GridPos, 3 );
-            if( (gCombatStatus & 1) != 0 ) gMenuEscape = 1;
+            if( IN_COMBAT ) gMenuEscape = 1;
         }
-    } else if( MapLvl != gObjPlayerMapLvl && OBJTYPE( obj->Pid ) == TYPE_CRIT ){
-        CombatUnk79( obj );
+    } else {
+	if( MapLvl != gObjPlayerMapLvl && OBJTYPE( obj->Pid ) == TYPE_CRIT ){
+    	    CombatUnk79( obj );
+        }
     }
     return 0;
 }
@@ -2378,6 +2380,7 @@ printf(">>> ADD OBJECT OFFGRID: %p\n", NewObj );
         if( (object->Flags & PRFLG_FLAT) != (NewObj->object->Flags & PRFLG_FLAT) ) continue;
         if( !( Art1 = ArtLoadImg( object->ImgId, &ImgObj1 ) ) ) continue;
         if( !Art2 ) Art2 = ArtLoadImg( NewObj->object->ImgId, &ImgObj2 );
+if( !Art2 ) continue;
         a = Art1->PixShiftY[ object->Orientation ] + object->PosY;
         b = Art2->PixShiftY[ NewObj->object->Orientation ] + NewObj->object->PosY;
         if( b < a ){ ArtClose( ImgObj1 ); break; }

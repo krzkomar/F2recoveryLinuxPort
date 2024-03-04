@@ -1396,9 +1396,10 @@ void WmUnk41( int MapIdx )
 {
     int AreaId;
 
-    if( MapIdx >= 0 && MapIdx < gWmMapCount && ( gWmMaps[ MapIdx ].Flags & 0x01 ) != 0 ){
-        if( WmFindAreaByEntranceId( MapIdx, &AreaId ) != -1 ) WmUnk04( AreaId, 2 );
-    }
+    if( MapIdx < 0 || MapIdx >= gWmMapCount ) return;
+    if( !( gWmMaps[ MapIdx ].Flags & 0x01 ) ) return;
+    if( WmFindAreaByEntranceId( MapIdx, &AreaId ) == -1 ) return;
+    WmUnk04( AreaId, 2 );
 }
 
 int WmGetEntranceIdx( int AreaId, int EntranceId, int *pEntranceIdx )
@@ -1415,15 +1416,15 @@ int WmGetEntranceIdx( int AreaId, int EntranceId, int *pEntranceIdx )
     return 0;
 }
 
-int WmUnk43( int AreaId, int EntranceId, int Unk, int *pIdx )
+int WmUnk43( int AreaId, int EntranceId, int Lvl, int *pIdx )
 {
     int n, i;
 
     for( i = 0; i < gWmAreas[ AreaId ].EntranceCnt; i++ ){
         if( EntranceId == gWmAreas[ AreaId ].Entrances[ i ].Id ){
-            if( Unk == -1 ) break;
+            if( Lvl == -1 ) break;
             n = gWmAreas[ AreaId ].Entrances[ i ].i05;
-            if( n == -1 || Unk == n ) break;
+            if( n == -1 || Lvl == n ) break;
         }
     }
     if( i >= gWmAreas[ AreaId ].EntranceCnt ){
@@ -1450,16 +1451,16 @@ int WmFindAreaByEntrance( int EntranceId, int *pIdx )
     return 0;
 }
 
-int WmUnk45( int MapId, int a2, int Val )
+int WmUnk45( int MapId, int Lvl, int Val )
 {
-    int v5;
+    int EntPos;
     int AreaId = 0;
 
     if( MapId < 0 || MapId >= gWmMapCount ) return -1;
     if( !( gWmMaps[ MapId ].Flags & 0x01 ) ) return 0;
     if( WmFindAreaByEntranceId( MapId, &AreaId ) == -1 ) return -1;
-    if( WmUnk43( AreaId, MapId, a2, &v5 ) == -1 ) return -1;
-    if( ( gWmMaps[ MapId ].Flags & 0x01) ) gWmAreas[ AreaId ].Entrances[ v5 ].i01 = Val;
+    if( WmUnk43( AreaId, MapId, Lvl, &EntPos ) == -1 ) return -1;
+    if( ( gWmMaps[ MapId ].Flags & 0x01) ) gWmAreas[ AreaId ].Entrances[ EntPos ].i01 = Val;
     return 0;
 }
 

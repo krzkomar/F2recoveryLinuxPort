@@ -25,8 +25,8 @@ typedef struct
 typedef struct 
 {
   int MapId;
-  int Frame;
-  int PosY;
+  int Lvl;
+  int GridPos;
   int Orientation;
 } MapPosition_t;
 

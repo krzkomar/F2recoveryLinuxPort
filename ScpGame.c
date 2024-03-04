@@ -1805,8 +1805,8 @@ void ScrGame_LoadMap( Intp_t *scr )
     }
     if( MapIdxByFileName != -1 ){
         tmp.MapId = MapIdxByFileName;
-        tmp.PosY = -1;
-        tmp.Frame = -1;
+        tmp.GridPos = -1;
+        tmp.Lvl = -1;
         tmp.Orientation = -1;
         MapSetPos( &tmp );
     }

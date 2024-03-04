@@ -525,7 +525,7 @@ int MapLoadMapFile( xFile_t *fh )
     MapSavingRandomEncounter( 1 );
     GSoundLoadBg( "wind2", 12, 13, 16 );
     MapAmbientDisable();
-    PartyLoad();//-->
+    PartyLoad();
     GmouseScrollDisable();
     MseCursor = GmouseGetCursorId();
     GmouseLoadCursor( 25 );
@@ -804,10 +804,10 @@ int MapJump()
     } else {
         v1 = -1;
         if( !IN_COMBAT ){
-            if( gMapCurrentPos.MapId != gMap.MapId || gMapCurrentLvl == gMapCurrentPos.Frame ) MapOpenById( gMapCurrentPos.MapId );
-            if( gMapCurrentPos.PosY != -1 && gMapCurrentPos.PosY && gMap.MapId != 19 && gMap.MapId != 37 && gMapCurrentPos.Frame <= 2 ){
-                ObjMoveToTile( gObjDude, gMapCurrentPos.PosY, gMapCurrentPos.Frame, 0 );
-                MapSetLvl( gMapCurrentPos.Frame );
+            if( gMapCurrentPos.MapId != gMap.MapId || gMapCurrentLvl == gMapCurrentPos.Lvl ) MapOpenById( gMapCurrentPos.MapId );
+            if( gMapCurrentPos.GridPos != -1 && gMapCurrentPos.GridPos && gMap.MapId != 19 && gMap.MapId != 37 && gMapCurrentPos.Lvl <= 2 ){
+                ObjMoveToTile( gObjDude, gMapCurrentPos.GridPos, gMapCurrentPos.Lvl, 0 );
+                MapSetLvl( gMapCurrentPos.Lvl );
                 ObjSetRotation( gObjDude, gMapCurrentPos.Orientation, 0 );
             }
             if( TileSetCenter( gObjDude->GridId, 1 ) == -1 ) eprintf( "\nError: map: attempt to center out-of-bounds!" );
