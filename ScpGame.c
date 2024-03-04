@@ -3471,10 +3471,10 @@ void ScrGame_GigOption( Intp_t *scr )
         if( type[ i ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ i ], val[ i ] );
         if( (type[ i ] & 0xF7FF) == SCR_INT ) continue;
         if( i == 2 ){
-            if( type[ i ] == SCR_STRING )
+            if( (type[ i ] & 0xF7FF) == SCR_STRING )
                 a3 = IntpGetString( scr, type[ i ] >> 8, val[ i ] );
             else
-                IntpError( "script error: %s: invalid arg %d to giq_option", scr->FileName, 2 );
+                IntpError( "script error: %s: invalid arg %d[%x] to giq_option", scr->FileName, 2, type[ i ] );
         } else {
             IntpError( "script error: %s: invalid arg %d to giq_option", scr->FileName, i );
         }

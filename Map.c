@@ -533,7 +533,6 @@ int MapLoadMapFile( xFile_t *fh )
     TileUpdateDisable();
     err = 0;
     // clear screen
-DD
     WinDrawFilledRect( gMapIsoWin, 0, 0, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99, gPalColorCubeRGB[0][0][0] );
     WinUpdate( gMapIsoWin );
     AnimReset();
@@ -543,7 +542,6 @@ DD
     if( !fh ) goto Error;
     // load header
     if( MapLoadHdr( &gMap, fh ) ) goto Error;
-printf("MapScriptId:%x\n", gMap.MapLvl );
     errmsg = "Invalid map version";
     if( gMap.Version != 20 && gMap.Version != 19 ) goto Error;
     if( gMapIsoPlayerElevation == -1 ){
@@ -554,7 +552,6 @@ printf("MapScriptId:%x\n", gMap.MapLvl );
     ObjClear();
     if( gMap.GlobVarsCnt < 0 ) gMap.GlobVarsCnt = 0;
     if( gMap.LocVarsCnt < 0 ) gMap.LocVarsCnt = 0;
-DD
     // load global variables
     MapFreeGlobalVars();
     if( gMap.GlobVarsCnt == 0 ){
@@ -581,14 +578,12 @@ DD
     if( ScptLoadScript( fh ) ) goto Error;
     if( ObjLoadMapObjs( fh ) ) goto Error;
     if( !(gMap.MapFlags & MAPFLG_SAV) ) MapUnk07(); // not savegame map
-printf("MapLvl+++>%i\n", gMapIsoPlayerElevation);
     if( MapSetLvl( gMapIsoPlayerElevation) ) goto Error;
     if( TileSetCenter(gMapIsoPlayerPosition, 2) ) goto Error;
     ItemMapSetLight( 0x10000, 0 );
     ObjMoveToTile( gObjDude, gTileCentIdx, gMapCurrentLvl, NULL );
     ObjSetRotation(gObjDude, gMapIsoPlayerOrientation, 0);
     gMap.MapId = WmGetMapIdxByFileName( gMap.Name );
-DD
     if( !(gMap.MapFlags & MAPFLG_SAV) ){
         sprintf( stmp2, "maps/%s", gMap.Name );            
         if( (v14 = strstr( stmp2, ".MAP" )) ){
@@ -617,7 +612,6 @@ DD
     scr->i08 = p->TimeEv;
     scr->TimeEv = p;
 //SCP_DBG_EN;
-DD
     ScptUnk23();
     ScptRun( gMapScriptId, SCPT_AEV_MAP_ENTER_P_PROC );
     ScptUnk22();
@@ -632,7 +626,6 @@ Error:
     } else {
         ObjUnk80( gMap.MapFlags );
     }
-DD
     PartyRecoverLoad();
     IfacePanelDisable();
     ProtoDudeImgInit();
@@ -645,7 +638,6 @@ DD
     ScptMapEnter();
     ScptMapUpdate();
     TileUpdateEnable();
-DD
     if( gMapCurrentPos.MapId > 0 ){
         if( gMapCurrentPos.Orientation >= 0 ) ObjSetRotation( gObjDude, gMapCurrentPos.Orientation, 0 );
     } else {
@@ -660,14 +652,11 @@ DD
     dbSetRWFunc( NULL, 0 );
     if( !GameIfaceStat() ) GmouseScrollEnable();
     GmouseLoadCursor( MseCursor );
-DD
     gMapIsoPlayerElevation = -1;
     gMapIsoPlayerPosition = -1;
     gMapIsoPlayerOrientation = -1;
     GMovieFade();
     gMap.Version = 20;
-
-DD
     return err;
 }
 

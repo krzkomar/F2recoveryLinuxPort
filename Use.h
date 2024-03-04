@@ -31,7 +31,6 @@ int UseObject( Obj_t *crit, Obj_t *obj, Obj_t * );
 int UseLadderDn( Obj_t *crit, Obj_t *obj );
 int UseLadderUp( Obj_t *crit, Obj_t *obj );
 int UseStairs( Obj_t *crit, Obj_t *obj );
-int UseUnk25();
 int UseDoorOpen( Obj_t *a1 );
 int UseDoorClose( Obj_t *a1 );
 int UseDoorLock( Obj_t *obj );
@@ -55,8 +54,6 @@ int UseUnjamAll();
 int UseUnk46( Obj_t *obj, int GridIdx, int lvl, int a4 );
 int UseUnk47( Obj_t *obj, int a2, int a3 );
 int UseAddItem( int Pid, int Quantity );
-// Not Used functions 
-// UseUnk49( ... );
 int UseEditRenderObj( int Win, int Type, int a3, int Pid, int (*Cb)(Proto_t *) );
 int UseEditObjSelector( int Pid, int a2, void (*a3)(int, int ), int (*a4)(Proto_t *) );
 int UseEditSelectObj( int Pid, int NotUsed, void (*a3)(int, int ) );

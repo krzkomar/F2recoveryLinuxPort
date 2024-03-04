@@ -1836,7 +1836,7 @@ char *ScptGetDialog( int MsgPage, int MsgId, int SpkFlg )
     if( ScptGetMsgStr( MsgPage, &Message ) == -1 ){ eprintf( "\nERROR: message_str: can't find message file: List: %d!", MsgPage ); return 0; }
     if( ( gDlgHeadId & 0xF000000 ) >> 24 != 8 ) SpkFlg = 0;
     MsgList.Id = MsgId;
-    if( MessageGetMsg( Message, &MsgList ) != 1 ){ eprintf( "\nError: can't find message: List: %d, Num: %d!", MsgPage, MsgId ); return "Error"; }
+    if( MessageGetMsg( Message, &MsgList ) != 1 ){ eprintf( "\nError: can't find message: List: %d, Num: %d(%x)!", MsgPage, MsgId,  MsgId ); return "Error"; }
     if( !SpkFlg || !IN_DIALOG ) return MsgList.Text;
     if( !( MsgList.Audio && *MsgList.Audio ) ){ eprintf( "Missing speech name: %d\n", MsgList.Id ); return MsgList.Text; }
     GdialogLipsyncStart( ( MsgList.Unk & 0x01 ) ? 0 : MsgList.Audio );

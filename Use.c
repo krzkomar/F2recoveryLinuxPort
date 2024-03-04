@@ -919,11 +919,6 @@ int UseStairs( Obj_t *crit, Obj_t *obj )
     return 0;
 }
 
-int UseUnk25()
-{
-    return -1;
-}
-
 int UseDoorOpen( Obj_t *door )
 {
     door->Scenery.i05 |= 0x01;
@@ -1285,25 +1280,23 @@ int UseUnk46( Obj_t *obj, int GridIdx, int lvl, int a4 )
     return 0;
 }
 
-int UseUnk47( Obj_t *obj, int a2, int a3 )
+int UseUnk47( Obj_t *obj, int MapPos, int MapLvl )
 {
-    int v4,v6, GridId;
+    int i, err, GridPos;
 
-    v4 = 0;
-    if( !obj ) return -1;
-    if( a2 == -1 ) return -1;
-    v6 = WmUnk53( a2 );
-    GridId = a2;
-    if( !v6 ){
-        GridId = gObjDude->GridId;
-        while( ++v4 <= 100 ){
-            GridId = TileGetTileNumInDir( GridId, (v4 + 1) % 6, 1 );
-            if( WmUnk53( GridId ) ) break;
-            if( TileGetDistance( gObjDude->GridId, GridId ) > 8 ){ GridId = a2; break; }
+    if( !obj || (MapPos == -1) ) return -1;
+    err = WmUnk53( MapPos );
+    GridPos = MapPos;
+    if( !err ){
+        GridPos = gObjDude->GridId;
+        for( i = 1; i <= 100; i++ ){
+            GridPos = TileGetTileNumInDir( GridPos, i % 6, 1 );
+            if( WmUnk53( GridPos ) ) break;
+            if( TileGetDistance( gObjDude->GridId, GridPos ) > 8 ){ GridPos = MapPos; break; }
         }
     }
     ObjUnk32( obj, 0 );
-    ObjMoveToTile( obj, GridId, a3, 0 );
+    ObjMoveToTile( obj, GridPos, MapLvl, NULL );
     return 0;
 }
 
@@ -1322,8 +1315,6 @@ int UseAddItem( int Pid, int Quantity ) // no X
         ObjLightItem( Item, 0 );    
     return 0;
 }
-
-// UseUnk49( ... ){ ... } not used
 
 int UseEditRenderObj( int Win, int Type, int a3, int Pid, int (*Cb)(Proto_t *) )
 {
