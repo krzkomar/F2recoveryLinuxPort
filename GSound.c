@@ -710,7 +710,7 @@ int GSoundDistance( Obj_t *obj )
     type = OBJTYPE( obj->ImgId );
     if( type != TYPE_CRIT && type != TYPE_SCEN && type != TYPE_ITEM ) return 0x7FFF;
     if( !(Owner = ObjGetOwner( obj )) ) Owner = obj;
-    ObjGetRadiusArea( Owner, &Rect );
+    ObjGetRefreshArea( Owner, &Rect );
     WinGetRect( gMapIsoWin, &area );
     if( RegionShrink( &Rect, &area, &v11 ) != -1 ) return 0x7FFF;
     distance = ObjGetDistance( Owner, gObjDude );

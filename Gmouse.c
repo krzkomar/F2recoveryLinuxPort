@@ -340,7 +340,7 @@ void GmouseProcess()
     	    sprintf( stmp1, "%c", 'X' );
     	    color = gPalColorCubeRGB[31][0][0];
         }        
-        if( !GmouseText( stmp1, color ) ){ ObjGetRadiusArea( gGmouseObjB, &Rect ); TileUpdateArea( &Rect, 0 ); }
+        if( !GmouseText( stmp1, color ) ){ ObjGetRefreshArea( gGmouseObjB, &Rect ); TileUpdateArea( &Rect, 0 ); }
         gGmouseRstTime = Time;
         gGmouseStay = 1;
         gGmouseUnk21 = gGmouseObjB->GridId;
@@ -705,7 +705,7 @@ void GmouseSetShapeA( int NewImg )
     if( NewImg == gGmouseObjA->ImgId ) return;
     if( gGmouseUnk10 ){
         flg = 0;
-        if( gGmouseObjA->ImgId != -1 ){ ObjGetRadiusArea( gGmouseObjA, &Area1 ); flg = 0x01; }
+        if( gGmouseObjA->ImgId != -1 ){ ObjGetRefreshArea( gGmouseObjA, &Area1 ); flg = 0x01; }
         if( !ObjSetShape( gGmouseObjA, NewImg, &Area2 ) ){ flg |= 0x02; }
         if( gGmouseObjB->Flags & 0x01 ) return;
         switch( flg ){

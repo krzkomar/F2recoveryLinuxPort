@@ -88,7 +88,6 @@ int gObjUnk21;
 
 int ObjInit( char *a1, int Width, int Height, int Pitch )
 {
-DD
     memset( gObjUnk01, 0, 5001 );
     gObjViewPortArea.rt = Width + 320;
     gObjViewPortArea.lt = -320;
@@ -101,7 +100,7 @@ DD
     
     if( ObjViewPortInit() == -1 ) return -1;
     if( ObjUnk84() == -1 ){ ObjFree(); return -1; }
-    if( ObjAllocRenderList() == -1 || ItemGridLightInit() == -1 || TextInit( a1, Width, Height ) == -1 ){
+    if( ObjAllocRenderList() == -1 || LightInit() == -1 || TextInit( a1, Width, Height ) == -1 ){
         if( gObjUnk11[ 1 ] ){ Free( gObjUnk11[ 1 ] ); gObjUnk11[ 1 ] = NULL; }
         if( gObjUnk11[ 0 ] ){ Free( gObjUnk11[ 0 ] ); gObjUnk11[ 0 ] = NULL; }
         ObjFree();
@@ -135,7 +134,7 @@ void ObjReset()
     TextFlush();
     ObjClear();
     memset( gObjUnk01, 0, 5001 );
-    ItemGridLightReset();
+    LightTileResetAll();
 }
 
 void ObjClose()
@@ -150,7 +149,7 @@ void ObjClose()
     PalExtClose( gPalColorCubeRGB[31][31][31] );
     PalExtClose( gPalColorCubeRGB[29][31][1] );
     PalExtClose( gPalColorCubeRGB[31][0][0] );
-    ItemGridLightReset();
+    LightTileResetAll();
     if( gObjRenderList ){ Free( gObjRenderList ); gObjRenderList = NULL; }
     if( gObjUnk11[1] ){ Free( gObjUnk11[1] ); gObjUnk11[1] = NULL; }
     if( gObjUnk11[0] ){ Free( gObjUnk11[0] ); gObjUnk11[0] = NULL; }
@@ -396,7 +395,7 @@ void ObjRenderObjects( VidRect_t *Area, int MapLvl )
 
     if( !gObjUnk20 ) return;
     if( RegionShrink( Area, &gObjUnk16, &Region ) ) return;    
-    AmbLight = ItemMapGetLight();
+    AmbLight = LightMapGetLt();
     v24 = Region.rt + 320;
     v4 = Region.tp - 240;
     v25 = Region.bm + 240;
@@ -411,9 +410,9 @@ void ObjRenderObjects( VidRect_t *Area, int MapLvl )
         if( v30 <= gObjViewPortAxisY[ e ] || v27 <= gObjViewPortAxisX[ e ] ) continue;
         g = gObjViewPort[ gTileCentIdx & 1 ][ e ];
         if( (list = gObjGridObjects[ v26 + g ] ) ){
-            LightA = ItemGridGetLightA(MapLvl, list->object->GridId);
+            LightA = LightTileGetLtLimited( MapLvl, list->object->GridId );
             if( LightA >= AmbLight )
-                light = ItemGridGetLightA(MapLvl, list->object->GridId);
+                light = LightTileGetLtLimited( MapLvl, list->object->GridId );
             else
                 light = AmbLight;
         }
@@ -432,7 +431,7 @@ void ObjRenderObjects( VidRect_t *Area, int MapLvl )
     for( i = 0; i < n; i++ ){
         if( (list = gObjRenderList[ i ] ) ){
             light = AmbLight;
-            if( ItemGridGetLightA( MapLvl, list->object->GridId ) >= light ) light = ItemGridGetLightA( MapLvl, list->object->GridId );
+            if( LightTileGetLtLimited( MapLvl, list->object->GridId ) >= light ) light = LightTileGetLtLimited( MapLvl, list->object->GridId );
         }
         for( ;list; list = list->Next ){
             if( MapLvl < list->object->Elevation ) break;
@@ -446,7 +445,7 @@ void ObjRenderObjects( VidRect_t *Area, int MapLvl )
     }
 }
 
-void ObjRenderCursor( VidRect_t *Area )
+void ObjRenderCursor( VidRect_t *Area ) // render cursor on objects
 {
     int i;
     ObjList_t *p;
@@ -526,9 +525,8 @@ int ObjCreate( Obj_t **obj, int ArtId, int Pid )
 {
     Proto_t *proto;
     ObjList_t *p;
-DD
+
     if( !obj ) return -1;
-    
     p = Malloc( sizeof( ObjList_t ) );
     if( !p ) return -1;
     p->Next = NULL;
@@ -653,7 +651,7 @@ int ObjLightItem( Obj_t *Obj, VidRect_t *Area )
 
     if( !Obj ) return -1;
     if( ObjFindInList( Obj, &list, &tmp ) ) return -1;
-    if( ObjLight( Obj, 1, Area ) == -1 && Area ) ObjGetRadiusArea( Obj, Area );
+    if( ObjLight( Obj, 1, Area ) == -1 && Area ) ObjGetRefreshArea( Obj, Area );
     OBJ_UNLINK( tmp, list );
     if( list ){
         Free( list );
@@ -672,7 +670,7 @@ int ObjMove( Obj_t *Obj, int Xpos, int Ypos, VidRect_t *Area )
     if( ObjFindInList( Obj, &p, &q ) == -1 ) return -1;
     if( Obj == gObjDude ){
         if( Area ){
-            ObjGetRadiusArea( gObjRadius, &Rect );
+            ObjGetRefreshArea( gObjRadius, &Rect );
             memcpy( Area, &Rect, sizeof( VidRect_t ) );            
     	    OBJ_UNLINK( q, p );
             Obj->PosX += Xpos; Obj->Sx += Xpos;
@@ -691,7 +689,7 @@ int ObjMove( Obj_t *Obj, int Xpos, int Ypos, VidRect_t *Area )
         ObjMove( gObjRadius, Xpos, Ypos, 0 );
         return 0;        
     } else if ( Area ){
-        ObjGetRadiusArea( Obj, Area );
+        ObjGetRefreshArea( Obj, Area );
 	OBJ_UNLINK( q, p );
         Obj->PosX += Xpos; Obj->Sx += Xpos;
         Obj->PosY += Ypos; Obj->Sy += Ypos;
@@ -724,17 +722,17 @@ int ObjPutCursor( Obj_t *Obj, int Xpos, int Ypos, int MapLvl, VidRect_t *Area )
     flg = 0;
     if( GridIdx <= 39999 ){
         if( ObjFindInList( Obj, &p, &q ) == -1 ) return -1;
-        if( ObjLight(Obj, 1, Area) == -1 && Area ) ObjGetRadiusArea( Obj, Area );
+        if( ObjLight(Obj, 1, Area) == -1 && Area ) ObjGetRefreshArea( Obj, Area );
 	OBJ_UNLINK( q, p );
         Obj->GridId = -1;
         Obj->Elevation = MapLvl;
         flg = 1;
     } else {
 	if( MapLvl == Obj->Elevation ){
-    	    if( Area ) ObjGetRadiusArea( Obj, Area );
+    	    if( Area ) ObjGetRefreshArea( Obj, Area );
 	} else {
 	    if( ObjFindInList( Obj, &p, &q ) == -1 ) return -1;
-	    if( Area ) ObjGetRadiusArea( Obj, Area );
+	    if( Area ) ObjGetRefreshArea( Obj, Area );
 	    OBJ_UNLINK( q, p );
 	    Obj->Elevation = MapLvl;
 	    flg = 1;
@@ -748,7 +746,7 @@ int ObjPutCursor( Obj_t *Obj, int Xpos, int Ypos, int MapLvl, VidRect_t *Area )
     }
     if( flg ) ObjAddObject( p );
     if( Area ){
-        ObjGetRadiusArea( Obj, &Area2 );
+        ObjGetRefreshArea( Obj, &Area2 );
         RegionExpand( Area, &Area2, Area );
     }
     if( Obj == gObjDude ){
@@ -764,7 +762,7 @@ int ObjPutCursor( Obj_t *Obj, int Xpos, int Ypos, int MapLvl, VidRect_t *Area )
 
 int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLightArea )
 {
-    int v19,xg,yg,v16,v31,k, lvl;
+    int v19,xg,yg,v16,v31,k = 0, lvl;
     ObjList_t *p, *ListPrev, *ListCur;
     Obj_t *object;
     VidRect_t v22, Area2;
@@ -774,7 +772,7 @@ int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLig
     if( ObjFindInList( obj, &ListCur, &ListPrev ) == -1 ) return -1;
     k = ObjLight( obj, 1, pLightArea );
     if( pLightArea ){
-        if( k == -1 ) ObjGetRadiusArea( obj, pLightArea );
+        if( k == -1 ) ObjGetRefreshArea( obj, pLightArea );
         memcpy( &Area2, pLightArea, sizeof( VidRect_t ) );
     }
     lvl = obj->Elevation;
@@ -847,9 +845,9 @@ int ObjSetShape( Obj_t *obj, int ImgId, VidRect_t *Area )
 
     if( !obj ) return -1;
     if( Area ){
-        ObjGetRadiusArea( obj, Area );
+        ObjGetRefreshArea( obj, Area );
         obj->ImgId = ImgId;
-        ObjGetRadiusArea( obj, &TmpArea );
+        ObjGetRefreshArea( obj, &TmpArea );
         RegionExpand( Area, &TmpArea, Area );
     } else {
         obj->ImgId = ImgId;
@@ -868,9 +866,9 @@ int ObjSetFrame( Obj_t *Crit, int Frame, VidRect_t *Area )
     ArtClose( ImgObj );
     if( Frame >= Img->Fpd ) return -1;
     if( Area ){
-        ObjGetRadiusArea( Crit, Area );
+        ObjGetRefreshArea( Crit, Area );
         Crit->FrameNo = Frame;
-        ObjGetRadiusArea( Crit, &Rect );
+        ObjGetRefreshArea( Crit, &Rect );
         RegionExpand( Area, &Rect, Area );
     } else {
         Crit->FrameNo = Frame;
@@ -891,9 +889,9 @@ int ObjIncFrame( Obj_t *obj, VidRect_t *Area )
     Frame = obj->FrameNo + 1;
     if( Frame >= Img->Fpd ) Frame = 0;
     if( Area ){
-        ObjGetRadiusArea( obj, Area );
+        ObjGetRefreshArea( obj, Area );
         obj->FrameNo = Frame;
-        ObjGetRadiusArea( obj, &Rect );
+        ObjGetRefreshArea( obj, &Rect );
         RegionExpand( Area, &Rect, Area );
     } else {
         obj->FrameNo = Frame;
@@ -913,9 +911,9 @@ int ObjDecFrame( Obj_t *obj, VidRect_t *Area )
     Frame = obj->FrameNo - 1;
     if( Frame < 0 ) Frame = Img->Fpd - 1;
     if( Area ){
-        ObjGetRadiusArea( obj, Area );
+        ObjGetRefreshArea( obj, Area );
         obj->FrameNo = Frame;
-        ObjGetRadiusArea( obj, &Rect );
+        ObjGetRefreshArea( obj, &Rect );
         RegionExpand( Area, &Rect, Area );
     } else {
         obj->FrameNo = Frame;
@@ -928,9 +926,9 @@ int ObjSetRotation( Obj_t *obj, unsigned int Orientation, VidRect_t *Area )
 
     if( !obj || Orientation >= 6 ) return -1;
     if( Area ){
-        ObjGetRadiusArea( obj, Area );
+        ObjGetRefreshArea( obj, Area );
         obj->Orientation = Orientation;
-        ObjGetRadiusArea( obj, &tmp );
+        ObjGetRefreshArea( obj, &tmp );
         RegionExpand( Area, &tmp, Area );
     } else {
         obj->Orientation = Orientation;
@@ -960,10 +958,10 @@ void ObjLightGrid()
     int i;
     ObjList_t *p;
 
-    ItemGridLightReset();
-    for( i = 0; i != 40000; i++ ){
+    LightTileResetAll();
+    for( i = 0; i < 40000; i++ ){
         for( p = gObjGridObjects[ i ]; p; p = p->Next ){
-            ObjLight( p->object, 0, 0 );
+            ObjLight( p->object, 0, NULL );
         }
     }
 }
@@ -996,8 +994,8 @@ int ObjGetLightIntensity( Obj_t *obj )
 {
     int inten, l;
 
-    l = ItemMapGetLight();
-    inten = ItemGridGetLight( obj->Elevation, obj->GridId );
+    l = LightMapGetLt();
+    inten = LightTileGetLt( obj->Elevation, obj->GridId );
     if( obj == gObjDude ) inten -= gObjDude->LightIntensity;
     if( inten < l ) return l;
     if( inten > 0x10000 ) return 0x10000;
@@ -1007,6 +1005,7 @@ int ObjGetLightIntensity( Obj_t *obj )
 int ObjLightedOn( Obj_t *obj, VidRect_t *Area )
 {
     if( !obj ) return -1;
+
     if( obj->LightIntensity <= 0 ){
         obj->Flags &= ~PRFLG_LIGHTED;
         return -1;
@@ -1014,7 +1013,7 @@ int ObjLightedOn( Obj_t *obj, VidRect_t *Area )
     if( !( obj->Flags & PRFLG_LIGHTED ) ){
         obj->Flags |= PRFLG_LIGHTED;
         if( ObjLight( obj, 0, Area ) == -1 ){
-            if( Area ) ObjGetRadiusArea( obj, Area );
+            if( Area ) ObjGetRefreshArea( obj, Area );
         }
     }
     return 0;
@@ -1029,14 +1028,14 @@ int ObjLightedOff( Obj_t *obj, VidRect_t *rect )
     }
     if( obj->Flags & PRFLG_LIGHTED ){
         if( ObjLight( obj, 1, rect ) == -1 ){
-            if( rect ) ObjGetRadiusArea( obj, rect );
+            if( rect ) ObjGetRefreshArea( obj, rect );
         }
         obj->Flags &= ~PRFLG_LIGHTED;
     }
     return 0;
 }
 
-int ObjUnk32( Obj_t *obj, VidRect_t *Area )
+int ObjUnk32( Obj_t *obj, VidRect_t *Area ) // cursor refresh
 {
     VidRect_t tmp;
 
@@ -1044,10 +1043,10 @@ int ObjUnk32( Obj_t *obj, VidRect_t *Area )
     if( !( obj->Flags & 0x01 ) ) return -1;
     obj->Flags &= ~0x01;
     obj->OutlineColor &= ~0x8000;
-    if( ( ObjLight( obj, 0, Area ) == -1 ) && Area ) ObjGetRadiusArea( obj, Area );
+    if( ( ObjLight( obj, 0, Area ) == -1 ) && Area ) ObjGetRefreshArea( obj, Area );
     if( obj != gObjDude ) return 0;
     if( !Area ) return 0;
-    ObjGetRadiusArea( gObjRadius, &tmp );
+    ObjGetRefreshArea( gObjRadius, &tmp );
     RegionExpand( Area, &tmp, Area );
     return 0;
 }
@@ -1057,21 +1056,22 @@ int ObjUnk33( Obj_t *obj, VidRect_t *Area )
     VidRect_t rect;
 
     if( !obj || ( obj->Flags & 1 ) ) return -1;
-    if( ObjLight( obj, 1, Area ) == -1 && Area ) ObjGetRadiusArea( obj, Area );
+    if( ObjLight( obj, 1, Area ) == -1 && Area ) ObjGetRefreshArea( obj, Area );
     obj->Flags |= 0x01;
     if( obj->OutlineColor & 0xFFFFFF ) obj->OutlineColor |= 0x8000;
     if( obj != gObjDude ) return 0;
     if( !Area ) return 0;
-    ObjGetRadiusArea( gObjRadius, &rect );
+    ObjGetRefreshArea( gObjRadius, &rect );
     RegionExpand( Area, &rect, Area );
     return 0;
 }
 
 int ObjUnk34( Obj_t *obj, VidRect_t *Area )
 {
+
     if( !obj ) return -1;
     obj->OutlineColor &= ~0x80000000;
-    if( Area ) ObjGetRadiusArea( obj, Area );
+    if( Area ) ObjGetRefreshArea( obj, Area );
     return 0;
 }
 
@@ -1079,7 +1079,7 @@ int ObjUnk35( Obj_t *obj, VidRect_t *area )
 {
     if( !obj ) return -1;
     if( (obj->OutlineColor & 0xFFFFFF) != 0 ) obj->OutlineColor |= 0x80000000;
-    if( area ) ObjGetRadiusArea( obj, area );
+    if( area ) ObjGetRefreshArea( obj, area );
     return 0;
 }
 
@@ -1091,11 +1091,11 @@ int ObjSetPlayer( Obj_t *obj, VidRect_t *RadArea ) // zla nazwa ?
     if( !obj ) return -1;
     if( ObjFindInList( obj, &ObjList, &list ) == -1 ) return -1;
     if( RadArea ){
-        ObjGetRadiusArea( obj, RadArea );
+        ObjGetRefreshArea( obj, RadArea );
 	OBJ_UNLINK( list, ObjList );
         obj->Flags ^= 0x08;
         ObjAddObject( ObjList );
-        ObjGetRadiusArea( obj, &Rect );
+        ObjGetRefreshArea( obj, &Rect );
         RegionExpand( RadArea, &Area, RadArea );
         return 0;
     }
@@ -1141,7 +1141,7 @@ int ObjDestroy( Obj_t *obj, VidRect_t *radius )
     GmouseUnk66( obj );
     if( !ObjFindInList( obj, &a1, &a2a ) ){
         if( ObjLight( obj, 1, radius ) == -1 ){
-            if( radius ) ObjGetRadiusArea( obj, radius );
+            if( radius ) ObjGetRefreshArea( obj, radius );
         }
         return ( !ObjDelete( a1, a2a ) ) ? 0 : -1;
     }
@@ -1322,7 +1322,7 @@ Obj_t *ObjGetNext()
     return NULL;
 }
 
-void ObjGetRadiusArea( Obj_t *obj, VidRect_t *Rect )
+void ObjGetRefreshArea( Obj_t *obj, VidRect_t *Rect )
 {
     CachePool_t *ImgObj;
     ArtFrmHdr_t *Img;
@@ -1341,21 +1341,23 @@ void ObjGetRadiusArea( Obj_t *obj, VidRect_t *Rect )
     if( obj->GridId == -1 ){
         Rect->lt = obj->Sx;
         Rect->tp = obj->Sy;
-        Rect->rt = ObjWidth + obj->Sx - 1;
-        Rect->bm = ObjHeight + obj->Sy - 1;
-    } else if( TileGetScrCoordinates( obj->GridId, &TileWidth, &TileHeight) ){
-        Rect->tp = 0;
-        Rect->rt = 0;
-        Rect->bm = 0;
-        Rect->lt = 0;
-        OlColor = 0;
+        Rect->rt = obj->Sx + ObjWidth - 1;
+        Rect->bm = obj->Sy + ObjHeight - 1;
     } else {
-        TileWidth  = TileWidth  + 16 + Img->PixShiftX[ obj->Orientation ] + obj->PosX;
-        TileHeight = TileHeight + 8 + Img->PixShiftY[ obj->Orientation ] + obj->PosY;
-        Rect->lt = TileWidth - ObjWidth / 2;
-        Rect->tp = TileHeight - ObjHeight + 1;
-        Rect->rt = ObjWidth + Rect->lt - 1;
-        Rect->bm = TileHeight;
+	if( TileGetScrCoordinates( obj->GridId, &TileWidth, &TileHeight ) ){ // out of map
+    	    Rect->tp = 0;
+    	    Rect->rt = 0;
+    	    Rect->bm = 0;
+    	    Rect->lt = 0;
+    	    OlColor = 0;
+	} else {
+    	    TileWidth  = TileWidth  + obj->PosX + 16 + Img->PixShiftX[ obj->Orientation ];
+    	    TileHeight = TileHeight + obj->PosY + 8  + Img->PixShiftY[ obj->Orientation ];
+    	    Rect->lt = TileWidth - ObjWidth / 2;
+    	    Rect->tp = TileHeight - ObjHeight + 1;
+    	    Rect->rt = TileWidth + ObjWidth / 2 - 1;
+    	    Rect->bm = TileHeight;
+	}
     }
     ArtClose( ImgObj );
     if( OlColor ){
@@ -1366,7 +1368,7 @@ void ObjGetRadiusArea( Obj_t *obj, VidRect_t *Rect )
     }
 }
 
-int ObjUnk53( int GridIdx, int MapLvl)
+int ObjUnk53( int GridIdx, int MapLvl )
 {
     ObjList_t *p;
 
@@ -1720,14 +1722,14 @@ int ObjSetOutline( Obj_t *obj, int HlColor, VidRect_t *RadiusArea )
     if( !obj || (obj->OutlineColor & 0xFFFFFF) || (obj->Flags & 0x1000) ) return -1;
     obj->OutlineColor = HlColor;
     if( obj->Flags & 0x01 ) obj->OutlineColor |= 0x8000;
-    if( RadiusArea ) ObjGetRadiusArea( obj, RadiusArea );
+    if( RadiusArea ) ObjGetRefreshArea( obj, RadiusArea );
     return 0;
 }
 
 int ObjGetRadius( Obj_t *obj, VidRect_t *Area )
 {
     if( !obj ) return -1;
-    if( Area ) ObjGetRadiusArea( obj, Area );
+    if( Area ) ObjGetRefreshArea( obj, Area );
     obj->OutlineColor = 0;
     return 0;
 }
@@ -2423,7 +2425,7 @@ int ObjAddObjToList( ObjList_t *pList, int GridPos, int MapLvl, VidRect_t *Area 
     pList->object->Owner = 0;
     ObjAddObject( pList );
     if( ObjLight( pList->object, GridPos, Area ) == -1 ){
-        if( Area ) ObjGetRadiusArea( pList->object, Area );
+        if( Area ) ObjGetRefreshArea( pList->object, Area );
     }
     return 0;
 }
@@ -2431,7 +2433,7 @@ int ObjAddObjToList( ObjList_t *pList, int GridPos, int MapLvl, VidRect_t *Area 
 int ObjLight( Obj_t *obj, int Dark, VidRect_t *a3 )
 {
     char flg; // bl
-    int v444; // edx
+    int kn; // edx
     int i; // ebp
     unsigned int j; // ecx
     int v77; // edx
@@ -2458,7 +2460,6 @@ int ObjLight( Obj_t *obj, int Dark, VidRect_t *a3 )
     int v28; // edx
     int v29; // ebx
     int FlgExt; // eax
-    int v31; // ebx
     VidRect_t *v32; // edi
     VidRect_t *v33; // esi
     Obj_t *v34; // eax
@@ -2471,92 +2472,149 @@ int ObjLight( Obj_t *obj, int Dark, VidRect_t *a3 )
     int pX; // [esp+B8h] [ebp-40h] BYREF
     VidRect_t *r; // [esp+BCh] [ebp-3Ch]
     char *v44; // [esp+C0h] [ebp-38h]
-    unsigned int i_; // [esp+C4h] [ebp-34h]
     void (*Cb)(int, int, int); // [esp+C8h] [ebp-30h]
     unsigned int v47; // [esp+CCh] [ebp-2Ch]
-    unsigned int v48; // [esp+D0h] [ebp-28h]
     char *v49; // [esp+D4h] [ebp-24h]
-    int v50; // [esp+D8h] [ebp-20h]
     int Pos; // [esp+DCh] [ebp-1Ch]
-    int v53; // [esp+E4h] [ebp-14h]
+    int v53 = 0; // [esp+E4h] [ebp-14h]
 
     r = a3;
-    if ( !obj )
-        return -1;
-    if ( obj->LightIntensity <= 0 )
-        return -1;
+    if( !obj || ( obj->LightIntensity <= 0 ) ) return -1;
     flg = obj->Flags;
-    if ( (flg & 1) != 0 || (flg & 0x20) == 0 || obj->GridId > 39999u )
-        return -1;
-    if ( Dark )
-    {
-        Cb = ItemGridLightDec;
-        ItemGridLightDec(obj->Elevation, obj->GridId, obj->LightIntensity);
-    }
-    else
-    {
-        Cb = ItemGridLightInc;
-        ItemGridLightInc(obj->Elevation, obj->GridId, obj->LightIntensity);
-    }
-    ObjGetRadiusArea(obj, &RectRadius);
-    if ( obj->LightRadius > 8 )
-        obj->LightRadius = 8;
-    if ( obj->LightIntensity > 0x10000 )
-        obj->LightIntensity = 0x10000;
+    if( (flg & 1) != 0 || (flg & 0x20) == 0 || obj->GridId > 39999u ) return -1;
+    Cb = ( Dark ) ? LightTileDimm : LightTileEnlight;
+    Cb( obj->Elevation, obj->GridId, obj->LightIntensity );
+    ObjGetRefreshArea( obj, &RectRadius );
+//return 0;
+    if( obj->LightRadius > 8 ) obj->LightRadius = 8;
+    if( obj->LightIntensity > 0x10000 ) obj->LightIntensity = 0x10000;
     v44 = &gObjLight[864 * (obj->GridId & 1)];
-    v444 = (obj->LightIntensity - 655) / (obj->LightRadius + 1);
-    Tab[0] = obj->LightIntensity - v444;
-    Tab[1] = Tab[0] - v444;
-    Tab[8] = Tab[0] - v444;
-    Tab[2] = Tab[0] - v444 - v444;
+    kn = (obj->LightIntensity - 655) / (obj->LightRadius + 1);
+
+    Tab[0] = obj->LightIntensity - kn;
+    Tab[1] = Tab[0] - kn;
+    Tab[8] = Tab[0] - kn;
+
+    Tab[2] = Tab[0] - kn - kn;
     Tab[9] = Tab[2];
     Tab[15] = Tab[2];
-    Tab[3] = Tab[2] - v444;
-    Tab[10] = Tab[2] - v444;
-    Tab[16] = Tab[2] - v444;
-    Tab[21] = Tab[2] - v444;
-    Tab[4] = Tab[2] - v444 - v444;
+    Tab[3] = Tab[2] - kn;
+    Tab[10] = Tab[2] - kn;
+    Tab[16] = Tab[2] - kn;
+    Tab[21] = Tab[2] - kn;
+
+    Tab[4] = Tab[2] - kn - kn;
     Tab[11] = Tab[4];
     Tab[17] = Tab[4];
     Tab[22] = Tab[4];
     Tab[26] = Tab[4];
-    Tab[5] = Tab[4] - v444;
-    Tab[12] = Tab[4] - v444;
-    Tab[18] = Tab[4] - v444;
-    Tab[23] = Tab[4] - v444;
-    Tab[27] = Tab[4] - v444;
-    Tab[30] = Tab[4] - v444;
-    i = 0;
-    Tab[6] = Tab[4] - v444 - v444;
+    Tab[5] = Tab[4] - kn;
+    Tab[12] = Tab[4] - kn;
+    Tab[18] = Tab[4] - kn;
+    Tab[23] = Tab[4] - kn;
+    Tab[27] = Tab[4] - kn;
+    Tab[30] = Tab[4] - kn;
+
+    Tab[6] = Tab[4] - kn - kn;
     Tab[13] = Tab[6];
     Tab[19] = Tab[6];
     Tab[24] = Tab[6];
     Tab[28] = Tab[6];
     Tab[31] = Tab[6];
     Tab[33] = Tab[6];
-    i_ = 0;
-    Tab[7] = Tab[6] - v444;
-    Tab[14] = Tab[6] - v444;
-    Tab[20] = Tab[6] - v444;
-    Tab[25] = Tab[6] - v444;
-    Tab[29] = Tab[6] - v444;
-    Tab[32] = Tab[6] - v444;
-    Tab[34] = Tab[6] - v444;
-    Tab[35] = Tab[6] - v444;
-    do
-    {
-        if ( obj->LightRadius >= gObjUnk38[i_ / 4] )
-        {
-            v48 = i_;
-            v47 = i_;
-            v49 = &v44[i_];
-            j = 0;
-            v50 = i_;
-            do
-            {
-                v77 = (int)(j + 1) % 6;
-                if ( (unsigned int)i <= 35 )
-                {
+    Tab[7] = Tab[6] - kn;
+    Tab[14] = Tab[6] - kn;
+    Tab[20] = Tab[6] - kn;
+    Tab[25] = Tab[6] - kn;
+    Tab[29] = Tab[6] - kn;
+    Tab[32] = Tab[6] - kn;
+    Tab[34] = Tab[6] - kn;
+    Tab[35] = Tab[6] - kn;
+v53 = 0;
+    for( i = 0; i < 36; i++ ){
+        if( obj->LightRadius < gObjUnk38[ i ] ) continue;
+v47 = i*4;
+        v49 = &v44[ i*4 ];
+        for( j = 0; j < 6; j++ ){
+            v77 = (int)(j + 1) % 6;
+//            if( (unsigned int)i <= 35 ){ XXX }
+            if( !v53 ){
+                idx = *(int *)&v49[ j * 36 * 4 ] + obj->GridId;
+                Pos = idx;
+                if( idx <= 39999 ){
+                        v23 = gObjGridObjects[idx];
+                        v24 = 1;
+                        if( v23 ){
+                            while( 1 ){
+                                object = v23->object;
+                                if( (v23->object->Flags & 1) == 0 ){
+                                    Elevation = object->Elevation;
+                                    if( Elevation > obj->Elevation ) goto LABEL_94;
+//                                    if( Elevation == obj->Elevation ){ AAAA }
+                                }
+LABEL_93:
+                                v23 = v23->Next;
+                                if( !v23 ) goto LABEL_94;
+                            }                            
+                        }
+LABEL_94:
+                        if( v24 ) Cb(obj->Elevation, Pos, Tab[ i ] );
+                    }
+            }
+
+            gObjUnk52[ j ][ i ] = v53;
+        }
+    }
+    if( !r ) return 0;
+    v33 = &gObjUnk39[obj->LightRadius];
+    r->lt = v33->lt;
+    r->tp = v33->tp;
+    r->rt = v33->rt;
+    r->bm = v33->bm;
+    TileGetScrCoordinates( obj->GridId, &pX, &pY );
+    pX += 16;
+    pY += 8;
+    pX -= r->rt / 2;
+    pY -= r->bm / 2;
+    r->lt += pX;
+    r->tp += pY;
+    r->rt += pX;
+    r->bm += pY;
+    RegionExpand( r, &RectRadius, r );
+    return 0;
+}
+
+/* AAAA
+                            ObjGetRefreshArea(object, &Area2);
+                            RegionExpand(&RectRadius, &Area2, &RectRadius);
+                            v27 = v23->object;
+                            v28 = (v23->object->Flags & 0x20000000) == 0;
+                            v29 = (v23->object->ImgId & 0xF000000) >> 24;
+                            v53 = v28;
+                            if( v29 == 3 ){
+                                if( (v27->Flags & 8) == 0 ){
+                                    ProtoGetObj(v27->Pid, &proto);
+                                    FlgExt = proto->FlgExt;
+                                    if( (FlgExt & 0x8000000) != 0 || (FlgExt & 0x40000000) != 0 ){
+                                        if( j != 4 && j != 5 && (j || i >= 8) && (j != 3 || i <= 15) )
+LABEL_91:
+                                            v24 = 0;
+                                    } else if( (FlgExt & 0x10000000) != 0 ){
+                                        if( j && j != 5 ) goto LABEL_91;
+                                    } else if( (FlgExt & 0x20000000) != 0 ){
+                                	 if( j >= 2 && j != 4 && j != 5 && (j != 3 || i <= 15) ) goto LABEL_91;
+                                    } else if ( j >= 2 && (j != 5 || i <= 7) ){
+                                        goto LABEL_91;
+                                    }
+                                }
+                            } else if( v28 && j && (j <= 3) ){
+                                goto LABEL_91;
+                            }
+                            if( v53 ) goto LABEL_94;
+                            goto LABEL_93;
+*/
+
+/* XXX
                     switch ( v47 )
                     {
                         case 0u:
@@ -2614,196 +2672,97 @@ int ObjLight( Obj_t *obj, int Dark, VidRect_t *a3 )
                             v88 = gObjUnk52[j][10] | gObjUnk52[j][9];
                             v99 = gObjUnk52[j][16] & v88 | v88 & gObjUnk52[j][8];
                             v10 = (gObjUnk52[j][15] | gObjUnk52[j][10]) & gObjUnk52[j][9];
-                            goto LABEL_54;
+                            v53 = v10 | v99;
+                            break;
                         case 18u:
                             v53 = (gObjUnk52[j][11] | gObjUnk52[j][10] | gObjUnk52[j][9] | gObjUnk52[j][0]) & gObjUnk52[j][17] | gObjUnk52[j][9] | gObjUnk52[j][16] & gObjUnk52[j][10];
                             break;
                         case 19u:
                             v11 = gObjUnk52[j][18] & gObjUnk52[j][12] | gObjUnk52[j][10] | gObjUnk52[j][9] | (gObjUnk52[j][18] | gObjUnk52[j][17]) & gObjUnk52[j][11];
-                            goto LABEL_55;
+                            v53 = v11;
+                            break;
                         case 20u:
                             v12 = gObjUnk52[j][12] | gObjUnk52[j][11] | gObjUnk52[j][2];
                             v99 = gObjUnk52[j][10] | gObjUnk52[j][9] & v12 | v12 & gObjUnk52[j][8];
                             v10 = (gObjUnk52[j][19] | gObjUnk52[j][18] | gObjUnk52[j][17] | gObjUnk52[j][16]) & gObjUnk52[j][11];
-                            goto LABEL_54;
+                            v53 = v10 | v99;
+                            break;
                         case 21u:
                             v53 = gObjUnk52[v77][2] & gObjUnk52[j][15] | gObjUnk52[v77][1] & gObjUnk52[j][8];
                             break;
                         case 22u:
                             v11 = gObjUnk52[j][16] & (gObjUnk52[j][21] | gObjUnk52[j][15]) | gObjUnk52[j][15] & (gObjUnk52[j][21] | gObjUnk52[j][9]) | (gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][1]) & gObjUnk52[j][8];
-                            goto LABEL_55;
+                            v53 = v11;
+                            break;
                         case 23u:
                             v11 = gObjUnk52[j][22] & gObjUnk52[j][17] | gObjUnk52[j][15] & gObjUnk52[j][9] | gObjUnk52[j][3] | gObjUnk52[j][16];
-                            goto LABEL_55;
+                            v53 = v11;
+                            break;
                         case 24u:
                             v13 = gObjUnk52[j][23];
                             v11 = v13 & gObjUnk52[j][18] | gObjUnk52[j][17] & (v13 | gObjUnk52[j][22] | gObjUnk52[j][15]) | gObjUnk52[j][8] | gObjUnk52[j][9] & (v13 | gObjUnk52[j][16] | gObjUnk52[j][15]) | (gObjUnk52[j][18] | gObjUnk52[j][17] | gObjUnk52[j][10] | gObjUnk52[j][9] | gObjUnk52[j][0]) & gObjUnk52[j][16];
-                            goto LABEL_55;
+                            v53 = v11;
+                            break;
                         case 25u:
                             v14 = gObjUnk52[j][16] | gObjUnk52[j][8];
                             v99 = gObjUnk52[j][18] & (gObjUnk52[j][24] | gObjUnk52[j][23] | v14) | gObjUnk52[j][17] | gObjUnk52[j][10] & (gObjUnk52[j][24] | v14 | gObjUnk52[j][17]) | gObjUnk52[j][1] & gObjUnk52[j][8] | (gObjUnk52[j][24] | gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][15] | gObjUnk52[j][8]) & gObjUnk52[j][9];
                             v10 = (gObjUnk52[j][19] | gObjUnk52[j][0]) & gObjUnk52[j][24];
-                            goto LABEL_54;
+                            v53 = v10 | v99;
+                            break;
                         case 26u:
                             v15 = v77;
                             v99 = gObjUnk52[j][8] & gObjUnk52[v15][1] | gObjUnk52[v15][2] & gObjUnk52[j][15];
                             v10 = gObjUnk52[v15][3] & gObjUnk52[j][21];
-                            goto LABEL_54;
+                            v53 = v10 | v99;
+                            break;
                         case 27u:
                             v53 = (gObjUnk52[j][16] | gObjUnk52[j][8]) & gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][1] & gObjUnk52[j][8] | (gObjUnk52[j][26] | gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][0]) & gObjUnk52[j][22];
                             break;
                         case 28u:
                             v11 = gObjUnk52[j][27] & gObjUnk52[j][23] | gObjUnk52[j][22] & (gObjUnk52[j][23] | gObjUnk52[j][17] | gObjUnk52[j][9]) | gObjUnk52[j][16] & (gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][21] | gObjUnk52[v77][0]) | gObjUnk52[j][8] | gObjUnk52[j][15] & (gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][9]);
-                            goto LABEL_55;
+                            v53 = v11;
+                            break;
                         case 29u:
                             v11 = gObjUnk52[j][28] & gObjUnk52[j][24] | gObjUnk52[j][22] & gObjUnk52[j][17] | gObjUnk52[j][15] & gObjUnk52[j][9] | gObjUnk52[j][16] | gObjUnk52[j][8] | gObjUnk52[j][23];
-                            goto LABEL_55;
+                            v53 = v11;
+                            break;
                         case 30u:
                             v16 = v77;
                             v99 = gObjUnk52[v16][2] & gObjUnk52[j][15] | gObjUnk52[j][8] & gObjUnk52[v16][1] | gObjUnk52[v16][3] & gObjUnk52[j][21];
                             v10 = gObjUnk52[v16][4] & gObjUnk52[j][26];
-                            goto LABEL_54;
+                            v53 = v10 | v99;
+                            break;
                         case 31u:
                             v11 = gObjUnk52[j][30] & gObjUnk52[j][27] | gObjUnk52[j][26] & (gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][8]) | gObjUnk52[j][15] | gObjUnk52[v77][1] & gObjUnk52[j][8] | gObjUnk52[j][21];
-                            goto LABEL_55;
+                            v53 = v11;
+                            break;
                         case 32u:
                             v17 = gObjUnk52[v77][1] & gObjUnk52[j][8] | (gObjUnk52[j][28] | gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][9] | gObjUnk52[j][8]) & gObjUnk52[j][15];
                             v18 = gObjUnk52[j][16] | gObjUnk52[j][8];
                             v11 = gObjUnk52[j][28] & (gObjUnk52[j][31] | gObjUnk52[j][0]) | gObjUnk52[j][27] & (gObjUnk52[j][28] | gObjUnk52[j][23] | v18) | gObjUnk52[j][22] | v17 | gObjUnk52[j][21] & (v18 | gObjUnk52[j][28]);
-                            goto LABEL_55;
+                            v53 = v11;
+                            break;
                         case 33u:
                             v19 = v77;
                             v99 = gObjUnk52[v19][3] & gObjUnk52[j][21] | gObjUnk52[v19][2] & gObjUnk52[j][15] | gObjUnk52[v19][1] & gObjUnk52[j][8] | gObjUnk52[v19][4] & gObjUnk52[j][26];
                             v10 = gObjUnk52[v19][5] & gObjUnk52[j][30];
-                            goto LABEL_54;
+                            v53 = v10 | v99;
+                            break;
                         case 34u:
                             v20 = gObjUnk52[j][30] | gObjUnk52[j][26] | gObjUnk52[v77][2];
                             v99 = gObjUnk52[j][21] | gObjUnk52[j][15] & v20 | v20 & gObjUnk52[j][8];
                             v10 = (gObjUnk52[j][31] | gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][16]) & gObjUnk52[j][26];
-                            goto LABEL_54;
+                            v53 = v10 | v99;
+                            break;
                         case 35u:
                             v21 = v77;
                             v99 = gObjUnk52[v21][4] & gObjUnk52[j][26] | gObjUnk52[v21][3] & gObjUnk52[j][21] | gObjUnk52[v21][2] & gObjUnk52[j][15] | gObjUnk52[j][8] & gObjUnk52[v21][1] | gObjUnk52[v21][5] & gObjUnk52[j][30];
                             v10 = gObjUnk52[v21][6] & gObjUnk52[j][33];
-LABEL_54:
-                            v11 = v10 | v99;
-LABEL_55:
-                            v53 = v11;
+                            v53 = v10 | v99;
                             break;
                     }
-                }
-                if ( !v53 )
-                {
-                    idx = *(int *)v49 + obj->GridId;
-                    Pos = idx;
-                    if ( idx <= 39999 )
-                    {
-                        v23 = gObjGridObjects[idx];
-                        v24 = 1;
-                        if ( v23 )
-                        {
-                            while ( 1 )
-                            {
-                                object = v23->object;
-                                if ( (v23->object->Flags & 1) == 0 )
-                                {
-                                    Elevation = object->Elevation;
-                                    if ( Elevation > obj->Elevation )
-                                        goto LABEL_94;
-                                    if ( Elevation == obj->Elevation )
-                                        break;
-                                }
-LABEL_93:
-                                v23 = v23->Next;
-                                if ( !v23 )
-                                    goto LABEL_94;
-                            }
-                            ObjGetRadiusArea(object, &Area2);
-                            RegionExpand(&RectRadius, &Area2, &RectRadius);
-                            v27 = v23->object;
-                            v28 = (v23->object->Flags & 0x20000000) == 0;
-                            v29 = (v23->object->ImgId & 0xF000000) >> 24;
-                            v53 = v28;
-                            if ( v29 == 3 )
-                            {
-                                if ( (v27->Flags & 8) == 0 )
-                                {
-                                    ProtoGetObj(v27->Pid, &proto);
-                                    FlgExt = proto->FlgExt;
-                                    if ( (FlgExt & 0x8000000) != 0 || (FlgExt & 0x40000000) != 0 )
-                                    {
-                                        if ( j != 4 && j != 5 && (j || i >= 8) && (j != 3 || i <= 15) )
-LABEL_91:
-                                            v24 = 0;
-                                    }
-                                    else if ( (FlgExt & 0x10000000) != 0 )
-                                    {
-                                        if ( j && j != 5 )
-                                            goto LABEL_91;
-                                    }
-                                    else if ( (FlgExt & 0x20000000) != 0 )
-                                    {
-                                        if ( j >= 2 && j != 4 && j != 5 && (j != 3 || i <= 15) )
-                                            goto LABEL_91;
-                                    }
-                                    else if ( j >= 2 && (j != 5 || i <= 7) )
-                                    {
-                                        goto LABEL_91;
-                                    }
-                                }
-                            }
-                            else if ( v28 && j && j <= 3 )
-                            {
-                                goto LABEL_91;
-                            }
-                            if ( v53 )
-                                goto LABEL_94;
-                            goto LABEL_93;
-                        }
-LABEL_94:
-                        if ( v24 )
-                            Cb(obj->Elevation, Pos, *(int *)((char *)Tab + v48));
-                    }
-                }
-                v31 = v50;
-                ++j;
-                *(int *)((char *)gObjUnk52[0] + v50) = v53;
-                v50 = v31 + 144;
-                v49 += 144;
-            }
-            while ( (int)j < 6 );
-        }
-        ++i;
-        i_ += 4;
-    }
-    while ( i < 36 );
-    if ( r )
-    {
-        v32 = r;
-        v33 = &gObjUnk39[obj->LightRadius];
-        v34 = obj;
-        r->lt = v33->lt;
-        v33 = (VidRect_t *)((char *)v33 + 4);
-        v32 = (VidRect_t *)((char *)v32 + 4);
-        v32->lt = v33->lt;
-        v33 = (VidRect_t *)((char *)v33 + 4);
-        v32 = (VidRect_t *)((char *)v32 + 4);
-        v32->lt = v33->lt;
-        v32->tp = v33->tp;
-        TileGetScrCoordinates(v34->GridId, &pX, &pY);
-        pX += 16;
-        pY += 8;
-        pX -= r->rt >> 1;
-        v35 = r;
-        pY -= r->bm >> 1;
-        r->lt += pX;
-        v35->tp += pY;
-        v35->rt += pX;
-        v35->bm += pY;
-        RegionExpand(v35, &RectRadius, v35);
-    }
-    return 0;
-}
+*/
+
 
 void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
 {
@@ -2837,11 +2796,11 @@ void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
         TileGetScrCoordinates(obj->GridId, &pX, &pY);
         pX += 16;
         pY += 8;
-        pX += *(int *)(&v4->Fpd + obj->Orientation) >> 16;
-        pY += *(int *)&v4->PixShiftX[obj->Orientation + 5] >> 16;
+        pX += v4->PixShiftX[ obj->Orientation ];
+        pY += v4->PixShiftY[ obj->Orientation ];
         pX += obj->PosX;
         v10 = pY + obj->PosY;
-        Area1.lt = pX - (Width >> 1);
+        Area1.lt = pX - Width / 2;
         Area1.tp = v10 - v51;
         pY = v10;
         Area1.bm = v10;

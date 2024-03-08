@@ -1,7 +1,5 @@
 #include "FrameWork.h"
 
-#define ITEM_NIGHT_VISION_MODIFIER 	0x3333
-
 int gItemUnk03[ 9 ] = { -1, 3, 3, 4, 4, 5, 0, 0, 0 };
 int gItemUnk678[ 9 ] = { 0, 16, 17, 42, 41, 18, 45, 46, 47 };
 int gItemClass[ 9 ] = { 0, 1, 1, 2, 2, 3, 4, 4, 4 };
@@ -19,14 +17,12 @@ Item01_t gItemGVar[ 9 ] = {
 };
 
 char *gItemUnk02 = "<item>";
-int gItemLightLvl = 0x10000;
+
 
 Msg_t gItemMsg;
 int gItemUnk99;
 Obj_t *gItemUnk98;
 int gItemGVarId;
-int gItemGridLight[ 3*200*200 ];
-
 
 /***********************************************************************/
 
@@ -111,7 +107,7 @@ int ItemAdd( Obj_t *dude, Obj_t *item, int Quantity )
         if( item->Pid == PID_STEALTHBOY && ( item->Flags & (PRFLG_WORN_LHAND | PRFLG_WORN_RHAND)) ){
             if( !(dude->Flags & 0x20000) ){
                 dude->Flags |= 0x20000;
-                ObjGetRadiusArea( dude, &Area );
+                ObjGetRefreshArea( dude, &Area );
                 TileUpdateArea( &Area, dude->Elevation );
             }
         }
@@ -910,7 +906,7 @@ int ItemUnk01( Obj_t *obj1, Obj_t *obj2 )
     Proto_t *pObj;
 
     if( obj1->Pid == 390 ){
-        if( ItemMapGetLight() > 0xF333 ) return 1;
+        if( LightMapGetLt() > 62259 ) return 1;
         IfcMsgOut( MessageGetMessage( &gItemMsg, &msg, 500 ) ); // There is not enough light to recharge this item
     } else if( obj2 ){
         ProtoGetObj(obj1->Pid, &proto);
@@ -1580,7 +1576,7 @@ int ItemDeviceOn( Obj_t *obj )
         obj->Pid = PID_STEALTHBOY; // stealth boy
         if( !(crit->Flags & 0x020000) ){
             crit->Flags |= 0x020000;
-            ObjGetRadiusArea( crit, &Rect );
+            ObjGetRefreshArea( crit, &Rect );
             TileUpdateArea( &Rect, crit->Elevation );
         }
     } else {
@@ -1637,7 +1633,7 @@ int ItemStealthBoyOn( Obj_t *Obj )
 
     if( Obj->Flags & 0x200 ) return -1;
     Obj->Flags |= PRFLG_TR_GLASS;
-    ObjGetRadiusArea( Obj, &Area );
+    ObjGetRefreshArea( Obj, &Area );
     TileUpdateArea( &Area, Obj->Elevation );
     return 0;
 }
@@ -1653,7 +1649,7 @@ int ItemStealthBoyOff( Obj_t *Obj1, Obj_t *Obj2 )
     if( Obj && Obj != Obj2 && Obj->Pid == 210 ) return -1; // stealthboy in right hand
     if( !(Obj1->Flags & PRFLG_TR_GLASS ) ) return -1;
     Obj1->Flags &= ~PRFLG_TR_GLASS;
-    ObjGetRadiusArea( Obj1, &Area );
+    ObjGetRefreshArea( Obj1, &Area );
     TileUpdateArea( &Area, Obj1->Elevation );
     return 0;
 }
@@ -2139,79 +2135,5 @@ int ItemSetMoney( Obj_t *obj, int Value )
     if( obj->Pid != PID_MONEY ) return -1;
     obj->Container.Charges = Value;
     return 0;
-}
-
-int ItemGridLightInit()
-{
-    ItemGridLightReset();
-    return 0;
-}
-
-int ItemMapGetLight()
-{
-    return gItemLightLvl;
-}
-
-void ItemMapModifyLight( int LightModifier, int TilesUpdateFlg )
-{
-    ItemMapSetLight( gItemLightLvl + LightModifier, TilesUpdateFlg );
-}
-
-void ItemMapSetLight( int Intensity, int TilesUpdateFlg )
-{
-    uint32_t LightLvl, tmp;
-
-    LightLvl = ITEM_NIGHT_VISION_MODIFIER * PerkLvl( gObjDude, PERK_NIGHT_VISION ) + Intensity;
-    if( LightLvl < 0x4000 ) LightLvl = 0x4000;
-    if( LightLvl > 0x10000 ) LightLvl = 0x10000;
-    tmp = gItemLightLvl;
-    gItemLightLvl = LightLvl;
-    if( !TilesUpdateFlg ) return;
-    if( tmp != LightLvl ) TileUpdate();
-}
-
-void ItemMapSetDark( int Darkening, int TileFlag )
-{
-    ItemMapSetLight( gItemLightLvl - Darkening, TileFlag );
-}
-
-int ItemGridGetLightA( int MapLvl, int GridPos )
-{
-    if( MapLvl > 2 || GridPos > 39999 ) return 0;
-    if( gItemGridLight[ 40000 * MapLvl + GridPos ] >= 0x10000 ) return 0x10000;
-    return gItemGridLight[ 40000 * MapLvl + GridPos ];
-}
-
-int ItemGridGetLight( unsigned int MapLvl, unsigned int GridPos )
-{
-    if ( MapLvl > 2 || GridPos > 39999 ) return 0;
-    return gItemGridLight[ 40000 * MapLvl + GridPos ];
-}
-
-void ItemGridSetLight( int MapLvl, int GridPos, int Intensity )
-{
-    if( MapLvl > 2 && GridPos > 39999 ) return;
-    gItemGridLight[40000 * MapLvl + GridPos] = Intensity;
-}
-
-void ItemGridLightInc( unsigned int MapLvl, unsigned int Pos, int Val )
-{
-    if( MapLvl <= 2 && Pos <= 39999 ) gItemGridLight[ 40000 * MapLvl + Pos] += Val;
-}
-
-void ItemGridLightDec( unsigned int MapLvl, unsigned int Pos, int Val )
-{
-    if( MapLvl <= 2 && Pos <= 39999 ) gItemGridLight[ 40000 * MapLvl + Pos] -= Val;
-}
-
-void ItemGridLightReset()
-{
-    int lvl, i;
-
-    for( lvl = 0; lvl < 3; lvl++ ){
-        for( i = 0; i < 200*200; i++ ){
-            gItemGridLight[ lvl * 200 * 200 + i ] = 655;
-        }
-    }
 }
 

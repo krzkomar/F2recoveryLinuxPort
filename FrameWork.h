@@ -119,6 +119,8 @@
 #include "Gmem.h"
 #include "SysInit.h"
 #include "MainMenu.h"
+#include "Light.h"
+
 
 
 

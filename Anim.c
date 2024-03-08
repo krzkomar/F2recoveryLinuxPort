@@ -1587,7 +1587,7 @@ void AnimUnk16( int AnimIdx )
         ObjSetShape( gAnimUnk23[ AnimIdx ].Obj, gAnimUnk23[ AnimIdx ].ArtId, &Area1 );
         gAnimUnk23[ AnimIdx ].Stat = 0;
     } else {
-        ObjGetRadiusArea(gAnimUnk23[ AnimIdx ].Obj, &Area1 );
+        ObjGetRefreshArea(gAnimUnk23[ AnimIdx ].Obj, &Area1 );
     }    
     if( (Img = ArtLoadImg( obj->ImgId, &ImgObj )) ){
         fpd = ArtGetFpd( Img ) - 1;
@@ -1674,7 +1674,7 @@ void AnimProcess()
             }
             gAnimUnk23[ i ].Stat = -2000;
         }
-        ObjGetRadiusArea( obj, &Area1 );
+        ObjGetRefreshArea( obj, &Area1 );
         ImgId = obj->ImgId;
         if( ImgId != gAnimUnk23[ i ].ArtId ){
             if( (Img = ArtLoadImg( ImgId, &ImgObj )) ){
@@ -1828,7 +1828,7 @@ void AnimAmbient()
         if( ObjCount >= 100 ) break;
         if( (obj->Flags & 0x01) || (OBJTYPE( obj->ImgId ) != TYPE_CRIT) || ((obj->ImgId & 0xFF0000) >> 16) ) continue;
         if( CritterIsDead( obj ) ) continue;
-        ObjGetRadiusArea( obj, &Area );
+        ObjGetRefreshArea( obj, &Area );
         if( !RegionShrink( &Area, &gVidMainGeo, &Area ) && ( gMap.MapId != 97 || obj->Pid != 0x10000FA ) ) gAnimAmbientCritter[ ObjCount++ ] = obj;
     }
     Speed = 7;

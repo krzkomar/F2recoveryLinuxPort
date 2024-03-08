@@ -944,7 +944,7 @@ int UseDoorLock( Obj_t *door )
         TileUpdate();
         if( !door->FrameNo ) return 0;
         if( !(Art = ArtLoadImg( door->ImgId, &ImgObj ) ) ) return -1;
-        ObjGetRadiusArea( door, &Area1 );        
+        ObjGetRefreshArea( door, &Area1 );        
     	for(i = door->FrameNo - 1 ; i >= 1; i-- ){
             ArtGetFrameShift( Art, i, door->Orientation, &dx, &dy );
             ObjMove( door, -dx, -dy, &Area2 );
@@ -962,7 +962,7 @@ int UseDoorLock( Obj_t *door )
     if( !( Art = ArtLoadImg( door->ImgId, &ImgObj ) ) ) return -1;
     fr = ArtGetFpd( Art ) - 1;
     if( fr == door->FrameNo ){ ArtClose( ImgObj ); return 0; }
-    ObjGetRadiusArea( door, &Area1 );
+    ObjGetRefreshArea( door, &Area1 );
     for( i = door->FrameNo + 1; i <= fr; i++ ){
         ArtGetFrameShift( Art, i, door->Orientation, &dx, &dy );
         ObjMove( door, dx, dy, &Area1 );

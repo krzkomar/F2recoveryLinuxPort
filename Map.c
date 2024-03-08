@@ -580,7 +580,7 @@ int MapLoadMapFile( xFile_t *fh )
     if( !(gMap.MapFlags & MAPFLG_SAV) ) MapUnk07(); // not savegame map
     if( MapSetLvl( gMapIsoPlayerElevation) ) goto Error;
     if( TileSetCenter(gMapIsoPlayerPosition, 2) ) goto Error;
-    ItemMapSetLight( 0x10000, 0 );
+    LightMapSetLt( 0x10000, 0 );
     ObjMoveToTile( gObjDude, gTileCentIdx, gMapCurrentLvl, NULL );
     ObjSetRotation(gObjDude, gMapIsoPlayerOrientation, 0);
     gMap.MapId = WmGetMapIdxByFileName( gMap.Name );

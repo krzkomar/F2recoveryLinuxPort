@@ -23,18 +23,6 @@ typedef struct
   int i03;
 } Item01_t;
 
-//int gItemUnk03[ 9 ]
-//int gItemUnk678[ 9 ]
-//int gItemClass[ 9 ]
-//Item01_t gItemGVar[ 9 ]
-//char *gItemUnk02 
-//int gItemLightLvl
-//Msg_t gItemMsg;
-//Obj_t *gItemUnk99;
-//Obj_t *gItemUnk98;
-//int gItemGVarId;
-//int gItemGridLight[ 3*200*200 ];
-
 int ItemInit();
 int ItemSubNull0();
 void ItemClose();
@@ -163,16 +151,7 @@ int ItemGetMoneyAll( Obj_t *obj );
 int ItemBarter( Obj_t *obj, int Value );
 int ItemGetMoney( Obj_t *Obj );
 int ItemSetMoney( Obj_t *obj, int Value );
-int ItemGridLightInit();
-int ItemMapGetLight();
-void ItemMapModifyLight( int LightModifier, int TilesUpdate );
-void ItemMapSetLight( int Intensity, int TilesUpdateFlg );
-void ItemMapSetDark( int Darkening, int TileFlag );
-int ItemGridGetLightA( int MapLvl, int GridPos );
-int ItemGridGetLight( unsigned int MapLvl, unsigned int GridPos );
-void ItemGridSetLight( int MapLvl, int GridPos, int Intensity );
-void ItemGridLightInc( unsigned int MapLvl, unsigned int Pos, int Val );
-void ItemGridLightDec( unsigned int MapLvl, unsigned int Pos, int Val );
-void ItemGridLightReset();
+
+
 
 

@@ -47,20 +47,23 @@ TileLt_t gTileUnk65[ 13 ] = {
     { 75, 4 }   // 79
 };
 
+#define TSV( x, y )	x*80 + y
 TileLight_t gTileShade[ 10 ] = {
-    { 0x10,   -1,    -0xc9, 0 },
-    { 0x30,   -2,    -2,    0 },
-    { 0x3C0,  0x0,   0,     0 },
-    { 0x3E0,  0x0C7, -1,    0 },
-    { 0x400,  0x0C6, 0x0C6, 0 },
-    { 0x790,  0x0C8, 0x0C8, 0 },
-    { 0x7B0,  0x18F, 0x0C7, 0 },
-    { 0x7D0,  0x18E, 0x18E, 0 },
-    { 0x0B60, 0x190, 0x190, 0 },
-    { 0x0B80, 0x257, 0x18F, 0 }
+    //    80x41          Ofs     LtLvl
+    { TSV( 0, 16  ), { -1, -201 }, 0 }, // 0 
+    { TSV( 0, 48  ), { -2, -2   }, 0 }, // 1 
+    { TSV( 12, 0  ), { 0,   0   }, 0 }, // 2 
+    { TSV( 12, 32 ), { 199, -1  }, 0 }, // 3  
+    { TSV( 12, 64 ), { 198, 198 }, 0 }, // 4 
+
+    { TSV( 24, 16 ), { 200, 200 }, 0 }, // 5 
+    { TSV( 24, 48 ), { 399, 199 }, 0 }, // 6 
+    { TSV( 25, 0  ), { 398, 398 }, 0 }, // 7 
+    { TSV( 36, 32 ), { 400, 400 }, 0 }, // 8 
+    { TSV( 36, 64 ), { 599, 399 }, 0 }  // 9 
 };
 
-TileColor_t gTileColorTable[ 5 ] = {
+TileVertex_t gTileUpTriangle[ 5 ] = {
     { 2, 3, 0 },
     { 3, 4, 1 },
     { 5, 6, 3 },
@@ -68,7 +71,7 @@ TileColor_t gTileColorTable[ 5 ] = {
     { 8, 9, 6 }
 };
 
-TileColor_t gTileUnk70[ 5 ] = {
+TileVertex_t gTileDnTriangle[ 5 ] = {
     { 0, 3, 1 },
     { 2, 5, 3 },
     { 3, 6, 4 },
@@ -643,7 +646,7 @@ void TileRenderRoof( VidRect_t *Area1, int MapLvl )
     if( x0 >= gTileGridWidth ) x0 = gTileGridWidth - 1;
     if( y0 < 0 ) y0 = 0;
     if( x0 >= gTileGridHeight ) y0 = gTileGridHeight - 1;
-    light = ItemMapGetLight();
+    light = LightMapGetLt();
     tmp = gTileGridWidth * y0;
     for( ;y0 <= y1; y0++, tmp += gTileGridWidth ){
         for( i = x0; i <= x1; i++ ){
@@ -811,7 +814,7 @@ void TileRenderFloor( VidRect_t *area, int MapLvl )
     if( x0 >= gTileGridWidth ) x0 = gTileGridWidth - 1;
     if( y0 < 0 )  y0 = 0;
     if( y0 >= gTileGridHeight ) y0 = gTileGridHeight - 1;
-    ItemMapGetLight();
+    LightMapGetLt();
     for( j = y0; j <= y1; j++ ){
         for( i = x0; i <= x1; i++ ){
     	    GridIdx = gTileGridWidth * j + i;
@@ -958,15 +961,13 @@ void TileSketchDraw( int GridIdx, int MapLvl, VidRect_t *a3 )
 
 void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
 {
-    int lt,tp,TileH,v10,v11,v12,v13,v14,Light,v19,v28,v31,v32,*v33,v37,j,v73,v74;
-    int Height,Width,yg,xg,TileW,dtile,dlight,tmp;
+    int lt,tp,TileH,v10,v11,v12,v13,GridIdx,Light,v28,v31,v32,*v33,v37,j,v73,v74;
+    int Height,Width,yg,xg,TileW,dtile,dlight,tmp,k;
     unsigned int *pLight,dscr,i;
-    TileColor_t *v25;
     char *pScr;
     unsigned char *pTile;
     CachePool_t *ImgObj;
     ArtFrmHdr_t *Image;
-
 
     if( ArtIsHidden( OBJTYPE( ArtId ) ) ) return;
     if( !(Image = ArtLoadImg( ArtId, &ImgObj )) ) return;
@@ -986,7 +987,7 @@ void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
     if( lt < Xpos ){
         xg = 0;
         v11 = v74 + lt;
-        Width = TileW + Xpos <= v11 ? TileW : v11 - Xpos;
+        Width = (TileW + Xpos) <= v11 ? TileW : v11 - Xpos;
     } else {
         v10 = Xpos;
         Xpos = lt;
@@ -998,7 +999,7 @@ void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
     if( tp < Ypos ){
         v13 = v73 + tp;
         yg = 0;
-        Height = Ypos + TileH <= v13 ? TileH : v13 - Ypos;
+        Height = (Ypos + TileH) <= v13 ? TileH : v13 - Ypos;
     } else {
         Ypos = tp;
         yg = tp - v12;
@@ -1006,88 +1007,90 @@ void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
         if( Height > v73 ) Height = v73;
     }
     if( Width <= 0 || Height <= 0 ){ ArtClose( ImgObj ); return; }
-    v14 = TileGetPointed( Xpos, Ypos + 13 );
-    if( v14 != -1 ){
-        Light = ItemMapGetLight();        
-        v19 = v14 & 0x01;
-        for( i = 0; i != 10; v19++, i++ ){
-    	    tmp = ItemGridGetLightA( gMapCurrentLvl, v14 + gTileShade[ v19 ].i02 );
-            gTileShade[ i ].i04 = (tmp <= Light ) ? Light : tmp;
-        }
+    GridIdx = TileGetPointed( Xpos, Ypos /*+ 13*/ );
+//    if( GridIdx != -1 ){
+        Light = LightMapGetLt();        
+i = 0;
+//        for( i = 0; i < 10; i++ ){
+    	    tmp = LightTileGetLtLimited( gMapCurrentLvl, GridIdx /*+ gTileShade[ i ].GridOffset[ GridIdx & 0x01 ]*/ ); // get light modifier
+//tmp = 23632;
+            gTileShade[ i ].LightLevel = tmp;//(tmp > Light ) ? tmp : Light;
+//        }
         for( i = 0; i < 9; i++ ){
-            if( gTileShade[ i + 1 ].i04 != gTileShade[ i ].i04 ) break; 
+            if( gTileShade[ i + 1 ].LightLevel != gTileShade[ i ].LightLevel ) break; 
         }
-        if( i == 9 ){ // no light effect
-            ObjRenderNormal( ArtGetObjData( Image, 0, 0 ) + yg * TileW + xg, Width, Height, TileW, gTileIsoSurface, Xpos, Ypos, gTileSurfPitch, gTileShade[ 0 ].i04 );
+//        if( i == 9 ){ // no light effect
+            ObjRenderNormal( ArtGetObjData( Image, 0, 0 ) + yg * TileW + xg, Width, Height, TileW, gTileIsoSurface, Xpos, Ypos, gTileSurfPitch, gTileShade[ 0 ].LightLevel );
             ArtClose( ImgObj ); 
             return;
-        }
-        // render light source 'shadows'
+//        }
+        // render light source
         // upper triangle
-        for( v25 = gTileColorTable; v25 != &gTileColorTable[ 5 ]; v25++ ){    	    
-            v28 = gTileShade[ v25->b ].i04;
-            v31 = ( gTileShade[ v25->g ].i04 - gTileShade[ v25->r ].i04 ) / 32;
-            v32 = ( gTileShade[ v25->r ].i04 - gTileShade[ v25->b ].i04 ) / 13;
-            v33 = &gTileLight[ gTileShade[ v25->b ].i01 ];
+        for( k = 0; k < 5; k++ ){    	    
+            v28 = gTileShade[ gTileUpTriangle[ k ].c ].LightLevel;
+            v31 = ( gTileShade[ gTileUpTriangle[ k ].b ].LightLevel - gTileShade[ gTileUpTriangle[ k ].a ].LightLevel ) / 32;
+            v32 = ( gTileShade[ gTileUpTriangle[ k ].a ].LightLevel - gTileShade[ gTileUpTriangle[ k ].c ].LightLevel ) / 13;
+            v33 = &gTileLight[ gTileShade[ gTileUpTriangle[ k ].c ].i01 ];
             if( v31 ){
                 if( v32 ){ // v31 && v32
                     for( i = 0; i < 13; i++, v28 += v32 ){
                         v37 = v28;
                         v33 += gTileUnk71[ i ].i01;
-//                        for( j = 0; j < gTileUnk71[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
-                }
+                        for( j = 0; j < gTileUnk71[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
+            	    }
                 } else {
                     for( i = 0; i != 13; i++ ){
                         v37 = v28;
                         v33 += gTileUnk71[ i ].i01;
-//                        for( j = 0; j < gTileUnk71[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
+                        for( j = 0; j < gTileUnk71[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
                     }
                 }
-            } else if( v32 ){
-                 for( i = 0; i != 13; i++, v28 += v32 ){
-                    v33 += gTileUnk71[ i ].i01;
-//                    for( j = 0; j < gTileUnk71[ i ].Width; j++ ) *v33++ = v28;
-                }
-            } else {
-                for( i = 0; i != 13; i++ ){
-                    v33 += gTileUnk71[ i ].i01;
-//                    for( j = 0; j < gTileUnk71[ i ].Width; j++, v33++ ) *v33 = v28;
-                }
-            } 
-        }
+            } else { 
+        	if( v32 ){
+            	    for( i = 0; i != 13; i++, v28 += v32 ){
+                	v33 += gTileUnk71[ i ].i01;
+                	for( j = 0; j < gTileUnk71[ i ].Width; j++ ) *v33++ = v28;
+            	    }
+        	} else {
+            	    for( i = 0; i != 13; i++ ){
+                	v33 += gTileUnk71[ i ].i01;
+                	for( j = 0; j < gTileUnk71[ i ].Width; j++, v33++ ) *v33 = v28;
+            	    }
+        	} 
+            }
+//        }
         // lower triangle
-        for( v25 = gTileUnk70; v25 != &gTileUnk70[ 5 ]; v25++ ){
-            v28 = gTileShade[ v25->r ].i04;
-            v31 = ( gTileShade[ v25->b ].i04 - v28 ) / 32;
-            v32 = ( gTileShade[ v25->g ].i04 - v28 ) / 13;
-            v33 = &gTileLight[ gTileShade[ v25->r ].i01 ];
+        for( k = 0; k < 5; k++ ){
+            v28 = gTileShade[ gTileDnTriangle[ k ].a ].LightLevel;
+            v31 = ( gTileShade[ gTileDnTriangle[ k ].c ].LightLevel - v28 ) / 32;
+            v32 = ( gTileShade[ gTileDnTriangle[ k ].b ].LightLevel - v28 ) / 13;
+            v33 = &gTileLight[ gTileShade[ gTileDnTriangle[ k ].a ].i01 ];
             if( v31 ){
                 if( v32 ){
                     for( i = 0; i != 13; i++, v28 += v32 ){
                         v37 = v28;
                         v33 += gTileUnk65[ i ].i01;
-//                        for( j = 0; j < gTileUnk65[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
+                        for( j = 0; j < gTileUnk65[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
                     }
                 } else {
                     for( i = 0; i != 13; i++ ){
                         v37 = v28;
                         v33 += gTileUnk65[ i ].i01;
-//                        for( j = 0; j < gTileUnk65[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
+                        for( j = 0; j < gTileUnk65[ i ].Width; v37 += v31, j++ ) *v33++ = v37;
                     }
                 }
             } else if( v32 ){
                 for( i = 0; i != 13; i++, v28 += v32 ){
                     v33 += gTileUnk65[ i ].i01;
-//                    for( j = 0; j < gTileUnk65[ i ].Width; j++ ) *v33++ = v28;
+                    for( j = 0; j < gTileUnk65[ i ].Width; j++ ) *v33++ = v28;
                 }
             } else {
                 for( i = 0; i != 13; i++ ){
                     v33 += gTileUnk65[ i ].i01;
-//                    for( j = 0; j < gTileUnk65[ i ].Width; j++) *v33++ = v28;
+                    for( j = 0; j < gTileUnk65[ i ].Width; j++) *v33++ = v28;
                 }
             }
         }
-
     }
     // blit tile to window surface
     pScr = Ypos * gTileSurfPitch + gTileIsoSurface + Xpos;

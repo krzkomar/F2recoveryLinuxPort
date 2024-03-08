@@ -1707,9 +1707,9 @@ int ScptLoadAllScripts()
 
 void ScptMapEnter()
 {
-SCP_DBG_EN;
+//SCP_DBG_EN;
     ScptExecMapUpdateScripts( SCPT_AEV_MAP_ENTER_P_PROC );
-SCP_DBG_DIS;
+//SCP_DBG_DIS;
 }
 
 void ScptMapUpdate()

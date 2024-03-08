@@ -3,59 +3,20 @@
 typedef struct 
 {
   int i01;
-  int i02;
-  int i03;
-  int i04;
+  int GridOffset[ 2 ];
+  int LightLevel;
 } TileLight_t;
 
 typedef struct 
 {
-  int r;
-  int g;
+  int a;
   int b;
-} TileColor_t;
+  int c;
+} TileVertex_t;
 
-//int gTileMapAreaDefined = 0;
-//int gTileUnk62 = 1;
-//int gTileUnk63 = 1;
-//int gTileUnk60 = 1;
-//int gTileSketchMode = 0;
-//void (*gTileRedrawCb)(VidRect_t *, int ) = TileRenderIso;
-//int gTileUpdateEnable = 1;
-//TileLight_t gTileShade[ 10 ] = { 
-//TileColor_t gTileColorTable[ 5 ] = {
-//int gTileLightTable[ 80 * 39 ];
-//int gTileUnk12[ 2 ][ 6 ];
-//int gTileUnk06[ 2 ][ 6 ];
-//char gTileUnk43[ 512 ];
-//char gTileUnk42[ 512 ];
-//char gTileRegions[ 32*16 ];
-//VidRect_t gTileMapArea;
-//VidRect_t gTileSurfArea;
-//char gTileUnk41[512];
-//int gTileGridOffsetY;
-//int gTileGridOffsetX;
-//int gTileScrOffsetX;
-//int gTileScrOffsetY;
-//void (*gTileMapUpdateCb)(VidRect_t *);
-//int gTileSurfCentY;
-//int gTileSurfCentX;
-//int gTileGridSize;
-//int gTileMapWidth;
-//int **gTileGrid;
-//char *gTileIsoSurface;
-//int gTileMapHeight;
-//int gTileSurfHeight;
-//int gTileGridCentX;
-//int gTileGridCentY;
-//int gTileMapSize;
-//int gTileGridHeight;
-//unsigned int gTileSurfPitch;
-//int gTileGridWidth;
-//int gTileSurfWidth;
 extern int gTileCentIdx;
-extern int gTileHexX[6];
-extern int gTileHexY[6];
+extern int gTileHexX[ 6 ];
+extern int gTileHexY[ 6 ];
 
 int  TileInit( int **Grid, int GridW, int GridH, int MapW, int MapH, char *Surface, int SurfW, int SurfH, unsigned int SurfPitch, void (*UpdateCb)(VidRect_t *) );
 void TileMapAreaDefine( int ScrW, int ScrH, int MapW, int MapH );

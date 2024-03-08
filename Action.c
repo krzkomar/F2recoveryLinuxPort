@@ -245,7 +245,7 @@ int ActionUnk34( Obj_t *obj, int a2 )
 {
     VidRect_t v5, Rect;
 
-    ObjGetRadiusArea( obj, &Rect );
+    ObjGetRefreshArea( obj, &Rect );
     if( !CritterGetInjure( obj->Pid, 2048 ) ){
         obj->Flags |= 0x10;
         if( !ObjSetPlayer( obj, &v5 ) ) RegionExpand( &Rect, &v5, &Rect );

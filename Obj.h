@@ -300,7 +300,7 @@ Obj_t *ObjGetVisibleObjectFirst( int MapLvl );
 Obj_t *ObjGetVisibleObjectNext();
 Obj_t *ObjGetFirst( int MapLvl, int GridIdx );
 Obj_t *ObjGetNext();
-void ObjGetRadiusArea( Obj_t *obj, VidRect_t *Rect );
+void ObjGetRefreshArea( Obj_t *obj, VidRect_t *Rect );
 int ObjUnk53( int GridIdx, int MapLvl );
 Obj_t *ObjReach( Obj_t *obj, int GridIdx, int MapLvl );
 Obj_t *ObjUnk55( unsigned int GridIdx, Obj_t *obj, int MapLvl );

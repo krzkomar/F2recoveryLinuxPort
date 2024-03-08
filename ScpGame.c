@@ -500,7 +500,7 @@ void ScrGame_MoveTo( Intp_t *scr )
             if( b ) TileUnk23();
             if( a ) TileUnk20();
         } else {
-            ObjGetRadiusArea( obj, &Rect );
+            ObjGetRefreshArea( obj, &Rect );
             if( ( lvl != obj->Elevation) && (OBJTYPE( obj->Pid ) == 1 ) ) CombatUnk79( obj );            
             if( ( k = ObjMoveToTile( obj, tile_num, lvl, &Area2 ) ) != -1 ){
                 RegionExpand( &Rect, &Area2, &Area2 );
@@ -1604,7 +1604,7 @@ void ScrGameUnk05( int x0, int y0, int x1, int y1, int a5, int v9 )
             if( (i->Flags & 1) != v9 ) continue;
             if( v5 > i->GridId || i->GridId > a2 ) continue;
             if( (i->GridId - v5) / 200 <= v8 ){
-                ObjGetRadiusArea( i, &v16 );
+                ObjGetRefreshArea( i, &v16 );
                 if( v9 )
             	    i->Flags &= ~0x01;
                 else
@@ -1911,14 +1911,14 @@ void ScrGame_SetLightLevel( Intp_t *scr)
     SCP_DBGA( "set_light_level( [%x]%x )", type, val );
     if( val >= 50 ){
         if( val == 50 ){
-            ItemMapSetLight( gScrGameLightLvl[1], 1 );
+            LightMapSetLt( gScrGameLightLvl[1], 1 );
             return;
         }
         light = gScrGameLightLvl[1] + val * (gScrGameLightLvl[2] - gScrGameLightLvl[1]) / 100;
     } else {
         light = val * (gScrGameLightLvl[1] - 16384) / 100 + 16384;
     }
-    ItemMapSetLight( light, 1 );
+    LightMapSetLt( light, 1 );
 }
 
 /*
@@ -4474,7 +4474,7 @@ void ScrGame_ObjOnScreen( Intp_t *scr )
     SCP_DBGA( "obj_on_screen( what:[%x]%p )", type, obj );
     if( obj ){
         if( gMapCurrentLvl == obj->Elevation ){
-            ObjGetRadiusArea( obj, &Area1 );
+            ObjGetRefreshArea( obj, &Area1 );
             if( !RegionShrink( &Area1, &Area2, &Area1 ) ) n = 1;
         }
     } else {

@@ -876,7 +876,7 @@ int AiFindAmmo( Obj_t *Critter, Obj_t *Weapon, Obj_t **pAmmo )
     int Pos = -1;
 
     if( pAmmo ) *pAmmo = NULL;
-    if( Weapon->Pid == PID_SOLARSCORCHER ) return ItemMapGetLight() > LIGHT_THRESHOLD_FOR_SOLAR_SCORCHER;
+    if( Weapon->Pid == PID_SOLARSCORCHER ) return LightMapGetLt() > LIGHT_THRESHOLD_FOR_SOLAR_SCORCHER;
     while( ( p = InvSearchObjByType( Critter, PR_ITEM_AMMO, &Pos ) ) ){
         if( ItemUnk01( Weapon, p ) ){
             if( pAmmo ) *pAmmo = p;
@@ -1455,7 +1455,7 @@ LABEL_9:
 
 int AiUnk44( Obj_t *a1, Obj_t *a2 )
 {
-    if( a2 && FeatGetVal( a1, 4 ) >= 3 && a2->Pid == 79 && ItemMapGetLight() < 55705 ) UseUnk13( a1, a2 );
+    if( a2 && FeatGetVal( a1, 4 ) >= 3 && a2->Pid == 79 && LightMapGetLt() < 55705 ) UseUnk13( a1, a2 );
     return 0;
 }
 
