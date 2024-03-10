@@ -66,7 +66,7 @@ int  TileSketch();
 void TileRenderSketch( VidRect_t *area, int a2 );
 void TileSketchIso( int MapIdx, int a2 );
 void TileSketchDraw( int GridIdx, int MapLvl, VidRect_t *a3 );
-void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area );
+void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area, int );
 int  TileUnk48( int MapIdx1, int MapIdx2, int *a3, int cnt );
 int  TileUnk49( int a1, int a2 );
 

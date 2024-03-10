@@ -1,4 +1,8 @@
 #pragma once
+#include <stdio.h>
+#include "Xfile.h"
+#include "Color.h"
+#include "Video.h"
 
 #define OBJ_FLG_NOTREMOVE	0x400	// cause the object cannot be deleted by ObjDelete()
 
@@ -166,85 +170,6 @@ extern char gObjPalRY[256];
 extern char gObjPalBY[256];
 extern char *gObjShadeWall;
 extern Obj_t *gObjRadius;
-
-//Obj_t *ObjUnk54( Obj_t *, int, int );
-//char *ObjGetName( Obj_t *obj );
-//char *ObjGetDsc( Obj_t *obj );
-//void Unk6012( char *ImgDat, int Width, int Height, int SrcPitch, char *surf, int Xpos, int Ypos, int DstPitch, int Flags, char *Color, char *ColorMap );
-//int ObjLightItem( Obj_t *, VidRect_t *);
-//int ObjCopy( Obj_t **, int );
-//int ObjFSave( xFile_t *fh );
-//int ObjLoadDude( xFile_t *fh );
-//int ObjOpenable( Obj_t *);
-//Obj_t *ObjGetOwner( Obj_t *);
-//int ObjSetLight(Obj_t *, int, int, VidRect_t *);
-//void ObjCritterListDestroy( void * );
-//Obj_t *ObjGetFirst( int, int );
-//Obj_t *ObjGetNext();
-//Obj_t *ObjUnk46();
-//Obj_t *ObjUnk47();
-
-/*
-int gObjUnk52[ 6 ][ 36 ];
-char gObjLight[ 2*6*8*18 ];
-VidRect_t gObjUnk16;
-Obj_t *gObjUnk27[100];
-VidRect_t gObjViewPortArea;
-ObjList_t *gObjGridObjects[ 200*200 ];
-char gObjPalRY[256];
-char gObjPalBY[256];
-int gObjUnk17;
-char *gObjIsoSurface;
-int gObjUnk14;
-Obj_t *gObjRadius; // light player object 
-int gObjIsoPitch;
-int gObjUnk13;
-
-char gObjUnk79;
-char gObjUnk80;
-int gObjUnk81[4999];
-char gObjUnk01[5003];
-int gObjUnk20 = 0;
-int gObjGridWinWidth = 0;
-int gObjGridWinHeight = 0;
-unsigned int gObjGridWinSize = 0;
-int *gObjUnk11[ 2 ] = {NULL,NULL};
-int *gObjViewPort[ 2 ] = {NULL,NULL};
-int *gObjViewPortAxisY = NULL;
-int *gObjViewPortAxisX = NULL;
-ObjList_t **gObjRenderList = NULL;
-int gObjUnk28 = 0;
-ObjList_t *gObjOffGridObjs = NULL;
-int gObjUnk12 = 0;
-int gObjUnk46 = 0;
-int gObjUnk45 = 0;
-ObjList_t *gObjUnk44 = 0;
-int *gObjArtTable = NULL;
-unsigned int gObjCnt = 0;
-int gObjUnk41 = 0;
-int gObjUnk40 = -1;
-VidRect_t gObjUnk39[ 9 ] = { 
-int gObjUnk38[ 36 ] = {
-int gObjViolLvl = -1;
-int gObjPlayerMapX = -1;
-int gObjPlayerMapY = -1;
-int gObjPlayerMapLvl = -1;
-int gObjUnk36 = 1;
-int *gObjColorA = 0;
-int *gObjColorB = 0;
-int *gObjColorC = 0;
-int *gObjColorD = 0;
-int gObjColorE = 0;
-int gObjUnk42 = 0;
-int gObjUnk43 = 0;
-int gObjUnk37[4] = { 1, 0, 3, 5 };
-int gObjUnk21;
-int ObjSortA( int *a1, int *a2 );
-int ObjSortB( int *a1, int *a2 );
-int ObjBoxDelete( ObjContainer_t *box );
-int ObjDelete( ObjList_t *obl1, ObjList_t *obl2 );
-int ObjArtSort( int *Art1, int *Art2 );
-*/
     
 int ObjInit( char *a1, int Width, int Height, int a4 );
 void ObjReset();
@@ -313,7 +238,7 @@ int ObjGetObjList( int GridPos, int MapLvl, int ObjType , Obj_t ***ObjTable );
 void ObjCritterListDestroy(void *n );
 void ObjUnk63( char *pSrc, int Width, int Height, int SrcPitch, char *pDst, int Xpos, int Ypos, int DstPitch, char *Color, char *ColorMap );
 void ObjRenderHatch( char *pSrc, int Width, int Height, int SrcPitch, char *pDst, int Xpos, int Ypos, int DstPitch );
-void ObjRenderNormal( char *pSrc, int SrcW, int SrcH, int SrcPitch, char *pDst, int x, int y, int DstPitch, int Shade );
+void ObjRenderNormal( char *pSrc, int SrcW, int SrcH, int SrcPitch, char *pDst, int x, int y, int DstPitch, unsigned int Shade );
 void ObjRenderSemiTr( char *ImgDat, int Width, int Height, int SrcPitch, char *surf, int Xpos, int Ypos, int DstPitch, int Flags, char *Color, char *ColorMap );
 void ObjRenderMix( char *Img1, int Width, int Height, int SrcPitch, char *surf, int DstPitch, char *Img2, int Img2Pitch, int inten );
 void ObjUnk68( int MapLvl, int HlColor, VidRect_t *Area );

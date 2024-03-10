@@ -211,7 +211,7 @@ int ObjLoadFile( xFile_t *fh )
     if( CfgGetInteger( &gConfiguration, "mapper", "fix_map_inventory", &FixMapInv ) != 1 ) FixMapInv = 0;
     if( CfgGetInteger( &gConfiguration, "preferences", "violence_level", &gObjViolLvl ) != 1 ) gObjViolLvl = 3;
     // create table for all map object images
-    if( dbgetBei( fh, &CntTotal ) ) return -1; // total number of ojects on all levels
+    if( dbgetBei( fh, &CntTotal ) ) return -1; // total number of objects on all levels
     if( gObjArtTable ) Free( gObjArtTable );
     if( CntTotal ){
         gObjArtTable = Malloc( CntTotal * sizeof( int ) );
@@ -1605,20 +1605,20 @@ void ObjRenderHatch( char *pSrc, int Width, int Height, int SrcPitch, char *pDst
     }
 }
 
-void ObjRenderNormal( char *pSrc, int SrcW, int SrcH, int SrcPitch, char *pDst, int x, int y, int DstPitch, int Shade )
+void ObjRenderNormal( char *pSrc, int SrcW, int SrcH, int SrcPitch, char *pDst, int x, int y, int DstPitch, unsigned int Shade )
 {
     unsigned char *p, a;
-    int i, DiffDst, DiffSrc;
+    int i, j;
 
-    p = (unsigned char *)pDst + x + DstPitch * y;
-    DiffDst = DstPitch - SrcW;
-    DiffSrc = SrcPitch - SrcW;
-    for( ;--SrcH != -1; p += DiffDst, pSrc += DiffSrc ){
-        for( i = 0; i < SrcW; pSrc++, p++, i++ ){            
-            if( !(a = *pSrc) ) continue;
+    p = (unsigned char *)pDst + DstPitch * y + x;
+    for( j = 0; j < SrcH; j++ ){
+        for( i = 0; i < SrcW; i++ ){            
+            if( !(a = pSrc[ i ] ) ) continue;
             if( a < 229 ) a = gPalShades[ a ][ (Shade >> 9) & 0xff ];
-            *p = a;
+            p[ i ] = a;
         }        
+        p += DstPitch;
+        pSrc += SrcPitch;
     }
 }
 

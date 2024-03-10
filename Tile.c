@@ -822,7 +822,7 @@ void TileRenderFloor( VidRect_t *area, int MapLvl )
             if( tile & 0x1000 ) continue;
             TileGetScrPosition( GridIdx, &tx, &ty );
 	    id = ArtMakeId( 4, tile & 0xFFF, 0, 0, 0 );
-            TileDrawTile( id, tx, ty, area );
+            TileDrawTile( id, tx, ty, area,  GridIdx);
         }            
     }
 }
@@ -959,10 +959,10 @@ void TileSketchDraw( int GridIdx, int MapLvl, VidRect_t *a3 )
     }        
 }
 
-void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
+void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area, int gg )
 {
-    int lt,tp,TileH,v10,v11,v12,v13,GridIdx,Light,v28,v31,v32,*v33,v37,j,v73,v74;
-    int Height,Width,yg,xg,TileW,dtile,dlight,tmp,k;
+    int x0,y0,TileH,v10,GridIdx,Light,v28,v31,v32,*v33,v37,j,harea,warea;
+    int Height,Width,yg,xg,TileW,dtile,dlight,tmp,k, xx, yy;
     unsigned int *pLight,dscr,i;
     char *pScr;
     unsigned char *pTile;
@@ -971,59 +971,55 @@ void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
 
     if( ArtIsHidden( OBJTYPE( ArtId ) ) ) return;
     if( !(Image = ArtLoadImg( ArtId, &ImgObj )) ) return;
-
-    lt = area->lt;
-    tp = area->tp;
-    v74 = area->rt - area->lt + 1;
-    v73 = area->bm - area->tp + 1;
-
-    if( area->lt < 0 ) lt = 0;
-    if( tp < 0 ) tp = 0;
-    if( lt + v74 > gTileSurfWidth ) v74 = gTileSurfWidth - lt;
-    if( tp + v73 > gTileSurfHeight ) v73 = gTileSurfHeight - tp;
+    xx = Xpos;
+    x0 = area->lt;
+    yy = Ypos;
+    y0 = area->tp;
+    warea = area->rt - area->lt + 1;
+    harea = area->bm - area->tp + 1;
+    if( x0 < 0 ) x0 = 0;
+    if( y0 < 0 ) y0 = 0;
+    if( (x0 + warea) > gTileSurfWidth ) warea = gTileSurfWidth - x0;
+    if( (y0 + harea) > gTileSurfHeight ) harea = gTileSurfHeight - y0;
     if( Xpos >= gTileSurfWidth || Xpos > area->rt || Ypos >= gTileSurfHeight || Ypos > area->bm ){ ArtClose( ImgObj ); return; }
     TileW = ArtGetObjWidth( Image, 0, 0 );
     TileH = ArtGetObjHeight( Image, 0, 0 );
-    if( lt < Xpos ){
+    if( x0 < Xpos ){
         xg = 0;
-        v11 = v74 + lt;
-        Width = (TileW + Xpos) <= v11 ? TileW : v11 - Xpos;
+        v10 = warea + x0;
+        Width = (TileW + Xpos) <= v10 ? TileW : (v10 - Xpos);
     } else {
-        v10 = Xpos;
-        Xpos = lt;
-        xg = lt - v10;
-        Width = TileW - (lt - v10);
-        if( Width > v74 ) Width = v74;
+        xg = x0 - Xpos;
+        Width = TileW - (x0 - Xpos);
+        if( Width > warea ) Width = warea;
+        Xpos = x0;
     }
-    v12 = Ypos;
-    if( tp < Ypos ){
-        v13 = v73 + tp;
+    if( y0 < Ypos ){
+        v10 = harea + y0;
         yg = 0;
-        Height = (Ypos + TileH) <= v13 ? TileH : v13 - Ypos;
+        Height = (Ypos + TileH) <= v10 ? TileH : (v10 - Ypos);
     } else {
-        Ypos = tp;
-        yg = tp - v12;
-        Height = TileH - (tp - v12);
-        if( Height > v73 ) Height = v73;
+        yg = y0 - Ypos;
+        Height = TileH - (y0 - Ypos);
+        if( Height > harea ) Height = harea;
+        Ypos = y0;
     }
     if( Width <= 0 || Height <= 0 ){ ArtClose( ImgObj ); return; }
-    GridIdx = TileGetPointed( Xpos, Ypos /*+ 13*/ );
-//    if( GridIdx != -1 ){
+    GridIdx = TileGetPointed( xx, yy + 13 );
+    if( GridIdx != -1 ){
         Light = LightMapGetLt();        
-i = 0;
-//        for( i = 0; i < 10; i++ ){
-    	    tmp = LightTileGetLtLimited( gMapCurrentLvl, GridIdx /*+ gTileShade[ i ].GridOffset[ GridIdx & 0x01 ]*/ ); // get light modifier
-//tmp = 23632;
-            gTileShade[ i ].LightLevel = tmp;//(tmp > Light ) ? tmp : Light;
-//        }
+        for( i = 0; i < 10; i++ ){
+    	    tmp = LightTileGetLtLimited( gMapCurrentLvl, GridIdx + gTileShade[ i ].GridOffset[ GridIdx & 0x01 ] ); // get light modifier
+            gTileShade[ i ].LightLevel = (tmp > Light ) ? tmp : Light;
+        }
         for( i = 0; i < 9; i++ ){
             if( gTileShade[ i + 1 ].LightLevel != gTileShade[ i ].LightLevel ) break; 
         }
-//        if( i == 9 ){ // no light effect
+        if( i == 9 ){ // no light effect
             ObjRenderNormal( ArtGetObjData( Image, 0, 0 ) + yg * TileW + xg, Width, Height, TileW, gTileIsoSurface, Xpos, Ypos, gTileSurfPitch, gTileShade[ 0 ].LightLevel );
             ArtClose( ImgObj ); 
             return;
-//        }
+        }
         // render light source
         // upper triangle
         for( k = 0; k < 5; k++ ){    	    
@@ -1058,7 +1054,7 @@ i = 0;
             	    }
         	} 
             }
-//        }
+        }
         // lower triangle
         for( k = 0; k < 5; k++ ){
             v28 = gTileShade[ gTileDnTriangle[ k ].a ].LightLevel;
