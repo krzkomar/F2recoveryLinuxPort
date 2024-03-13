@@ -13,8 +13,8 @@
         }
 
 
-int gObjUnk52[ 6 ][ 36 ];
-char gObjLight[ 2*6*8*18 ];
+int gObjLightDistance[ 6 ][ 36 ];
+int gObjLight[ 2 ][ 6 ][ 36 ];
 
 VidRect_t gObjUnk16;
 Obj_t *gObjUnk27[100];
@@ -53,21 +53,21 @@ int *gObjArtTable = NULL;
 unsigned int gObjCnt = 0;
 int gObjUnk41 = 0;
 int gObjUnk40 = -1;
-VidRect_t gObjUnk39[ 9 ] = { 
-    { 0, 0, 0x60, 0x2A },
-    { 0, 0, 0xA0, 0x4A },
-    { 0, 0, 0xE0, 0x6A },
-    { 0, 0, 0x20, 0x8A },
-    { 0, 0, 0x60, 0xAA },
-    { 0, 0, 0xA0, 0xCA },
-    { 0, 0, 0xE0, 0xEA },
-    { 0, 0, 0x20, 0x0A },
-    { 0, 0, 0x60, 0x2A }
+VidRect_t gObjLightRadius[ 9 ] = { 
+    { 0, 0, 0x60,  0x2A },
+    { 0, 0, 0xA0,  0x4A },
+    { 0, 0, 0xE0,  0x6A },
+    { 0, 0, 0x120, 0x8A },
+    { 0, 0, 0x160, 0xAA },
+    { 0, 0, 0x1A0, 0xCA },
+    { 0, 0, 0x1E0, 0xEA },
+    { 0, 0, 0x220, 0x10A },
+    { 0, 0, 0x260, 0x12A }
 };
 
 int gObjUnk38[ 36 ] = {
-	1, 2, 3, 4, 5, 6, 7, 8, 2, 3, 4, 5, 6, 7, 8, 3, 4, 5,
-	6, 7, 8, 4, 5, 6, 7, 8, 5, 6, 7, 8, 6, 7, 8, 7, 8, 8
+    1, 2, 3, 4, 5, 6, 7, 8, 2, 3, 4, 5, 6, 7, 8, 3, 4, 5,
+    6, 7, 8, 4, 5, 6, 7, 8, 5, 6, 7, 8, 6, 7, 8, 7, 8, 8
 };
 int gObjViolLvl = -1;
 int gObjPlayerMapX = -1;
@@ -106,7 +106,7 @@ int ObjInit( char *a1, int Width, int Height, int Pitch )
         ObjFree();
         return -1;
     }
-    ObjUnk90();
+    ObjLightInit();
     ObjColorInit();
     gObjUnk12 = TileGetPointed( gObjViewPortArea.lt, gObjViewPortArea.tp ) - gObjUnk21;
     gObjUnk13 = Width;
@@ -2105,32 +2105,25 @@ void ObjUnk89()
     gObjRenderList = NULL;
 }
 
-void ObjUnk90()
+static inline void ObjLightInit_( int cent )
 {
-    int idx,p,e,k,j,n,i,jm;
+    int idx,i,j,k,dir,tiles;
 
-    e = 864 * (gTileCentIdx & 1);             // 2x6x8x18
-    for( i = 0; i < 6; i++, e += 144 ){
-        n = 0;         
-        for( j = 0, jm = 8; j < 8; j++, jm-- ){
-            p = TileGetTileNumInDir( gTileCentIdx, (i + 1) % 6, j );
-            for( k = 0; k < jm; k++, n++){
-                gObjLight[ e + 4*n + k ] = TileGetTileNumInDir( p, i, k + 1 ) - gTileCentIdx;
-            }            
+    for(dir = 0; dir < 6; dir++ ){
+        idx = 0;        
+        for( j = 0, k = 8; j < 8; j++, k-- ){
+            tiles = TileGetTileNumInDir(cent, (dir + 1) % 6, j);            
+            for( i = 0; i < k; i++ ){
+                gObjLight[ cent & 0x01 ][ dir ][ idx++ ] = TileGetTileNumInDir( tiles, dir, i + 1 ) - cent;
+            }
         }
     }
+}
 
-    e = 864 * ((gTileCentIdx + 1) & 1);
-    for( i = 0; i < 6; i++, e += 144 ){
-        n = 0;
-        for( j = 0, jm = 8; j < 8; j++, jm-- ){
-            p = TileGetTileNumInDir( gTileCentIdx + 1, (i + 1) % 6, j );
-            idx = e + 4 * n;
-            for( k = 0; k < jm; n++, k++, idx++ ){
-                gObjLight[ idx ] = TileGetTileNumInDir( p, i, k + 1 ) - (gTileCentIdx + 1);
-            }            
-        }
-    }
+void ObjLightInit()
+{
+    ObjLightInit_( gTileCentIdx );
+    ObjLightInit_( gTileCentIdx + 1 );
 }
 
 int ObjColorInit()
@@ -2424,345 +2417,244 @@ int ObjAddObjToList( ObjList_t *pList, int GridPos, int MapLvl, VidRect_t *Area 
     pList->object->PosY = 0;
     pList->object->Owner = 0;
     ObjAddObject( pList );
-    if( ObjLight( pList->object, GridPos, Area ) == -1 ){
+    if( ObjLight( pList->object, 0, Area ) == -1 ){
         if( Area ) ObjGetRefreshArea( pList->object, Area );
     }
     return 0;
 }
 
-int ObjLight( Obj_t *obj, int Dark, VidRect_t *a3 )
-{
-    char flg; // bl
-    int kn; // edx
-    int i; // ebp
-    unsigned int j; // ecx
-    int v77; // edx
-    int v88; // edx
-    int v99; // ebx
-    int v10; // eax
-    int v11; // ebx
-    int v12; // edx
-    int v13; // edi
-    int v14; // edx
-    int v15; // edx
-    int v16; // edx
-    int v17; // esi
-    int v18; // edx
-    int v19; // edx
-    int v20; // edx
-    int v21; // edx
-    unsigned int idx; // eax
-    ObjList_t *v23; // esi
-    int v24; // edi
-    Obj_t *object; // eax
-    int Elevation; // edx
-    Obj_t *v27; // eax
-    int v28; // edx
-    int v29; // ebx
-    int FlgExt; // eax
-    VidRect_t *v32; // edi
-    VidRect_t *v33; // esi
-    Obj_t *v34; // eax
-    VidRect_t *v35; // edx
-    int Tab[36]; // [esp+0h] [ebp-F8h]
-    VidRect_t Area2; // [esp+90h] [ebp-68h] BYREF
-    VidRect_t RectRadius; // [esp+A0h] [ebp-58h] BYREF
-    Proto_t *proto; // [esp+B0h] [ebp-48h] BYREF
-    int pY; // [esp+B4h] [ebp-44h] BYREF
-    int pX; // [esp+B8h] [ebp-40h] BYREF
-    VidRect_t *r; // [esp+BCh] [ebp-3Ch]
-    char *v44; // [esp+C0h] [ebp-38h]
-    void (*Cb)(int, int, int); // [esp+C8h] [ebp-30h]
-    unsigned int v47; // [esp+CCh] [ebp-2Ch]
-    char *v49; // [esp+D4h] [ebp-24h]
-    int Pos; // [esp+DCh] [ebp-1Ch]
-    int v53 = 0; // [esp+E4h] [ebp-14h]
+#define LT_DIST( dir1, idx1, dir2, idx2 )  ( gObjLightDistance[ dir1 ][ idx1 ] & gObjLightDistance[ dir2 ][ idx2 ] )
 
-    r = a3;
+int ObjLight( Obj_t *obj, int Dark, VidRect_t *Area )
+{
+    ObjList_t *TileObjs;
+    Obj_t *object;
+    VidRect_t Area2, RectRadius;
+    Proto_t *proto;
+    void (*Cb)(unsigned int, unsigned int, int);
+    char flg;
+    unsigned int dir, idx;
+    int Intensity[ 36 ], LightModify, kn, i, nxt, tmp1, tmp2, tmp3, pY, pX, dist = 0;
+
     if( !obj || ( obj->LightIntensity <= 0 ) ) return -1;
     flg = obj->Flags;
     if( (flg & 1) != 0 || (flg & 0x20) == 0 || obj->GridId > 39999u ) return -1;
     Cb = ( Dark ) ? LightTileDimm : LightTileEnlight;
     Cb( obj->Elevation, obj->GridId, obj->LightIntensity );
     ObjGetRefreshArea( obj, &RectRadius );
-//return 0;
     if( obj->LightRadius > 8 ) obj->LightRadius = 8;
     if( obj->LightIntensity > 0x10000 ) obj->LightIntensity = 0x10000;
-    v44 = &gObjLight[864 * (obj->GridId & 1)];
-    kn = (obj->LightIntensity - 655) / (obj->LightRadius + 1);
+    kn = ( obj->LightIntensity - LIGHT_DEFAULT ) / (obj->LightRadius + 1);
 
-    Tab[0] = obj->LightIntensity - kn;
-    Tab[1] = Tab[0] - kn;
-    Tab[8] = Tab[0] - kn;
+    // 1
+    Intensity[0] = obj->LightIntensity - kn;
+    Intensity[1] = Intensity[0] - kn;
+    Intensity[8] = Intensity[0] - kn;
+    // 2
+    Intensity[2] = Intensity[0] - kn - kn;
+    Intensity[9] = Intensity[2];
+    Intensity[15] = Intensity[2];
+    Intensity[3] = Intensity[2] - kn;
+    Intensity[10] = Intensity[2] - kn;
+    Intensity[16] = Intensity[2] - kn;
+    Intensity[21] = Intensity[2] - kn;
+    // 3
+    Intensity[4] = Intensity[2] - kn - kn;
+    Intensity[11] = Intensity[4];
+    Intensity[17] = Intensity[4];
+    Intensity[22] = Intensity[4];
+    Intensity[26] = Intensity[4];
+    Intensity[5] = Intensity[4] - kn;
+    Intensity[12] = Intensity[4] - kn;
+    Intensity[18] = Intensity[4] - kn;
+    Intensity[23] = Intensity[4] - kn;
+    Intensity[27] = Intensity[4] - kn;
+    Intensity[30] = Intensity[4] - kn;
+    // 4
+    Intensity[6] = Intensity[4] - kn - kn;
+    Intensity[13] = Intensity[6];
+    Intensity[19] = Intensity[6];
+    Intensity[24] = Intensity[6];
+    Intensity[28] = Intensity[6];
+    Intensity[31] = Intensity[6];
+    Intensity[33] = Intensity[6];
+    Intensity[7] = Intensity[6] - kn;
+    Intensity[14] = Intensity[6] - kn;
+    Intensity[20] = Intensity[6] - kn;
+    Intensity[25] = Intensity[6] - kn;
+    Intensity[29] = Intensity[6] - kn;
+    Intensity[32] = Intensity[6] - kn;
+    Intensity[34] = Intensity[6] - kn;
+    Intensity[35] = Intensity[6] - kn;
 
-    Tab[2] = Tab[0] - kn - kn;
-    Tab[9] = Tab[2];
-    Tab[15] = Tab[2];
-    Tab[3] = Tab[2] - kn;
-    Tab[10] = Tab[2] - kn;
-    Tab[16] = Tab[2] - kn;
-    Tab[21] = Tab[2] - kn;
-
-    Tab[4] = Tab[2] - kn - kn;
-    Tab[11] = Tab[4];
-    Tab[17] = Tab[4];
-    Tab[22] = Tab[4];
-    Tab[26] = Tab[4];
-    Tab[5] = Tab[4] - kn;
-    Tab[12] = Tab[4] - kn;
-    Tab[18] = Tab[4] - kn;
-    Tab[23] = Tab[4] - kn;
-    Tab[27] = Tab[4] - kn;
-    Tab[30] = Tab[4] - kn;
-
-    Tab[6] = Tab[4] - kn - kn;
-    Tab[13] = Tab[6];
-    Tab[19] = Tab[6];
-    Tab[24] = Tab[6];
-    Tab[28] = Tab[6];
-    Tab[31] = Tab[6];
-    Tab[33] = Tab[6];
-    Tab[7] = Tab[6] - kn;
-    Tab[14] = Tab[6] - kn;
-    Tab[20] = Tab[6] - kn;
-    Tab[25] = Tab[6] - kn;
-    Tab[29] = Tab[6] - kn;
-    Tab[32] = Tab[6] - kn;
-    Tab[34] = Tab[6] - kn;
-    Tab[35] = Tab[6] - kn;
-v53 = 0;
     for( i = 0; i < 36; i++ ){
         if( obj->LightRadius < gObjUnk38[ i ] ) continue;
-v47 = i*4;
-        v49 = &v44[ i*4 ];
-        for( j = 0; j < 6; j++ ){
-            v77 = (int)(j + 1) % 6;
-//            if( (unsigned int)i <= 35 ){ XXX }
-            if( !v53 ){
-                idx = *(int *)&v49[ j * 36 * 4 ] + obj->GridId;
-                Pos = idx;
-                if( idx <= 39999 ){
-                        v23 = gObjGridObjects[idx];
-                        v24 = 1;
-                        if( v23 ){
-                            while( 1 ){
-                                object = v23->object;
-                                if( (v23->object->Flags & 1) == 0 ){
-                                    Elevation = object->Elevation;
-                                    if( Elevation > obj->Elevation ) goto LABEL_94;
-//                                    if( Elevation == obj->Elevation ){ AAAA }
+        for( dir = 0; dir < 6; dir++ ){
+             nxt  = (int)(dir + 1) % 6;
+    	    switch( i ){
+                case 0:  dist = 0; break;
+                case 1:  dist = gObjLightDistance[ dir ][0]; break;
+                case 2:  dist = gObjLightDistance[ dir ][1]; break;
+                case 3:  dist = gObjLightDistance[ dir ][2]; break;
+                case 4:  dist = gObjLightDistance[ dir ][3]; break;
+                case 5:  dist = gObjLightDistance[ dir ][4]; break;
+                case 6:  dist = gObjLightDistance[ dir ][5]; break;
+                case 7:  dist = gObjLightDistance[ dir ][6]; break;
+                case 8:  dist = gObjLightDistance[ nxt ][0] & gObjLightDistance[ dir ][0]; break;
+                case 9:  dist = gObjLightDistance[ dir ][1] & gObjLightDistance[ dir ][8]; break;
+                case 10: dist = gObjLightDistance[ dir ][2] & gObjLightDistance[ dir ][9]; break;
+                case 11: dist = gObjLightDistance[ dir ][3] & gObjLightDistance[ dir ][10]; break;
+                case 12: dist = gObjLightDistance[ dir ][4] & gObjLightDistance[ dir ][11]; break;
+                case 13: dist = gObjLightDistance[ dir ][5] & gObjLightDistance[ dir ][12]; break;
+                case 14: dist = gObjLightDistance[ dir ][6] & gObjLightDistance[ dir ][13]; break;
+                case 15: dist = gObjLightDistance[ nxt ][1] & gObjLightDistance[ dir ][8]; break;
+                case 16: dist = ( gObjLightDistance[ dir ][15] & gObjLightDistance[ dir ][9] ) | gObjLightDistance[ dir ][8]; break;
+                case 17:
+                    tmp1 = gObjLightDistance[ dir ][10] | gObjLightDistance[ dir ][9];
+                    tmp2 = (gObjLightDistance[ dir ][16] & tmp1) | (tmp1 & gObjLightDistance[ dir ][8]);
+                    tmp3 = (gObjLightDistance[ dir ][15] | gObjLightDistance[ dir ][10]) & gObjLightDistance[ dir ][9];
+                    dist = tmp3 | tmp2;
+                    break;
+                case 18:
+                    dist = ((gObjLightDistance[ dir ][11] | gObjLightDistance[ dir ][10] | gObjLightDistance[ dir ][9] | gObjLightDistance[ dir ][0]) & gObjLightDistance[ dir ][17]) | 
+                	    gObjLightDistance[ dir ][9] | LT_DIST( dir, 16, dir, 10 );
+                    break;
+                case 19:
+                    dist = LT_DIST( dir,18, dir, 12 ) | gObjLightDistance[ dir ][10] | gObjLightDistance[ dir ][9] | 
+                	    ((gObjLightDistance[ dir ][18] | gObjLightDistance[ dir ][17]) & gObjLightDistance[ dir ][11]);
+                    break;
+                case 20:
+                    tmp1 = gObjLightDistance[ dir ][12] | gObjLightDistance[ dir ][11] | gObjLightDistance[ dir ][2];
+                    tmp2 = gObjLightDistance[ dir ][10] | (gObjLightDistance[ dir ][9] & tmp1) | (tmp1 & gObjLightDistance[ dir ][8]);
+                    tmp3 = (gObjLightDistance[ dir ][19] | gObjLightDistance[ dir ][18] | gObjLightDistance[ dir ][17] | gObjLightDistance[ dir ][16]) & gObjLightDistance[ dir ][11];
+                    dist = tmp3 | tmp2;
+                    break;
+                case 21:
+                    dist = (gObjLightDistance[ nxt ][2] & gObjLightDistance[ dir ][15]) | (gObjLightDistance[ nxt ][1] & gObjLightDistance[ dir ][8]);
+                    break;
+                case 22:
+                    dist = (gObjLightDistance[ dir ][16] & (gObjLightDistance[ dir ][21] | gObjLightDistance[ dir ][15])) | 
+                	    (gObjLightDistance[ dir ][15] & (gObjLightDistance[ dir ][21] | gObjLightDistance[ dir ][9])) | 
+                	    ((gObjLightDistance[ dir ][21] | gObjLightDistance[ dir ][15] | gObjLightDistance[ nxt ][1]) & gObjLightDistance[ dir ][8]);
+                    break;
+                case 23:
+                    dist = LT_DIST( dir, 22, dir, 17 ) | LT_DIST( dir, 15, dir, 9 ) | gObjLightDistance[ dir ][3] | gObjLightDistance[ dir ][16];
+                    break;
+                case 24:
+                    tmp1 = gObjLightDistance[ dir ][23];
+                    dist = (tmp1 & gObjLightDistance[ dir ][18]) | (gObjLightDistance[ dir ][17] & (tmp1 | gObjLightDistance[ dir ][22] | gObjLightDistance[ dir ][15])) | 
+                    gObjLightDistance[ dir ][8] | (gObjLightDistance[ dir ][9] & (tmp1 | gObjLightDistance[ dir ][16] | gObjLightDistance[ dir ][15])) | 
+                    ((gObjLightDistance[ dir ][18] | gObjLightDistance[ dir ][17] | gObjLightDistance[ dir ][10] | gObjLightDistance[ dir ][9] | gObjLightDistance[ dir ][0]) & gObjLightDistance[ dir ][16]);
+                    break;
+                case 25:
+                    tmp1 = gObjLightDistance[ dir ][16] | gObjLightDistance[ dir ][8];
+                    tmp2 = (LT_DIST( dir, 18, dir, 24 ) | gObjLightDistance[ dir ][23] | tmp1) | gObjLightDistance[ dir ][17] | 
+                	    (gObjLightDistance[ dir ][10] & (gObjLightDistance[ dir ][24] | tmp1 | gObjLightDistance[ dir ][17])) | LT_DIST( dir, 1, dir, 8 ) | 
+                	    ((gObjLightDistance[ dir ][24] | gObjLightDistance[ dir ][23] | gObjLightDistance[ dir ][16] | gObjLightDistance[ dir ][15] | gObjLightDistance[ dir ][8]) & gObjLightDistance[ dir ][9]);
+                    tmp3 = (gObjLightDistance[ dir ][19] | gObjLightDistance[ dir ][0]) & gObjLightDistance[ dir ][24];
+                    dist = tmp3 | tmp2;
+                    break;
+                case 26:
+                    dist = LT_DIST( nxt, 3, dir, 21 ) | LT_DIST( dir, 8, nxt, 1 ) | LT_DIST( nxt, 2, dir, 15 );
+                    break;
+                case 27:
+                    dist = ((gObjLightDistance[ dir ][16] | gObjLightDistance[ dir ][8]) & gObjLightDistance[ dir ][21]) | gObjLightDistance[ dir ][15] | 
+                	    LT_DIST( nxt, 1, dir, 8 ) | ((gObjLightDistance[ dir ][26] | gObjLightDistance[ dir ][21] | gObjLightDistance[ dir ][15] | gObjLightDistance[ nxt ][0]) & gObjLightDistance[ dir ][22]);
+                    break;
+                case 28:
+                    dist = LT_DIST( dir, 27, dir, 23 ) | 
+                	    ( LT_DIST( dir, 22, dir, 23 ) | gObjLightDistance[ dir ][17] | gObjLightDistance[ dir ][9]) | 
+			    ( gObjLightDistance[ dir ][16] & (gObjLightDistance[ dir ][27] | gObjLightDistance[ dir ][22] | gObjLightDistance[ dir ][21] | gObjLightDistance[ nxt ][0])) | 
+			    gObjLightDistance[ dir ][8] | (gObjLightDistance[ dir ][15] & (gObjLightDistance[ dir ][23] | gObjLightDistance[ dir ][16] | gObjLightDistance[ dir ][9]));
+                    break;
+                case 29:
+                    dist = LT_DIST( dir, 28, dir, 24 ) | LT_DIST( dir, 22, dir, 17 ) | LT_DIST( dir, 15, dir, 9 ) | gObjLightDistance[ dir ][16] | gObjLightDistance[ dir ][8] | gObjLightDistance[ dir ][23];
+                    break;
+                case 30:
+                    dist = LT_DIST( nxt, 4, dir, 26 ) | LT_DIST( nxt, 2, dir, 15 ) | LT_DIST( dir, 8, nxt, 1 ) | LT_DIST( nxt, 3, dir, 21 );
+                    break;
+                case 31:
+                    dist = LT_DIST( dir, 30, dir, 27 ) | 
+                	    ( gObjLightDistance[ dir ][26] & (gObjLightDistance[ dir ][27] | gObjLightDistance[ dir ][22] | gObjLightDistance[ dir ][8] ) ) | 
+                	    gObjLightDistance[ dir ][15] | LT_DIST( nxt, 1, dir, 8 ) | gObjLightDistance[ dir ][21];
+                    break;
+                case 32:
+                    tmp1 = LT_DIST( nxt, 1, dir, 8 ) | 
+                	    ( (gObjLightDistance[ dir ][28] | gObjLightDistance[ dir ][23] | gObjLightDistance[ dir ][16] | gObjLightDistance[ dir ][9] | gObjLightDistance[ dir ][8]) & gObjLightDistance[ dir ][15]);
+                    tmp2 = gObjLightDistance[ dir ][16] | gObjLightDistance[ dir ][8];
+                    dist = ( LT_DIST( dir, 28, dir, 31 ) | gObjLightDistance[ dir ][0] ) | 
+                	    ( gObjLightDistance[ dir ][27] & (gObjLightDistance[ dir ][28] | gObjLightDistance[ dir ][23] | tmp2 ) ) | 
+                	    gObjLightDistance[ dir ][22] | tmp1 | (gObjLightDistance[ dir ][21] & (tmp2 | gObjLightDistance[ dir ][28] ) );
+                    break;
+                case 33:
+                    tmp1 = LT_DIST( nxt, 3, dir, 21 ) | LT_DIST( nxt, 2, dir, 15 ) | LT_DIST( nxt, 1, dir, 8 ) | LT_DIST( nxt, 4, dir, 26 );
+                    dist = LT_DIST( nxt, 5, dir, 30 ) | tmp1;
+                    break;
+                case 34:
+                    tmp1 = gObjLightDistance[ dir ][30] | gObjLightDistance[ dir ][26] | gObjLightDistance[ nxt ][2];
+                    tmp2 = gObjLightDistance[ dir ][21] | (gObjLightDistance[ dir ][15] & tmp1) | (tmp1 & gObjLightDistance[ dir ][8]);
+                    tmp3 = (gObjLightDistance[ dir ][31] | gObjLightDistance[ dir ][27] | gObjLightDistance[ dir ][22] | gObjLightDistance[ dir ][16]) & gObjLightDistance[ dir ][26];
+                    dist = tmp3 | tmp2;
+                    break;
+                case 35:
+                    tmp2 = LT_DIST( nxt, 4, dir, 26 ) | LT_DIST( nxt, 3, dir, 21 ) | LT_DIST( nxt, 2, dir, 15 ) | LT_DIST( dir, 8, nxt, 1  ) | LT_DIST( nxt, 5, dir, 30 );
+                    tmp3 = LT_DIST( nxt, 6, dir, 33 );
+                    dist = tmp3 | tmp2;
+                    break;
+            }        
+            if( !dist ){
+		idx = obj->GridId + gObjLight[ obj->GridId & 0x01 ][ dir ][ i ];
+                if( idx <= 39999 ){                    
+                    LightModify = 1;
+                    for( TileObjs = gObjGridObjects[ idx ]; TileObjs; TileObjs = TileObjs->Next ){
+                        object = TileObjs->object;
+                        if( object->Flags & OBJ_FLG_UNK01 ) continue;
+                        if( object->Elevation > obj->Elevation ) break;
+                        if( object->Elevation != obj->Elevation ) continue;
+                        ObjGetRefreshArea( object, &Area2 );
+                        RegionExpand( &RectRadius, &Area2, &RectRadius );
+                        dist = (object->Flags & 0x20000000) == 0;
+                        if( OBJTYPE( object->ImgId ) == TYPE_WALL ){
+                            if( (object->Flags & 0x08) == 0 ){
+                                ProtoGetObj( object->Pid, &proto );
+                                if( (proto->FlgExt & 0x8000000) || (proto->FlgExt & 0x40000000) ){
+                                    if( dir != 4 && dir != 5 && (dir != 0 || i >= 8) && (dir != 3 || i <= 15) ) LightModify = 0;
+                                } else if( proto->FlgExt & 0x10000000 ){
+                                    if( dir && dir != 5 ) LightModify = 0;
+                                } else if( proto->FlgExt & 0x20000000 ){
+                                    if( dir >= 2 && dir != 4 && dir != 5 && (dir != 3 || i <= 15) ) LightModify = 0;
+                            	} else if( dir >= 2 && (dir != 5 || i <= 7 ) ){
+                                    LightModify = 0;
                                 }
-LABEL_93:
-                                v23 = v23->Next;
-                                if( !v23 ) goto LABEL_94;
-                            }                            
+                            }
+                        } else {
+                    	    if( dist && dir && (dir <= 3) ) LightModify = 0;                        		
                         }
-LABEL_94:
-                        if( v24 ) Cb(obj->Elevation, Pos, Tab[ i ] );
+                        if( dist ) break;
                     }
+            	    if( LightModify ) Cb( obj->Elevation, idx, Intensity[ i ] );
+                }
             }
-
-            gObjUnk52[ j ][ i ] = v53;
+            gObjLightDistance[ dir ][ i ] = dist;
         }
     }
-    if( !r ) return 0;
-    v33 = &gObjUnk39[obj->LightRadius];
-    r->lt = v33->lt;
-    r->tp = v33->tp;
-    r->rt = v33->rt;
-    r->bm = v33->bm;
+    if( !Area ) return 0;
+    Area->lt = gObjLightRadius[ obj->LightRadius ].lt;
+    Area->tp = gObjLightRadius[ obj->LightRadius ].tp;
+    Area->rt = gObjLightRadius[ obj->LightRadius ].rt;
+    Area->bm = gObjLightRadius[ obj->LightRadius ].bm;
     TileGetScrCoordinates( obj->GridId, &pX, &pY );
     pX += 16;
     pY += 8;
-    pX -= r->rt / 2;
-    pY -= r->bm / 2;
-    r->lt += pX;
-    r->tp += pY;
-    r->rt += pX;
-    r->bm += pY;
-    RegionExpand( r, &RectRadius, r );
+    pX -= Area->rt / 2;
+    pY -= Area->bm / 2;
+    Area->lt += pX;
+    Area->tp += pY;
+    Area->rt += pX;
+    Area->bm += pY;
+    RegionExpand( Area, &RectRadius, Area );
     return 0;
 }
-
-/* AAAA
-                            ObjGetRefreshArea(object, &Area2);
-                            RegionExpand(&RectRadius, &Area2, &RectRadius);
-                            v27 = v23->object;
-                            v28 = (v23->object->Flags & 0x20000000) == 0;
-                            v29 = (v23->object->ImgId & 0xF000000) >> 24;
-                            v53 = v28;
-                            if( v29 == 3 ){
-                                if( (v27->Flags & 8) == 0 ){
-                                    ProtoGetObj(v27->Pid, &proto);
-                                    FlgExt = proto->FlgExt;
-                                    if( (FlgExt & 0x8000000) != 0 || (FlgExt & 0x40000000) != 0 ){
-                                        if( j != 4 && j != 5 && (j || i >= 8) && (j != 3 || i <= 15) )
-LABEL_91:
-                                            v24 = 0;
-                                    } else if( (FlgExt & 0x10000000) != 0 ){
-                                        if( j && j != 5 ) goto LABEL_91;
-                                    } else if( (FlgExt & 0x20000000) != 0 ){
-                                	 if( j >= 2 && j != 4 && j != 5 && (j != 3 || i <= 15) ) goto LABEL_91;
-                                    } else if ( j >= 2 && (j != 5 || i <= 7) ){
-                                        goto LABEL_91;
-                                    }
-                                }
-                            } else if( v28 && j && (j <= 3) ){
-                                goto LABEL_91;
-                            }
-                            if( v53 ) goto LABEL_94;
-                            goto LABEL_93;
-*/
-
-/* XXX
-                    switch ( v47 )
-                    {
-                        case 0u:
-                            v53 = 0;
-                            break;
-                        case 1u:
-                            v53 = gObjUnk52[j][0];
-                            break;
-                        case 2u:
-                            v53 = gObjUnk52[j][1];
-                            break;
-                        case 3u:
-                            v53 = gObjUnk52[j][2];
-                            break;
-                        case 4u:
-                            v53 = gObjUnk52[j][3];
-                            break;
-                        case 5u:
-                            v53 = gObjUnk52[j][4];
-                            break;
-                        case 6u:
-                            v53 = gObjUnk52[j][5];
-                            break;
-                        case 7u:
-                            v53 = gObjUnk52[j][6];
-                            break;
-                        case 8u:
-                            v53 = gObjUnk52[v77][0] & gObjUnk52[j][0];
-                            break;
-                        case 9u:
-                            v53 = gObjUnk52[j][1] & gObjUnk52[j][8];
-                            break;
-                        case 10u:
-                            v53 = gObjUnk52[j][2] & gObjUnk52[j][9];
-                            break;
-                        case 11u:
-                            v53 = gObjUnk52[j][3] & gObjUnk52[j][10];
-                            break;
-                        case 12u:
-                            v53 = gObjUnk52[j][4] & gObjUnk52[j][11];
-                            break;
-                        case 13u:
-                            v53 = gObjUnk52[j][5] & gObjUnk52[j][12];
-                            break;
-                        case 14u:
-                            v53 = gObjUnk52[j][6] & gObjUnk52[j][13];
-                            break;
-                        case 15u:
-                            v53 = gObjUnk52[v77][1] & gObjUnk52[j][8];
-                            break;
-                        case 16u:
-                            v53 = gObjUnk52[j][15] & gObjUnk52[j][9] | gObjUnk52[j][8];
-                            break;
-                        case 17u:
-                            v88 = gObjUnk52[j][10] | gObjUnk52[j][9];
-                            v99 = gObjUnk52[j][16] & v88 | v88 & gObjUnk52[j][8];
-                            v10 = (gObjUnk52[j][15] | gObjUnk52[j][10]) & gObjUnk52[j][9];
-                            v53 = v10 | v99;
-                            break;
-                        case 18u:
-                            v53 = (gObjUnk52[j][11] | gObjUnk52[j][10] | gObjUnk52[j][9] | gObjUnk52[j][0]) & gObjUnk52[j][17] | gObjUnk52[j][9] | gObjUnk52[j][16] & gObjUnk52[j][10];
-                            break;
-                        case 19u:
-                            v11 = gObjUnk52[j][18] & gObjUnk52[j][12] | gObjUnk52[j][10] | gObjUnk52[j][9] | (gObjUnk52[j][18] | gObjUnk52[j][17]) & gObjUnk52[j][11];
-                            v53 = v11;
-                            break;
-                        case 20u:
-                            v12 = gObjUnk52[j][12] | gObjUnk52[j][11] | gObjUnk52[j][2];
-                            v99 = gObjUnk52[j][10] | gObjUnk52[j][9] & v12 | v12 & gObjUnk52[j][8];
-                            v10 = (gObjUnk52[j][19] | gObjUnk52[j][18] | gObjUnk52[j][17] | gObjUnk52[j][16]) & gObjUnk52[j][11];
-                            v53 = v10 | v99;
-                            break;
-                        case 21u:
-                            v53 = gObjUnk52[v77][2] & gObjUnk52[j][15] | gObjUnk52[v77][1] & gObjUnk52[j][8];
-                            break;
-                        case 22u:
-                            v11 = gObjUnk52[j][16] & (gObjUnk52[j][21] | gObjUnk52[j][15]) | gObjUnk52[j][15] & (gObjUnk52[j][21] | gObjUnk52[j][9]) | (gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][1]) & gObjUnk52[j][8];
-                            v53 = v11;
-                            break;
-                        case 23u:
-                            v11 = gObjUnk52[j][22] & gObjUnk52[j][17] | gObjUnk52[j][15] & gObjUnk52[j][9] | gObjUnk52[j][3] | gObjUnk52[j][16];
-                            v53 = v11;
-                            break;
-                        case 24u:
-                            v13 = gObjUnk52[j][23];
-                            v11 = v13 & gObjUnk52[j][18] | gObjUnk52[j][17] & (v13 | gObjUnk52[j][22] | gObjUnk52[j][15]) | gObjUnk52[j][8] | gObjUnk52[j][9] & (v13 | gObjUnk52[j][16] | gObjUnk52[j][15]) | (gObjUnk52[j][18] | gObjUnk52[j][17] | gObjUnk52[j][10] | gObjUnk52[j][9] | gObjUnk52[j][0]) & gObjUnk52[j][16];
-                            v53 = v11;
-                            break;
-                        case 25u:
-                            v14 = gObjUnk52[j][16] | gObjUnk52[j][8];
-                            v99 = gObjUnk52[j][18] & (gObjUnk52[j][24] | gObjUnk52[j][23] | v14) | gObjUnk52[j][17] | gObjUnk52[j][10] & (gObjUnk52[j][24] | v14 | gObjUnk52[j][17]) | gObjUnk52[j][1] & gObjUnk52[j][8] | (gObjUnk52[j][24] | gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][15] | gObjUnk52[j][8]) & gObjUnk52[j][9];
-                            v10 = (gObjUnk52[j][19] | gObjUnk52[j][0]) & gObjUnk52[j][24];
-                            v53 = v10 | v99;
-                            break;
-                        case 26u:
-                            v15 = v77;
-                            v99 = gObjUnk52[j][8] & gObjUnk52[v15][1] | gObjUnk52[v15][2] & gObjUnk52[j][15];
-                            v10 = gObjUnk52[v15][3] & gObjUnk52[j][21];
-                            v53 = v10 | v99;
-                            break;
-                        case 27u:
-                            v53 = (gObjUnk52[j][16] | gObjUnk52[j][8]) & gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][1] & gObjUnk52[j][8] | (gObjUnk52[j][26] | gObjUnk52[j][21] | gObjUnk52[j][15] | gObjUnk52[v77][0]) & gObjUnk52[j][22];
-                            break;
-                        case 28u:
-                            v11 = gObjUnk52[j][27] & gObjUnk52[j][23] | gObjUnk52[j][22] & (gObjUnk52[j][23] | gObjUnk52[j][17] | gObjUnk52[j][9]) | gObjUnk52[j][16] & (gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][21] | gObjUnk52[v77][0]) | gObjUnk52[j][8] | gObjUnk52[j][15] & (gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][9]);
-                            v53 = v11;
-                            break;
-                        case 29u:
-                            v11 = gObjUnk52[j][28] & gObjUnk52[j][24] | gObjUnk52[j][22] & gObjUnk52[j][17] | gObjUnk52[j][15] & gObjUnk52[j][9] | gObjUnk52[j][16] | gObjUnk52[j][8] | gObjUnk52[j][23];
-                            v53 = v11;
-                            break;
-                        case 30u:
-                            v16 = v77;
-                            v99 = gObjUnk52[v16][2] & gObjUnk52[j][15] | gObjUnk52[j][8] & gObjUnk52[v16][1] | gObjUnk52[v16][3] & gObjUnk52[j][21];
-                            v10 = gObjUnk52[v16][4] & gObjUnk52[j][26];
-                            v53 = v10 | v99;
-                            break;
-                        case 31u:
-                            v11 = gObjUnk52[j][30] & gObjUnk52[j][27] | gObjUnk52[j][26] & (gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][8]) | gObjUnk52[j][15] | gObjUnk52[v77][1] & gObjUnk52[j][8] | gObjUnk52[j][21];
-                            v53 = v11;
-                            break;
-                        case 32u:
-                            v17 = gObjUnk52[v77][1] & gObjUnk52[j][8] | (gObjUnk52[j][28] | gObjUnk52[j][23] | gObjUnk52[j][16] | gObjUnk52[j][9] | gObjUnk52[j][8]) & gObjUnk52[j][15];
-                            v18 = gObjUnk52[j][16] | gObjUnk52[j][8];
-                            v11 = gObjUnk52[j][28] & (gObjUnk52[j][31] | gObjUnk52[j][0]) | gObjUnk52[j][27] & (gObjUnk52[j][28] | gObjUnk52[j][23] | v18) | gObjUnk52[j][22] | v17 | gObjUnk52[j][21] & (v18 | gObjUnk52[j][28]);
-                            v53 = v11;
-                            break;
-                        case 33u:
-                            v19 = v77;
-                            v99 = gObjUnk52[v19][3] & gObjUnk52[j][21] | gObjUnk52[v19][2] & gObjUnk52[j][15] | gObjUnk52[v19][1] & gObjUnk52[j][8] | gObjUnk52[v19][4] & gObjUnk52[j][26];
-                            v10 = gObjUnk52[v19][5] & gObjUnk52[j][30];
-                            v53 = v10 | v99;
-                            break;
-                        case 34u:
-                            v20 = gObjUnk52[j][30] | gObjUnk52[j][26] | gObjUnk52[v77][2];
-                            v99 = gObjUnk52[j][21] | gObjUnk52[j][15] & v20 | v20 & gObjUnk52[j][8];
-                            v10 = (gObjUnk52[j][31] | gObjUnk52[j][27] | gObjUnk52[j][22] | gObjUnk52[j][16]) & gObjUnk52[j][26];
-                            v53 = v10 | v99;
-                            break;
-                        case 35u:
-                            v21 = v77;
-                            v99 = gObjUnk52[v21][4] & gObjUnk52[j][26] | gObjUnk52[v21][3] & gObjUnk52[j][21] | gObjUnk52[v21][2] & gObjUnk52[j][15] | gObjUnk52[j][8] & gObjUnk52[v21][1] | gObjUnk52[v21][5] & gObjUnk52[j][30];
-                            v10 = gObjUnk52[v21][6] & gObjUnk52[j][33];
-                            v53 = v10 | v99;
-                            break;
-                    }
-*/
-
 
 void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
 {
@@ -2770,7 +2662,7 @@ void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
     ArtFrmHdr_t *v3, *v4, *Data;
     VidRect_t Area2, Area1, *v37;
     CachePool_t *Obj;
-    int Orientation,FrameNo,ObjHeight,GridId,i,j,toggle,tmp,Height,Width,pY,pX,pitch,v6,v42,v43,v48,v49,v50,v51,v52,v10,v11,v12,v15;
+    int Orientation,FrameNo,ObjHeight,GridId,i,j,toggle,tmp,Height,Width,pY,pX,pitch,v6,v42,v43,v48,v49,v50,v51,v52,tmp3,v11,v12,v15;
 
     v37 = area;
     v3 = ArtLoadImg( obj->ImgId, &Obj );
@@ -2799,11 +2691,11 @@ void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
         pX += v4->PixShiftX[ obj->Orientation ];
         pY += v4->PixShiftY[ obj->Orientation ];
         pX += obj->PosX;
-        v10 = pY + obj->PosY;
+        tmp3 = pY + obj->PosY;
         Area1.lt = pX - Width / 2;
-        Area1.tp = v10 - v51;
-        pY = v10;
-        Area1.bm = v10;
+        Area1.tp = tmp3 - v51;
+        pY = tmp3;
+        Area1.bm = tmp3;
         Area1.rt = Width + Area1.lt - 1;
         obj->Sx = Area1.lt;
         obj->Sy = Area1.tp;

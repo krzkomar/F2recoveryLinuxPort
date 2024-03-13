@@ -265,7 +265,7 @@ int ObjSortB( int *a1, int *a2 );
 void ObjUnk87();
 int ObjAllocRenderList();
 void ObjUnk89();
-void ObjUnk90();
+void ObjLightInit();
 int ObjColorInit();
 void ObjUnk91();
 void ObjUnk92();

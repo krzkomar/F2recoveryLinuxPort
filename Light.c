@@ -7,7 +7,6 @@
 #define LIGHT_NIGHT_VISION_MODIFIER 	0x3333
 #define LIGHT_MIN_LVL			0x4000
 #define LIGHT_MAX_LVL			0x10000
-#define LIGHT_DEFAULT			655
 #define LIGHT_TILES			200*200
 #define LIGHT_LAST_TILE			(LIGHT_TILES - 1)
 #define LIGHT_MAP_LEVELS		3
@@ -86,17 +85,11 @@ void LightTileDimm( unsigned int MapLvl, unsigned int Pos, int Dimm )
 void LightTileResetAll()
 {
     int lvl, i;
-//int x, y;
+
     for( lvl = 0; lvl < LIGHT_MAP_LEVELS; lvl++ ){
         for( i = 0; i < LIGHT_TILES; i++ ){
             gLightTiles[ lvl ][ i ] = LIGHT_DEFAULT;
         }
-//	for( y = 0; y < 200; y++){
-//	    for( x = 0; x < 200; x++ ){
-//		gLightTiles[ lvl ][ y *200 + x ] = ((y & 1) ^ ( x & 1)) ? 20000:40000;
-//		gLightTiles[ lvl ][ y *200 + x ] = ( x & 1) ? 20000:40000;
-//	    }
-//	}
     }
 }
 

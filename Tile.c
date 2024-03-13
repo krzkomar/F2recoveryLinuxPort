@@ -822,7 +822,7 @@ void TileRenderFloor( VidRect_t *area, int MapLvl )
             if( tile & 0x1000 ) continue;
             TileGetScrPosition( GridIdx, &tx, &ty );
 	    id = ArtMakeId( 4, tile & 0xFFF, 0, 0, 0 );
-            TileDrawTile( id, tx, ty, area,  GridIdx);
+            TileDrawTile( id, tx, ty, area );
         }            
     }
 }
@@ -959,7 +959,7 @@ void TileSketchDraw( int GridIdx, int MapLvl, VidRect_t *a3 )
     }        
 }
 
-void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area, int gg )
+void TileDrawTile( int ArtId, int Xpos, int Ypos, VidRect_t *area )
 {
     int x0,y0,TileH,v10,GridIdx,Light,v28,v31,v32,*v33,v37,j,harea,warea;
     int Height,Width,yg,xg,TileW,dtile,dlight,tmp,k, xx, yy;
