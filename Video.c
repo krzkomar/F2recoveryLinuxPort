@@ -272,7 +272,7 @@ void VidSetPaletteIndex( int ColorIndex, char Rr, char Gg, char Bb )
 void VidSetPaletteRange( Pal8_t *Pal, unsigned int FirstColor, unsigned int nColors )
 {
     int i;
-    
+
     for( i = FirstColor; i < (FirstColor + nColors); i++ ){
         gVidPalx[ i ].r = COLOR_SCALE * Pal[ i ].r;
         gVidPalx[ i ].g = COLOR_SCALE * Pal[ i ].g;

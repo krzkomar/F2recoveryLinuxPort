@@ -13,13 +13,13 @@
         type = IntpPopwA( scr );\
         arg = IntpPopiA( scr );		\
         if( type == SCR_FSTRING ) IntpStringDeRef( scr, type, arg );	\
-        if( (type & 0xF7FF) != SCR_INT ) IntpError( "script error: %s: invalid arg %d[%x] to "#name, scr->FileName, arg_num, type );
+        if( (type & 0xF7FF) != SCR_INT ) IntpError( "script error: %s: invalid arg %d[%i] to "#name, scr->FileName, arg_num, type );
 
 #define GETARGP( scr, type, arg, arg_num, name )	\
         type = IntpPopwA( scr );\
         arg = IntpPopPtrA( scr );\
         if( type == SCR_FSTRING ) IntpStringDeRef( scr, type, PTR2INT( arg ) );\
-        if( (type & 0xF7FF) != SCR_PTR ) IntpError( "script error: %s: invalid arg %d[%x] to "#name, scr->FileName, arg_num, type );
+        if( (type & 0xF7FF) != SCR_PTR ) IntpError( "script error: %s: invalid arg %d[0x%x]{0x%x} to "#name, scr->FileName, arg_num, type, arg );
 
 #define GETARGIP( scr, type, argi, argp, arg_num, name )	\
         type = IntpPopwA( scr );\
@@ -120,7 +120,7 @@ void ScrGame_GiveExpPoints( Intp_t *scr )
     int val;
 
     GETARGI( scr, type, val, 0, "give_exp_points" );
-    SCP_DBGA( "give_exp_points( [%x]%x )", type, val );
+    SCP_DBGA( "give_exp_points( [%x]%i )", type, val );
     if( FeatLvlUp( val ) ) ScrGameEprintf( "\nScript Error: %s: op_give_exp_points: stat_pc_set failed", scr->FileName );
 }
 
@@ -135,7 +135,7 @@ void ScrGame_Return( Intp_t *scr )
     Scpt_t *spt;
 
     GETARGI( scr, type, val, 0, "scr_return" );
-    SCP_DBGA( "scr_return( [%x]%x )", type, val );
+    SCP_DBGA( "scr_return( [%x]%i )", type, val );
     if( ScptPtr( ScptGetActionSource( scr ), &spt ) != -1 ) spt->i11 = val;
 }
 
@@ -149,7 +149,7 @@ void ScrGame_PlaySfx( Intp_t *scr )
     int val;
 
     GETARGS( scr, type, val, 0, "play_sfx" );
-    SCP_DBGA( "play_sfx( [%x]%x )", type, val );
+    SCP_DBGA( "play_sfx( [%x]%i )", type, val );
     GSoundPlay( IntpGetString( scr, type >> 8, val ) );
 }
 
@@ -166,7 +166,7 @@ void ScrGame_SetMapStart( Intp_t *scr )
     GETARGI( scr, type[ 1 ], Val[ 1 ], 1, "set_map_start" );
     GETARGI( scr, type[ 2 ], Val[ 2 ], 2, "set_map_start" );
     GETARGI( scr, type[ 3 ], Val[ 3 ], 3, "set_map_start" );
-    SCP_DBGA( "set_map_start( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], Val[3], type[2], Val[2], type[1], Val[1], type[0], Val[0] );
+    SCP_DBGA( "set_map_start( [%x]%i, [%x]%i, [%x]%i, [%x]%i )", type[3], Val[3], type[2], Val[2], type[1], Val[1], type[0], Val[0] );
     if( MapSetLvl( Val[ 1 ] ) ){
         ScrGameEprintf("\nScript Error: %s: op_set_map_start: map_set_elevation failed", scr->FileName );
     } else {
@@ -194,7 +194,7 @@ void ScrGame_OverrideMapStart( Intp_t *scr )
     GETARGI( scr, type[ 1 ], lvl, 1, "override_map_start" );
     GETARGI( scr, type[ 2 ], y, 2, "override_map_start" );
     GETARGI( scr, type[ 3 ], x, 3, "override_map_start" );
-    SCP_DBGA( "override_map_start( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], x, type[2], y, type[1], lvl, type[0], rotation );
+    SCP_DBGA( "override_map_start( [%x]%i, [%x]%i, [%x]%i, [%x]%i )", type[3], x, type[2], y, type[1], lvl, type[0], rotation );
     sprintf( stmp, "OVERRIDE_MAP_START: x: %d, y: %d", x, y );
     eprintf( "%s\n", stmp );
     
@@ -225,7 +225,7 @@ void ScrGame_HasSkill( Intp_t *scr )
 
     GETARGI( scr, type[0], Val, 0, "has_skill" );
     GETARGP( scr, type[1], critter, 1, "has_skill" );
-    SCP_DBGA( "has_skill( [%x]%p, [%x]%x )", type[1], critter, type[0], Val );
+    SCP_DBGA( "has_skill( [%x]%p, [%x]%i )", type[1], critter, type[0], Val );
     Total = 0;
     if( critter ){
         if( OBJTYPE( critter->Pid ) == TYPE_CRIT )
@@ -248,7 +248,7 @@ void ScrGame_UsingSkill( Intp_t *scr )
 
     GETARGI( scr, type[0], Val, 0, "using_skill" );
     GETARGP( scr, type[1], critter, 1, "using_skill" );
-    SCP_DBGA( "using_skill( [%x]%p, [%x]%x )", type[1], critter, type[0], Val );
+    SCP_DBGA( "using_skill( [%x]%p, [%x]%i )", type[1], critter, type[0], Val );
     if( Val == 8 && critter == gObjDude ) Val = CritterUsingSkill( 0 );
     RETINT( scr, Val );
 }
@@ -267,7 +267,7 @@ void ScrGame_RollVsSkill( Intp_t *scr )
     GETARGI( scr, type[ 0 ], modifier, 0, "roll_vs_skill" );
     GETARGI( scr, type[ 1 ], skill, 1, "roll_vs_skill" );
     GETARGP( scr, type[ 2 ], critter, 2, "roll_vs_skill" );
-    SCP_DBGA( "roll_vs_skill( [%x]%p, [%x]%x, [%x]%x )", type[2], critter, type[1], skill, type[0], modifier );
+    SCP_DBGA( "roll_vs_skill( [%x]%p, [%x]%i, [%x]%i )", type[2], critter, type[1], skill, type[0], modifier );
     sk = 0;
     if( critter ){
         if( OBJTYPE( critter->Pid ) == TYPE_CRIT ){
@@ -292,7 +292,7 @@ void ScrGame_SkillContest( Intp_t *scr )
     GETARGI( scr, type[ 0 ], Val[ 0 ], 0, "skill_contest" );
     GETARGI( scr, type[ 1 ], Val[ 1 ], 1, "skill_contest" );
     GETARGI( scr, type[ 2 ], Val[ 2 ], 2, "skill_contest" );
-    SCP_DBGA( "skill_contest( [%x]%x, [%x]%x, [%x]%x )", type[2], Val[2], type[1], Val[1], type[0], Val[0] );
+    SCP_DBGA( "skill_contest( [%x]%i, [%x]%i, [%x]%i )", type[2], Val[2], type[1], Val[1], type[0], Val[0] );
     ScrGameErrorMsg( scr, "skill_contest", 0 );
     RETINT( scr, 0 );
 }
@@ -312,7 +312,7 @@ void ScrGame_DoCheck( Intp_t *scr )
     GETARGI( scr, type[ 0 ], a3[ 0 ], 0, "do_check" );
     GETARGI( scr, type[ 1 ], a3[ 1 ], 1, "do_check" );
     GETARGP( scr, type[ 2 ], obj, 2, "do_check" );
-    SCP_DBGA( "do_check( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], a3[1], type[0], a3[0] );
+    SCP_DBGA( "do_check( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], a3[1], type[0], a3[0] );
     if( !obj ){
 	ScrGameErrorMsg( scr, "do_check", 1 );
     } else {
@@ -344,7 +344,7 @@ void ScrGame_Success( Intp_t *scr )
     uint16_t type;
 
     GETARGI( scr, type, val, 0, "success" );
-    SCP_DBGA( "success( [%x]%x )", type, val );
+    SCP_DBGA( "success( [%x]%i )", type, val );
     switch( val ){
         case 0 ... 1: k = 0; break;
         case 2 ... 3: k = 1; break;
@@ -363,7 +363,7 @@ void ScrGame_Critical( Intp_t *scr )
     uint16_t type;
 
     GETARGI( scr, type, val, 0, "critical" );
-    SCP_DBGA( "critical( [%x]%x )", type, val );
+    SCP_DBGA( "critical( [%x]%i )", type, val );
     switch( val ){
         case 0:
         case 3:
@@ -392,7 +392,7 @@ void ScrGame_HowMuch( Intp_t *scr )
 
     hm = 0;
     GETARGI( scr, type, Val, 0, "how_much" );
-    SCP_DBGA( "how_much( [%x]%x )", type, Val );
+    SCP_DBGA( "how_much( [%x]%i )", type, Val );
     if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 )
         ScrGameErrorMsg( scr, "how_much", 2 );
     else
@@ -412,7 +412,7 @@ void ScrGame_MarkAreaKnown( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "mark_area_known" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "mark_area_known" );
     GETARGI( scr, type[ 2 ], val[ 2 ], 2, "mark_area_known" );
-    SCP_DBGA( "mark_area_known( [%x]%x, [%x]%x, [%x]%x )", type[2], val[2], type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "mark_area_known( [%x]%i, [%x]%i, [%x]%i )", type[2], val[2], type[1], val[1], type[0], val[0] );
     if( val[ 2 ] ){ // mark area to be known
         if( val[ 2 ] == 1 ) WmUnk41( val[ 1 ] );
         return;
@@ -439,7 +439,7 @@ void ScrGame_ReactionInfluence( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "reaction_influence" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "reaction_influence" );
     GETARGI( scr, type[ 2 ], val[ 2 ], 2, "reaction_influence" );
-    SCP_DBGA( "reaction_influence( [%x]%x, [%x]%x, [%x]%x )", type[2], val[2], type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "reaction_influence( [%x]%i, [%x]%i, [%x]%i )", type[2], val[2], type[1], val[1], type[0], val[0] );
     RETINT( scr, EvQeGetReactionInfluence( val[2], val[1], val[0] ) );
 }
     
@@ -454,7 +454,7 @@ void ScrGame_Random( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], Val[ 0 ], 0, "random" );
     GETARGI( scr, type[ 1 ], Val[ 1 ], 1, "random" );
-    SCP_DBGA( "random( [%x]%x, [%x]%x )", type[1], Val[1], type[0], Val[0] );    
+    SCP_DBGA( "random( [%x]%i, [%x]%i )", type[1], Val[1], type[0], Val[0] );    
     RETINT( scr, ( RecGetState() == 2 ) ?  RandMinMax( Val[1], Val[0] ) : ((Val[0] - Val[1]) / 2) );
 }
 
@@ -469,7 +469,7 @@ void ScrGame_RollDice( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "roll_dice" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "roll_dice" );
-    SCP_DBGA( "roll_dice( [%x]%x, [%x]%x )", type[1], val[1], type[0], val[0] );    
+    SCP_DBGA( "roll_dice( [%x]%i, [%x]%i )", type[1], val[1], type[0], val[0] );    
     ScrGameErrorMsg( scr, "roll_dice", 0 );
     RETINT( scr, 0 );
 }
@@ -489,7 +489,7 @@ void ScrGame_MoveTo( Intp_t *scr )
     GETARGI( scr, type[ 0 ], lvl, 0, "move_to" );
     GETARGI( scr, type[ 1 ], tile_num, 1, "move_to" );
     GETARGP( scr, type[ 2 ], obj, 2, "move_to" );
-    SCP_DBGA( "move_to( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], tile_num, type[0], lvl );    
+    SCP_DBGA( "move_to( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], tile_num, type[0], lvl );    
     if( obj ){
         if( obj == gObjDude ){
             b = TileUnk25();
@@ -533,7 +533,7 @@ void ScrGame_CreateObject( Intp_t *scr )
     GETARGI( scr, type[ 1 ], lvl, 1, "create_object" );
     GETARGI( scr, type[ 2 ], tile_num, 2, "create_object" );
     GETARGI( scr, type[ 3 ], pid, 3, "create_object" );
-    SCP_DBGA( "create_object( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], pid, type[2], tile_num, type[1], lvl, type[0], sid );    
+    SCP_DBGA( "create_object( [%x]%i, [%x]%i, [%x]%i, [%x]%i )", type[3], pid, type[2], tile_num, type[1], lvl, type[0], sid );    
     if( LsgPending() ){
         eprintf( "\nError: attempt to Create critter in load/save-game: %s!", scr->FileName );
     } else if( pid ){
@@ -610,11 +610,11 @@ void ScrGame_DestroyObject( Intp_t *scr )
             obj->ScrId = -1;
             obj->Flags |= 0x05;
         } else {
-            AnimClear( obj );
+            AnimRegClear( obj );
             ObjDestroy( obj, 0 );
         }
     } else {
-        AnimClear( obj );
+        AnimRegClear( obj );
         ObjDestroy( obj, &Area );
         TileUpdateArea( &v14, gMapCurrentLvl );
     }
@@ -632,7 +632,7 @@ void ScrGame_DisplayMsg( Intp_t *scr )
     int dbg, val;
 
     GETARGS( scr, type, val, 0, "display_msg" );
-    SCP_DBGA( "display_msg( [%x]%x )", type, val );
+    SCP_DBGA( "display_msg( [%x]%i )", type, val );
     IfcMsgOut( IntpGetString( scr, type >> 8, val ) );
     CfgGetInteger( &gConfiguration, "debug", "show_script_messages", &dbg );
 }
@@ -666,7 +666,7 @@ void ScrGame_ObjIsCarryingObj( Intp_t *scr )
     QuantityTot = 0;	
     GETARGI( scr, type[ 0 ], item_pid, 0, "obj_is_carrying_obj" );
     GETARGP( scr, type[ 1 ], obj, 1, "obj_is_carrying_obj" );
-    SCP_DBGA( "obj_is_carrying_obj( [%x]%p, [%x]%x )", type[1], obj, type[0], item_pid );
+    SCP_DBGA( "obj_is_carrying_obj( [%x]%p, [%x]%i )", type[1], obj, type[0], item_pid );
     if( obj )
         QuantityTot = InvGetQuantityTot( obj, item_pid );
     else
@@ -688,7 +688,7 @@ void ScrGame_TileContainsObjPid( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "tile_contains_obj_pid" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "tile_contains_obj_pid" );
     GETARGI( scr, type[ 2 ], val[ 2 ], 2, "tile_contains_obj_pid" );
-    SCP_DBGA( "tile_contains_obj_pid( [%x]%x, [%x]%x, [%x]%x )", type[2], val[2], type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "tile_contains_obj_pid( [%x]%i, [%x]%i, [%x]%i )", type[2], val[2], type[1], val[1], type[0], val[0] );
     for( p = ObjGetFirst( val[ 1 ], val[ 2 ] ); p; p = ObjGetNext() ){
         if( val[ 0 ] == p->Pid ){ reply = 1; break; }
     }
@@ -784,7 +784,7 @@ void ScrGame_OpLocalvar( Intp_t *scr )
 
     tmp = -1;
     GETARGI( scr, type, var, 0, "op_local_var" );
-    SCP_DBGA( "op_local_var( [%x]%x )", type, var );
+    SCP_DBGA( "op_local_var( [%x]%i )", type, var );
     ScptGetLocVar( ScptGetActionSource( scr ), var, &tmp );
     RETINT( scr, tmp );
 }
@@ -800,7 +800,7 @@ void ScrGame_SetLocalvar( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], var[ 0 ], 0, "set_local_var" );
     GETARGI( scr, type[ 1 ], var[ 1 ], 1, "set_local_var" );
-    SCP_DBGA( "set_local_var( [%x]%x, [%x]%x )", type[1], var[1], type[0], var[0] );
+    SCP_DBGA( "set_local_var( [%x]%i, [%x]%i )", type[1], var[1], type[0], var[0] );
     ScptSetLocVar( ScptGetActionSource( scr ), var[ 1 ], var[ 0 ] );
 }
 
@@ -814,7 +814,7 @@ void ScrGame_OpMapVar( Intp_t *scr )
     int var;
 
     GETARGI( scr, type, var, 0, "op_map_var" );
-    SCP_DBGA( "op_map_var( [%x]%x )", type, var );
+    SCP_DBGA( "op_map_var( [%x]%i )", type, var );
     RETINT( scr, MapGetGlobalVar( var ) );
 }
 
@@ -829,7 +829,7 @@ void ScrGame_SetMapVar( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], var[ 0 ], 0, "set_map_var" );
     GETARGI( scr, type[ 1 ], var[ 1 ], 1, "set_map_var" );
-    SCP_DBGA( "set_map_var( [%x]%x, [%x]%x )", type[1], var[1], type[0], var[0] );
+    SCP_DBGA( "set_map_var( [%x]%i, [%x]%i )", type[1], var[1], type[0], var[0] );
     MapSetGlobalVar( var[ 1 ], var[ 0 ] );
 }
 
@@ -843,7 +843,7 @@ void ScrGame_OpGlobalVar( Intp_t *scr )
     uint16_t type;
 
     GETARGI( scr, type, var, 0, "op_global_var" );
-    SCP_DBGA( "op_global_var( [%x]%x )", type, var );
+    SCP_DBGA( "op_global_var( [%x]%i )", type, var );
     v2 = -1;
     if( gGValCount )
         v2 = GlobVarGet( var );
@@ -863,7 +863,7 @@ void ScrGame_OpSetGlobalVar( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], var[ 0 ], 0, "set_global_var" );
     GETARGI( scr, type[ 1 ], var[ 1 ], 1, "set_global_var" );
-    SCP_DBGA( "set_global_var( [%x]%x, [%x]%x )", type[1], var[1], type[0], var[0] );
+    SCP_DBGA( "set_global_var( [%x]%i, [%x]%i )", type[1], var[1], type[0], var[0] );
     if( gGValCount )
         GlobVarSet( var[1], var[0] );
     else
@@ -943,7 +943,7 @@ void ScrGame_GetCritterStat( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], val, 0, "get_critter_stat" );
     GETARGP( scr, type[ 1 ], obj, 1, "get_critter_stat" );
-    SCP_DBGA( "get_critter_stat( [%x]%p, [%x]%x )", type[1], obj,  type[0], val );
+    SCP_DBGA( "get_critter_stat( [%x]%p, [%x]%i )", type[1], obj,  type[0], val );
     if( obj ){
         r = FeatGetVal( obj, val );
     } else {
@@ -966,7 +966,7 @@ void ScrGame_SetCritterStat( Intp_t *scr )
     GETARGI( scr, type[ 0 ], amount, 0, "set_critter_stat" );
     GETARGI( scr, type[ 1 ], stat, 1, "set_critter_stat" );
     GETARGP( scr, type[ 2 ], who, 2, "set_critter_stat" );
-    SCP_DBGA( "set_critter_stat( [%x]%p, [%x]%x, [%x]%x )", type[2], who, type[1], stat, type[0], amount );
+    SCP_DBGA( "set_critter_stat( [%x]%p, [%x]%i, [%x]%i )", type[2], who, type[1], stat, type[0], amount );
     err = 0;
     if( who ){
         if( who == gObjDude ){
@@ -1003,9 +1003,9 @@ void ScrGame_AnimateStandObj( Intp_t *scr )
         ScptGetSelfObj( scr );
     }
     if( !IN_COMBAT ){
-        AnimStart( 1 );
+        AnimRegStart( 1 );
         AnimRegAnim( obj, 0, 0 );
-        AnimBegin();
+        AnimRegEnd();
     }
 }
 
@@ -1031,9 +1031,9 @@ void ScrGame_AnimateStandReverseObj( Intp_t *scr )
         ScptGetSelfObj( scr );
     }
     if( !IN_COMBAT ){
-        AnimStart( 1 );
+        AnimRegStart( 1 );
         AnimRegAnimReverse( obj, 0, 0 );
-        AnimBegin();
+        AnimRegEnd();
     }
 }
 
@@ -1051,22 +1051,22 @@ void ScrGame_AnimateMoveObjToTile( Intp_t *scr )
     GETARGI( scr, type[ 0 ], Speed, 0, "animate_move_obj_to_tile" );
     GETARGI( scr, type[ 1 ], TileNo, 0, "animate_move_obj_to_tile" );
     GETARGP( scr, type[ 2 ], who, 0, "animate_move_obj_to_tile" );
-    SCP_DBGA( "animate_move_obj_to_tile( [%x]%p, [%x]%x, [%x]%x )", type[2], who, type[1], TileNo, type[0], Speed );
+    SCP_DBGA( "animate_move_obj_to_tile( [%x]%p, [%x]%i, [%x]%i )", type[2], who, type[1], TileNo, type[0], Speed );
     if( who ){
         if( TileNo > -1 ){
             if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 ){
                 ScrGameErrorMsg( scr, "animate_move_obj_to_tile", 2 );
             } else if( CritterCanTalk( who ) && !IN_COMBAT ){
                 if( Speed & 0x10 ){
-                    AnimClear( who );
+                    AnimRegClear( who );
                     Speed &= ~0x10u;
                 }
-                AnimStart( 1 );
+                AnimRegStart( 1 );
                 if( Speed )
                     AnimObjRunToTile( who, TileNo, who->Elevation, -1, 0 );
                 else
                     AnimObjMoveToTile( who, TileNo, who->Elevation, -1, 0 );
-                AnimBegin();
+                AnimRegEnd();
             }
         }
     } else {
@@ -1089,7 +1089,7 @@ void ScrGame_TileInTileRect( Intp_t *scr )
     GETARGI( scr, type[ 2 ], val[ 2 ], 2, "tile_in_tile_rect" ); tmp[ 2*2 + 1 ] = val[ 2 ] % 200; tmp[ 2*2 + 0 ] = val[ 2 ] / 200;
     GETARGI( scr, type[ 3 ], val[ 3 ], 3, "tile_in_tile_rect" ); tmp[ 3*2 + 1 ] = val[ 3 ] % 200; tmp[ 3*2 + 0 ] = val[ 3 ] / 200;
     GETARGI( scr, type[ 4 ], val[ 4 ], 4, "tile_in_tile_rect" ); tmp[ 4*2 + 1 ] = val[ 4 ] % 200; tmp[ 4*2 + 0 ] = val[ 4 ] / 200;
-    SCP_DBGA( "tile_in_tile_rect( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[4], val[4], type[3], val[3], type[2], val[2], type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "tile_in_tile_rect( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", type[4], val[4], type[3], val[3], type[2], val[2], type[1], val[1], type[0], val[0] );
     if( tmp[0] <= tmp[8] && tmp[0] >= tmp[2] && tmp[1] >= tmp[9] && tmp[1] <= tmp[3] ) InTile = 1;
     RETINT( scr, InTile );
 }
@@ -1117,7 +1117,7 @@ void ScrGame_TileDistance( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "tile_distance" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "tile_distance" );
-    SCP_DBGA( "tile_distance( [%x]%x, [%x]%x )", type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "tile_distance( [%x]%i, [%x]%i )", type[1], val[1], type[0], val[0] );
     if( val[0] == -1 || val[1] == -1 )
         Distance = 9999;
     else
@@ -1193,7 +1193,7 @@ void ScrGame_TileNumInDirection( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "tile_num_in_direction" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "tile_num_in_direction" );
     GETARGI( scr, type[ 2 ], val[ 2 ], 2, "tile_num_in_direction" );
-    SCP_DBGA( "tile_num_in_direction( [%x]%x, [%x]%x, [%x]%x )", type[2], val[2], type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "tile_num_in_direction( [%x]%i, [%x]%i, [%x]%i )", type[2], val[2], type[1], val[1], type[0], val[0] );
     if( val[ 2 ] == -1 ){
         ScrGameErrorMsg( scr, "tile_num_in_direction", 3 );
         eprintf( " tileNum is -1!" );
@@ -1443,7 +1443,7 @@ void ScrGame_Attack( Intp_t *scr )
     GETARGI( scr, type[ 5 ], num_attacks, 5, "attack" );
     GETARGI( scr, type[ 6 ], called_shot, 6, "attack" );
     GETARGP( scr, type[ 7 ], who, 7, "attack" );
-    SCP_DBGA( "attack( [%x]%p, [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+    SCP_DBGA( "attack( [%x]%p, [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	type[7], who, type[6], called_shot, type[5], num_attacks, type[4], bonus, 
 	    type[3], min_damage, type[2], max_damage, type[1], attacker_results, type[0], target_results );
     if( !who ){
@@ -1512,7 +1512,7 @@ void ScrGame_StartGdialog( Intp_t *scr )
     GETARGI( scr, type[ 2 ], Mood, 2, "start_gdialog" );
     GETARGP( scr, type[ 3 ], who, 3, "start_gdialog" );
     GETARGI( scr, type[ 4 ], MsgFileNum, 4, "start_gdialog" );
-    SCP_DBGA( "start_gdialog( [%x]%x, [%x]%p, [%x]%x, [%x]%x, [%x]%x)", type[4], MsgFileNum, type[3], who, type[2], Mood, type[1], HeadNum, type[0], BackGroundIdx );
+    SCP_DBGA( "start_gdialog( [%x]%i, [%x]%p, [%x]%i, [%x]%i, [%x]%i)", type[4], MsgFileNum, type[3], who, type[2], Mood, type[1], HeadNum, type[0], BackGroundIdx );
 
     if( IN_COMBAT ) return;
     if( !who ){
@@ -1567,7 +1567,7 @@ void ScrGame_DialogueReaction( Intp_t *scr )
     int val;
 
     GETARGI( scr, type, val, 0, "dialogue_reaction" );
-    SCP_DBGA( "dialogue_reaction( [%x]%x )", type, val );
+    SCP_DBGA( "dialogue_reaction( [%x]%i )", type, val );
     gScrGameMood = val;
     GdialogReaction( val );
 }
@@ -1658,7 +1658,7 @@ void ScrGame_Metarule3( Intp_t *scr )
     GETARGI( scr, type[ 1 ], arg1, 1, "metarule3" );
     GETARGIP( scr, type[ 2 ], obj, p2,2, "metarule3" );
     GETARGI( scr, type[ 3 ], meta3_switch, 3, "metarule3" );
-    SCP_DBGA( "metarule3( [%x]%x, [%x]%x,  [%x]%x,  [%x]%x)", type[3], meta3_switch, type[2], obj, type[1], arg1, type[0], arg0 );
+    SCP_DBGA( "metarule3( [%x]%i, [%x]%i,  [%x]%i,  [%x]%i)", type[3], meta3_switch, type[2], obj, type[1], arg1, type[0], arg0 );
     switch( meta3_switch ){
 	case 100:
 	    ScptUnk131( obj, arg1 );
@@ -1721,7 +1721,7 @@ void ScrGame_SetMapMusic( Intp_t *scr )
 
     GETARGS( scr, type[ 0 ], val[ 0 ], 0, "set_map_music" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "set_map_music" );
-    SCP_DBGA( "set_map_music( [%x]%x, [%x]%x )", type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "set_map_music( [%x]%i, [%x]%i )", type[1], val[1], type[0], val[0] );
     s = IntpGetString( scr, type[0] >> 8, val[ 0 ] );
     eprintf( "\nset_map_music: %d, %s", val[ 1 ], s );
     WmSetMapMusic( val[ 1 ], s );
@@ -1740,7 +1740,7 @@ void ScrGame_SetObjVisibility( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], val, 0, "set_obj_visibility" );
     GETARGP( scr, type[ 1 ], obj, 1, "set_obj_visibility" );
-    SCP_DBGA( "set_obj_visibility( [%x]%p, [%x]%x )", type[1], obj, type[0], val );
+    SCP_DBGA( "set_obj_visibility( [%x]%p, [%x]%i )", type[1], obj, type[0], val );
 
     if( !obj ){
         ScrGameErrorMsg( scr, "set_obj_visibility", 1 );
@@ -1754,7 +1754,7 @@ void ScrGame_SetObjVisibility( Intp_t *scr )
         if( !(obj->Flags & OBJ_FLG_UNK01 ) ){
             if( IN_COMBAT ){
                 ObjUnk35( obj, 0 );
-                ObjGetRadius( obj, 0 );
+                ObjClrOutline( obj, NULL );
             }
             if( ObjUnk33( obj, &Area ) != -1 ){
                 if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) obj->Flags |= OBJ_FLG_VISIBLE;
@@ -1787,7 +1787,7 @@ void ScrGame_LoadMap( Intp_t *scr )
     type2 = IntpPopwA(scr);
     val2 = IntpPopiA( scr );
     if( type2 == SCR_FSTRING ) IntpStringDeRef( scr, SCR_FSTRING, val2 );
-    SCP_DBGA( "load_map( [%x]%x, [%x]%x )", type2, val2, type1, val1 );
+    SCP_DBGA( "load_map( [%x]%i, [%x]%i )", type2, val2, type1, val1 );
     MapIdxByFileName = -1;
     Arg = 0;
     if( type2 != SCR_INT ){
@@ -1824,7 +1824,7 @@ void ScrGame_WmAreaSetPos( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "wm_area_set_pos" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "wm_area_set_pos" );
     GETARGI( scr, type[ 2 ], val[ 2 ], 2, "wm_area_set_pos" );
-    SCP_DBGA( "wm_area_set_pos( [%x]%x, [%x]%x, [%x]%x )", type[2], val[2], type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "wm_area_set_pos( [%x]%i, [%x]%i, [%x]%i )", type[2], val[2], type[1], val[1], type[0], val[0] );
     if( WmSetPos( val[ 2 ], val[ 1 ], val[ 0 ] ) != -1 ){
         ScrGameErrorMsg( scr, "wm_area_set_pos", 3 );
         eprintf( "Invalid Parameter!" );
@@ -1848,7 +1848,7 @@ void ScrGame_SetExitGrids( Intp_t *scr )
     GETARGI( scr, type[ 2 ], val[ 2 ], 2, "set_exit_grids" );
     GETARGI( scr, type[ 3 ], val[ 3 ], 3, "set_exit_grids" );
     GETARGI( scr, type[ 4 ], val[ 4 ], 4, "set_exit_grids" );
-    SCP_DBGA( "set_exit_grids( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[4], val[4], type[3], val[3], type[2], val[2], type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "set_exit_grids( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", type[4], val[4], type[3], val[3], type[2], val[2], type[1], val[1], type[0], val[0] );
     for( p = ObjGetVisibleObjectFirst( val[4] ); p; p = ObjGetVisibleObjectNext() ){
         if( p->Pid >= 0x5000010 && p->Pid <= 0x5000017 ){
             p->Grid.DestMapId = val[3];
@@ -1892,7 +1892,7 @@ void ScrGame_CritterHeal( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], val, 0, "critter_heal" );
     GETARGP( scr, type[ 1 ], obj, 1, "critter_heal" );
-    SCP_DBGA( "critter_heal( [%x]%p, [%x]%x )", type[1], obj, type[1], val );
+    SCP_DBGA( "critter_heal( [%x]%p, [%x]%i )", type[1], obj, type[1], val );
     result = CritterHeal( obj, val );
     if( gObjDude == obj ) IfaceRenderHP( 1 );
     RETINT( scr, result );
@@ -1908,7 +1908,7 @@ void ScrGame_SetLightLevel( Intp_t *scr)
     int val, light;
 
     GETARGI( scr, type, val, 0, "set_light_level" );
-    SCP_DBGA( "set_light_level( [%x]%x )", type, val );
+    SCP_DBGA( "set_light_level( [%x]%i )", type, val );
     if( val >= 50 ){
         if( val == 50 ){
             LightMapSetLt( gScrGameLightLvl[1], 1 );
@@ -1979,14 +1979,14 @@ void ScrGame_KillCritter( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], val, 0, "kill_critter" );
     GETARGP( scr, type[ 1 ], obj, 1, "kill_critter" );
-    SCP_DBGA( "kill_critter( [%x]%p, [%x]%x )", type[1], obj, type[0], val );
+    SCP_DBGA( "kill_critter( [%x]%p, [%x]%i )", type[1], obj, type[0], val );
     if( obj ){
         if( LsgPending() ){
             eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
         } else {
             scr->Flags |= SCR_FPROC_RUN;
             if( ScptGetSelfObj( scr ) == obj ) flg = 1;
-            AnimClear( obj );
+            AnimRegClear( obj );
             CombatUnk79( obj );
             CritterKill( obj, val, 1 );
             scr->Flags &= ~SCR_FPROC_RUN;
@@ -2070,7 +2070,7 @@ DD
                 scr->Flags &= ~SCR_FPROC_RUN;
                 return;
             }
-            AnimClear( v11 );
+            AnimRegClear( v11 );
             if( val[0] ){
                 CombatUnk79( v12 );
                 if( val[0] == 1 ){
@@ -2080,7 +2080,7 @@ DD
                     CritterKill( v13, 48, 1 );
                 }
             } else {
-                AnimClear( v12 );
+                AnimRegClear( v12 );
                 ObjDestroy( v18, &v17 );
                 TileUpdateArea( &v19, gMapCurrentLvl );
             }
@@ -2108,7 +2108,7 @@ void ScrGame_CritterDamage( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val, 0, "critter_damage" );
     GETARGI( scr, type[ 1 ], v15, 1, "critter_damage" );
     GETARGP( scr, type[ 2 ], v16, 2, "critter_damage" );
-    SCP_DBGA( "critter_damage( [%x]%p, [%x]%x, [%x]%x )", type[2], v16, type[1], v15, type[0], val );
+    SCP_DBGA( "critter_damage( [%x]%p, [%x]%i, [%x]%i )", type[2], v16, type[1], v15, type[0], val );
     if( v16 ){
         if( OBJTYPE( v16->Pid ) == TYPE_CRIT ){
             v10 = ScptGetSelfObj( scr );
@@ -2138,7 +2138,7 @@ void ScrGame_OpAddTimerEvent( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "add_timer_event" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "add_timer_event" );
     GETARGP( scr, type[ 2 ], obj, 2, "add_timer_event" );
-    SCP_DBGA( "add_timer_event( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "add_timer_event( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], val[1], type[0], val[0] );
     if( obj )
         ScptAddTimerEvent( obj->ScrId, val[ 1 ], val[ 0 ] );
     else
@@ -2172,7 +2172,7 @@ void ScrGame_GameTicks( Intp_t *scr )
     uint16_t type;
 
     GETARGI( scr, type, val, 0, "game_ticks" );
-    SCP_DBGA( "game_ticks( [%x]%x )", type, val );
+    SCP_DBGA( "game_ticks( [%x]%i )", type, val );
     if( val < 0 ) val = 0;
     RETINT( scr, 10 * val );
 }
@@ -2191,7 +2191,7 @@ void ScrGame_HasTrait( Intp_t *scr )
     GETARGI( scr, type[ 0 ], perk, 0, "has_trait" );
     GETARGP( scr, type[ 1 ], obj, 1, "has_trait" );
     GETARGI( scr, type[ 2 ], v14, 2, "has_trait" );
-    SCP_DBGA( "has_trait( [%x]%x, [%x]%p, [%x]%x )", type[2], v14, type[1], obj, type[0], perk );
+    SCP_DBGA( "has_trait( [%x]%i, [%x]%p, [%x]%i )", type[2], v14, type[1], obj, type[0], perk );
     if( !obj ){
         ScrGameErrorMsg( scr, "has_trait", 1 );
     } else {
@@ -2288,7 +2288,7 @@ void ScrGame_TileIsVisible( Intp_t *scr )
 
     Visibility = 0;
     GETARGI( scr, type, val, 0, "tile_is_visible" );
-    SCP_DBGA( "tile_is_visible( [%x]%x )", type, val );
+    SCP_DBGA( "tile_is_visible( [%x]%i )", type, val );
     if( ScrGameIsTileVisible( val ) ) Visibility = 1;
     RETINT( scr, Visibility );        
 }
@@ -2366,7 +2366,7 @@ void ScrGame_GameTimeAdvance( Intp_t *scr )
     int val, time, i;
 
     GETARGI( scr, type, val, 0, "game_time_advance" );
-    SCP_DBGA( "game_time_advance( [%x]%x )", type, val );
+    SCP_DBGA( "game_time_advance( [%x]%i )", type, val );
     time = val % 864000;
     for( i = 0; i < (val / 864000); i++ ){
         ScptTimeAdvance( 864000 );
@@ -2390,7 +2390,7 @@ void ScrGame_RadiationInc( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], val, 0, "radiation_inc" );
     GETARGP( scr, type[ 1 ], dude, 1, "radiation_inc" );
-    SCP_DBGA( "radiation_inc( [%x]%p, [%x]%x )", type[1], dude, type[0], val );
+    SCP_DBGA( "radiation_inc( [%x]%p, [%x]%i )", type[1], dude, type[0], val );
     if( dude )
         CritterRadInc( dude, val );
     else
@@ -2411,7 +2411,7 @@ void ScrGame_RadiationDec( Intp_t *scr )
     
     GETARGI( scr, type[ 0 ], val, 0, "radiation_dec" );
     GETARGP( scr, type[ 1 ], dude, 1, "radiation_dec" );
-    SCP_DBGA( "radiation_dec( [%x]%p, [%x]%x )", type[1], dude, type[0], val );
+    SCP_DBGA( "radiation_dec( [%x]%p, [%x]%i )", type[1], dude, type[0], val );
     if( dude ){
         CritterRadInc( dude, ( CritterRadiated( dude ) >= 0 ) ? -val : 0 );
     } else {
@@ -2432,7 +2432,7 @@ void ScrGame_CritterAttemptPlacement( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val, 0, "critter_attempt_placement" );
     GETARGI( scr, type[ 1 ], GridIdx, 1, "critter_attempt_placement" );
     GETARGP( scr, type[ 2 ], obj, 2, "critter_attempt_placement" );
-    SCP_DBGA( "critter_attempt_placement( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], GridIdx, type[0], val );
+    SCP_DBGA( "critter_attempt_placement( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], GridIdx, type[0], val );
     if( !obj ){
         ScrGameErrorMsg( scr, "critter_attempt_placement", 1 );
         return;
@@ -2486,7 +2486,7 @@ void ScrGame_OpCritterAddTrait( Intp_t *scr )
     GETARGI( scr, type[ 1 ], prk, 1, "critter_add_trait" );
     GETARGI( scr, type[ 2 ], v14, 2, "critter_add_trait" );
     GETARGP( scr, type[ 3 ], obj, 3, "critter_add_trait" );
-    SCP_DBGA( "critter_add_trait( [%x]%p, [%x]%x, [%x]%x, [%x]%x )", type[3], obj, type[2], v14, type[1], prk, type[0], val  );
+    SCP_DBGA( "critter_add_trait( [%x]%p, [%x]%i, [%x]%i, [%x]%i )", type[3], obj, type[2], v14, type[1], prk, type[0], val  );
     if( obj ){
         if( OBJTYPE( obj->Pid ) == TYPE_CRIT ){
             if( v14 ){
@@ -2534,7 +2534,7 @@ void ScrGame_CritterRmTrait( Intp_t *scr )
     GETARGI( scr, type[ 1 ], val1, 1, "critter_rm_trait" );
     GETARGI( scr, type[ 2 ], val2, 2, "critter_rm_trait" );
     GETARGP( scr, type[ 3 ], obj, 3, "critter_rm_trait" );
-    SCP_DBGA( "critter_rm_trait( [%x]%p, [%x]%x, [%x]%x, [%x]%x )", type[3], obj, type[2], val2, type[1], val1, type[0], val0  );
+    SCP_DBGA( "critter_rm_trait( [%x]%p, [%x]%i, [%x]%i, [%x]%i )", type[3], obj, type[2], val2, type[1], val1, type[0], val0  );
     if( obj ){
         ScrGameErrorMsg( scr, "critter_rm_trait", 1 );
         return;
@@ -2563,7 +2563,7 @@ void ScrGame_ProtoData( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], data_member, 0, "proto_data" );
     GETARGI( scr, type[ 1 ], pid, 1, "proto_data" );
-    SCP_DBGA( "proto_data( [%x]%x, [%x]%x )", type[1], pid, type[0], data_member );
+    SCP_DBGA( "proto_data( [%x]%i, [%x]%i )", type[1], pid, type[0], data_member );
     switch( ProtoDataMember( pid, data_member, (void **)&p ) ){
 	case 1: RETPTR( scr, p );return;
 	case 2: RETFTR( scr, IntpAddString( scr, p ) ); return;
@@ -2583,7 +2583,7 @@ void ScrGame_MessageStr( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], msg_num, 0, "message_str" );
     GETARGI( scr, type[ 1 ], msg_list, 1, "message_str" );
-    SCP_DBGA( "message_str( [%x]%x, [%x]%x )", type[1], msg_list, type[0], msg_num );
+    SCP_DBGA( "message_str( [%x]%i, [%x]%i )", type[1], msg_list, type[0], msg_num );
     if( msg_list ){
         msg = ScptGetDialog( msg_list, msg_num, 1 );
         if( !msg ){
@@ -2608,17 +2608,17 @@ void ScrGame_CritterInvenObj( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], val, 0, "critter_inven_obj" );
     GETARGP( scr, type[ 1 ], obj, 1, "critter_inven_obj" );
-    SCP_DBGA( "critter_inven_obj( [%x]%p, [%x]%x )", type[1], obj, type[0], val );
+    SCP_DBGA( "critter_inven_obj( [%x]%p, [%x]%i )", type[1], obj, type[0], val );
     if( !obj ){
         ScrGameErrorMsg( scr, "critter_inven_obj", 1 );
     } else {
 	if( OBJTYPE( obj->Pid ) == TYPE_CRIT ){
     	    switch( val ){
-        	case -2: RETINT( scr, obj->Critter.Box.Cnt ); break;
-        	case 0:  RETPTR( scr, InvGetArmorObj( obj ) ); break;
-        	case 1:  if( obj != gObjDude || IfaceGetSelectedHand() ){ RETPTR( scr, InvGetRHandObj( obj ) ); } break;
-        	case 2:  if( obj != gObjDude || !IfaceGetSelectedHand() ){ RETPTR( scr, InvGetLHandObj( obj ) ); } break;
-        	default: ScrGameEprintf( "\nscript error: %s: Error in critter_inven_obj -- wrong type!", scr->FileName ); break;
+        	case -2: RETINT( scr, obj->Critter.Box.Cnt ); return;
+        	case 0:  RETPTR( scr, InvGetArmorObj( obj ) ); return;
+        	case 1:  if( obj != gObjDude || IfaceGetSelectedHand() ){ RETPTR( scr, InvGetRHandObj( obj ) ); } return;
+        	case 2:  if( obj != gObjDude || !IfaceGetSelectedHand() ){ RETPTR( scr, InvGetLHandObj( obj ) ); } return;
+        	default: ScrGameEprintf( "\nscript error: %s: Error in critter_inven_obj -- wrong type!", scr->FileName ); break;        	
     	    }
 	} else {
 	    ScrGameErrorMsg( scr, "critter_inven_obj", 3 );
@@ -2642,7 +2642,7 @@ void ScrGame_ObjSetLightLevel( Intp_t *scr )
     GETARGI( scr, type[ 0 ], rad, 0, "obj_set_light_level" );
     GETARGI( scr, type[ 1 ], inten, 1, "obj_set_light_level" );
     GETARGP( scr, type[ 2 ], obj, 2, "obj_set_light_level" );
-    SCP_DBGA( "obj_set_light_level( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], inten, type[0], rad );
+    SCP_DBGA( "obj_set_light_level( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], inten, type[0], rad );
     if( !obj ){
         ScrGameErrorMsg(scr, "obj_set_light_level", 1);
         return;
@@ -2679,7 +2679,7 @@ void ScrGame_InvenCmds( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val0, 0, "inven_cmds" );
     GETARGI( scr, type[ 1 ], val1, 1, "inven_cmds" );
     GETARGP( scr, type[ 2 ], obj, 2, "inven_cmds" );
-    SCP_DBGA( "inven_cmds( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], val1, type[0], val0 );
+    SCP_DBGA( "inven_cmds( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], val1, type[0], val0 );
     if( obj ){
         if( val1 == 13 ) item = InvUnk27( obj, val0 );
     } else {
@@ -2720,7 +2720,7 @@ void ScrGame_FloatMsg( Intp_t *scr )
         }
     }
     GETARGP( scr, type[ 2 ], obj, 2, "float_msg" );
-    SCP_DBGA( "float_msg( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], Idx[1], type[0], Idx[0] );
+    SCP_DBGA( "float_msg( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], Idx[1], type[0], Idx[0] );
     if( !obj ){
         ScrGameErrorMsg( scr, "float_msg", 1 );
         return;
@@ -2802,13 +2802,13 @@ void ScrGame_MetaRule( Intp_t *scr )
     if( type[ 0 ] == SCR_PTR ){
         obj = IntpPopPtrA( scr );
 	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
-	SCP_DBGA( "metarule( [%x]%x, [%x]%p )", type[1], sel, type[0], obj );
+	SCP_DBGA( "metarule( [%x]%i, [%x]%p )", type[1], sel, type[0], obj );
     } else {
         meta_par = IntpPopiA( scr );
 	if( type[ 0 ] == SCR_FSTRING ) IntpStringDeRef( scr, type[ 0 ], meta_par );
 	if( (type[ 0 ] & ~0x800) != SCR_INT ) IntpError( "script error: %s: invalid arg %d to metarule", scr->FileName, 0 );
 	GETARGI( scr, type[ 1 ], sel, 1, "metarule" );
-	SCP_DBGA( "metarule( [%x]%x, [%x]%x )", type[1], sel, type[0], meta_par );
+	SCP_DBGA( "metarule( [%x]%i, [%x]%i )", type[1], sel, type[0], meta_par );
     }
     switch( sel ){
 	case 13: gMenuEscape = 2; RETINT( scr, 0 ); break;	    
@@ -2913,7 +2913,7 @@ void ScrGame_OpAnim( Intp_t *scr )
     GETARGI( scr, type[ 0 ], Orientation, 0, "anim" );
     GETARGI( scr, type[ 1 ], v21, 1, "anim" );
     GETARGP( scr, type[ 2 ], obj, 2, "anim" );
-    SCP_DBGA( "anim( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], v21, type[0], Orientation );
+    SCP_DBGA( "anim( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], v21, type[0], Orientation );
     if( !obj ){
         ScrGameErrorMsg( scr, "anim", 1 );
         return;
@@ -2921,7 +2921,7 @@ void ScrGame_OpAnim( Intp_t *scr )
     if( v21 < 0x41 ){
         if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) p_State = &obj->Critter.State;
         v9 = ScrGamUnk06( obj, v21, 1 );
-        AnimStart( 1 );
+        AnimRegStart( 1 );
         if( !Orientation ){
             AnimRegAnim( obj, v9, 0 );
             if ( v9 >= 20 && v9 <= 35 ){
@@ -2939,7 +2939,7 @@ void ScrGame_OpAnim( Intp_t *scr )
     	    if( p_State ) p_State->CombatResult |= 0x02;
     	    AnimUnk62( obj, v12, -1 );
         }
-        AnimBegin();
+        AnimRegEnd();
         return;
     }
     if( v21 == 1000 ){
@@ -2969,7 +2969,7 @@ void ScrGame_ObjCarryingPidObj( Intp_t *scr )
     Item = NULL;
     GETARGI( scr, type[ 0 ], val, 0, "obj_carrying_pid_obj" );
     GETARGP( scr, type[ 1 ], obj, 1, "obj_carrying_pid_obj" );
-    SCP_DBGA( "obj_carrying_pid_obj( [%x]%p, [%x]%x )", type[1], obj, type[0], val );
+    SCP_DBGA( "obj_carrying_pid_obj( [%x]%p, [%x]%i )", type[1], obj, type[0], val );
     if( obj )
         Item = InvGetItem( obj, val );
     else
@@ -3000,12 +3000,12 @@ void ScrGame_RegAnimFunc( Intp_t *scr )
     }
 
     GETARGI( scr, type[ 1 ], par[1], 1, "reg_anim_func" );
-    SCP_DBGA( "reg_anim_func( [%x]%x, [%x]%x )", type[1], par[1], type[0], par[0] );
+    SCP_DBGA( "reg_anim_func( [%x]%i, [%x]%i )", type[1], par[1], type[0], par[0] );
     if( IN_COMBAT ) return;
     switch( par[1] ){
-	case 1: AnimStart( par[0] );
-	case 2: AnimClear( obj );
-	case 3: AnimBegin( );    
+	case 1: AnimRegStart( par[0] ); break;
+	case 2: AnimRegClear( obj ); break;
+	case 3: AnimRegEnd( ); break;
     }
 }
 
@@ -3024,7 +3024,7 @@ void ScrGame_RegAnimAnimate( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val0, 0, "reg_anim_animate" );
     GETARGI( scr, type[ 1 ], val1, 1, "reg_anim_animate" );
     GETARGP( scr, type[ 2 ], obj, 2, "reg_anim_animate" );
-    SCP_DBGA( "reg_anim_animate( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], val1, type[0], val0 );
+    SCP_DBGA( "reg_anim_animate( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], val1, type[0], val0 );
     if( IN_COMBAT ) return;
     if( val1 == 20 && obj && obj->Pid == 0x100002F ){
 	vlvl = 0;
@@ -3050,7 +3050,7 @@ void ScrGame_RegAnimAnimateReverse( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "reg_anim_animate_reverse" );
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "reg_anim_animate_reverse" );
     GETARGP( scr, type[ 2 ], obj, 2, "reg_anim_animate_reverse" );
-    SCP_DBGA( "reg_anim_animate_reverse( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "reg_anim_animate_reverse( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], val[1], type[0], val[0] );
     if( IN_COMBAT ) return;
     if( obj )
         AnimRegAnimReverse( obj, val[ 1 ], val[ 0 ] );
@@ -3073,7 +3073,7 @@ void ScrGame_RegAnimObjMoveToObj( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val, 0, "reg_anim_obj_move_to_obj" );
     GETARGP( scr, type[ 1 ], DstObj, 1, "reg_anim_obj_move_to_obj" );
     GETARGP( scr, type[ 2 ], Object, 2, "reg_anim_obj_move_to_obj" );
-    SCP_DBGA( "reg_anim_obj_move_to_obj( [%x]%p, [%x]%p, [%x]%x )", type[2], Object, type[1], DstObj, type[0], val );
+    SCP_DBGA( "reg_anim_obj_move_to_obj( [%x]%p, [%x]%p, [%x]%i )", type[2], Object, type[1], DstObj, type[0], val );
     if( IN_COMBAT ) return;
     if( Object )
         AnimObjMoveToObj( Object, DstObj, -1, val );
@@ -3094,7 +3094,7 @@ void ScrGame_RegAnimObjRunToObj( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val, 0, "reg_anim_obj_run_to_obj" );
     GETARGP( scr, type[ 1 ], obj2, 1, "reg_anim_obj_run_to_obj" );
     GETARGP( scr, type[ 2 ], obj1, 2, "reg_anim_obj_run_to_obj" );
-    SCP_DBGA( "reg_anim_obj_run_to_obj( [%x]%p, [%x]%p, [%x]%x )", type[2], obj1, type[1], obj2, type[0], val );
+    SCP_DBGA( "reg_anim_obj_run_to_obj( [%x]%p, [%x]%p, [%x]%i )", type[2], obj1, type[1], obj2, type[0], val );
     if( IN_COMBAT ) return;
     if( obj1 )
         AnimObjRunToObj( obj1, obj2, -1, val );
@@ -3117,7 +3117,7 @@ void ScrGame_RegAnimObjMoveToTile( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val, 0, "reg_anim_obj_move_to_tile" );
     GETARGI( scr, type[ 1 ], tile, 1, "reg_anim_obj_move_to_tile" );
     GETARGP( scr, type[ 2 ], obj, 2, "reg_anim_obj_move_to_tile" );
-    SCP_DBGA( "reg_anim_obj_move_to_tile( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], tile, type[0], val );
+    SCP_DBGA( "reg_anim_obj_move_to_tile( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], tile, type[0], val );
     if( IN_COMBAT ) return;
     if( obj )
         AnimObjMoveToTile( obj, tile, obj->Elevation, -1, val );
@@ -3138,7 +3138,7 @@ void ScrGame_RegAnimObjRunToTile( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val, 0, "reg_anim_obj_run_to_tile" );
     GETARGI( scr, type[ 1 ], tile, 1, "reg_anim_obj_run_to_tile" );
     GETARGP( scr, type[ 2 ], obj, 2, "reg_anim_obj_run_to_tile" );
-    SCP_DBGA( "reg_anim_obj_run_to_tile( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], tile, type[0], val );
+    SCP_DBGA( "reg_anim_obj_run_to_tile( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], tile, type[0], val );
     if( IN_COMBAT ) return;
     if( obj )
         AnimObjRunToTile( obj, tile, obj->Elevation, -1, val );
@@ -3158,10 +3158,10 @@ void ScrGame_PlayGmovie( Intp_t *scr )
     memcpy( tmp, gScrGameMovieFlags, sizeof( gScrGameMovieFlags ) );
     scr->Flags |= SCR_FPROC_RUN;
     GETARGI( scr, type, val, 0, "play_gmovie" );
-    SCP_DBGA( "play_gmovie( [%x]%x )", type, val );
+    SCP_DBGA( "play_gmovie( [%x]%i )", type, val );
     GdialogUnk04();
     if( GMoviePlay( val, tmp[ val ] ) == -1 ) eprintf( "\nError playing movie %d!", val );
-    GdialogUnk03();
+    GdialogTaskCb();
     scr->Flags &= ~SCR_FPROC_RUN;
 }
 
@@ -3179,7 +3179,7 @@ void ScrGame_AddMultObjsToInven( Intp_t *scr )
     GETARGI( scr, type[ 0 ], Quantity, 0, "add_mult_objs_to_inven" );
     GETARGP( scr, type[ 1 ], item, 1, "add_mult_objs_to_inven" );
     GETARGP( scr, type[ 2 ], dude, 2, "add_mult_objs_to_inven" );
-    SCP_DBGA( "add_mult_objs_to_inven( [%x]%p, [%x]%p, [%x]%x )", type[2], dude, type[1], item, type[0], Quantity );
+    SCP_DBGA( "add_mult_objs_to_inven( [%x]%p, [%x]%p, [%x]%i )", type[2], dude, type[1], item, type[0], Quantity );
     if( !dude || !item ) return;
     if( Quantity >= 0 ){
         if( Quantity > 99999 ) Quantity = 500;
@@ -3187,8 +3187,8 @@ void ScrGame_AddMultObjsToInven( Intp_t *scr )
         Quantity = 1;
     }
     if( !ItemAdd( dude, item, Quantity ) ){
-        ObjLightItem( dude, &Area );
-        TileUpdateArea( &Area, dude->Elevation );
+        ObjLightItem( item, &Area );
+        TileUpdateArea( &Area, item->Elevation );
     }
 }
 
@@ -3211,7 +3211,7 @@ void ScrGame_RmMultObjsFromInven( Intp_t *scr )
     GETARGI( scr, type[ 0 ], Quantity, 0, "rm_mult_objs_from_inven" );
     GETARGP( scr, type[ 1 ], item, 1, "rm_mult_objs_from_inven" );
     GETARGP( scr, type[ 2 ], dude, 2, "rm_mult_objs_from_inven" );
-    SCP_DBGA( "rm_mult_objs_from_inven( [%x]%p, [%x]%p, [%x]%x )", type[2], dude, type[1], item, type[0], Quantity );
+    SCP_DBGA( "rm_mult_objs_from_inven( [%x]%p, [%x]%p, [%x]%i )", type[2], dude, type[1], item, type[0], Quantity );
     if( !dude || !item ) return;    
     v19 = ( item->Flags & 0x7000000 ) ? 1 : 0;
     v11 = Item33( dude, item );
@@ -3266,7 +3266,7 @@ void ScrGame_Explosion( Intp_t *scr )
     GETARGI( scr, type[ 0 ], dmg, 0, "explosion" );
     GETARGI( scr, type[ 1 ], lvl, 1, "explosion" );
     GETARGI( scr, type[ 2 ], tilenum, 2, "explosion" );
-    SCP_DBGA( "explosion( [%x]%x, [%x]%x, [%x]%x )", type[2], tilenum, type[1], lvl, type[0], dmg );
+    SCP_DBGA( "explosion( [%x]%i, [%x]%i, [%x]%i )", type[2], tilenum, type[1], lvl, type[0], dmg );
     buum = 1;
     if( tilenum == -1 ){
         eprintf( "\nError: explosion: bad tile_num!" );
@@ -3349,7 +3349,7 @@ void ScrGame_GsayReply( Intp_t *scr )
             }
         }
     }
-    SCP_DBGA( "gsay_reply( [%x]%x, [%x]%x )", type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "gsay_reply( [%x]%i, [%x]%i )", type[1], val[1], type[0], val[0] );
     if( s )
         GdialogSayReply( scr, s );
     else
@@ -3394,7 +3394,7 @@ void ScrGame_GsayOption( Intp_t *scr )
             }
         }
     }
-    SCP_DBGA( "gsay_option( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[3], Idx[3], type[2], Idx[2], type[1], Idx[1], type[0], Idx[0] );
+    SCP_DBGA( "gsay_option( [%x]%i, [%x]%i, [%x]%i, [%x]%i )", type[3], Idx[3], type[2], Idx[2], type[1], Idx[1], type[0], Idx[0] );
     if( (type[ 1 ] & 0xF7FF) == SCR_STRING ){
         IntpGetString( scr, type[ 1 ] >> 8, Idx[ 1 ] );
         if( s )
@@ -3443,7 +3443,7 @@ void ScrGame_GsayMessage( Intp_t *scr )
             }
         }
     }    
-    SCP_DBGA( "gsay_message( %s, [%x]%x, [%x]%x )", Arg, type[2], val[2], type[1], val[1] );
+    SCP_DBGA( "gsay_message( %s, [%x]%i, [%x]%i )", Arg, type[2], val[2], type[1], val[1] );
     if( Arg )
         GdialogSayReply( scr, Arg );
     else
@@ -3479,7 +3479,7 @@ void ScrGame_GigOption( Intp_t *scr )
             IntpError( "script error: %s: invalid arg %d to giq_option", scr->FileName, i );
         }
     }
-    SCP_DBGA( "giq_option( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", type[4], val[4], type[3], val[3], type[2], val[2], type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "giq_option( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", type[4], val[4], type[3], val[3], type[2], val[2], type[1], val[1], type[0], val[0] );
     a3 = NULL;
     v14 = v12 = FeatGetVal( gObjDude, FEAT_INTELLIGENCE );
     v13 = PerkLvl( gObjDude, PERK_SMOOTH_TALKER );
@@ -3612,7 +3612,7 @@ void ScrGame_RegAnimAnimateForever( Intp_t *scr )
     SCP_DBGA( "reg_anim_animate_forever( [%x]%p, [%x],%x )", type[1], obj, type[0], anim );
     if( IN_COMBAT ) return;    
     if( obj )
-        AnimRegAnimate( obj, anim, -1 );
+        AnimRegAnimateForever( obj, anim, -1 );
     else
         ScrGameErrorMsg( scr, "reg_anim_animate_forever", 1 );
 }
@@ -3630,7 +3630,7 @@ void ScrGame_CritterInjure( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], val0, 0, "critter_injure" );
     GETARGP( scr, type[ 1 ], obj, 1, "critter_injure" );
-    SCP_DBGA( "critter_injure( [%x]%p, [%x]%x )", type[1], obj, type[0], val0 );
+    SCP_DBGA( "critter_injure( [%x]%p, [%x]%i )", type[1], obj, type[0], val0 );
     if( !obj ){
         ScrGameErrorMsg( scr, "critter_injure", 1 );
         return;
@@ -3667,7 +3667,7 @@ void ScrGame_GdialogBarter( Intp_t *scr )
     int bartermod;
 
     GETARGI( scr, type, bartermod, 0, "gdialog_barter" );
-    SCP_DBGA( "gdialog_barter( [%x]%x )", type, bartermod );
+    SCP_DBGA( "gdialog_barter( [%x]%i )", type, bartermod );
     if( GdialogBarterMenu( bartermod ) == -1 ) eprintf( "\nScript Error: gdialog_barter: failed" );
 }
 
@@ -3864,7 +3864,7 @@ void ScrGame_GfadeOut( Intp_t *scr )
     int val;
 
     GETARGI( scr, type, val, 0, "gfade_out" );
-    SCP_DBGA( "gfade_out( [%x]%x )", type, val );
+    SCP_DBGA( "gfade_out( [%x]%i )", type, val );
     if( val )
         FadeStep( gFadePaletteC );
     else
@@ -3881,7 +3881,7 @@ void ScrGame_GfadeIn( Intp_t *scr )
     int val;
 
     GETARGI( scr, type, val, 0, "gfade_in" );
-    SCP_DBGA( "gfade_in( [%x]%x )", type, val );
+    SCP_DBGA( "gfade_in( [%x]%i )", type, val );
     if( val )
         FadeStep( gPalBase );
     else
@@ -3921,7 +3921,7 @@ void ScrGame_ItemCapsAdjust( Intp_t *scr )
     n = -1;
     GETARGI( scr, type[ 0 ], adj, 0, "item_caps_adjust" );
     GETARGP( scr, type[ 1 ], obj, 1, "item_caps_adjust" );
-    SCP_DBGA( "item_caps_adjust( [%x]%p, [%x]%x )", type[1], obj, type[0], adj );
+    SCP_DBGA( "item_caps_adjust( [%x]%p, [%x]%i )", type[1], obj, type[0], adj );
     if( obj )
         n = ItemBarter( obj, adj );
     else
@@ -3945,7 +3945,7 @@ void ScrGame_AnimActionFrame( Intp_t *scr )
     ActionFrame = 0;
     GETARGI( scr, type[ 0 ], val0, 0, "anim_action_frame" );
     GETARGP( scr, type[ 1 ], obj, 1, "anim_action_frame" );
-    SCP_DBGA( "anim_action_frame( [%x]%p, [%x]%x )", type[1], obj, type[0], val0 );
+    SCP_DBGA( "anim_action_frame( [%x]%p, [%x]%i )", type[1], obj, type[0], val0 );
     if( obj ){
         if( (data = ArtLoadImg( ArtMakeId( (obj->ImgId & 0xF000000) >> 24, obj->ImgId & 0xFFF, val0, 0, obj->Orientation ), &img )) ){
             ActionFrame = ArtGetActionFrame( data );
@@ -3972,7 +3972,7 @@ void ScrGame_RegAnimPlaySfx( Intp_t *scr )
     GETARGI( scr, type[ 0 ], delay, 0, "reg_anim_play_sfx" );
     GETARGS( scr, type[ 1 ], sfx_name, 1, "reg_anim_play_sfx" );
     GETARGP( scr, type[ 2 ], who, 2, "reg_anim_play_sfx" );    
-    SCP_DBGA( "reg_anim_play_sfx( [%x]%p, [%x]%x, [%x]%x )", type[2], who, type[1], sfx_name, type[0], delay );
+    SCP_DBGA( "reg_anim_play_sfx( [%x]%p, [%x]%i, [%x]%i )", type[2], who, type[1], sfx_name, type[0], delay );
     if( !(s = IntpGetString( scr, type[1], sfx_name ) ) ){
         ScrGameErrorMsg( scr, "reg_anim_play_sfx", 3 );
         eprintf( " Can't match string!" );
@@ -3996,7 +3996,7 @@ void ScrGame_CritterModSkill( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val0, 0, "critter_mod_skill" );
     GETARGI( scr, type[ 1 ], val1, 0, "critter_mod_skill" );
     GETARGP( scr, type[ 2 ], obj, 0, "critter_mod_skill" );
-    SCP_DBGA( "critter_mod_skill( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], val1, type[0], val0 );
+    SCP_DBGA( "critter_mod_skill( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], val1, type[0], val0 );
     if( obj && val0 ){
         if( OBJTYPE( obj->Pid ) == TYPE_CRIT ){
             if ( obj == gObjDude ){
@@ -4039,7 +4039,7 @@ void ScrGame_SfxBuildCharName( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val0, 0, "sfx_build_char_name" );
     GETARGI( scr, type[ 1 ], val1, 0, "sfx_build_char_name" );
     GETARGP( scr, type[ 2 ], obj, 0, "sfx_build_char_name" );
-    SCP_DBGA( "sfx_build_char_name( [%x]%p, [%x]%x, [%x]%x )", type[2], obj, type[1], val1, type[0], val0 );
+    SCP_DBGA( "sfx_build_char_name( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], val1, type[0], val0 );
     if( obj ){
         strcpy( stmp, GSoundCharacterFileName( obj, val1, val0 ) );
         err = IntpAddString( scr, stmp );
@@ -4060,7 +4060,7 @@ void ScrGame_SfxBuildAmbientName( Intp_t *scr )
     char stmp[24];
 
     GETARGI( scr, type, val, 0, "sfx_build_ambient_name" );
-    SCP_DBGA( "sfx_build_ambient_name( [%x]%x )", type, val );
+    SCP_DBGA( "sfx_build_ambient_name( [%x]%i )", type, val );
     strcpy( stmp, GSoundAmbientFileName( IntpGetString( scr, type >> 8, val ) ) );
     RETFTR( scr, IntpAddString( scr, stmp ) );
 }
@@ -4076,7 +4076,7 @@ void ScrGame_SfxBuildInterfaceName( Intp_t *scr )
     char stmp[24];
 
     GETARGI( scr, type, val, 0, "sfx_build_interface_name" );
-    SCP_DBGA( "sfx_build_interface_name( [%x]%x )", type, val );
+    SCP_DBGA( "sfx_build_interface_name( [%x]%i )", type, val );
     strcpy( stmp, GSoundItemFileName( IntpGetString( scr, type >> 8, val ) ) );
     RETFTR( scr, IntpAddString( scr, stmp ) );
 }
@@ -4092,7 +4092,7 @@ void ScrGame_SfxBuildItemName( Intp_t *scr )
     char stmp[24];
 
     GETARGI( scr, type, val, 0, "sfx_build_item_name" );
-    SCP_DBGA( "sfx_build_item_name( [%x]%x )", type, val );
+    SCP_DBGA( "sfx_build_item_name( [%x]%i )", type, val );
     strcpy( stmp, GSoundItemFileName( IntpGetString( scr, type >> 8, val ) ) );
     RETFTR( scr, IntpAddString( scr, stmp ) );
 }
@@ -4112,7 +4112,7 @@ void ScrGame_SfxBuildWeaponName( Intp_t *scr )
     GETARGI( scr, type[ 1 ], hit_mode, 1, "sfx_build_weapon_name" );
     GETARGP( scr, type[ 2 ], what, 2, "sfx_build_weapon_name" );
     GETARGI( scr, type[ 3 ], action_type, 3, "sfx_build_weapon_name" );
-    SCP_DBGA( "sfx_build_weapon_name( [%x]%x, [%x]%p, [%x]%x, [%x]%p )", type[3], action_type, type[2], what, type[1], hit_mode, type[0], who );
+    SCP_DBGA( "sfx_build_weapon_name( [%x]%i, [%x]%p, [%x]%i, [%x]%p )", type[3], action_type, type[2], what, type[1], hit_mode, type[0], who );
     strcpy( stmp, GSoundWeaponFileName( action_type, what, hit_mode, who ) );
     RETFTR( scr, IntpAddString( scr, stmp ) );
 }
@@ -4130,7 +4130,7 @@ void ScrGame_SfxBuildSceneryName( Intp_t *scr )
     GETARGI( scr, type[ 0 ], val0, 0, "sfx_build_scenery_name" );
     GETARGI( scr, type[ 1 ], val1, 1, "sfx_build_scenery_name" );
     GETARGI( scr, type[ 2 ], val2, 2, "sfx_build_scenery_name" );
-    SCP_DBGA( "sfx_build_scenery_name( [%x]%x, [%x]%x, [%x]%x )", type[2], val2, type[1], val1, type[0], val0 );
+    SCP_DBGA( "sfx_build_scenery_name( [%x]%i, [%x]%i, [%x]%i )", type[2], val2, type[1], val1, type[0], val0 );
     strcpy( stmp, GSoundSceneryFileName( val2, val1, IntpGetString( scr, type[ 1 ], val0 ) ) );
     RETFTR( scr, IntpAddString( scr, stmp ) );
 }
@@ -4149,7 +4149,7 @@ void ScrGame_SfxBuildOpenName( Intp_t *scr )
     n = 0;
     GETARGI( scr, type[ 0 ], val, 1, "sfx_build_open_name" );
     GETARGP( scr, type[ 1 ], obj, 2, "sfx_build_open_name" );
-    SCP_DBGA( "sfx_build_open_name( [%x]%p, [%x]%x )", type[1], obj, type[0], val );
+    SCP_DBGA( "sfx_build_open_name( [%x]%p, [%x]%i )", type[1], obj, type[0], val );
     if( obj ){
         strcpy( stmp, GSoundOpenFileName( obj, val ) );
         n = IntpAddString( scr, stmp );
@@ -4230,7 +4230,7 @@ void ScrGame_DestroyMultObjs( Intp_t *scr )
     scr->Flags |= SCR_FPROC_RUN;
     GETARGI( scr, type[ 0 ], val[ 0 ], 0, "destroy_mult_objs" );
     GETARGP( scr, type[ 1 ], obj, 1, "destroy_mult_objs" );    
-    SCP_DBGA( "destroy_mult_objs( [%x]%p, [%x]%x )", type[1], obj, type[0], val[ 0 ] );
+    SCP_DBGA( "destroy_mult_objs( [%x]%p, [%x]%i )", type[1], obj, type[0], val[ 0 ] );
     if( obj == ScptGetSelfObj( scr ) ) v26 = 1;
     if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) CombatUnk79(obj);
     Owner = ObjGetOwner( obj );
@@ -4244,12 +4244,12 @@ void ScrGame_DestroyMultObjs( Intp_t *scr )
             obj->ScrId = -1;
     	    obj->Flags |= 0x05;
         } else {
-            AnimClear( obj );
+            AnimRegClear( obj );
             ObjDestroy( obj, &Area );
         }
         v27 = v16;
     } else {
-        AnimClear( obj );
+        AnimRegClear( obj );
         ObjDestroy( obj, &Area );
         TileUpdateArea( &Area, gMapCurrentLvl );
     }
@@ -4379,7 +4379,7 @@ void ScrGame_ArtAnim( Intp_t *scr )
     int val;
 
     GETARGI( scr, type, val, 0, "art_anim" );
-    SCP_DBGA( "art_anim( obj:[%x]%x )", type, val );
+    SCP_DBGA( "art_anim( obj:[%x]%i )", type, val );
     RETINT( scr, (val & 0xFF0000) >> 16 );
 }
 
@@ -4393,7 +4393,7 @@ void ScrGame_PartyMemberObj( Intp_t *scr )
     int pid;
 
     GETARGI( scr, type, pid, 0, "party_member_obj" );
-    SCP_DBGA( "party_member_obj( obj:[%x]%x )", type, pid );
+    SCP_DBGA( "party_member_obj( obj:[%x]%i )", type, pid );
     RETPTR( scr, PartyMemberObj( pid ) );
 }
 
@@ -4408,7 +4408,7 @@ void ScrGame_RotationToTile( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], destTile, 0, "rotation_to_tile" );
     GETARGI( scr, type[ 1 ], srcTile, 0, "rotation_to_tile" );
-    SCP_DBGA( "rotation_to_tile( [%x]%x, [%x]%x )", type[1], srcTile, type[0], destTile );
+    SCP_DBGA( "rotation_to_tile( [%x]%i, [%x]%i )", type[1], srcTile, type[0], destTile );
     RETINT( scr, TileTurnAt( srcTile, destTile ) );
 }
 
@@ -4440,7 +4440,7 @@ void ScrGame_GdialogSetBarterMod( Intp_t *scr )
     int val;
 
     GETARGI( scr, type, val, 0, "gdialog_set_barter_mod" );
-    SCP_DBGA( "gdialog_set_barter_mod( mod:[%x]%x )", type, val );
+    SCP_DBGA( "gdialog_set_barter_mod( mod:[%x]%i )", type, val );
     GdialogSetBarterModifier( val );
 }
 
@@ -4514,7 +4514,7 @@ void ScrGame_CritterSetFleeState( Intp_t *scr )
 
     GETARGI( scr, type[ 0 ], state, 0, "critter_set_flee_state" );
     GETARGP( scr, type[ 1 ], obj, 1, "critter_set_flee_state" );    
-    SCP_DBGA( "critter_set_flee_state( who:[%x]%p FleeOn:[%x]%x )", type[ 1 ], obj, type[ 0 ], state );
+    SCP_DBGA( "critter_set_flee_state( who:[%x]%p FleeOn:[%x]%i )", type[ 1 ], obj, type[ 0 ], state );
     if( obj ){
         if( state )
             obj->Critter.State.Reaction |= OBJ_STAT_FLEE;
@@ -4556,7 +4556,7 @@ void ScrGame_DebugMsg( Intp_t *scr )
 
     debug_en = 0;
     GETARGS( scr, type, val, 0, "debug_msg" );    
-    SCP_DBGA( "debug_msg( text:[%x]%x )", type, val );
+    SCP_DBGA( "debug_msg( text:[%x]%i )", type, val );
     if( (s = IntpGetString( scr, type >> 8, val )) ){
         CfgGetInteger( &gConfiguration, "const", "show_script_messages", &debug_en );
         if( debug_en ) eprintf( "\n%s", s );
@@ -4597,7 +4597,7 @@ void ScrGame_TileContainsPidObj( Intp_t *scr )
     GETARGI( scr, type[ 0 ], pid, 0, "tile_contains_pid_obj" );
     GETARGI( scr, type[ 1 ], elev, 1, "tile_contains_pid_obj" );
     GETARGI( scr, type[ 2 ], tile, 2, "tile_contains_pid_obj" );
-    SCP_DBGA( "tile_contains_pid_obj( tile:[%x]%x, elev:[%x]%x, pid:[%x]%x )", type[ 2 ], tile, type[ 1 ], elev, type[ 0 ], pid  );
+    SCP_DBGA( "tile_contains_pid_obj( tile:[%x]%i, elev:[%x]%i, pid:[%x]%i )", type[ 2 ], tile, type[ 1 ], elev, type[ 0 ], pid  );
     if( tile != -1 ){
         for( p = ObjGetFirst( elev, tile ); p; p = ObjGetNext() ){
             if( pid == p->Pid ) break;

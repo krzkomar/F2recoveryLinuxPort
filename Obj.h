@@ -87,9 +87,10 @@ typedef struct // 0x28
 } ObjScenery_t;
 
 // Obj_t->Flags:
-#define OBJ_FLG_UNK01		0x001	// ??
+#define OBJ_FLG_UNK01		0x001	// ?? can be outlined ?
 #define OBJ_FLG_VISIBLE		0x010	// 1- visible, 0-invisible
 #define OBJ_FLG_REMOVABLE	0x400	// object cannot be deleted
+#define OBJ_FLG_STEALTHBOY	0x20000	// worn stealthboy
 
 typedef struct _Obj_t // 132
 {
@@ -233,7 +234,7 @@ Obj_t *ObjUnk56( unsigned int GridIdx, Obj_t *obj, int MapLvl );
 int ObjUnk57( int MapIdx, int MapLvl );
 Obj_t *ObjUnk58( Obj_t *obj, int GridIdx, int MapLvl );
 int ObjGetDistance( Obj_t *crit, Obj_t *obj );
-int ObjUnk60( Obj_t *crit, int MapIdx1, Obj_t *obj, int MapIdx2 );
+int ObjGetDistanceIdx( Obj_t *crit, int MapIdx1, Obj_t *obj, int MapIdx2 );
 int ObjGetObjList( int GridPos, int MapLvl, int ObjType , Obj_t ***ObjTable );
 void ObjCritterListDestroy(void *n );
 void ObjUnk63( char *pSrc, int Width, int Height, int SrcPitch, char *pDst, int Xpos, int Ypos, int DstPitch, char *Color, char *ColorMap );
@@ -244,18 +245,18 @@ void ObjRenderMix( char *Img1, int Width, int Height, int SrcPitch, char *surf, 
 void ObjUnk68( int MapLvl, int HlColor, VidRect_t *Area );
 void ObjUnk69( int MapLvl, VidRect_t *Area );
 void ObjUnk70( int a1, VidRect_t *a2 );
-int ObjSetOutline( Obj_t *obj, int HlColor, VidRect_t *RadiusArea );
-int ObjGetRadius( Obj_t *obj, VidRect_t *Area );
-void ObjUnk73();
-int ObjInteraction( Obj_t *obj, int Xpos, int Ypos );
-int ObjTabCreate( int Xpos, int Ypos, int MapLvl, int Type, ObjTable_t **pTable );
+int  ObjSetOutline( Obj_t *obj, int HlColor, VidRect_t *Area );
+int  ObjClrOutline( Obj_t *obj, VidRect_t *Area );
+void ObjClrOutlineAll();
+int  ObjInteraction( Obj_t *obj, int Xpos, int Ypos );
+int  ObjTabCreate( int Xpos, int Ypos, int MapLvl, int Type, ObjTable_t **pTable );
 void ObjTabDestroy( ObjTable_t **tab );
-void ObjUnk77( int a1 );
-void ObjUnk78();
+void ObjMiniMapSetPoint( int GridIdx );
+void ObjMiniMapClr();
 void ObjUnk79();
 char *ObjGetName( Obj_t *obj );
 char *ObjGetDsc( Obj_t *obj );
-void ObjUnk80( int flg );
+void ObjFlushUnusedTiles( int flg );
 int ObjUnk81();
 int ObjViewPortInit();
 void ObjFree();

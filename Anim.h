@@ -35,7 +35,7 @@ typedef struct
     int i07;			// 
     int (*Callback11)(void *, void *);	// 
     int (*Callback12)(Obj_t *, Obj_t *, int );	// 
-    int i10;			// 
+    int i10;			// obj flags type 
     AnimU_t Ap; 		// action points/object/skill no
     CachePool_t *ImgObj;	// 
 } Anim01_t;
@@ -59,7 +59,7 @@ typedef struct
 
 typedef struct 
 {
-    int Flags;
+    int Flags; // 1 <- increase frame, 0x80 <- decrease frame, 0x02 - move reverse
     Obj_t *Obj;
     int ArtId;
     int i04;
@@ -89,11 +89,11 @@ typedef struct // size of 0xa60 2656
 int AnimInit();
 void AnimInit_00();
 void AnimClose();
-int AnimStart( int Type );
+int AnimRegStart( int Type );
 int AnimReserve( int flg );
 int AnimUnk33( int a1 );
-int AnimClear( Obj_t *obj );
-int AnimBegin();
+int AnimRegClear( Obj_t *obj );
+int AnimRegEnd();
 int AnimTestExist( int Id, CachePool_t **Img );
 void AnimStop();
 int AnimCancel( Obj_t *obj );
@@ -125,10 +125,10 @@ int AnimUnk63( Obj_t *a1, int a2, int a3 );
 int AnimChangeItemStart( Obj_t *obj, int TargetPos, int a3 );
 int AnimUnk65( Obj_t *obj, int TargetPos, int a3 );
 int AnimRegPlaySfx( Obj_t *who, char *file, int delay );
-int AnimRegAnimate( Obj_t *what, int anim, int delay );
+int AnimRegAnimateForever( Obj_t *what, int anim, int delay );
 int AnimUnk68( int a1, int a2 );
 int AnimStateMachine( int AnimIdx );
-int AnimUnk70( int AnimIdx, int Flg );
+int AnimUpdate( int AnimIdx, int Flg );
 int AnimEnd( int idx );
 int AnimUnk71( Obj_t *a1, Obj_t *a2 );
 int AnimFindTrace( Obj_t *obj, int BeginPos, int EndPos, unsigned char *Trace, int NotApproach );
@@ -145,7 +145,7 @@ int AnimUnk12( Obj_t *obj, int a2, int a3, int a4, int a5, int Flags );
 int AnimUnk13( Obj_t *obj, int a2, int a3, int a4, int a5 );
 int AnimUnk14( Obj_t *obj, int a2, int a3 );
 void AnimMovement( int AnimIdx );
-void AnimUnk16( int AnimIdx );
+void AnimMoveReverse( int AnimIdx );
 int AnimUnk17( Obj_t *obj, int a2, int AnimIdx, int a4 );
 // task callback, in game animations process
 void AnimProcess();

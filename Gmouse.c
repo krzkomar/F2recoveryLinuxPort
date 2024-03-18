@@ -354,7 +354,7 @@ void GmouseProcess()
     if( !gGmouseUnk10 ) GmouseSetShapeA( ArtMakeId( 6, 0, 0, 0, 0 ) );    
     if( !GmouseSetShapeB( &Area1 ) ) flg |= 0x01;
     if( gGmouseObjC ){
-        if( !ObjGetRadius( gGmouseObjC, &Area2 ) ) flg |= 0x02;
+        if( !ObjClrOutline( gGmouseObjC, &Area2 ) ) flg |= 0x02;
         gGmouseObjC = 0;
     }
     if( flg < 2 ){
@@ -1284,7 +1284,7 @@ void GmouseUnk66( Obj_t *result )
     VidRect_t rect;
 
     if( !gGmouseObjC || result != gGmouseObjC ) return;
-    if( !ObjGetRadius( result, &rect ) ) TileUpdateArea( &rect, gMapCurrentLvl );
+    if( !ObjClrOutline( result, &rect ) ) TileUpdateArea( &rect, gMapCurrentLvl );
     gGmouseObjC = NULL;    
 }
 

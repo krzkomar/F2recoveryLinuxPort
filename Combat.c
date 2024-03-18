@@ -419,11 +419,11 @@ void CombatUnk17( Obj_t *a1 )
         GmouseScrollEnable();
         if( v1 && !LsgPending() ){
             id = ArtMakeId( (v1->ImgId & 0xF000000) >> 24, 100, (v1->ImgId & 0xFF0000u) >> 16, (v1->ImgId & 0xF000) >> 12, (v1->ImgId & 0x70000000) >> 28);
-            AnimClear( v1 );
-            AnimStart( 2 );
+            AnimRegClear( v1 );
+            AnimRegStart( 2 );
             AnimRegAnim( v1, 6, -1 );
             AnimUnk62( v1, id, -1 );
-            AnimBegin();
+            AnimRegEnd();
             while( AnimUnk39( v1 ) ) InpWinUpdate();
         }
     }    
@@ -462,7 +462,7 @@ void CombatUnk01( Obj_t *obj, int Flg )
 	tmp = obj->OutlineColor & 0xFFFFFF;
         if( tmp != 1 && tmp != 8 ){
             ObjUnk35( obj, 0 );
-            ObjGetRadius( obj, 0 );
+            ObjClrOutline( obj, 0 );
             ObjSetOutline( obj, ( gObjDude->Critter.State.GroupId == obj->Critter.State.GroupId ) ? 8 : 1, 0 );
             if( Flg )
         	ObjUnk34( obj, 0 ); 
@@ -488,7 +488,7 @@ void CombatUnk01( Obj_t *obj, int Flg )
             if( !Flg ) return;
         } else {
             ObjUnk35( obj, 0 );
-            ObjGetRadius( obj, 0 );
+            ObjClrOutline( obj, 0 );
             if( k ){
         	ObjSetOutline( obj, 32, 0 );
         	if( !Flg ) ObjUnk35( obj, 0 );
@@ -499,7 +499,7 @@ void CombatUnk01( Obj_t *obj, int Flg )
     ObjUnk34( obj, 0 );
 }
 
-int CombatUnk20()
+int CombatTaskCb()
 {
     Obj_t *obj;
     int i, Id, v14, v15;
@@ -518,17 +518,17 @@ int CombatUnk20()
     for( i = 0; i < gCombatCritCnt; i++ ){
         obj = gCombatCritters[ i ];
         obj->Critter.State.CurrentAP = 0;
-        ObjGetRadius( obj, 0 );
+        ObjClrOutline( obj, NULL );
         obj->Critter.State.WhoHitMe = 0;
         ScptSetup( obj->ScrId, 0, 0 );
         ScptSetArg( obj->ScrId, 0 );
         if( obj->Pid == 0x1000098 && !CritterIsDead( obj ) && !LsgPending() ){
             Id = ArtMakeId( OBJTYPE( obj->ImgId ), 99, (obj->ImgId & 0xFF0000u) >> 16, (obj->ImgId & 0xF000) >> 12, (obj->ImgId & 0x70000000) >> 28);
-            AnimClear( obj );
-            AnimStart( 2 );
+            AnimRegClear( obj );
+            AnimRegStart( 2 );
             AnimRegAnim( obj, 6, -1 );
             AnimUnk62( obj, Id, -1 );
-            AnimBegin();
+            AnimRegEnd();
             while( AnimUnk39( obj ) ) InpWinUpdate();
         }            
     }
@@ -562,7 +562,7 @@ int CombatUnk20()
 
 void CombatUnk21()
 {
-    CombatUnk20();
+    CombatTaskCb();
     gCombatStatus = 0;
     gCombatTacticMode = 1;
 }
@@ -957,7 +957,7 @@ DD
         GmouseScrollDisable();
         IfaceCombatClose( 1 );
         GmouseScrollEnable();
-        CombatUnk20();
+        CombatTaskCb();
         ScptMapUpdate();
     }
     gCombatTacticMode = 0;
@@ -1530,7 +1530,7 @@ int CombatGetHitChance( Obj_t *Attacker, int arg2, Obj_t *Target, int Penalty, i
 		}
     		pe = FeatGetVal( Attacker, FEAT_PERCEPTION );
     		if( Target )
-        	    tmpA = ObjUnk60( Attacker, arg2, Target, Target->GridId );
+        	    tmpA = ObjGetDistanceIdx( Attacker, arg2, Target, Target->GridId );
     		else
         	    tmpA = 0;
     		if( tmpA >= tmpB )
@@ -2363,7 +2363,7 @@ void CombatUnk74( )
         cnt = ObjGetObjList(-1, gMapCurrentLvl, 1, &ObjList );
         for( i = 0; i < cnt; i++ ){
             ObjUnk35( ObjList[ i ], 0 );
-            ObjGetRadius( ObjList[ i ], 0 );
+            ObjClrOutline( ObjList[ i ], NULL );
         }
         if( cnt ) ObjCritterListDestroy( ObjList );
     }
@@ -2444,7 +2444,7 @@ void CombatUnk79( Obj_t *obj )
     	    gCombat04--;
 	}
 	obj->Critter.State.CurrentAP = 0;
-	ObjGetRadius( obj, 0 );
+	ObjClrOutline( obj, NULL );
 	obj->Critter.State.WhoHitMe = 0;
 	AiUnk65( obj );        
 	return;	

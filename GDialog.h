@@ -60,7 +60,7 @@ void GdialogEnter( Obj_t *target, int flg );
 int  GdialogFloatingMessages();
 int  GdialogLipsyncStart( char *DirName );
 void GdialogLipsyncEnd();
-int  GdialogUnk03();
+int  GdialogTaskCb();
 int  GdialogUnk04();
 int  GdialogStartConversation( int HeadId, int Mood );
 int  GdialogUnk06();

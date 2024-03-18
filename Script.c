@@ -550,14 +550,14 @@ void ScptActionExec()
                 AutomapSave();
                 if( MapId == gMap.MapId ){
                     if( lvl == gMapCurrentLvl ){
-                        AnimClear( gObjDude );
+                        AnimRegClear( gObjDude );
                         ObjSetRotation( gObjDude, 2, NULL );
                         UseUnk46( gObjDude, pos, lvl, 0 );
                     } else {
                         for( i = ObjGetVisibleObjectFirst( gObjDude->Elevation ); i; i = ObjGetVisibleObjectNext() ){
                             if( (i->Pid >> 24) == 2 && (i->Pid == 0x2000099 || i->Pid == 0x20001A5 || i->Pid == 0x20001D6 ) && TileGetDistance( i->GridId, gObjDude->GridId ) <= 4 ) break;
                         }
-                        AnimClear( gObjDude );
+                        AnimRegClear( gObjDude );
                         ObjSetRotation( gObjDude, 2, 0 );
                         UseUnk46( gObjDude, pos, lvl, 0 );
                         if( i ){
@@ -613,14 +613,14 @@ void ScptUnk122()
             AutomapSave();
             if( pMapId == gMap.MapId ){
                 if( Lvl == gMapCurrentLvl ){
-                    AnimClear( gObjDude );
+                    AnimRegClear( gObjDude );
                     ObjSetRotation( gObjDude, 2, NULL );
                     UseUnk46( gObjDude, PosY, Lvl, 0 );
                 } else {
                     for( i = ObjGetVisibleObjectFirst( gObjDude->Elevation ); i; i = ObjGetVisibleObjectNext() ){
                         if( (i->Pid >> 24) == 2 && (i->Pid == 0x2000099 || i->Pid == 0x20001A5 || i->Pid == 0x20001D6 ) && TileGetDistance( i->GridId, gObjDude->GridId ) <= 4 ) break;
                     }
-                    AnimClear( gObjDude );
+                    AnimRegClear( gObjDude );
                     ObjSetRotation( gObjDude, 2, NULL );
                     UseUnk46( gObjDude, PosY, Lvl, 0 );
                     if( i ){

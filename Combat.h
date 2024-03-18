@@ -147,7 +147,7 @@ void CombatUnk17( Obj_t *a1 );
 int CombatTarget( Obj_t *obj );
 void CombatUnk19( int Flg );
 void CombatUnk01( Obj_t *obj, int Flg );
-int CombatUnk20();
+int CombatTaskCb();
 void CombatUnk21();
 void CombatEarnExpPts( int Exp );
 void CombatUnk23();

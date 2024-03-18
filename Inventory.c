@@ -175,7 +175,7 @@ void InvMenu()
 
     armor = InvGetArmorObj( gInvSelectedDude );
     menu = InvMenuCreate( 0 );
-    AnimClear( gInvSelectedDude );
+    AnimRegClear( gInvSelectedDude );
     InvStatsUpdate();
     InvBpUpdate( gInvUnk04[ gInvUnk05 ], -1, 0 );
     InvSetInfoMode( 0 );
@@ -1493,7 +1493,7 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
     int tmp;
     int SelectedHand;
 
-    if( a4 && !MapAmbientEnabled() ) AnimStart( 2 );
+    if( a4 && !MapAmbientEnabled() ) AnimRegStart( 2 );
     if( ItemGetObjType(a2) ){
         SelectedHand = ( a1 == gObjDude ) ? IfaceGetSelectedHand() : 1;        
         if( !ArtFileExist( ArtMakeId( 1, a1->ImgId & 0xFFF, Item45( a2, 2 ), Item58( a2 ), a1->Orientation + 1 ) ) ){ 
@@ -1557,7 +1557,7 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
         }
     }
     if( !a4 || MapAmbientEnabled() ) return 0;
-    return AnimBegin();
+    return AnimRegEnd();
 }
 
 int InvUnwield( Obj_t *a1, int a2 )
@@ -1576,11 +1576,11 @@ int InvUnk30( Obj_t *a1, int Lhand, int a3 )
     if( HandObj ) HandObj->Flags &= ~0x03000000;
     if( hand == Lhand && (a1->ImgId & 0xF000) >> 12 ){
         if( a3 && !MapAmbientEnabled() ){
-            AnimStart( 2 );
+            AnimRegStart( 2 );
             AnimRegPlaySfx( a1, GSoundCharacterFileName( a1, 39, 0 ), 0 );
             AnimRegAnim( a1, 39, 0 );
             AnimUnk62( a1, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, 0, a1->Orientation + 1 ), -1 );
-            return AnimBegin();
+            return AnimRegEnd();
         }
         AnimUnk24( a1, a1->Orientation, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, 0, a1->Orientation + 1 ) );
     }

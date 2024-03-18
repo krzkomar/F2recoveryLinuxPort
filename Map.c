@@ -184,7 +184,7 @@ int MapSetLvl( unsigned int MapLvl )
     }
     if( MapLvl != gMapCurrentLvl ) WmUnk45( gCurrentMapId, MapLvl, 1 );
     gMapCurrentLvl = MapLvl;
-    AnimClear( gObjDude );
+    AnimRegClear( gObjDude );
     AnimUnk24( gObjDude, gObjDude->Orientation, gObjDude->ImgId );
     PartyUnk07();
     if( gMapScriptId != -1 ) ScptMapUpdate();
@@ -624,7 +624,7 @@ Error:
         err = -1;
         MapReset();
     } else {
-        ObjUnk80( gMap.MapFlags );
+        ObjFlushUnusedTiles( gMap.MapFlags );
     }
     PartyRecoverLoad();
     IfacePanelDisable();
@@ -641,7 +641,6 @@ Error:
     if( gMapCurrentPos.MapId > 0 ){
         if( gMapCurrentPos.Orientation >= 0 ) ObjSetRotation( gObjDude, gMapCurrentPos.Orientation, 0 );
     } else {
-
         TileUpdate();
     }
     ScptClockInit();
@@ -746,7 +745,7 @@ int MapClearKilled()
     	    }
     	    ObjSetFrame( a1, v15, 0 );
         }
-        AnimClear( obj );
+        AnimRegClear( obj );
         ObjDestroy( obj, 0 );
     }
     Free( olist );
@@ -1068,7 +1067,7 @@ int MapLoadLocalVars( xFile_t *fh )
 
 void MapUnk01()
 {
-    ObjUnk78();
+    ObjMiniMapClr();
     if( gObjDude ){
         if( (gObjDude->ImgId & 0xFF0000) >> 16 ){
             ObjSetFrame( gObjDude, 0, 0 );

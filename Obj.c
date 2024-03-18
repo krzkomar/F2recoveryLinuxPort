@@ -5,7 +5,6 @@
             p1->Next = p2->Next;	\
         } else {	\
 	    if( p2->object->GridId == -1 ){	\
-    		printf("  UNLINK:%p\n", gObjOffGridObjs);\
     		gObjOffGridObjs = gObjOffGridObjs->Next;	\
     		}\
 	    else	\
@@ -31,8 +30,8 @@ Obj_t *gObjRadius; // light player object
 int gObjIsoPitch;
 int gObjUnk13;
 Obj_t *gObjDude;
-char gObjUnk79[ 5001 ];
-char gObjUnk01[5003];
+char gObjMiniMapGrid[ 5001 ];
+char gObjMiniMapMask[5003];
 
 int gObjUnk20 = 0;
 int gObjGridWinWidth = 0;
@@ -88,7 +87,7 @@ int gObjUnk21;
 
 int ObjInit( char *a1, int Width, int Height, int Pitch )
 {
-    memset( gObjUnk01, 0, 5001 );
+    memset( gObjMiniMapMask, 0, 5001 );
     gObjViewPortArea.rt = Width + 320;
     gObjViewPortArea.lt = -320;
     gObjViewPortArea.bm = Height + 240;
@@ -133,7 +132,7 @@ void ObjReset()
     if( !gObjUnk20 ) return;
     TextFlush();
     ObjClear();
-    memset( gObjUnk01, 0, 5001 );
+    memset( gObjMiniMapMask, 0, 5001 );
     LightTileResetAll();
 }
 
@@ -593,7 +592,7 @@ int ObjAddToStack( ObjList_t *stk, Obj_t *item )
     ObjBox_t *box;
     int i;
     int j;
-    ObjList_t *Ptr;
+    ObjList_t Ptr;
 
     if( !item ) return -1;
     list = Malloc( sizeof( ObjList_t ) );
@@ -623,9 +622,8 @@ int ObjAddToStack( ObjList_t *stk, Obj_t *item )
     box->Box = 0;
     box->Cnt = 0;    
     for( i = j = 0; i < item->Critter.Box.Cnt; j++, i++ ){
-	if( !ObjAddToStack( stk, item->Critter.Box.Box[ j ].obj ) ) return -1;
-        if( item->Critter.Box.Box[ j ].obj == -1 ){ Free( list ); list = NULL; return -1; }
-        if( ItemAdd( stk->object, Ptr, item->Container.Box.Box[ i ].Quantity ) == -1 ){
+	if( ObjAddToStack( &Ptr, item->Critter.Box.Box[ j ].obj ) == -1 ){ Free( list ); list = NULL; return -1; }
+        if( ItemAdd( stk->object, Ptr.object, item->Container.Box.Box[ i ].Quantity ) == -1 ){
             if( list ){ Free( list ); list = NULL; }
     	    return -1;
         }
@@ -795,7 +793,7 @@ int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLig
                 WmUnk45( ptr.MapId, ptr.Lvl, 1 );
             }            
         }
-        gObjUnk01[ GridPos / 8 ] |= 1 << ( GridPos & 7 );
+        gObjMiniMapMask[ GridPos / 8 ] |= 1 << ( GridPos & 7 );
         xg = (GridPos % 200) / 2;
         yg = (GridPos / 200) / 2;
         if( xg != gObjPlayerMapX || yg != gObjPlayerMapY || MapLvl != gObjPlayerMapLvl ){
@@ -970,7 +968,7 @@ int ObjSetLight( Obj_t *obj, int LightRadius, int LightIntensity, VidRect_t *Are
 {
     int ret;
     VidRect_t rect;
-
+DD
     if( !obj ) return -1;
     ret = ObjLightedOff( obj, Area );
     if( LightIntensity > 0 ){
@@ -1005,7 +1003,7 @@ int ObjGetLightIntensity( Obj_t *obj )
 int ObjLightedOn( Obj_t *obj, VidRect_t *Area )
 {
     if( !obj ) return -1;
-
+DD
     if( obj->LightIntensity <= 0 ){
         obj->Flags &= ~PRFLG_LIGHTED;
         return -1;
@@ -1021,6 +1019,7 @@ int ObjLightedOn( Obj_t *obj, VidRect_t *Area )
 
 int ObjLightedOff( Obj_t *obj, VidRect_t *rect )
 {
+DD
     if( !obj ) return -1;
     if( obj->LightIntensity <= 0 ){
 	obj->Flags &= ~PRFLG_LIGHTED;
@@ -1055,10 +1054,10 @@ int ObjUnk33( Obj_t *obj, VidRect_t *Area )
 {
     VidRect_t rect;
 
-    if( !obj || ( obj->Flags & 1 ) ) return -1;
+    if( !obj || ( obj->Flags & 0x01 ) ) return -1;
     if( ObjLight( obj, 1, Area ) == -1 && Area ) ObjGetRefreshArea( obj, Area );
     obj->Flags |= 0x01;
-    if( obj->OutlineColor & 0xFFFFFF ) obj->OutlineColor |= 0x8000;
+    if( obj->OutlineColor & 0xFFFFFF ) obj->OutlineColor |= 0x800000;
     if( obj != gObjDude ) return 0;
     if( !Area ) return 0;
     ObjGetRefreshArea( gObjRadius, &rect );
@@ -1068,9 +1067,8 @@ int ObjUnk33( Obj_t *obj, VidRect_t *Area )
 
 int ObjUnk34( Obj_t *obj, VidRect_t *Area )
 {
-
     if( !obj ) return -1;
-    obj->OutlineColor &= ~0x80000000;
+    obj->OutlineColor &= ~0x800000;
     if( Area ) ObjGetRefreshArea( obj, Area );
     return 0;
 }
@@ -1078,7 +1076,7 @@ int ObjUnk34( Obj_t *obj, VidRect_t *Area )
 int ObjUnk35( Obj_t *obj, VidRect_t *area )
 {
     if( !obj ) return -1;
-    if( (obj->OutlineColor & 0xFFFFFF) != 0 ) obj->OutlineColor |= 0x80000000;
+    if( obj->OutlineColor & 0xFFFFFF ) obj->OutlineColor |= 0x800000;
     if( area ) ObjGetRefreshArea( obj, area );
     return 0;
 }
@@ -1105,28 +1103,28 @@ int ObjSetPlayer( Obj_t *obj, VidRect_t *RadArea ) // zla nazwa ?
     return 0;
 }
 
-void ObjUnk37( int Update )
+void ObjUnk37( int Update ) // not used
 {
     int i, t;
     ObjList_t *p;
 
     gObjUnk41 = 1 - gObjUnk41;
     if( gObjUnk41 ){
-        for( i = 0; i != 40000; ++i ){
+        for( i = 0; i < 40000; i++ ){
             for( p = gObjGridObjects[ i ]; p; p = p->Next ){
                 if( gMapCurrentLvl < p->object->Elevation ) break;
                 if( gMapCurrentLvl != p->object->Elevation ) continue;
                 t = OBJTYPE( p->object->ImgId );
-                if( t == 3 || t == 2 ) p->object->Flags |= 0x010000;
+                if( t == TYPE_WALL || t == TYPE_SCEN ) p->object->Flags |= 0x010000;
             }
         }
     } else {
-        for( i = 0; i != 40000; i++ ){
+        for( i = 0; i < 40000; i++ ){
             for( p = gObjGridObjects[ i ]; p; p = p->Next ){
                 if( gMapCurrentLvl < p->object->Elevation ) break;
                 if( gMapCurrentLvl != p->object->Elevation ) continue;
                 t = OBJTYPE( p->object->ImgId );
-                if( t == 3 || t == 2 ) p->object->Flags &= ~0x010000;
+                if( t == TYPE_WALL || t == TYPE_SCEN ) p->object->Flags &= ~0x010000;
             }
         }
     }
@@ -1416,7 +1414,7 @@ Obj_t *ObjUnk55( unsigned int GridIdx, Obj_t *obj, int MapLvl )
 {
     ObjList_t *p;
     int type, i, Pos;
-
+DD
     if ( GridIdx > 39999 ) return NULL;    
     for( p = gObjGridObjects[ GridIdx ]; p; p = p->Next ){
         if( MapLvl != p->object->Elevation ) continue;
@@ -1441,7 +1439,7 @@ Obj_t *ObjUnk56( unsigned int GridIdx, Obj_t *obj, int MapLvl )
 {
     ObjList_t *p;
     int type, i, Pos;
-
+DD
     if( GridIdx > 39999 ) return NULL;    
     for( p = gObjGridObjects[ GridIdx ]; p; p = p->Next ){
         if( MapLvl != p->object->Elevation ) continue;        
@@ -1484,14 +1482,14 @@ Obj_t *ObjUnk58( Obj_t *obj, int GridIdx, int MapLvl )
     ObjList_t *MapObj;
     Obj_t *object;
     int type;
-
+DD
     MapObj = gObjGridObjects[ GridIdx ];
     if( !MapObj ) return 0;
     while( 1 ){
         object = MapObj->object;
         if( MapLvl == MapObj->object->Elevation && (object->Flags & 1) == 0 && (object->Flags & 0x20000000) == 0 && object != obj ){
             type = OBJTYPE( object->ImgId );
-            if( type == 2 || type == 3 ) break;
+            if( type == TYPE_SCEN || type == TYPE_WALL ) break;
         }
         MapObj = MapObj->Next;
         if( !MapObj ) return 0;
@@ -1511,7 +1509,7 @@ int ObjGetDistance( Obj_t *crit, Obj_t *obj )
     return Distance;
 }
 
-int ObjUnk60( Obj_t *crit, int MapIdx1, Obj_t *obj, int MapIdx2 )
+int ObjGetDistanceIdx( Obj_t *crit, int MapIdx1, Obj_t *obj, int MapIdx2 )
 {
     int Distance;
 
@@ -1721,12 +1719,12 @@ int ObjSetOutline( Obj_t *obj, int HlColor, VidRect_t *RadiusArea )
 {
     if( !obj || (obj->OutlineColor & 0xFFFFFF) || (obj->Flags & 0x1000) ) return -1;
     obj->OutlineColor = HlColor;
-    if( obj->Flags & 0x01 ) obj->OutlineColor |= 0x8000;
+    if( obj->Flags & 0x01 ) obj->OutlineColor |= 0x80000000;
     if( RadiusArea ) ObjGetRefreshArea( obj, RadiusArea );
     return 0;
 }
 
-int ObjGetRadius( Obj_t *obj, VidRect_t *Area )
+int ObjClrOutline( Obj_t *obj, VidRect_t *Area )
 {
     if( !obj ) return -1;
     if( Area ) ObjGetRefreshArea( obj, Area );
@@ -1734,12 +1732,12 @@ int ObjGetRadius( Obj_t *obj, VidRect_t *Area )
     return 0;
 }
 
-void ObjUnk73()
+void ObjClrOutlineAll()
 {
     ObjList_t *p;
     int i;
 
-    for( i = 0; i != 40000; i++ ){
+    for( i = 0; i < 40000; i++ ){
         for( p = gObjGridObjects[ i ]; p; p = p->Next ) p->object->OutlineColor = 0;
     }
 }
@@ -1787,8 +1785,8 @@ int ObjInteraction( Obj_t *obj, int Xpos, int Ypos )
                         if( (Flags & 0xFC000) != 0 ){
                             if( (obj->Flags & 0x8000) == 0 ) ObjFlg = (v13 & ~0x03) | 2;
                         } else {
-                            v15 = (obj->ImgId & 0xF000000) >> 24;
-                            if( v15 == 3 || v15 == 2 ){
+                            v15 = OBJTYPE( obj->ImgId );
+                            if( v15 == TYPE_WALL || v15 == TYPE_SCEN ){
                                 ProtoGetObj(obj->Pid, &proto);
                                 FlgExt = proto->FlgExt;
                                 if( (FlgExt & 0x8000000) != 0 || FlgExt < 0 ){
@@ -1851,14 +1849,14 @@ void ObjTabDestroy( ObjTable_t **tab )
     *tab = NULL;
 }
 
-void ObjUnk77( int a1 )
+void ObjMiniMapSetPoint( int GridIdx )
 {
-    gObjUnk01[ a1 >> 3 ] |= 1 << (a1 & 7);
+    gObjMiniMapMask[ GridIdx >> 3 ] |= 1 << (GridIdx & 0x07);
 }
 
-void ObjUnk78()
+void ObjMiniMapClr()
 {
-    memset( gObjUnk01, 0, 5001 );
+    memset( gObjMiniMapMask, 0, 5001 );
 }
 
 void ObjUnk79()
@@ -1867,30 +1865,30 @@ void ObjUnk79()
     unsigned char mask;
     int i, j;
 
-    memset( gObjUnk79, 0, sizeof( gObjUnk79 ) );
-    for( i = 0; i < 5001; i++){
-        if( !gObjUnk01[ i ] ) continue;
+    memset( gObjMiniMapGrid, 0, sizeof( gObjMiniMapGrid ) );
+    for( i = 0; i < 5001; i++ ){
+        if( !gObjMiniMapMask[ i ] ) continue;
         for( j = i - 400; j != 400 + i; j += 25 ){
             if( j > 5000 || j < 0 ) continue;
-            gObjUnk79[ j ] = -1;
-            if( j > 0 ) gObjUnk79[ j - 1 ] = -1;
-            if( j < 5000 ) gObjUnk79[ j + 1 ] = -1;
-            if( j > 1 ) gObjUnk79[ j - 2 ] = -1;
-            if( j < 4999 ) gObjUnk79[ j + 2 ] = -1;
+            gObjMiniMapGrid[ j ] = ~0;
+            if( j > 0 ) gObjMiniMapGrid[ j - 1 ] = ~0;
+            if( j < 5000 ) gObjMiniMapGrid[ j + 1 ] = ~0;
+            if( j > 1 ) gObjMiniMapGrid[ j - 2 ] = ~0;
+            if( j < 4999 ) gObjMiniMapGrid[ j + 2 ] = ~0;
         }            
     }    
     for( i = 0; i < 5001; i++ ){
-        if( !gObjUnk79[ i ] ) continue;
+        if( !gObjMiniMapGrid[ i ] ) continue;
         mask = 1;
         for( j = 0; j < 8; j++, mask <<= 1 ){
-            if( (mask & gObjUnk79[ i ] ) && j < 40000 ){
-                for( p = gObjGridObjects[ i * 8 + i ]; p; p = p->Next ){
-                    if( p->object->Elevation == gObjDude->Elevation ) p->object->Flags |= 0x40000000;
-                }
-            }                
+            if( !(mask & gObjMiniMapGrid[ i ] ) ) continue;
+            if( j >= 40000 ) continue;
+            for( p = gObjGridObjects[ i * 8 + j ]; p; p = p->Next ){
+                if( p->object->Elevation == gObjDude->Elevation ) p->object->Flags |= 0x40000000;
+            }
         }
     }
-    memset( gObjUnk01, 0, sizeof( gObjUnk01 ) );
+    memset( gObjMiniMapMask, 0, sizeof( gObjMiniMapMask ) );
 }
 
 char *ObjGetName( Obj_t *obj )
@@ -1909,51 +1907,54 @@ char *ObjGetDsc( Obj_t *obj )
     return ProtoGetDudeDsc( obj->Pid );
 }
 
-void ObjUnk80( int flg )
+void ObjFlushUnusedTiles( int flg ) // flg - used levels
 {
     int i;
     unsigned int tmp;
-    char atmp[4096];
+    char UsedTileList[ 4096 ];
     CachePool_t *ImgObj;
 
     if( !gObjArtTable ) return;    
-    memset( atmp, 0x00, sizeof( atmp ) );
-    if( !(flg & 2) ){
+    // create list of used tile on map
+    memset( UsedTileList, 0x00, sizeof( UsedTileList ) );
+    if( !( flg & MAPFLG_LVL0 ) ){
         for( i = 0; i != 100*100; i++ ){
-            atmp[ gMapIsoGrid[ 0 ][ i ] & 0xFFF ] = 1;
-            atmp[ gMapIsoGrid[ 0 ][ i ] & 0xFFF ] = 1;
+            UsedTileList[ gMapIsoGrid[ 0 ][ i ] & 0xFFF ] = 1;
+            UsedTileList[ gMapIsoGrid[ 0 ][ i ] & 0xFFF ] = 1;
         }
     }
-    if( (flg & 4) == 0 ){
+    if( !( flg & MAPFLG_LVL1 ) ){
         for( i = 0; i != 100 * 100; i++ ){
-            atmp[ gMapIsoGrid[ 1 ][ i ] & 0xFFF ] = 1;
-            atmp[ gMapIsoGrid[ 1 ][ i ] & 0xFFF ] = 1;
+            UsedTileList[ gMapIsoGrid[ 1 ][ i ] & 0xFFF ] = 1;
+            UsedTileList[ gMapIsoGrid[ 1 ][ i ] & 0xFFF ] = 1;
         }
     }
-    if( (flg & 8) == 0 ){
+    if( !( flg & MAPFLG_LVL2 ) ){
         for( i = 0; i != 100 * 100; i++ ){
-            atmp[ gMapIsoGrid[ 2 ][ i ] & 0xFFF ] = 1;
-            atmp[ gMapIsoGrid[ 2 ][ i ] & 0xFFF ] = 1;
+            UsedTileList[ gMapIsoGrid[ 2 ][ i ] & 0xFFF ] = 1;
+            UsedTileList[ gMapIsoGrid[ 2 ][ i ] & 0xFFF ] = 1;
         }
     }
+
     qsort( gObjArtTable, gObjCnt, sizeof( int ), (void *)ObjArtSort );
+    // count all tiles except WALLs
     for( tmp = gObjCnt; OBJTYPE( gObjArtTable[ --tmp ] ) == TYPE_WALL; );
     tmp++;
+    // ??
     if( ArtLoadImg( gObjArtTable[0], &ImgObj ) ) ArtClose( ImgObj );
     
     for( i = 1; i < tmp; i++ ){
-        if( gObjArtTable[ i - 1 ] != gObjArtTable[ i ] && ArtLoadImg( gObjArtTable[ i ], &ImgObj ) ) ArtClose( ImgObj );
+        if( gObjArtTable[ i - 1 ] == gObjArtTable[ i ] ) continue;
+        if( ArtLoadImg( gObjArtTable[ i ], &ImgObj ) ) ArtClose( ImgObj );
     }
 
-    for( i = 0; i < 0x1000; i++ ){
-        if( atmp[ i ] ){
-            if( ArtLoadImg( ArtMakeId( 4, i, 0, 0, 0 ), &ImgObj ) ) ArtClose( ImgObj );
-        }
+    for( i = 0; i < 4096; i++ ){
+        if( UsedTileList[ i ] == 0 ) continue;
+        if( ArtLoadImg( ArtMakeId( 4, i, 0, 0, 0 ), &ImgObj ) ) ArtClose( ImgObj );
     }
     for( i = tmp; i < gObjCnt; i++ ){
-        if( gObjArtTable[ i - 1 ] != gObjArtTable[ i ] ){
-            if( ArtLoadImg( gObjArtTable[ i ], &ImgObj ) ) ArtClose( ImgObj );
-        }
+        if( gObjArtTable[ i - 1 ] == gObjArtTable[ i ] ) continue;        
+        if( ArtLoadImg( gObjArtTable[ i ], &ImgObj ) ) ArtClose( ImgObj );        
     }
     Free( gObjArtTable );
     gObjArtTable = NULL;
@@ -2360,8 +2361,6 @@ void ObjAddObject( ObjList_t *NewObj )
 
     if( !NewObj ) return;        
     if( NewObj->object->GridId == -1 ){
-DD
-printf(">>> ADD OBJECT OFFGRID: %p\n", NewObj );
     	NewObj->Next = gObjOffGridObjs;
     	gObjOffGridObjs = NewObj;
     	return;
@@ -2795,7 +2794,6 @@ void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
 
 void ObjRender( Obj_t *obj, VidRect_t *Area, int Shade )
 {
-
     ArtFrmHdr_t *Img, *Data;
     VidRect_t v28[ 4 ], AreaOut, rect, Area1;
     CachePool_t *Obj, *ImgObj;
@@ -2845,7 +2843,7 @@ void ObjRender( Obj_t *obj, VidRect_t *Area, int Shade )
 	    if( !(gObjDude->Flags & 0x01) && !(obj->Flags & 0xFC000) ){
 		ProtoGetObj( obj->Pid, &proto );
 		FlgExt = proto->FlgExt;
-		if( (FlgExt & 0x8000000) || FlgExt < 0 ){
+		if( (FlgExt & 0x8000000) || FlgExt & 0x80000000 ){
     		    v16 = TileUnk14( obj->GridId, gObjDude->GridId );
     		    if( v16 && TileUnk15( obj->GridId, gObjDude->GridId ) && (obj->Flags & 0x10000000) ) v16 = 0;
 		} else if( (FlgExt & 0x10000000) ){

@@ -91,12 +91,14 @@ int ItemAdd( Obj_t *dude, Obj_t *item, int Quantity )
     ObjStack_t *p;
     Proto_t *proto, *pObj;
 
-    if( Quantity < 1 )return -1;
+    if( Quantity < 1 ) return -1;
     bpck = &dude->Container;
+    // search if item already in inventory
     for( i = 0; i < bpck->Box.Cnt; i++ ){
         if( ItemStack( bpck->Box.Box[ i ].obj, item ) ) break;
     }
     if( i >= bpck->Box.Cnt ){
+	// allocate space in inventory
         if( bpck->Box.Cnt == bpck->Box.Capacity || !bpck->Box.Box ){            
             if( !(p = Realloc( bpck->Box.Box, sizeof( ObjStack_t ) * ( bpck->Box.Capacity + 10 ) ) ) ) return -1;
             bpck->Box.Box = p;
@@ -104,9 +106,10 @@ int ItemAdd( Obj_t *dude, Obj_t *item, int Quantity )
         }
         bpck->Box.Box[ bpck->Box.Cnt ].obj = item;
         bpck->Box.Box[ bpck->Box.Cnt ].Quantity = Quantity;
+printf("ItemAdd: %i\n", Quantity);
         if( item->Pid == PID_STEALTHBOY && ( item->Flags & (PRFLG_WORN_LHAND | PRFLG_WORN_RHAND)) ){
-            if( !(dude->Flags & 0x20000) ){
-                dude->Flags |= 0x20000;
+            if( !(dude->Flags & OBJ_FLG_STEALTHBOY) ){
+                dude->Flags |= OBJ_FLG_STEALTHBOY;
                 ObjGetRefreshArea( dude, &Area );
                 TileUpdateArea( &Area, dude->Elevation );
             }
@@ -118,7 +121,7 @@ int ItemAdd( Obj_t *dude, Obj_t *item, int Quantity )
         eprintf( "Warning! Attempt to add same item twice in item_add()\n" );
         return 0;
     }
-    if( ItemGetObjType(item) == 4 ){
+    if( ItemGetObjType( item ) == PR_ITEM_AMMO ){
         if( item ){
             ProtoGetObj( item->Pid, &proto );
             Ammo = item->Container.Ammo;

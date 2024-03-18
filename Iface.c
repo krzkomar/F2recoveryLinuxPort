@@ -989,8 +989,8 @@ void IfcAnimateSlot( int a1, int a2 )
     Obj_t *obj;
 
     gIfcAnimate = 1;
-    AnimClear( gObjDude );
-    AnimStart( 2 );
+    AnimRegClear( gObjDude );
+    AnimRegStart( 2 );
     AnimChangeItemStart( gObjDude, 4, 0 );
     if( a1 ){
         AnimRegPlaySfx( gObjDude, GSoundCharacterFileName( gObjDude, 39, 0 ), 0 );
@@ -1005,7 +1005,7 @@ void IfcAnimateSlot( int a1, int a2 )
         AnimUnk62( gObjDude, ArtMakeId( 1, gObjDude->ImgId & 0xFFF, 0, 0, gObjDude->Orientation + 1 ), -1 );
     }
     AnimSetFinish( 0, 0, (void *)IfaceAnimationEnd, -1 );
-    if( AnimBegin() != -1 ){
+    if( AnimRegEnd() != -1 ){
 	tmp = gIfcUiState;
         IfaceUiDisable();
         GmouseSetIfaceMode( 0 );

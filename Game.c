@@ -234,8 +234,8 @@ int GameProcess( int sel, int a2 )
 	case '6': case '^': if( IfaceGetUiState() ){ GSoundPlay( "ib1p1xx1" ); GmouseLoadCursor( 23 ); GmouseSetMode( 5 ); } break; // use Doctor
 	case '7': case '&': if( IfaceGetUiState() ){ GSoundPlay( "ib1p1xx1" ); GmouseLoadCursor( 23 ); GmouseSetMode( 9 ); } break; // use Science
 	case '8': case '*': if( IfaceGetUiState() ){ GSoundPlay( "ib1p1xx1" ); GmouseLoadCursor( 23 ); GmouseSetMode( 10); } break; // use Repair
-	case '<': case ',': if( !AnimStart(2) ){ AnimTurnCCW( gObjDude ); AnimBegin(); } break; // rotate CCW
-	case '>': case '.': if( !AnimStart(2) ){ AnimTurnCW( gObjDude ); AnimBegin(); } break; // rotate CW
+	case '<': case ',': if( !AnimRegStart(2) ){ AnimTurnCCW( gObjDude ); AnimRegEnd(); } break; // rotate CCW
+	case '>': case '.': if( !AnimRegStart(2) ){ AnimTurnCW( gObjDude ); AnimRegEnd(); } break; // rotate CW
 	case 'A': case 'a': if( IfaceGetUiState() && a2 != 1 ){ CombatStart( NULL );  } break; // Attack
 	case 'B': case 'b': if( IfaceGetUiState() ){ GSoundPlay("ib1p1xx1"); IfaceToggleItem( 1 ); } break; // toggle active items
 	case 'C': case 'c': // character screen

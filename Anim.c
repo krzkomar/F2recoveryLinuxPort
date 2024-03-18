@@ -55,10 +55,10 @@ void AnimClose()
     gAnimCnt1 = 0;
 }
 
-int AnimStart( int Type )
+int AnimRegStart( int Type )
 {
     int Idx;
-
+printf("Animate reg start: %x\n", Type);
     if( gAnimIdx != -1 || gAnimUnk41 ) return -1;
     if( ( Idx = AnimReserve( Type ) ) == -1 ) return -1;
     gAnimations[ Idx ].Flags |= 0x08;
@@ -99,7 +99,7 @@ int AnimUnk33( int a1 )
     return 0;
 }
 
-int AnimClear( Obj_t *obj )
+int AnimRegClear( Obj_t *obj )
 {
     int i, j;
 
@@ -116,10 +116,10 @@ int AnimClear( Obj_t *obj )
     return -1;
 }
 
-int AnimBegin()
+int AnimRegEnd()
 {
     int tmp;
-
+printf("Animate reg end\n");
     if( gAnimIdx == -1 ) return -1;
     gAnimations[ gAnimIdx ].i01 = 0;
     gAnimations[ gAnimIdx ].Steps = gAnimSubIdx;
@@ -134,7 +134,7 @@ int AnimBegin()
     }
     tmp = gAnimIdx;
     gAnimIdx = -1;
-    if( ( gAnimations[ tmp ].Flags & 0x10 ) == 0 ) AnimUnk70( tmp, 1 );
+    if( ( gAnimations[ tmp ].Flags & 0x10 ) == 0 ) AnimUpdate( tmp, 1 );
     return 0;
 }
 
@@ -455,7 +455,7 @@ int AnimRegAnim( Obj_t *obj, int a2, int a3 )
 int AnimRegAnimReverse( Obj_t *a1, int a2, int a3 )
 {
     Anim01_t *anim;
-
+DD
     if( AnimCancel( a1 ) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 5;
@@ -613,7 +613,7 @@ int AnimSetFinish( void *a1, Obj_t *a2, int (*a3)(Obj_t *,Obj_t *), int a4 )
     return 0;
 }
 
-int AnimUnk59( Obj_t *a1, int a2, int a3 )
+int AnimUnk59( Obj_t *a1, int a2, int a3 ) // no xref
 {
     Anim01_t *i05;
 
@@ -695,7 +695,7 @@ int AnimUnk63( Obj_t *a1, int a2, int a3 )
     return 0;
 }
 
-int AnimChangeItemStart( Obj_t *obj, int TargetPos, int a3 )
+int AnimChangeItemStart( Obj_t *obj, int Radius, int a3 ) // light animation ?
 {
     Anim01_t *anim;
 
@@ -704,7 +704,7 @@ int AnimChangeItemStart( Obj_t *obj, int TargetPos, int a3 )
     anim[ gAnimSubIdx ].State = 19;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].Target.Obj = obj;
-    anim[ gAnimSubIdx ].TargetPos = TargetPos;
+    anim[ gAnimSubIdx ].TargetPos = Radius;
     anim[ gAnimSubIdx ].i07 = a3;
     gAnimSubIdx++;
     return 0;
@@ -747,18 +747,19 @@ int AnimRegPlaySfx( Obj_t *a1, char *a2, int a3 )
     return 0;
 }
 
-int AnimRegAnimate( Obj_t *what, int animId, int delay )
+int AnimRegAnimateForever( Obj_t *who, int animId, int delay )
 {
     Anim01_t *anim;
-
-    if( AnimCancel( what ) == -1 ){ AnimStop(); return -1; }
+DD
+printf("*** Anim Reg animate: Id=%i, Delay=%i\n", animId, delay );
+    if( AnimCancel( who ) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
     anim->State = 25;
-    anim->Target.Obj = what;
+    anim->Target.Obj = who;
     anim->Silence = animId;
     anim->i07 = delay;
     anim->ImgObj = NULL;
-    if( !ArtLoadImg( ArtMakeId( OBJTYPE( what->ImgId ), what->ImgId & 0xFFF, anim->Silence, (what->ImgId & 0xF000) >> 12, what->Orientation + 1), &anim->ImgObj ) ){ AnimStop(); return -1; }
+    if( !ArtLoadImg( ArtMakeId( OBJTYPE( who->ImgId ), who->ImgId & 0xFFF, anim->Silence, (who->ImgId & 0xF000) >> 12, who->Orientation + 1), &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
     anim->ImgObj = NULL;
     gAnimSubIdx++;
@@ -809,34 +810,36 @@ int AnimStateMachine( int AnimIdx )
             case 1: err = AnimUnk10( anim->Target.Obj, anim->TargetPos, anim->Elevation, anim->Ap.Int, anim->Silence, AnimIdx ); break;
             case 2: err = AnimUnk12( anim->Target.Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx, 0x00 ); break;
             case 3: err = AnimUnk12( anim->Target.Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx, 0x10 ); break;
-            case 4: err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 0 ); break;
-            case 5: err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 1 ); break;
-            case 6: err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 64 ); if( err == -1 ){
+            case 4: err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 0x00 ); break;
+            case 5: err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 0x01 ); break; //!
+            case 6: 
+        	err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 0x40 ); 
+        	if( err == -1 ){
                     if( !ObjUnk33( anim->Target.Obj, &Area1 ) ) TileUpdateArea( &Area1, anim->Target.Obj->Elevation );
-                    if( AnimIdx != -1 ) AnimUnk70( AnimIdx, 0 );
+                    if( AnimIdx != -1 ) AnimUpdate( AnimIdx, 0 );
                     err = 0;
                 }
                 break;
             case 7:
                 if( !CritterUnk31( anim->Target.Obj ) ) AnimUnk24( anim->Target.Obj, TileTurnAt( anim->Target.Obj->GridId, anim->TargetPos ), -1);
-                AnimUnk70( AnimIdx, 0 );
+                AnimUpdate( AnimIdx, 0 );
                 err = 0;
                 break;
             case 8: err = AnimUnk27( anim->Target.Obj, 1, AnimIdx ); break; // ?
             case 9: err = AnimUnk27( anim->Target.Obj, -1, AnimIdx ); break; // ?
             case 10:
                 if( !ObjUnk33( anim->Target.Obj, &v18 ) ) TileUpdateArea( &v18, anim->Target.Obj->Elevation );
-                if( AnimIdx != -1 ) AnimUnk70( AnimIdx, 0 );
+                if( AnimIdx != -1 ) AnimUpdate( AnimIdx, 0 );
                 err = 0;
                 break;
             case 11:
-                if( !(err = anim->Callback11( anim->GpPtr, anim->Target.Obj ) ) ) err = AnimUnk70( AnimIdx, 0 );
+                if( !(err = anim->Callback11( anim->GpPtr, anim->Target.Obj ) ) ) err = AnimUpdate( AnimIdx, 0 );
                 break;
             case 12:
-                if( !(err = anim->Callback12( anim->GpPtr, anim->Target.Obj, anim->Ap.Int )) ) err = AnimUnk70( AnimIdx, 0 ); 
+                if( !(err = anim->Callback12( anim->GpPtr, anim->Target.Obj, anim->Ap.Int )) ) err = AnimUpdate( AnimIdx, 0 ); 
                 break;
             case 14:
-                if( anim->i10 == 32 ) {
+                if( anim->i10 == 0x20 ) {
                     if( !ObjLightedOn( anim->Target.Obj, &Area ) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
                 } else {
                     if( anim->i10 != 1 ){
@@ -845,10 +848,10 @@ int AnimStateMachine( int AnimIdx )
                 	if( !ObjUnk33( anim->Target.Obj, &Area ) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
                     }
                 }                
-                err = AnimUnk70( AnimIdx, 0 ); 
+                err = AnimUpdate( AnimIdx, 0 ); 
                 break;
             case 15:
-                if( anim->i10 == 32 ){
+                if( anim->i10 == 0x20 ){
                     if( !ObjLightedOff(anim->Target.Obj, &Area) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
                 } else {
                     if( anim->i10 != 1 ) {
@@ -857,17 +860,17 @@ int AnimStateMachine( int AnimIdx )
                 	if( !ObjUnk32( anim->Target.Obj, &Area ) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
                     }
                 }                
-                err = AnimUnk70( AnimIdx, 0 ); 
+                err = AnimUpdate( AnimIdx, 0 ); 
                 break;
             case 16: if( !ObjSetPlayer( anim->Target.Obj, &Area ) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
-        	err = AnimUnk70( AnimIdx, 0 ); 
+        	err = AnimUpdate( AnimIdx, 0 ); 
         	break;
             case 17: err = AnimUnk29( anim->Target.Obj, AnimIdx, anim->TargetPos); break;
             case 18: err = AnimUnk17( anim->Target.Obj, 38, AnimIdx, anim->TargetPos ); break;
-            case 19:
-                ObjSetLight( anim->Target.Obj, anim->TargetPos, anim->Target.Obj->LightIntensity, &Area );
+            case 19: // light animation
+                ObjSetLight( anim->Target.Obj, anim->TargetPos, anim->Target.Obj->LightIntensity, &Area ); // obj, radius, intensity, area
                 TileUpdateArea( &Area, anim->Target.Obj->Elevation );
-                err = AnimUnk70( AnimIdx, 0 );
+                err = AnimUpdate( AnimIdx, 0 );
                 break;
             case 20: err = AnimUnk13( anim->Target.Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx );  break;
             case 23: err = AnimUnk14( anim->Target.Obj, anim->Silence, AnimIdx ); break;
@@ -877,14 +880,16 @@ int AnimStateMachine( int AnimIdx )
                 } else {
             	    if( !ObjUnk35( anim->Target.Obj, &Area ) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
                 }                
-                err = AnimUnk70( AnimIdx, 0 ); 
+                err = AnimUpdate( AnimIdx, 0 ); 
                 break;
-            case 25: err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 128 ); break;
+            case 25: 
+DD 
+        	err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 0x80 ); break;
             case 26:
                 gAnimations[ anim->Ap.Int ].Flags &= ~0x10;
-                if( (err = AnimUnk70( anim->Ap.Int, 1 ) ) != -1 ) err = AnimUnk70( AnimIdx, 0 );
+                if( (err = AnimUpdate( anim->Ap.Int, 1 ) ) != -1 ) err = AnimUpdate( AnimIdx, 0 );
                 break;
-            case 28: err = AnimUnk70( AnimIdx, 0 ); break;
+            case 28: err = AnimUpdate( AnimIdx, 0 ); break;
             default: err = -1; break;
         }
 	if( err == -1 ) AnimEnd( AnimIdx );
@@ -892,7 +897,7 @@ int AnimStateMachine( int AnimIdx )
     return -1;
 }
 
-int AnimUnk70( int AnimIdx, int Flg )
+int AnimUpdate( int AnimIdx, int Flg )
 {
     if( AnimIdx == -1 || gAnimations[ AnimIdx ].i01 == -1000 ) return -1;
     gAnimations[ AnimIdx ].Step++;
@@ -1249,7 +1254,7 @@ int AnimUnk08( Obj_t *a1, Obj_t *a2, int a3, int a4, int a5 )
     gAnimUnk23[ v8 ].Ap -= dAp;
     if( gAnimUnk23[ v8 ].Ap <= 0 ){
         gAnimUnk23[ v8 ].Stat = -1000;
-        AnimUnk70( a5, 0 );
+        AnimUpdate( a5, 0 );
     }
     if( dAp ) gAnimUnk23[ v8 ].GridPos = TileGetTileNumInDir( a2->GridId, gAnimUnk23[ v8 ].Path[ dAp + gAnimUnk23[ v8 ].Ap ], 1 );
     if( dAp == 2 ) gAnimUnk23[ v8 ].GridPos = TileGetTileNumInDir( gAnimUnk23[ v8 ].GridPos, gAnimUnk23[ v8 ].Path[ gAnimUnk23[ v8 ].Ap ], 1 );
@@ -1379,7 +1384,7 @@ int AnimUnk10( Obj_t *obj, unsigned int MapIdx, int MapLvl, int Ap, int Silence,
     if( !ObjReach( obj, MapIdx, MapLvl ) ) return 0;        
     if( --gAnimUnk23[ k ].Ap <= 0 ){ // reached destination
         gAnimUnk23[ k ].Stat = -1000;
-        AnimUnk70( AnimIdx, 0 );
+        AnimUpdate( AnimIdx, 0 );
     }
     gAnimUnk23[ k ].GridPos = TileGetTileNumInDir( MapIdx, gAnimUnk23[ k ].Path[ gAnimUnk23[ k ].Ap ], 1 ); // stop position
     if( Ap != -1 && Ap < gAnimUnk23[ k ].Ap ) gAnimUnk23[ k ].Ap = Ap;    
@@ -1390,7 +1395,7 @@ int AnimCreateTrace( Obj_t *obj, int DstIdx, int MapLvl, int Ap, int a5, int a6,
 {
     if( gAnimCnt1 == 24 ) return -1;
     gAnimUnk23[ gAnimCnt1 ].Obj = obj;
-    gAnimUnk23[ gAnimCnt1 ].Flags = ( a6 ) ? 32 : 0;
+    gAnimUnk23[ gAnimCnt1 ].Flags = ( a6 ) ? 0x20 : 0;
     gAnimUnk23[ gAnimCnt1 ].Stat = -2000;
     gAnimUnk23[ gAnimCnt1 ].ArtId = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, a5, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 );
     gAnimUnk23[ gAnimCnt1 ].Time = 0;
@@ -1570,10 +1575,10 @@ void AnimMovement( int AnimIdx )
         }
     }
     TileUpdateArea( &Area12, gAnimUnk23[ AnimIdx ].Obj->Elevation );
-    if( gAnimUnk23[ AnimIdx ].Stat == -1000 ) AnimUnk70( gAnimUnk23[ AnimIdx ].AnimIdx, 1 );
+    if( gAnimUnk23[ AnimIdx ].Stat == -1000 ) AnimUpdate( gAnimUnk23[ AnimIdx ].AnimIdx, 1 );
 }
 
-void AnimUnk16( int AnimIdx )
+void AnimMoveReverse( int AnimIdx )
 {
     Obj_t *obj;
     ArtFrmHdr_t *Img;
@@ -1581,7 +1586,7 @@ void AnimUnk16( int AnimIdx )
     CachePool_t *ImgObj;
     Anim04_t *t;    
     int fpd;
-
+DD
     obj = gAnimUnk23[ AnimIdx ].Obj;
     if( gAnimUnk23[ AnimIdx ].Stat == -2000 ){
         ObjSetShape( gAnimUnk23[ AnimIdx ].Obj, gAnimUnk23[ AnimIdx ].ArtId, &Area1 );
@@ -1606,7 +1611,7 @@ void AnimUnk16( int AnimIdx )
         }
         if( gAnimUnk23[ AnimIdx ].Stat == gAnimUnk23[ AnimIdx ].Ap && ((gAnimUnk23[ AnimIdx ].Flags & 0x10) == 0 || obj->FrameNo == fpd) ) gAnimUnk23[ AnimIdx ].Stat = -1000;
         TileUpdateArea( &Area1, gAnimUnk23[ AnimIdx ].Obj->Elevation );
-        if( gAnimUnk23[ AnimIdx ].Stat == -1000 ) AnimUnk70( gAnimUnk23[ AnimIdx ].AnimIdx, 1 );
+        if( gAnimUnk23[ AnimIdx ].Stat == -1000 ) AnimUpdate( gAnimUnk23[ AnimIdx ].AnimIdx, 1 );
     }
 }
 
@@ -1637,7 +1642,7 @@ int AnimUnk17( Obj_t *obj, int a2, int AnimIdx, int a4 )
 // task callback, in game animations process
 void AnimProcess()
 {
-    int ypos, xpos, xoffs, yoffs, i, SysTime, AnimIdx, Stat, j, ImgId, n;
+    int ypos, xpos, xoffs, yoffs, i, SysTime, AnimIdx, j, ImgId, n;
     ArtFrmHdr_t *Img;
     VidRect_t Area2, AreaOut, Area1;
     CachePool_t *ImgObj;
@@ -1657,7 +1662,7 @@ void AnimProcess()
         if( AnimStateMachine( AnimIdx ) == -1 ) continue;
         if( gAnimUnk23[ i ].Ap > 0 ){
             if( gAnimUnk23[ i ].Flags & 0x02 ){
-                AnimUnk16( i );
+                AnimMoveReverse( i );
     	    } else {
     		n = obj->GridId;
                 AnimMovement( i );
@@ -1665,11 +1670,11 @@ void AnimProcess()
             }
             continue;
         }
-        if( !(Stat = gAnimUnk23[ i ].Stat) ){
+        if( gAnimUnk23[ i ].Stat == 0 ){
             for( j = 0; j < gAnimCnt1; j++ ){
                 if( obj == gAnimUnk23[ j ].Obj && gAnimUnk23[ j ].Stat == -2000 ){
                     gAnimUnk23[ j ].Stat = -1000;
-                    AnimUnk70( gAnimUnk23[ j ].AnimIdx, 1 );
+                    AnimUpdate( gAnimUnk23[ j ].AnimIdx, 1 );
                 }
             }
             gAnimUnk23[ i ].Stat = -2000;
@@ -1707,25 +1712,27 @@ void AnimProcess()
         }
         if( !(gAnimUnk23[ i ].Flags & 0x01) ){
             Img = ArtLoadImg( obj->ImgId, &ImgObj );
-            if( Img ){
-                if( (gAnimUnk23[ i ].Flags & 0xff) >= 0 && ArtGetFpd( Img ) - 1 == obj->FrameNo ){
-                    gAnimUnk23[ i ].Stat = -1000;
-                    ArtClose( ImgObj );
-                    if( (gAnimUnk23[ i ].Flags & 0x40 ) && !ObjUnk33( obj, &AreaOut ) ) TileUpdateArea( &AreaOut, obj->Elevation );
-                    AnimUnk70( gAnimUnk23[ i ].AnimIdx, 1 );
-                    continue;
-                }
-                ObjIncFrame( obj, &Area2 );
-                RegionExpand( &Area1, &Area2, &Area1 );
-                ArtGetFrameShift( Img, obj->FrameNo, obj->Orientation, &xpos, &ypos );
-                ObjMove( obj, xpos, ypos, &Area2 );
-                RegionExpand( &Area1, &Area2, &Area1 );
-                ArtClose( ImgObj );
+            if( !Img ){
+        	TileUpdateArea( &Area1, gMapCurrentLvl );
+        	continue;
             }
-            TileUpdateArea( &Area1, gMapCurrentLvl );
-            continue;
+            if( ( gAnimUnk23[ i ].Flags & 0x80 ) || ((ArtGetFpd( Img ) - 1) != obj->FrameNo) ){
+            	ObjIncFrame( obj, &Area2 );
+            	RegionExpand( &Area1, &Area2, &Area1 );
+            	ArtGetFrameShift( Img, obj->FrameNo, obj->Orientation, &xpos, &ypos );
+            	ObjMove( obj, xpos, ypos, &Area2 );
+            	RegionExpand( &Area1, &Area2, &Area1 );
+            	ArtClose( ImgObj );
+            	TileUpdateArea( &Area1, gMapCurrentLvl );
+            } else {
+                gAnimUnk23[ i ].Stat = -1000;
+                ArtClose( ImgObj );
+                if( (gAnimUnk23[ i ].Flags & 0x40 ) && !ObjUnk33( obj, &AreaOut ) ) TileUpdateArea( &AreaOut, obj->Elevation );
+                AnimUpdate( gAnimUnk23[ i ].AnimIdx, 1 );                    
+            }
+    	    continue;
         }
-	if( gAnimUnk23[ i ].Flags < 0 || obj->FrameNo ){
+	if( (gAnimUnk23[ i ].Flags & 0x80) || obj->FrameNo ){
             if( ( Img = ArtLoadImg( obj->ImgId, &ImgObj ) ) ){
                 ArtGetFrameShift( Img, obj->FrameNo, obj->Orientation, &xpos, &ypos );
                 ArtClose( ImgObj );
@@ -1737,7 +1744,7 @@ void AnimProcess()
             TileUpdateArea( &Area1, gMapCurrentLvl );
         } else {
             gAnimUnk23[ i ].Stat = -1000;
-    	    AnimUnk70( gAnimUnk23[ i ].AnimIdx, 1 );
+    	    AnimUpdate( gAnimUnk23[ i ].AnimIdx, 1 );
         }
     }
     gAnimUnk40 = 0;
@@ -1780,7 +1787,7 @@ int AnimGetTarget( int *Ap )
         }
     } else {
         CfgGetInteger( &gConfiguration, "system", "interrupt_walk", &EntryValue );
-        if( EntryValue ) AnimClear( gObjDude );
+        if( EntryValue ) AnimRegClear( gObjDude );
     }
     return GridIdx;
 }
@@ -1792,9 +1799,9 @@ int AnimWalk( int Ap )
     if( (GridPos = AnimGetTarget( &Ap )) == -1 ) return -1;
     if( GridPos == gAnimRunPos ) return AnimRun( Ap );        
     gAnimRunPos = GridPos;
-    AnimStart( 2 );
+    AnimRegStart( 2 );
     AnimObjMoveToTile( gObjDude, GridPos, gObjDude->Elevation, Ap, 0 );
-    return AnimBegin();        
+    return AnimRegEnd();        
 }
 
 int AnimRun( int Ap )
@@ -1803,12 +1810,12 @@ int AnimRun( int Ap )
     
     if( (TargetGridId = AnimGetTarget( &Ap )) == -1 ) return -1;
     if( !PerkLvl( gObjDude, PERK_SILENT_RUNNING ) ) CritterUnk36( 0 );
-    AnimStart( 2 );
+    AnimRegStart( 2 );
     AnimObjRunToTile( gObjDude, TargetGridId, gObjDude->Elevation, Ap, 0 );
-    return AnimBegin();    
+    return AnimRegEnd();    
 }
 
-// task callback, ambient animations
+// task callback, fidgets animation
 void AnimAmbient()
 {
     VidRect_t Area;
@@ -1820,8 +1827,10 @@ void AnimAmbient()
 
     if( gMenuEscape || IN_COMBAT ) return;
     if( RecGetState() != 2 ) return;
-    if( gObjDude->Flags & 1 ) return;        
-    if( TimerDiff( Time = TimerGetTime(), gAnimPlayTime ) <= gAnimPlaySpeed ) return;    
+    if( gObjDude->Flags & 1 ) return;   
+    Time = TimerGetTime();
+
+    if( TimerDiff( Time, gAnimPlayTime ) <= gAnimPlaySpeed ) return;    
     gAnimPlayTime = Time;
     ObjCount = 0;
     for( obj = ObjGetVisibleObjectFirst( gObjDude->Elevation ); obj; obj = ObjGetVisibleObjectNext() ){
@@ -1834,7 +1843,7 @@ void AnimAmbient()
     Speed = 7;
     if( ObjCount ){
         obj = gAnimAmbientCritter[ RandMinMax( 0, ObjCount - 1 ) ];
-        AnimStart( 513 );
+        AnimRegStart( 513 );
         v7 = 0;
         if( obj == gObjDude ){
     	    v7 = 1;
@@ -1847,7 +1856,7 @@ void AnimAmbient()
         }
         if( v7 ) AnimRegPlaySfx( obj, GSoundCharacterFileName( obj, 0, 0 ), 0 );        
         AnimRegAnim( obj, 0, 0 );
-        AnimBegin();
+        AnimRegEnd();
         Speed = 20 / ObjCount;
         if( 20 / ObjCount < 1 ){ 
     	    gAnimPlaySpeed = RandMinMax( 0, 3000 ) + 1000; 
@@ -1906,9 +1915,9 @@ int AnimUnk25( Obj_t *obj )
 {
     int n;
 
-    AnimStart( 2 );
+    AnimRegStart( 2 );
     AnimRegAnim( obj, ( (obj->ImgId & 0xFF0000) >> 16 == 20 ) ? 37 : 36, 0 );
-    n = AnimBegin();
+    n = AnimRegEnd();
     obj->Scenery.i07 &= ~0x02;
     return n;
 }
@@ -1918,7 +1927,7 @@ int AnimUnk26( Obj_t *obj, int MapIdx, int a2 )
     if( !CritterUnk31( obj ) ){
         AnimUnk24( obj, TileTurnAt( obj->GridId, MapIdx ), -1 );
     }
-    AnimUnk70( a2, 0 );
+    AnimUpdate( a2, 0 );
     return 0;
 }
 
@@ -1935,7 +1944,7 @@ int AnimUnk27( Obj_t *obj, int turn, int AnimIdx )
         }
         AnimUnk24( obj, ori, -1 );
     }
-    AnimUnk70( AnimIdx, 0 );
+    AnimUpdate( AnimIdx, 0 );
     return 0;
 }
 
@@ -1944,7 +1953,7 @@ int AnimUnk28( Obj_t *obj, int AnimIdx )
     VidRect_t Area;
 
     if( !ObjUnk33( obj, &Area ) ) TileUpdateArea( &Area, obj->Elevation );
-    if( AnimIdx != -1 ) AnimUnk70( AnimIdx, 0 );
+    if( AnimIdx != -1 ) AnimUpdate( AnimIdx, 0 );
     return 0;
 }
 
@@ -1960,7 +1969,7 @@ int AnimUnk29( Obj_t *obj, int AnimIdx, int a3 )
     } else {
         AnimUnk24( obj, obj->Orientation, a3 );
     }
-    AnimUnk70( AnimIdx, 0 );
+    AnimUpdate( AnimIdx, 0 );
     return 0;
 }
 

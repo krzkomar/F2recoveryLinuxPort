@@ -38,7 +38,7 @@ void ScpIfc_FillWin3x3( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type );
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to fillwin3x3" );
-    SCP_DBGA( "FILL_WIN3x3( [%x]%x )", Type, Arg );
+    SCP_DBGA( "FILL_WIN3x3( [%x]%i )", Type, Arg );
     s = IntpMseHandler( IntpGetString( scr, TYPEH( Type ), Arg ) );    
     if( !(data = DataFileGetArt( s, &SrcW, &SrcH ) ) ) IntpError("cannot load 3x3 file '%s'", s );
     WinFillRect( scr->i34 );
@@ -66,7 +66,7 @@ void ScpIfc_MessageFormat( Intp_t *scr ) // 8073
     ARG_TYPE( Type5, SCR_INT, "Invalid arg 2 given to format\n" );
     ARG_TYPE( Type6, SCR_STRING, "Invalid arg 1 given to format\n" );
     SCP_DBGA( 
-	"message_format( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"message_format( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type6, Arg6, Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
     if( !WinFormatMsg( IntpGetString( scr, TYPEH( Type6 ), Arg6 ), Arg5, Arg3, Arg4, Arg2, Arg1 ) ) IntpError( "Error formatting message\n" );
@@ -80,7 +80,7 @@ void ScpIfc_Print( Intp_t *scr ) // 8072
 
     WinFillRect( scr->i34 );
     GET_ARGi( scr, Arg, Type );
-    SCP_DBGA( "Print( [%x]%x", Type, Arg );
+    SCP_DBGA( "Print( [%x]%i", Type, Arg );
     Type &= ~0x0800;
     switch( Type ){
 	case SCR_STRING: IntpLog( "%s", IntpGetString( scr, TYPEH( Type ), Arg ) ); break;
@@ -106,7 +106,7 @@ void ScpIfc_SelectFileList( Intp_t *scr ) // 809F
     ARG_TYPE( Type2, SCR_STRING, "Error, invalid arg 1 given to selectfilelist" );
     title = IntpGetString( scr, TYPEH( Type2 ), Arg2 );
     list = FileListMake( IntpMseHandler( mask ), &Cnt );
-    SCP_DBGA( "selectfilelist( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "selectfilelist( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
     if( list && Cnt ){
         selected = TextBoxFileSelect( title, list, Cnt, NULL, 320 - gFont.LineWidth( title ) / 2 - 10, 200, gPalColorCubeRGB[31][31][31] | 0x10000 );
         if( selected == -1 ){
@@ -150,7 +150,7 @@ void ScpIfc_TokenizeString( Intp_t *scr ) // 80A0
     GET_ARGi( scr, Arg3, Type3 );
     ARG_TYPE( Type3, SCR_STRING, "Error, invalid arg 1 to tokenize." );
 
-    SCP_DBGA( "tokenize( [%x]%x, [%x]%x, [%x]%x )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "tokenize( [%x]%i, [%x]%i, [%x]%i )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
     s = IntpGetString( scr, TYPEH( Type3 ), Arg3 );
     if( !xx ){
         for( i = 0;*s != v29 && *s; s++, i++ );
@@ -194,7 +194,7 @@ void ScpIfc_PrintRect( Intp_t *scr ) // 8074
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
-    SCP_DBGA( "printrect( [%x]%x, [%x]%x, [%x]%x )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "printrect( [%x]%i, [%x]%i, [%x]%i )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
     if( (Type1 & 0xF7FF) != SCR_INT || Arg1 > 2 ) IntpError( "Invalid arg 3 given to printrect, expecting int" );
     ARG_TYPE( Type2, SCR_INT, "Invalid arg 2 given to printrect, expecting int" );
     if( (Type3 & 0xF7FF) >= SCR_FLOAT ){
@@ -218,7 +218,7 @@ void ScpIfc_Select( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to select" );
-    SCP_DBGA( "select( [%x]%x )", Type, Arg );
+    SCP_DBGA( "select( [%x]%i )", Type, Arg );
     win = WinSelect( IntpGetString(scr, TYPEH( Type ), Arg ) );
     if( win == -1 ) IntpError("Error selecing window %s\n", IntpGetString( scr, TYPEH( Type ), Arg ) );
     scr->i34 = win;
@@ -233,7 +233,7 @@ void ScpIfc_Display( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to display" );
-    SCP_DBGA( "display( [%x]%x )", Type, Arg );
+    SCP_DBGA( "display( [%x]%i )", Type, Arg );
     WinFillRect( scr->i34 );
     WinUnk10( IntpMseHandler( IntpGetString(scr, TYPEH(Type), Arg ) ) );
 }
@@ -246,7 +246,7 @@ void ScpIfc_DisplayRaw( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to displayraw" );    
-    SCP_DBGA( "displayraw( [%x]%x )", Type, Arg );
+    SCP_DBGA( "displayraw( [%x]%i )", Type, Arg );
     WinFillRect( scr->i34 );    
     WinUnk13( IntpMseHandler( IntpGetString( scr, TYPEH( Type ), Arg ) ) );
 }
@@ -329,7 +329,7 @@ void ScpIfc_FadeIn( Intp_t *scr )
 
     GET_ARGf( scr, Arg, Argf, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid type given to fadein\n" );
-    SCP_DBGA( "fadein( [%x]%x )", Type, Arg );
+    SCP_DBGA( "fadein( [%x]%i )", Type, Arg );
     scr->Flags |= 0x20;
     PalSetColors( gScpIfcUnk02 );
     ScpIfcPal( gScpIfcUnk02, gPalBase, Argf, 1 );
@@ -346,7 +346,7 @@ void ScpIfc_FadeOut( Intp_t *scr )
 
     GET_ARGf( scr, Arg, Argf, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid type given to fadeout\n" );
-    SCP_DBGA( "fadeout( [%x]%x )", Type, Arg );
+    SCP_DBGA( "fadeout( [%x]%i )", Type, Arg );
     scr->Flags |= 0x20;
     cc = MseIsCursorClear();
     MseCursorRedraw();
@@ -369,7 +369,7 @@ void ScpIfc_SettingMovieFlag( Intp_t *scr )
     int Arg;
 
     GET_ARGi( scr, Arg, Type )
-    SCP_DBGA( "movie_flags( [%x]%x )", Type, Arg );
+    SCP_DBGA( "movie_flags( [%x]%i )", Type, Arg );
     if( !WinSetMovieFlags( Arg ) ) IntpError( "Error setting movie flags\n" );
 }
 
@@ -381,7 +381,7 @@ void ScpIfc_PlayMovie1( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid arg given to playmovie" );
-    SCP_DBGA( "playmovie1( [%x]%x )", Type, Arg );
+    SCP_DBGA( "playmovie1( [%x]%i )", Type, Arg );
     strcpy( gScpIfcUnk03, IntpGetString( scr, TYPEH( Type ), Arg ) );
     if( !strchr( gScpIfcUnk03, '.' ) ) strcpy( gScpIfcUnk03 + strlen( gScpIfcUnk03 ), ".mve" );
     WinFillRect( scr->i34 );
@@ -403,7 +403,7 @@ void ScpIfc_PlayMovie( Intp_t *scr )
     GET_ARGi( scr, Arg5, Type5 )
     ARG_TYPE( Type5, SCR_STRING, "Invalid arg given to playmovie" );
     SCP_DBGA( 
-	"playmovie( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"playmovie( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
     strcpy( gScpIfcUnk04, IntpGetString( scr, TYPEH( Type5 ), Arg5 ) );
@@ -431,7 +431,7 @@ void ScpIfc_DeleteRegion( Intp_t *scr )
     char *s;
 
     GET_ARGi( scr, Arg, Type )
-    SCP_DBGA( "deleteregion( [%x]%x )", Arg, Type );
+    SCP_DBGA( "deleteregion( [%x]%i )", Arg, Type );
     if( (Type & 0xF7FF) == SCR_INT && Arg != -1 ) IntpError( "Invalid type given to deleteregion" );
     WinFillRect( scr->i34 );
     if( Arg == -1 )
@@ -449,7 +449,7 @@ void ScpIfc_ActivateRegion( Intp_t *scr )
 
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
-    SCP_DBGA( "activate_region( [%x]%x, [%x]%x )", Arg2, Type2, Arg1, Type1 );
+    SCP_DBGA( "activate_region( [%x]%i, [%x]%i )", Arg2, Type2, Arg1, Type1 );
     WinActivateRegion( IntpGetString( scr, TYPEH( Type2 ), Arg2 ), Arg1 );
 }
 
@@ -461,7 +461,7 @@ void ScpIfc_CheckRegion( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid arg 1 given to checkregion();\n" );
-    SCP_DBGA( "checkregion( [%x]%x )", Arg, Type );
+    SCP_DBGA( "checkregion( [%x]%i )", Arg, Type );
     IntpPushiA( scr, WinCheckRegion( IntpGetString( scr, TYPEH( Type ), Arg ) ) );
     IntpPushwA( scr, SCR_INT );
 }
@@ -475,7 +475,7 @@ void ScpIfc_SetRegion( Intp_t *scr )
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid number of elements given to region" );
     if( Arg < 2 ) IntpError( "addregion call without enough points!" );
-    SCP_DBGA( "setregion( [%x]%x, ... )", Arg, Type );
+    SCP_DBGA( "setregion( [%x]%i, ... )", Arg, Type );
     WinFillRect( scr->i34 );
     WinUnk106( Arg / 2 );
     for( ;Arg >= 2; Arg -= 2 ){
@@ -518,7 +518,7 @@ void ScpIfc_SetRegionProc( Intp_t *scr )
     ARG_TYPE( Type4, SCR_INT, "Invalid procedure 1 name given to addregionproc" );
     ARG_TYPE( Type5, SCR_STRING, "Invalid name given to addregionproc" );
     SCP_DBGA( 
-	"addregionproc( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"addregionproc( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
     name = IntpGetString( scr, TYPEH( Type5 ), Arg5 );
@@ -541,7 +541,7 @@ void ScpIfc_SetRightButtonProc( Intp_t *scr )
     ARG_TYPE( Type2, SCR_INT, "Invalid procedure 1 name given to addregionrightproc" );
     ARG_TYPE( Type3, SCR_STRING, "Invalid name given to addregionrightproc" );
     SCP_DBGA( 
-	"addregionrightproc( [%x]%x, [%x]%x, [%x]%x )", 
+	"addregionrightproc( [%x]%i, [%x]%i, [%x]%i )", 
 	Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
     WinFillRect( scr->i34 );
@@ -561,7 +561,7 @@ void ScpIfc_CreateWindow( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 ) // int x
     GET_ARGi( scr, Arg5, Type5 ) // name
     SCP_DBGA( 
-	"create_window( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"create_window( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
 
@@ -587,7 +587,7 @@ void ScpIfc_ResizeWindow( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 ) // int x
     GET_ARGi( scr, Arg5, Type5 ) // name
     SCP_DBGA( 
-	"resize_window( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"resize_window( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
 
@@ -612,7 +612,7 @@ void ScpIfc_ScaleWindow( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 ) // int x
     GET_ARGi( scr, Arg5, Type5 ) // name
     SCP_DBGA( 
-	"scale_window( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"scale_window( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
     if( WinScale( 
@@ -632,7 +632,7 @@ void ScpIfc_DeleteWindow( Intp_t *scr )
     char *s;
 
     GET_ARGi( scr, Arg, Type )
-    SCP_DBGA( "delete_window( [%x]%x )", Type, Arg );
+    SCP_DBGA( "delete_window( [%x]%i )", Type, Arg );
 
     s = IntpGetString( scr, Type, Arg );
     if( !WinDelete( s ) ) IntpError( "Error deleting window %s\n", s );
@@ -660,7 +660,7 @@ void ScpIfc_StartDialog( Intp_t *scr )
     int Arg;
 
     GET_ARGi( scr, Arg, Type )
-    SCP_DBGA( "start_dialog( [%x]%x )", Type, Arg );
+    SCP_DBGA( "start_dialog( [%x]%i )", Type, Arg );
     scr->Flags |= 0x20;
     gScpIfcUnk05 = Arg;
     if( DialogStart( scr ) ){
@@ -679,7 +679,7 @@ void ScpIfc_SetTitle( Intp_t *scr )
 
     x = NULL;
     GET_ARGi( scr, Arg, Type )
-    SCP_DBGA( "set_title( [%x]%x )", Type, Arg );
+    SCP_DBGA( "set_title( [%x]%i )", Type, Arg );
     if( (Type & 0xF7FF) == SCR_STRING ) x = IntpGetString( scr, TYPEH( Type ), Arg );
     if( DialogSetTitle( x ) ) IntpError( "Error setting title." );
 }
@@ -693,7 +693,7 @@ void ScpIfc_SayGotoReply( Intp_t *scr )
 
     x = NULL;
     GET_ARGi( scr, Arg, Type )
-    SCP_DBGA( "say_goto_reply( [%x]%x )", Type, Arg );
+    SCP_DBGA( "say_goto_reply( [%x]%i )", Type, Arg );
     if( (Type & 0xF7FF) == SCR_STRING ) x = IntpGetString( scr, TYPEH( Type ), Arg );
     if( DialogGotoReply( x ) ) IntpError( "Error during goto, couldn't find reply target %s\n", x );
 }
@@ -708,7 +708,7 @@ void ScpIfc_SayOption( Intp_t *scr )
     scr->Flags |= 0x20;
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
-    SCP_DBGA( "say_option( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "say_option( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
     if( (Type2 & ~0x800) == SCR_STRING )
         x = IntpGetString( scr, TYPEH( Type2 ), Arg2 );
     else
@@ -743,7 +743,7 @@ void ScpIfc_SayReply( Intp_t *scr )
     scr->Flags |= 0x20;
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
-    SCP_DBGA( "say_reply( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "say_reply( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
     if( (Type2 & ~0x800) == SCR_STRING )
         s = IntpGetString(scr, TYPEH(Type2), Arg2);
     else
@@ -819,7 +819,7 @@ void ScpIfc_SayMsgTimeout( Intp_t *scr )
     int Arg;
 
     GET_ARGi( scr, Arg, Type )
-    SCP_DBGA( "sayMsgTimeout( [%x]%x )", Type, Arg );
+    SCP_DBGA( "sayMsgTimeout( [%x]%i )", Type, Arg );
     ARG_TYPE( Type, 0x4000, "sayMsgTimeout:  invalid var type passed." );
     gIfcTimeout	= Arg;
 }
@@ -834,7 +834,7 @@ void ScpIfc_SayMessage( Intp_t *scr )
     scr->Flags |= 0x20;
     GET_ARGi( scr, Arg1, Type1 ) // message_text    
     GET_ARGi( scr, Arg2, Type2 ) // message title
-    SCP_DBGA( "sayMessage( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "sayMessage( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
     if( (Type2 & 0xF7FF) == SCR_STRING )
         title = IntpGetString( scr, TYPEH(Type2), Arg2 );
     else
@@ -862,7 +862,7 @@ void ScpIfc_GotoXY( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Type1, SCR_INT, "Invalid operand given to gotoxy" );
     ARG_TYPE( Type2, SCR_INT, "Invalid operand given to gotoxy" );
-    SCP_DBGA( "gotoXY( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "gotoXY( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
     WinFillRect( scr->i34 );
     WinMoveXY( Arg2, Arg1 );
 }
@@ -877,7 +877,7 @@ void ScpIfc_AddButtonFlag( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )    
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 2 given to addbuttonflag" );
     ARG_TYPE( Type2, SCR_STRING, "Invalid arg 1 given to addbuttonflag" );
-    SCP_DBGA( "AddButtonFlag( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "AddButtonFlag( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
     if( !WinAddButtonFlag( IntpGetString( scr, TYPEH( Type2 ), Arg2 ), Arg1 ) ) IntpError( "Error setting flag on button %s", IntpGetString( scr, TYPEH( Type2 ), Arg2 ) );
 }
 
@@ -891,7 +891,7 @@ void ScpIfc_AddRegionFlag( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )        
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 2 given to addregionflag" );
     ARG_TYPE( Type2, SCR_STRING, "Invalid arg 1 given to addregionflag" );
-    SCP_DBGA( "AddRegionFlag( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "AddRegionFlag( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
     if( !WinAddRegionFlag( IntpGetString( scr, TYPEH( Type2 ), Arg2), Arg1 ) ) IntpError("Error setting flag on region %s", IntpGetString( scr, TYPEH( Type2 ), Arg2 ) );
 }
 
@@ -912,7 +912,7 @@ void ScpIfc_AddButton( Intp_t *scr )
     GET_ARGi( scr, Arg5, Type5 )    
     ARG_TYPE( Type5, SCR_STRING, "Invalid name given to addbutton" );
     SCP_DBGA( 
-	"addbutton( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"addbutton( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
     WinFillRect( scr->i34 );
@@ -934,7 +934,7 @@ void ScpIfc_AddButtonText( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Arg1, SCR_STRING, "Invalid text string given to addbuttontext" );
     ARG_TYPE( Arg2, SCR_STRING, "Invalid name given to addbuttontext" );
-    SCP_DBGA( "addbuttontext( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "addbuttontext( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
     WinFillRect( scr->i34 );
     name = IntpGetString( scr, Type1, Arg2 );
     if( !WinAddButtonText( name, IntpGetString( scr, Type2, Arg1 ) ) ) IntpError( "Error setting text to button %s\n", name );
@@ -952,7 +952,7 @@ void ScpIfc_AddButtonGFX( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )
     GET_ARGi( scr, Arg3, Type3 )
     GET_ARGi( scr, Arg4, Type4 )
-    SCP_DBGA( "addbuttongfx( [%x]%x, [%x]%x, [%x]%x, [%x]%x )", Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "addbuttongfx( [%x]%i, [%x]%i, [%x]%i, [%x]%i )", Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1 );
 
     if( (Type3 & 0xF7FF) == SCR_STRING ){ r = 0; goto nn; }
     if( (Type3 & 0xF7FF) != SCR_INT ){ r = 1; goto nn; }
@@ -997,7 +997,7 @@ void ScpIfc_AddButtonProc( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 )
     GET_ARGi( scr, Arg5, Type5 )
     SCP_DBGA( 
-	"addbuttonproc( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"addbuttonproc( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
     ARG_TYPE( Type1, SCR_INT, "Invalid procedure 4 name given to addbuttonproc" );
@@ -1020,7 +1020,7 @@ void ScpIfc_AddButtonRightProc( Intp_t *scr )
     GET_ARGi( scr, Arg1, Type1 )    
     GET_ARGi( scr, Arg2, Type2 )
     GET_ARGi( scr, Arg3, Type3 )
-    SCP_DBGA( "addbuttonproc( [%x]%x, [%x]%x, [%x]%x )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "addbuttonproc( [%x]%i, [%x]%i, [%x]%i )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
     ARG_TYPE( Type1, SCR_INT, "Invalid procedure 2 name given to addbuttonrightproc" );
     ARG_TYPE( Type2, SCR_INT, "Invalid procedure 1 name given to addbuttonrightproc" );
     ARG_TYPE( Type3, SCR_STRING, "Invalid name given to addbuttonrightproc" );
@@ -1047,7 +1047,7 @@ void ScpIfc_DeleteButton( Intp_t *scr )
 
     GET_ARGi( scr, Arg1, Type1 )
     if( (Type1 & 0xF7FF) == SCR_INT && Arg1 != -1 ) IntpError( "Invalid type given to delete button" );
-    SCP_DBGA( "deletebutton( [%x]%x )", Arg1, Type1 );
+    SCP_DBGA( "deletebutton( [%x]%i )", Arg1, Type1 );
     WinFillRect( scr->i34 );
     if( (Type1 & ~0x800) == SCR_INT ) {
         if( WinDeleteButton( 0 ) ) return;
@@ -1110,7 +1110,7 @@ void ScpIfc_FillRect( Intp_t *scr )
     GET_ARGi( scr, Ypos,   Type6 )    
     GET_ARGi( scr, Xpos,   Type7 )    
     SCP_DBGA( 
-	"fillrect( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%f, [%x]%f, [%x]%f )", 
+	"fillrect( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%f, [%x]%f, [%x]%f )", 
 	Type7, Xpos, Type6, Ypos, Type5, Width, Type4, Height, Type3, Rcolor, Type2, Gcolor, Type1, Bcolor
     );
 
@@ -1174,7 +1174,7 @@ void ScpIfc_MouseShape( Intp_t *scr )
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 3 given to mouseshape" );
     ARG_TYPE( Type2, SCR_INT, "Invalid arg 2 given to mouseshape" );
     ARG_TYPE( Type3, SCR_STRING, "Invalid filename given to mouseshape" );
-    SCP_DBGA( "MouseShape( [%x]%x, [%x]%x, [%x]%x )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "MouseShape( [%x]%i, [%x]%i, [%x]%i )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
     if( !MouseMgrLoadMou( IntpGetString( scr, TYPEH( Type3 ), Arg3 ), Arg2, Arg1 ) ) IntpError( "Error loading mouse shape." );
 }
 
@@ -1198,7 +1198,7 @@ void ScpIfc_DisplayGFX( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 )    
     GET_ARGi( scr, Arg5, Type5 )        
     SCP_DBGA( 
-	"DisplayGFX( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"DisplayGFX( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
 
@@ -1213,7 +1213,7 @@ void ScpIfc_LoadPaletteTable( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to loadpalettetable" );
-    SCP_DBGA( "loadpalettetable( [%x]%x )", Arg, Type );
+    SCP_DBGA( "loadpalettetable( [%x]%i )", Arg, Type );
     if( !PalLoadFromFile( IntpGetString( scr, TYPEH( Type ), Arg ) ) ) IntpError( PalGetErrorMsg() );    
 }
 
@@ -1226,7 +1226,7 @@ void ScpIfc_AddNamedEvent( Intp_t *scr )
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Type1, SCR_STRING, "Invalid type given to addnamedevent" );
-    SCP_DBGA( "addnamedevent( [%x]%x, [%x]%x )", Arg2, Type2, Arg1, Type1 );
+    SCP_DBGA( "addnamedevent( [%x]%i, [%x]%i )", Arg2, Type2, Arg1, Type1 );
     NevsAddProg( IntpGetString( scr, TYPEH( Type1 ), Arg2 ), scr, Arg1, 0 );
 }
 
@@ -1239,7 +1239,7 @@ void ScpIfc_AddNamedHandler( Intp_t *scr )
     GET_ARGi( scr, Arg1, Type1 )
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Type1, SCR_STRING, "Invalid type given to addnamedhandler" );
-    SCP_DBGA( "addnamedhandler( [%x]%x, [%x]%x )", Arg2, Type2, Arg1, Type1 );
+    SCP_DBGA( "addnamedhandler( [%x]%i, [%x]%i )", Arg2, Type2, Arg1, Type1 );
     NevsAddProg( IntpGetString( scr, TYPEH( Type1 ), Arg2 ), scr, Arg1, 1 );
 }
 
@@ -1251,7 +1251,7 @@ void ScpIfc_ClearNamed( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to clearnamed" );
-    SCP_DBGA( "clearnamed( [%x]%x )", Arg, Type );
+    SCP_DBGA( "clearnamed( [%x]%i )", Arg, Type );
     NevsClearEvents( IntpGetString(scr, TYPEH( Type ), Arg ) );
 }
 
@@ -1263,7 +1263,7 @@ void ScpIfc_SignalNamed( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_STRING, "Invalid type given to signalnamed" );
-    SCP_DBGA( "signalnamed( [%x]%x )", Arg, Type );
+    SCP_DBGA( "signalnamed( [%x]%i )", Arg, Type );
     NevsSignal( IntpGetString( scr, TYPEH( Type ), Arg ) );
 }
 
@@ -1277,7 +1277,7 @@ void ScpIfc_AddKey( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 2 given to addkey" );
     ARG_TYPE( Type2, SCR_INT,  "Invalid arg 1 given to addkey" );
-    SCP_DBGA( "addkey( [%x]%x, [%x]%x )", Arg2, Type2, Arg1, Type1 );
+    SCP_DBGA( "addkey( [%x]%i, [%x]%i )", Arg2, Type2, Arg1, Type1 );
     if( Arg2 == -1 ){
         gScpIfcUnk07 = Arg1;
         gScpIfcUnk08 = scr;
@@ -1296,7 +1296,7 @@ void ScpIfc_DeleteKey( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to deletekey" );
-    SCP_DBGA( "deletekey( [%x]%x )", Arg, Type );
+    SCP_DBGA( "deletekey( [%x]%i )", Arg, Type );
     if( Arg == -1 ){
         gScpIfcUnk07 = 0;
         gScpIfcUnk08 = 0;
@@ -1315,7 +1315,7 @@ void ScpIfc_RefreshMouse( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to refreshmouse" );
-    SCP_DBGA( "refreshmouse( [%x]%x )", Arg, Type );
+    SCP_DBGA( "refreshmouse( [%x]%i )", Arg, Type );
     if( !WinMouseRfsh() ){ if( Arg ) SciUnk11( scr, Arg ); }
 }
 
@@ -1327,7 +1327,7 @@ void ScpIfc_SetFont( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     if( (Type & 0xF7FF) != SCR_INT ) IntpError("Invalid arg 1 given to setfont");
-    SCP_DBGA( "setfont( [%x]%x )", Arg, Type );
+    SCP_DBGA( "setfont( [%x]%i )", Arg, Type );
     if( !WinSetFont( Arg ) ) IntpError( "Error setting font" );
 }
 
@@ -1339,7 +1339,7 @@ void ScpIfc_SetTextFlags( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to setflags" );
-    SCP_DBGA( "setflags( [%x]%x )", Arg, Type );
+    SCP_DBGA( "setflags( [%x]%i )", Arg, Type );
     if( !WinSetTextFlags( Arg ) ) IntpError( "Error setting text flags" );
 }
 
@@ -1353,7 +1353,7 @@ void ScpIfc_SetTextColor( Intp_t *scr )
     GET_ARGf( scr, Arg1, Arg1f, Type1 )
     GET_ARGf( scr, Arg2, Arg2f, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
-    SCP_DBGA( "set_text_color( [%x]%x, [%x]%x, [%x]%x )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "set_text_color( [%x]%i, [%x]%i, [%x]%i )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
     if( (( SCRTYPE( Type3 ) == SCR_INT ) && ( Arg3f != 0.0 )) || 
 	(( SCRTYPE( Type2 ) == SCR_INT ) && ( Arg2f != 0.0 )) || 
 	(( SCRTYPE( Type1 ) == SCR_INT ) && ( Arg1f != 0.0 ))
@@ -1371,7 +1371,7 @@ void ScpIfc_SayOptionColor( Intp_t *scr )
     GET_ARGf( scr, Arg1, Arg1f, Type1 )
     GET_ARGf( scr, Arg2, Arg2f, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
-    SCP_DBGA( "sayoptioncolor( [%x]%x, [%x]%x, [%x]%x )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "sayoptioncolor( [%x]%i, [%x]%i, [%x]%i )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
     if( ( ( SCRTYPE( Type3 ) == SCR_INT ) && ( Arg3f != 0.0 ) ) || 
 	( ( SCRTYPE( Type2 ) == SCR_INT ) && ( Arg2f != 0.0 ) )  || 
 	( ( SCRTYPE( Type1 ) == SCR_INT ) && ( Arg1f != 0.0 ) )
@@ -1389,7 +1389,7 @@ void ScpIfc_SayReplytColor( Intp_t *scr )
     GET_ARGf( scr, Arg1, Arg1f, Type1 )
     GET_ARGf( scr, Arg2, Arg2f, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
-    SCP_DBGA( "sayreplycolor( [%x]%x, [%x]%x, [%x]%x )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "sayreplycolor( [%x]%i, [%x]%i, [%x]%i )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
     if( ( ( SCRTYPE( Type3 ) == SCR_INT ) && ( Arg3f != 0.0 ) ) || 
 	( ( SCRTYPE( Type2 ) == SCR_INT ) && ( Arg2f != 0.0 ) ) || 
 	( ( SCRTYPE( Type1 ) == SCR_INT ) && ( Arg1f != 0.0 ) ) 
@@ -1407,7 +1407,7 @@ void ScpIfc_SetTextHighlightColor( Intp_t *scr )
     GET_ARGf( scr, Arg1, Arg1f, Type1 )
     GET_ARGf( scr, Arg2, Arg2f, Type2 )
     GET_ARGf( scr, Arg3, Arg3f, Type3 )
-    SCP_DBGA( "sethighlightcolor( [%x]%x, [%x]%x, [%x]%x )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "sethighlightcolor( [%x]%i, [%x]%i, [%x]%i )", Type3, Arg3, Type2, Arg2, Type1, Arg1 );
     if( ( ( SCRTYPE( Type3 ) == SCR_INT ) && ( Arg3f != 0.0 ) ) || 
 	( ( SCRTYPE( Type2 ) == SCR_INT ) && ( Arg2f != 0.0 ) ) || 
 	( ( SCRTYPE( Type1 ) == SCR_INT ) && ( Arg1f != 0.0 ) )
@@ -1428,7 +1428,7 @@ void ScpIfc_SayReplyWindow( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 )
     GET_ARGi( scr, Arg5, Type5 )    
     SCP_DBGA( 
-	"sayreplywindow( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"sayreplywindow( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
 
@@ -1449,7 +1449,7 @@ void ScpIfc_SayReplyFlags( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to sayreplyflags" );
-    SCP_DBGA( "sayreplyflags( [%x]%x )", Arg, Type );
+    SCP_DBGA( "sayreplyflags( [%x]%i )", Arg, Type );
     if( !DialogSetOptionFlags( Arg ) ) IntpError( "Error setting reply flags" );
 }
 
@@ -1461,7 +1461,7 @@ void ScpIfc_SayOptionFlags( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to sayoptionflags" );
-    SCP_DBGA( "sayoptionflags( [%x]%x )", Arg, Type );
+    SCP_DBGA( "sayoptionflags( [%x]%i )", Arg, Type );
     if( !DialogSetOptionFlags( Arg ) ) IntpError( "Error setting option flags" );
 }
 
@@ -1478,7 +1478,7 @@ void ScpIfc_SayOptionWindow( Intp_t *scr )
     GET_ARGi( scr, Arg4, Type4 )
     GET_ARGi( scr, Arg5, Type5 )
     SCP_DBGA( 
-	"sayoptionwindow( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"sayoptionwindow( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
 
@@ -1501,7 +1501,7 @@ void ScpIfc_SayBorder( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 2 given to sayborder" );
     ARG_TYPE( Type2, SCR_INT, "Invalid arg 1 given to sayborder" );
-    SCP_DBGA( "sayborder( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "sayborder( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
 
     if( DialogBorder( Arg2, Arg1 ) ) IntpError( "Error setting dialog border" );
 }
@@ -1522,7 +1522,7 @@ void ScpIfc_SayScrollUp( Intp_t *scr )
     GET_ARGi( scr, Arg5, Type5 )
     GET_ARGi( scr, Arg6, Type6 )
     SCP_DBGA( 
-	"sayscrollup( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"sayscrollup( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type6, Arg6,Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
 
@@ -1558,7 +1558,7 @@ void ScpIfc_SayScrollDn( Intp_t *scr )
     GET_ARGi( scr, Arg5, Type5 )
     GET_ARGi( scr, Arg6, Type6 )
     SCP_DBGA( 
-	"sayscrolldn( [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x, [%x]%x )", 
+	"sayscrolldn( [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i, [%x]%i )", 
 	Type6, Arg6,Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
 
@@ -1586,7 +1586,7 @@ void ScpIfc_SaySetSpacing( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to saysetspacing" );
-    SCP_DBGA( "saysetspacing( [%x]%x )", Arg, Type );
+    SCP_DBGA( "saysetspacing( [%x]%i )", Arg, Type );
     if( DialogSetOptSpacing( Arg ) ) IntpError( "Error setting option spacing" );
 }
 
@@ -1725,7 +1725,7 @@ void ScpIfc_SoundPlay( Intp_t *scr )
     GET_ARGi( scr, Arg2, Type2 )
     ARG_TYPE( Type1, SCR_INT, "Invalid arg 2 given to soundplay" );
     ARG_TYPE( Type2, SCR_STRING,  "Invalid arg 1 given to soundplay" );    
-    SCP_DBGA( "soundplay( [%x]%x, [%x]%x )", Type2, Arg2, Type1, Arg1 );
+    SCP_DBGA( "soundplay( [%x]%i, [%x]%i )", Type2, Arg2, Type1, Arg1 );
     IntpPushiA( scr, ScpIfcSounPlay( Arg1, IntpMseHandler( IntpGetString( scr, TYPEH( Type2 ), Arg2 ) ) ) );
     IntpPushwA( scr, SCR_INT );
 }
@@ -1738,7 +1738,7 @@ void ScpIfc_SoundPause( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to soundpause" );
-    SCP_DBGA( "soundpause( [%x]%x )", Arg, Type );
+    SCP_DBGA( "soundpause( [%x]%i )", Arg, Type );
     ScpIfcSoundPause( Arg );
 }
 
@@ -1750,7 +1750,7 @@ void ScpIfc_SoundResume( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to soundresume" );
-    SCP_DBGA( "soundresume( [%x]%x )", Arg, Type );
+    SCP_DBGA( "soundresume( [%x]%i )", Arg, Type );
     ScpIfcSounResume( Arg );
 }
 
@@ -1762,7 +1762,7 @@ void ScpIfc_SoundStop( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to soundstop" );
-    SCP_DBGA( "soundstop( [%x]%x )", Arg, Type );
+    SCP_DBGA( "soundstop( [%x]%i )", Arg, Type );
     ScpIfcSoundPause( Arg );
 }
 
@@ -1774,7 +1774,7 @@ void ScpIfc_SoundRewind( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to soundrewind" );
-    SCP_DBGA( "soundrewind( [%x]%x )", Arg, Type );
+    SCP_DBGA( "soundrewind( [%x]%i )", Arg, Type );
     ScpIfcSoundRewind( Arg );
 }
 
@@ -1786,7 +1786,7 @@ void ScpIfc_SoundDelete( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "Invalid arg 1 given to sounddelete" );
-    SCP_DBGA( "sounddelete( [%x]%x )", Arg, Type );
+    SCP_DBGA( "sounddelete( [%x]%i )", Arg, Type );
     ScpIfcSoundDelete( Arg );
 }
 
@@ -1798,7 +1798,7 @@ void ScpIfc_SetOneOptPause( Intp_t *scr )
 
     GET_ARGi( scr, Arg, Type )
     ARG_TYPE( Type, SCR_INT, "SetOneOptPause: invalid arg passed (non-integer)." );
-    SCP_DBGA( "SetOneOptPause( [%x]%x )", Arg, Type );
+    SCP_DBGA( "SetOneOptPause( [%x]%i )", Arg, Type );
     if( Arg ){
         if( !( DialogGetOneOptPause() & 0x08 ) ) return;
     } else if( DialogGetOneOptPause() & 0x08 ){

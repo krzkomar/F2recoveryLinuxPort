@@ -418,9 +418,9 @@ void AiUnk07( Obj_t *obj1, Obj_t *obj2, int TextId )
     char stmp[ 200 ];
     MsgLine_t msg;
 
-    AnimStart( 2 );
+    AnimRegStart( 2 );
     AnimRegAnim( obj1, 11, 0 );
-    if( !AnimBegin() && (gCombatStatus & 0x01) ) CombatUpdate();
+    if( !AnimRegEnd() && (gCombatStatus & 0x01) ) CombatUpdate();
     if( TextId == -1 ) return;
     msg.Id = TextId;
     if( MessageGetMsg( &gMessage, &msg ) == 1 ) return;    
@@ -553,10 +553,10 @@ void AiMoveRunTo( Obj_t *obj1, Obj_t *obj2 )
             if( AnimFindTrace( obj1, obj1->GridId, EndPos, 0, 1 ) > 0 ) break;
         };
         if( i > 0 ){
-            AnimStart( 2 );
+            AnimRegStart( 2 );
             AiCombatTaunts( obj1, NULL, 0, 0 );
             AnimObjRunToTile( obj1, EndPos, obj1->Elevation, ap, 0 );
-            if( !AnimBegin() ) CombatUpdate();
+            if( !AnimRegEnd() ) CombatUpdate();
         }
     } else {
         obj1->Critter.State.Reaction |= 0x02;
@@ -585,9 +585,9 @@ int AiMoveWalkTo( Obj_t *obj1, Obj_t *obj2, int a3 )
             }
         }
         if( i > 0 ){
-            AnimStart( 2 );
+            AnimRegStart( 2 );
             AnimObjMoveToTile( obj1, EndPos, obj1->Elevation, ap, 0 );
-            if( !AnimBegin() ) CombatUpdate();
+            if( !AnimRegEnd() ) CombatUpdate();
         }
     }
     return 0;
@@ -1136,7 +1136,7 @@ int AiUnk35( Obj_t *a1, Obj_t *a2, int a3, int a4 )
         if( gObjDude != a2 && ( (v10 = ObjGetDistance( a1, gObjDude )) > 5 || (ObjGetDistance( a2, gObjDude ) > 5 && (a3 + v10) > 5 ) ) ) return -1;
     }
     if( ObjGetDistance(a1, a2) <= 1 ) return -1;
-    AnimStart( 2 );
+    AnimRegStart( 2 );
     if( a4 ) AiCombatTaunts( a1, NULL, 1, 0 );
     v18 = a2;
     if( a2->Flags & 0x800 ){
@@ -1171,7 +1171,7 @@ int AiUnk35( Obj_t *a1, Obj_t *a2, int a3, int a4 )
     } else {
         AnimObjMoveToTile( a1, GridId, a1->Elevation, a3, 0 );
     }
-    if( AnimBegin() ) return -1;
+    if( AnimRegEnd() ) return -1;
     CombatUpdate();
     return 0;
 }
@@ -1319,9 +1319,9 @@ int AiUnk41( Obj_t *a1, Obj_t *a2, int a3 )
 int AiUnk42( Obj_t *a1, Obj_t *a2, int a3 )
 {
     if( a1->Critter.State.Reaction & 0x04 ) return -1;
-    AnimStart( 2 );
+    AnimRegStart( 2 );
     AnimUnk51( a1, a2->GridId );
-    AnimBegin();
+    AnimRegEnd();
     CombatUpdate();
     if( CombatAttack( a1, a2, a3, AiUnk41( a1, a2, a3 ) ) ) return -1;
     CombatUpdate();
@@ -1514,9 +1514,9 @@ int AiUnk48( Obj_t *obj, Obj_t *a2 )
     }
     k = obj->GridId;
     if( !AiUnk37( obj, a2, &k ) && k != obj->GridId ){
-        AnimStart( 2 );
+        AnimRegStart( 2 );
         AnimObjMoveToTile( obj, k, obj->Elevation, obj->Critter.State.CurrentAP, 0 );
-        if( AnimBegin() ) return -1;
+        if( AnimRegEnd() ) return -1;
         CombatUpdate();
     }
     return 0;
@@ -1657,7 +1657,7 @@ int AiUnk53( Obj_t *obj, int Group )
     CombatStopAttack( obj, 0 );
     if( IN_COMBAT ){
         cf = obj->OutlineColor && obj->OutlineColor >= 0;
-        ObjGetRadius( obj, NULL );
+        ObjClrOutline( obj, NULL );
         ObjSetOutline( obj, ( obj->Critter.State.GroupId == gObjDude->Critter.State.GroupId ) ? 8 : 1, 0 );
         if( cf ){
             ObjUnk34( obj, &Area );

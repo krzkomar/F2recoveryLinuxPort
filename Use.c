@@ -1009,7 +1009,7 @@ int UseDoor( Obj_t *Crit, Obj_t *obj, int a3 )
         v18 = 1;
         i = 0;
     }
-    AnimStart( 2 );
+    AnimRegStart( 2 );
     for(; i != v10; i += v18 ){
         if( i ){ // close door
             if( !a3 ) AnimSetCallback11( obj, (AnimU_t)obj, (void *)UseDoorClose, -1 );
@@ -1022,7 +1022,7 @@ int UseDoor( Obj_t *Crit, Obj_t *obj, int a3 )
         }
     }
     AnimSetFinish( obj, obj, (void *)UseDoorLock, -1 );
-    AnimBegin();
+    AnimRegEnd();
     return 0;
 }
 
@@ -1055,7 +1055,7 @@ int UseContainer( Obj_t *dude, Obj_t *obj )
         i18 = res->OverrideFlag;
     }
     if( i18 ) return -1;
-    AnimStart( 2 );
+    AnimRegStart( 2 );
     if( obj->FrameNo ){
         AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 1 ), 0 );
         AnimRegAnimReverse( obj, 0, 0 );
@@ -1063,7 +1063,7 @@ int UseContainer( Obj_t *dude, Obj_t *obj )
         AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 0 ), 0 );
         AnimRegAnim( obj, 0, 0 );
     }
-    AnimBegin();
+    AnimRegEnd();
     if( dude == gObjDude ){
         msg.Id = (obj->FrameNo != 0) + 485; // 'You search the %s.' / 'You close the %s.'
         if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ) return -1;
@@ -1179,7 +1179,7 @@ int UseStartAnimation( Obj_t *obj )
     if( !UseObjIsOpenable1( obj ) ) return -1;
     if( UseObjLocked( obj ) ) return -1;
     UseObjUnjam( obj );
-    AnimStart( 2 );
+    AnimRegStart( 2 );
     if( obj->FrameNo ){
         AnimSetCallback11( obj, (AnimU_t)obj, (void *)UseDoorClose, -1 );
         AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 1 ), -1 );
@@ -1190,7 +1190,7 @@ int UseStartAnimation( Obj_t *obj )
         AnimRegAnim( obj, 0, 0 );
     }
     AnimSetFinish( obj, obj, (void *)UseDoorLock, -1 );
-    AnimBegin();
+    AnimRegEnd();
     return 0;
 }
 

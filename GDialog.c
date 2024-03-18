@@ -254,7 +254,7 @@ void GdialogLipsyncEnd()
     LipsyncClose();
 }
 
-int GdialogUnk03()
+int GdialogTaskCb()
 {
     InpTaskStart( GdialogAnimationUpdate );
     return 0;
