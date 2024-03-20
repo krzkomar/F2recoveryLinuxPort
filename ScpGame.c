@@ -1004,7 +1004,7 @@ void ScrGame_AnimateStandObj( Intp_t *scr )
     }
     if( !IN_COMBAT ){
         AnimRegStart( 1 );
-        AnimRegAnim( obj, 0, 0 );
+        AnimRegAnimation( obj, 0, 0 );
         AnimRegEnd();
     }
 }
@@ -1227,7 +1227,7 @@ void ScrGame_PickupObj( Intp_t *scr )
         if( ScptPtr( ScptGetActionSource( scr ), &script ) == -1 ){
             ScrGameErrorMsg( scr, "pickup_obj", 2 );
         } else if( script->TargetObj ){
-            ActionPickupItem( script->TargetObj, obj );
+            ActionUseOnItem( script->TargetObj, obj );
         } else {
             ScrGameErrorMsg( scr, "pickup_obj", 1 );
         }
@@ -2923,7 +2923,7 @@ void ScrGame_OpAnim( Intp_t *scr )
         v9 = ScrGamUnk06( obj, v21, 1 );
         AnimRegStart( 1 );
         if( !Orientation ){
-            AnimRegAnim( obj, v9, 0 );
+            AnimRegAnimation( obj, v9, 0 );
             if ( v9 >= 20 && v9 <= 35 ){
                 AnimUnk62( obj, ArtMakeId( 1, obj->ImgId & 0xFFF, v9 + 28, (obj->ImgId & 0xF000) >> 12, (obj->ImgId & 0x70000000) >> 28 ), -1 );
             }
@@ -3032,7 +3032,7 @@ void ScrGame_RegAnimAnimate( Intp_t *scr )
 	if( vlvl < 2 ) return;
     }
     if( obj )
-        AnimRegAnim( obj, val1, val0 );
+        AnimRegAnimation( obj, val1, val0 );
     else
         ScrGameErrorMsg( scr, "reg_anim_animate", 1 );
 }
@@ -3612,7 +3612,7 @@ void ScrGame_RegAnimAnimateForever( Intp_t *scr )
     SCP_DBGA( "reg_anim_animate_forever( [%x]%p, [%x],%x )", type[1], obj, type[0], anim );
     if( IN_COMBAT ) return;    
     if( obj )
-        AnimRegAnimateForever( obj, anim, -1 );
+        AnimRegAnimateForever( obj, anim, ANIM_FOREVER );
     else
         ScrGameErrorMsg( scr, "reg_anim_animate_forever", 1 );
 }

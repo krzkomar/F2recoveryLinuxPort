@@ -1018,7 +1018,7 @@ int UseDoor( Obj_t *Crit, Obj_t *obj, int a3 )
         } else { // open door
             if( !a3 ) AnimSetCallback11(obj, (AnimU_t)obj, (void *)UseDoorOpen, -1);
             AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 0 ), -1 );
-            AnimRegAnim( obj, 0, 0);
+            AnimRegAnimation( obj, 0, 0);
         }
     }
     AnimSetFinish( obj, obj, (void *)UseDoorLock, -1 );
@@ -1061,7 +1061,7 @@ int UseContainer( Obj_t *dude, Obj_t *obj )
         AnimRegAnimReverse( obj, 0, 0 );
     } else {
         AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 0 ), 0 );
-        AnimRegAnim( obj, 0, 0 );
+        AnimRegAnimation( obj, 0, 0 );
     }
     AnimRegEnd();
     if( dude == gObjDude ){
@@ -1187,7 +1187,7 @@ int UseStartAnimation( Obj_t *obj )
     } else {
         AnimSetCallback11( obj, (AnimU_t)obj, (void *)UseDoorOpen, -1 );
         AnimRegPlaySfx( obj, GSoundOpenFileName( obj, 0 ), -1 );
-        AnimRegAnim( obj, 0, 0 );
+        AnimRegAnimation( obj, 0, 0 );
     }
     AnimSetFinish( obj, obj, (void *)UseDoorLock, -1 );
     AnimRegEnd();

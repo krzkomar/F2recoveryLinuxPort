@@ -421,7 +421,7 @@ void CombatUnk17( Obj_t *a1 )
             id = ArtMakeId( (v1->ImgId & 0xF000000) >> 24, 100, (v1->ImgId & 0xFF0000u) >> 16, (v1->ImgId & 0xF000) >> 12, (v1->ImgId & 0x70000000) >> 28);
             AnimRegClear( v1 );
             AnimRegStart( 2 );
-            AnimRegAnim( v1, 6, -1 );
+            AnimRegAnimation( v1, 6, -1 );
             AnimUnk62( v1, id, -1 );
             AnimRegEnd();
             while( AnimUnk39( v1 ) ) InpWinUpdate();
@@ -526,7 +526,7 @@ int CombatTaskCb()
             Id = ArtMakeId( OBJTYPE( obj->ImgId ), 99, (obj->ImgId & 0xFF0000u) >> 16, (obj->ImgId & 0xF000) >> 12, (obj->ImgId & 0x70000000) >> 28);
             AnimRegClear( obj );
             AnimRegStart( 2 );
-            AnimRegAnim( obj, 6, -1 );
+            AnimRegAnimation( obj, 6, -1 );
             AnimUnk62( obj, Id, -1 );
             AnimRegEnd();
             while( AnimUnk39( obj ) ) InpWinUpdate();

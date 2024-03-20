@@ -994,7 +994,7 @@ void IfcAnimateSlot( int a1, int a2 )
     AnimChangeItemStart( gObjDude, 4, 0 );
     if( a1 ){
         AnimRegPlaySfx( gObjDude, GSoundCharacterFileName( gObjDude, 39, 0 ), 0 );
-        AnimRegAnim( gObjDude, 39, 0 );
+        AnimRegAnimation( gObjDude, 39, 0 );
     }
     AnimSetFinish( 0, 0, (void *)IfaceRenderHandSlotCb, -1 );
     obj = gIfcHandSlot[ gIfcHandSlotState ].obj;

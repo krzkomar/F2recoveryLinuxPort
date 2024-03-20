@@ -1054,7 +1054,8 @@ int ObjUnk33( Obj_t *obj, VidRect_t *Area )
 {
     VidRect_t rect;
 
-    if( !obj || ( obj->Flags & 0x01 ) ) return -1;
+    if( !obj ) return -1;
+    if( obj->Flags & 0x01 ) return -1;
     if( ObjLight( obj, 1, Area ) == -1 && Area ) ObjGetRefreshArea( obj, Area );
     obj->Flags |= 0x01;
     if( obj->OutlineColor & 0xFFFFFF ) obj->OutlineColor |= 0x800000;
@@ -1482,7 +1483,7 @@ Obj_t *ObjUnk58( Obj_t *obj, int GridIdx, int MapLvl )
     ObjList_t *MapObj;
     Obj_t *object;
     int type;
-DD
+
     MapObj = gObjGridObjects[ GridIdx ];
     if( !MapObj ) return 0;
     while( 1 ){

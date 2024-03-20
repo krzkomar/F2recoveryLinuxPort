@@ -419,7 +419,7 @@ void AiUnk07( Obj_t *obj1, Obj_t *obj2, int TextId )
     MsgLine_t msg;
 
     AnimRegStart( 2 );
-    AnimRegAnim( obj1, 11, 0 );
+    AnimRegAnimation( obj1, 11, 0 );
     if( !AnimRegEnd() && (gCombatStatus & 0x01) ) CombatUpdate();
     if( TextId == -1 ) return;
     msg.Id = TextId;
@@ -1084,7 +1084,7 @@ Obj_t *AiPickUpObj( Obj_t *Critter, Obj_t *Item )
     Obj_t *obj;
 
     obj = NULL;
-    if( ActionPickupItem( Critter, Item ) ) return NULL;
+    if( ActionUseOnItem( Critter, Item ) ) return NULL;
     CombatUpdate();
     obj = InvSearchObjByPid( Critter, Item->ProtoPid );
     CombatUnk14( Critter );    

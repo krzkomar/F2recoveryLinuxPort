@@ -1,6 +1,6 @@
 #include "FrameWork.h"
 
-int gAnimCnt1 = 0;
+int gAnimListCnt = 0;
 int gAnimIdx = -1;
 int gAnim0 = 0;
 int gAnimUnk41 = 0;
@@ -35,10 +35,10 @@ void AnimInit_00()
         gAnimUnk41 = 0;
     }
     
-    gAnimCnt1 = 0;
+    gAnimListCnt = 0;
     gAnimIdx = -1;
     for( i = 0; i < 32; i++ ){
-        gAnimations[ i ].i01 = -1000;
+        gAnimations[ i ].CurrIdx = -1000;
         gAnimations[ i ].Flags = 0x00;
     }
 
@@ -52,7 +52,7 @@ void AnimClose()
     gAnimIdx = -1;
     for( i = 0; i < 32; i++ ) AnimEnd( i );
     gAnimUnk41 = 0;
-    gAnimCnt1 = 0;
+    gAnimListCnt = 0;
 }
 
 int AnimRegStart( int Type )
@@ -77,7 +77,7 @@ int AnimReserve( int flg )
     Idx = -1;
     n = 0;
     for( i = 0; i < 32; i++ ){
-        if( ( gAnimations[ i ].i01 != -1000 ) || ( gAnimations[ i ].Flags & 0x08 ) || ( gAnimations[ i ].Flags & 0x20 ) ){
+        if( ( gAnimations[ i ].CurrIdx != -1000 ) || ( gAnimations[ i ].Flags & 0x08 ) || ( gAnimations[ i ].Flags & 0x20 ) ){
             if( !( gAnimations[ i ].Flags & 0x04 ) ) n++;
             continue;
         }
@@ -104,9 +104,9 @@ int AnimRegClear( Obj_t *obj )
     int i, j;
 
     for( i = 0; i < 32; i++ ){
-        if( gAnimations[ i ].i01 == -1000 ) continue;
+        if( gAnimations[ i ].CurrIdx == -1000 ) continue;
 	for( j = 0; j < gAnimations[ i ].Steps; j++ ){
-	    if( !(obj != gAnimations[ i ].i05[ j ].Target.Obj || gAnimations[ i ].i05[ j ].State == 11 ) ){
+	    if( !(obj != gAnimations[ i ].AnimList[ j ].Target.Obj || gAnimations[ i ].AnimList[ j ].State == 11 ) ){
 		if( (gAnimations[ i ].Flags & 1) != 0 ) return -2;
 		AnimEnd( i );
 		return 0;
@@ -121,13 +121,13 @@ int AnimRegEnd()
     int tmp;
 printf("Animate reg end\n");
     if( gAnimIdx == -1 ) return -1;
-    gAnimations[ gAnimIdx ].i01 = 0;
+    gAnimations[ gAnimIdx ].CurrIdx = 0;
     gAnimations[ gAnimIdx ].Steps = gAnimSubIdx;
     gAnimations[ gAnimIdx ].Step = -1;
     tmp = (gAnimSubIdx & ~0xff) | (gAnimations[ gAnimIdx ].Flags & 0xff);
     gAnimations[ gAnimIdx ].Flags = (gAnimations[ gAnimIdx ].Flags & ~0x000ff ) | ( tmp & 0xF7 );
     gAnimations[ gAnimIdx ].Flags = (gAnimations[ gAnimIdx ].Flags & ~0x0ff00) | (gCombatStatus << 8);
-    gAnimations[ gAnimIdx ].i05[0].i07 = 0;
+    gAnimations[ gAnimIdx ].AnimList[0].Delay = 0;
     if( tmp & 0x100 ){
         CombatUnk61();
         gAnimations[ gAnimIdx ].Flags |= 0x02;
@@ -155,7 +155,7 @@ void AnimStop()
     if( gAnimIdx == -1 ) return;
     for( i = 0; i < 32; i++ ) gAnimations[ i ].Flags &= ~0x18;    
     for( i = 0; i < gAnimSubIdx; i++ ){
-        anim = &gAnimations[ gAnimIdx ].i05[ i ];
+        anim = &gAnimations[ gAnimIdx ].AnimList[ i ];
         if( anim->ImgObj ) ArtClose( anim->ImgObj );
         if( anim->State == 11 && anim->Callback11 == GSoundDbgPlayA ) GSoundSfxDelete( anim->GpPtr );
     }
@@ -169,9 +169,9 @@ int AnimCancel( Obj_t *obj )
     if( gAnimIdx == -1 || gAnimSubIdx >= 55 ) return -1;
     if( !obj ) return 0;    
     for( i = 0; i < 32; i++ ){
-        if( i == gAnimIdx || gAnimations[ i ].i01 == -1000 ) continue;
+        if( i == gAnimIdx || gAnimations[ i ].CurrIdx == -1000 ) continue;
         for( j = 0; j < gAnimations[ i ].Steps; j++ ){
-            if( (obj == gAnimations[ i ].i05[ j ].Target.Obj) && (gAnimations[ i ].i05[ j ].State != 11) ){
+            if( (obj == gAnimations[ i ].AnimList[ j ].Target.Obj) && (gAnimations[ i ].AnimList[ j ].State != 11) ){
                 if( (gAnimations[ i ].Flags & 0x40) == 0 ) return -1;
                 AnimEnd( i );
             }
@@ -186,9 +186,9 @@ int AnimUnk39( Obj_t *a1 )
 
     if( gAnimSubIdx >= 55 || !a1 ) return 0;    
     for( i = 0; i < 32; i++ ){
-        if( i == gAnimIdx || gAnimations[ i ].i01 == -1000 ) continue;        
+        if( i == gAnimIdx || gAnimations[ i ].CurrIdx == -1000 ) continue;        
 	for( j = 0; j < gAnimations[ i ].Steps; j++ ){
-	    if( a1 == gAnimations[ i ].i05[ j ].Target.Obj && gAnimations[ i ].i05[ j ].State != 11 && ( gAnimations[ i ].Steps != 1 || gAnimations[ i ].i05[ j ].Silence ) ) return -1;
+	    if( a1 == gAnimations[ i ].AnimList[ j ].Target.Obj && gAnimations[ i ].AnimList[ j ].State != 11 && ( gAnimations[ i ].Steps != 1 || gAnimations[ i ].AnimList[ j ].Silence ) ) return -1;
 	}	    
     }
     return 0;
@@ -202,13 +202,13 @@ int AnimObjMoveToObj( Obj_t *Object, Obj_t *DstObj, int Ap, int a4 )
     if( DstObj->GridId == Object->GridId ){
         if( Object->Elevation == DstObj->Elevation ) return 0;
     }
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 0;
     anim->Silence = 1;
     anim->Target.Obj = Object;
     anim->GpPtr = DstObj;
     anim->Ap.Int = Ap;
-    anim->i07 = a4;
+    anim->Delay = a4;
     anim->ImgObj = NULL;
     if( ArtLoadImg( ArtMakeId( OBJTYPE( Object->ImgId ), Object->ImgId & 0xFFF, anim->Silence, (Object->ImgId & 0xF000) >> 12, Object->Orientation + 1), &anim->ImgObj ) ){
         ArtClose( anim->ImgObj );
@@ -242,7 +242,7 @@ int AnimObjRunToObj( Obj_t *obj1, Obj_t *obj2, int Ap, int a4 )
         }
         return AnimObjMoveToObj( obj1, obj2, Ap, a4 );
     }
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 0;
     anim->Target.Obj = obj1;
     anim->GpPtr = obj2;
@@ -256,7 +256,7 @@ int AnimObjRunToObj( Obj_t *obj1, Obj_t *obj2, int Ap, int a4 )
         }
     }
     anim->Ap.Int = Ap;
-    anim->i07 = a4;
+    anim->Delay = a4;
     anim->ImgObj = NULL;
     if( ArtLoadImg( ArtMakeId( OBJTYPE( obj1->ImgId ), obj1->ImgId & 0xFFF, anim->Silence, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ), &anim->ImgObj ) ){
         ArtClose( anim->ImgObj );
@@ -274,14 +274,14 @@ int AnimObjMoveToTile( Obj_t *obj, int TargetPos, int MapLvl, int Ap, int a5 )
 
     if( AnimCancel(obj) == -1 || !Ap ){ AnimStop(); return -1; }
     if( TargetPos == obj->GridId && MapLvl == obj->Elevation ) return 0;
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 1;
     anim->Silence = 1;
     anim->Target.Obj = obj;
     anim->TargetPos = TargetPos;
     anim->Elevation = MapLvl;
     anim->Ap.Int = Ap;
-    anim->i07 = a5;
+    anim->Delay = a5;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, anim->Silence, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ),  &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -314,7 +314,7 @@ int AnimObjRunToTile( Obj_t *obj, int GridId, int MapLvl, int Ap, int a5 )
         return AnimObjMoveToTile( obj, GridId, MapLvl, Ap, a5 ); // walk, when overloaded
     }
 
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 1;
 
     if( OBJTYPE( obj->ImgId ) == TYPE_CRIT && (obj->Critter.State.CombatResult & 0x0C) ){
@@ -331,7 +331,7 @@ int AnimObjRunToTile( Obj_t *obj, int GridId, int MapLvl, int Ap, int a5 )
     anim->TargetPos = GridId;
     anim->Elevation = MapLvl;
     anim->Ap.Int = Ap;
-    anim->i07 = a5;
+    anim->Delay = a5;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, anim->Silence, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ), &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -346,13 +346,13 @@ int AnimUnk44( Obj_t *obj, int GridIdx, int MapLvl, int a4, int a5 )
 
     if( AnimCancel(obj) == -1 ){ AnimStop(); return -1; }
     if( GridIdx == obj->GridId && MapLvl == obj->Elevation ) return 0;
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 2;
     anim->Target.Obj = obj;
     anim->TargetPos = GridIdx;
     anim->Elevation = MapLvl;
     anim->Silence = a4;
-    anim->i07 = a5;
+    anim->Delay = a5;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, anim->Silence, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ), &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -367,13 +367,13 @@ int AnimUnk45( Obj_t *obj, int GridIdx, int MapLvl, int a4, int a5 )
 
     if( AnimCancel( obj ) == -1 ){ AnimStop(); return -1; }
     if( GridIdx == obj->GridId && MapLvl == obj->Elevation ) return 0;
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 3;
     anim->Target.Obj = obj;
     anim->TargetPos = GridIdx;
     anim->Elevation = MapLvl;
     anim->Silence = a4;
-    anim->i07 = a5;
+    anim->Delay = a5;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, anim->Silence, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1), &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -398,13 +398,13 @@ int AnimUnk46( Obj_t *obj1, Obj_t *obj2, int a3 )
         Elevation = obj2->Elevation;
     }
     if( NewPos == obj1->GridId && Elevation == obj1->Elevation ) return 0;
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 20;
     anim->Target.Obj = obj1;
     anim->TargetPos = NewPos;
     anim->Elevation = Elevation;
     anim->Silence = v6;
-    anim->i07 = a3;
+    anim->Delay = a3;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj1->ImgId ), obj1->ImgId & 0xFFF, anim->Silence, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ), &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -418,11 +418,11 @@ int AnimUnk47( Obj_t *obj, int a2 )
     Anim01_t *anim;
 
     if( AnimCancel(obj) == -1 ){ AnimStop(); return -1; }
-    anim = &gAnimations[gAnimIdx].i05[gAnimSubIdx];
+    anim = &gAnimations[gAnimIdx].AnimList[gAnimSubIdx];
     anim->State = 23;
     anim->Silence = 5;
     anim->Target.Obj = obj;
-    anim->i07 = a2;
+    anim->Delay = a2;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), anim->Silence, obj->ImgId & 0xFFF, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ), &anim->ImgObj ) ){
         AnimStop();
@@ -434,16 +434,16 @@ int AnimUnk47( Obj_t *obj, int a2 )
     return 0;
 }
 
-int AnimRegAnim( Obj_t *obj, int a2, int a3 )
+int AnimRegAnimation( Obj_t *obj, int a2, int a3 )
 {
     Anim01_t *anim;
 
     if( AnimCancel( obj ) == -1 ){ AnimStop(); return -1; }
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 4;
     anim->Target.Obj = obj;
     anim->Silence = a2;
-    anim->i07 = a3;
+    anim->Delay = a3;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, anim->Silence, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1), &anim->ImgObj) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -457,11 +457,11 @@ int AnimRegAnimReverse( Obj_t *a1, int a2, int a3 )
     Anim01_t *anim;
 DD
     if( AnimCancel( a1 ) == -1 ){ AnimStop(); return -1; }
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 5;
     anim->Target.Obj = a1;
     anim->Silence = a2;
-    anim->i07 = a3;
+    anim->Delay = a3;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( a1->ImgId ), a1->ImgId & 0xFFF, anim->Silence, (a1->ImgId & 0xF000) >> 12, a1->Orientation + 1 ), &anim->ImgObj) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -475,11 +475,11 @@ int AnimUnk50( Obj_t *obj, int a2, int a3 )
     Anim01_t *anim;
 
     if( AnimCancel( obj ) == -1 ){ AnimStop(); return -1; }
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 6;
     anim->Target.Obj = obj;
     anim->Silence = a2;
-    anim->i07 = a3;
+    anim->Delay = a3;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, anim->Silence, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ), &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -493,9 +493,9 @@ int AnimUnk51( Obj_t *obj, int a2 )
     Anim01_t *anim;
 
     if( AnimCancel( obj ) == -1 ){ AnimStop(); return -1; }
-    anim = gAnimations[ gAnimIdx ].i05;
+    anim = gAnimations[ gAnimIdx ].AnimList;
     anim[ gAnimSubIdx ].State = 7;
-    anim[ gAnimSubIdx ].i07 = -1;
+    anim[ gAnimSubIdx ].Delay = -1;
     anim[ gAnimSubIdx ].ImgObj = NULL;
     anim[ gAnimSubIdx ].Target.Obj = obj;
     anim[ gAnimSubIdx ].TargetPos = a2;
@@ -508,9 +508,9 @@ int AnimTurnCCW( Obj_t *obj )
     Anim01_t *anim;
 
     if( AnimCancel(obj) == -1 ){ AnimStop(); return -1; }
-    anim = gAnimations[ gAnimIdx ].i05;
+    anim = gAnimations[ gAnimIdx ].AnimList;
     anim[ gAnimSubIdx ].State = 8;
-    anim[ gAnimSubIdx ].i07 = -1;
+    anim[ gAnimSubIdx ].Delay = -1;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].Target.Obj = obj;
     gAnimSubIdx++;
@@ -522,9 +522,9 @@ int AnimTurnCW( Obj_t *a1 )
     Anim01_t *anim;
 
     if( AnimCancel(a1) == -1 ){ AnimStop(); return -1; }
-    anim = gAnimations[gAnimIdx].i05;
+    anim = gAnimations[gAnimIdx].AnimList;
     anim[ gAnimSubIdx ].State = 9;
-    anim[ gAnimSubIdx ].i07 = -1;
+    anim[ gAnimSubIdx ].Delay = -1;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].Target.Obj = a1;
     gAnimSubIdx++;
@@ -536,9 +536,9 @@ int AnimUnk54( Obj_t *a1 )
     Anim01_t *anim;
 
     if( AnimCancel(a1) == -1 ){ AnimStop(); return -1; }
-    anim = gAnimations[gAnimIdx].i05;
+    anim = gAnimations[gAnimIdx].AnimList;
     anim[ gAnimSubIdx ].State = 10;
-    anim[ gAnimSubIdx ].i07 = -1;
+    anim[ gAnimSubIdx ].Delay = -1;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].i10 = 0;
     anim[ gAnimSubIdx ].Target.Obj = a1;
@@ -551,9 +551,9 @@ int AnimUnk55( Obj_t *a1 )
     Anim01_t *anim;
 
     if( AnimCancel(a1) == -1 ){ AnimStop(); return -1; }
-    anim = gAnimations[gAnimIdx].i05;
+    anim = gAnimations[gAnimIdx].AnimList;
     anim[ gAnimSubIdx ].State = 10;
-    anim[ gAnimSubIdx ].i07 = -1;
+    anim[ gAnimSubIdx ].Delay = -1;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].i10 = 1;
     anim[ gAnimSubIdx ].Target.Obj = a1;
@@ -566,14 +566,14 @@ int AnimSetCallback11( Obj_t *a1, AnimU_t a2, int (*Cb)(void *, void *), int a4 
     Anim01_t *anim;
 
     if( AnimCancel( NULL ) == -1 || !Cb ){ AnimStop(); return -1; }
-    anim = gAnimations[ gAnimIdx ].i05;
+    anim = gAnimations[ gAnimIdx ].AnimList;
     anim[ gAnimSubIdx ].State = 11;
     anim[ gAnimSubIdx ].i10 = 0;
     anim[ gAnimSubIdx ].ImgObj = NULL;
     anim[ gAnimSubIdx ].Target = a2;
     anim[ gAnimSubIdx ].GpPtr = a1;
     anim[ gAnimSubIdx ].Callback11 = (void *)Cb;
-    anim[ gAnimSubIdx ].i07 = a4;
+    anim[ gAnimSubIdx ].Delay = a4;
     gAnimSubIdx++;
     return 0;
 }
@@ -583,7 +583,7 @@ int AnimSetCallback12( Obj_t *Critter, Obj_t *Target, AnimU_t Ap, int (*Cb)(Obj_
     Anim01_t *anim;
 
     if( AnimCancel( NULL ) == -1 || !Cb ){ AnimStop(); return -1; }
-    anim = gAnimations[ gAnimIdx ].i05;
+    anim = gAnimations[ gAnimIdx ].AnimList;
     anim[ gAnimSubIdx ].State = 12;
     anim[ gAnimSubIdx ].i10 = 0;
     anim[ gAnimSubIdx ].ImgObj = NULL;
@@ -591,7 +591,7 @@ int AnimSetCallback12( Obj_t *Critter, Obj_t *Target, AnimU_t Ap, int (*Cb)(Obj_
     anim[ gAnimSubIdx ].GpPtr = Critter;
     anim[ gAnimSubIdx ].Callback12 = Cb;
     anim[ gAnimSubIdx ].Ap = Ap;
-    anim[ gAnimSubIdx ].i07 = a5;
+    anim[ gAnimSubIdx ].Delay = a5;
     gAnimSubIdx++;
     return 0;
 }
@@ -601,14 +601,14 @@ int AnimSetFinish( void *a1, Obj_t *a2, int (*a3)(Obj_t *,Obj_t *), int a4 )
     Anim01_t *i05;
 
     if( AnimCancel( NULL ) == -1 || !a3 ){ AnimStop(); return -1; }
-    i05 = gAnimations[ gAnimIdx ].i05;
+    i05 = gAnimations[ gAnimIdx ].AnimList;
     i05[ gAnimSubIdx ].State = 11;
     i05[ gAnimSubIdx ].i10 = 1;
     i05[ gAnimSubIdx ].ImgObj = NULL;
     i05[ gAnimSubIdx ].Target.Obj = a2;
     i05[ gAnimSubIdx ].GpPtr = a1;
     i05[ gAnimSubIdx ].Callback11 = (void *)a3;
-    i05[ gAnimSubIdx ].i07 = a4;
+    i05[ gAnimSubIdx ].Delay = a4;
     gAnimSubIdx++;
     return 0;
 }
@@ -618,12 +618,12 @@ int AnimUnk59( Obj_t *a1, int a2, int a3 ) // no xref
     Anim01_t *i05;
 
     if( AnimCancel(a1) == -1 ){ AnimStop(); return -1; }
-    i05 = gAnimations[ gAnimIdx ].i05;
+    i05 = gAnimations[ gAnimIdx ].AnimList;
     i05[ gAnimSubIdx ].State = 14;
     i05[ gAnimSubIdx ].ImgObj = NULL;
     i05[ gAnimSubIdx ].Target.Obj = a1;
     i05[ gAnimSubIdx ].i10 = a2;
-    i05[ gAnimSubIdx ].i07 = a3;
+    i05[ gAnimSubIdx ].Delay = a3;
     gAnimSubIdx++;
     return 0;
 }
@@ -633,12 +633,12 @@ int AnimUnk60( Obj_t *a1, int a2, int a3 )
     Anim01_t *i05;
 
     if( AnimCancel(a1) == -1 ){ AnimStop(); return -1; }
-    i05 = gAnimations[ gAnimIdx ].i05;
+    i05 = gAnimations[ gAnimIdx ].AnimList;
     i05[ gAnimSubIdx ].State = 15;
     i05[ gAnimSubIdx ].ImgObj = 0;
     i05[ gAnimSubIdx ].Target.Obj = a1;
     i05[ gAnimSubIdx ].i10 = a2;
-    i05[ gAnimSubIdx ].i07 = a3;
+    i05[ gAnimSubIdx ].Delay = a3;
     gAnimSubIdx++;
     return 0;
 }
@@ -648,11 +648,11 @@ int AnimUnk61( Obj_t *a1, int a2 )
     Anim01_t *i05;
 
     if( AnimCancel( a1 ) == -1 ){ AnimStop(); return -1; }
-    i05 = gAnimations[ gAnimIdx ].i05;
+    i05 = gAnimations[ gAnimIdx ].AnimList;
     i05[ gAnimSubIdx ].State = 16;
     i05[ gAnimSubIdx ].ImgObj = NULL;
     i05[ gAnimSubIdx ].Target.Obj = a1;
-    i05[ gAnimSubIdx ].i07 = a2;
+    i05[ gAnimSubIdx ].Delay = a2;
     gAnimSubIdx++;
     return 0;
 }
@@ -662,11 +662,11 @@ int AnimUnk62( Obj_t *a1, int a2, int a3 )
     Anim01_t *anim;
 
     if( AnimCancel(a1) == -1 ){ AnimStop(); return -1; }
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 17;
     anim->Target.Obj = a1;
     anim->TargetPos = a2; // ???
-    anim->i07 = a3;
+    anim->Delay = a3;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( a2, &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -681,10 +681,10 @@ int AnimUnk63( Obj_t *a1, int a2, int a3 )
 
     if( AnimRegPlaySfx( a1, GSoundCharacterFileName( a1, 38, a2 ), a3 ) == -1 ) return -1;
     if( AnimCancel(a1) == -1 ){ AnimStop(); return -1; }
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 18;
     anim->Silence = 38;
-    anim->i07 = 0;
+    anim->Delay = 0;
     anim->Target.Obj = a1;
     anim->TargetPos = a2;
     anim->ImgObj = NULL;
@@ -700,12 +700,12 @@ int AnimChangeItemStart( Obj_t *obj, int Radius, int a3 ) // light animation ?
     Anim01_t *anim;
 
     if( AnimCancel( obj ) == -1 ){ AnimStop(); return -1; }
-    anim = gAnimations[ gAnimIdx ].i05;
+    anim = gAnimations[ gAnimIdx ].AnimList;
     anim[ gAnimSubIdx ].State = 19;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].Target.Obj = obj;
     anim[ gAnimSubIdx ].TargetPos = Radius;
-    anim[ gAnimSubIdx ].i07 = a3;
+    anim[ gAnimSubIdx ].Delay = a3;
     gAnimSubIdx++;
     return 0;
 }
@@ -715,12 +715,12 @@ int AnimUnk65( Obj_t *obj, int TargetPos, int a3 )
     Anim01_t *anim;
 
     if( AnimCancel( obj ) == -1 ){ AnimStop(); return -1; }
-    anim = gAnimations[ gAnimIdx ].i05;
+    anim = gAnimations[ gAnimIdx ].AnimList;
     anim[ gAnimSubIdx ].State = 24;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].Target.Obj = obj;
     anim[ gAnimSubIdx ].TargetPos = TargetPos;
-    anim[ gAnimSubIdx ].i07 = a3;
+    anim[ gAnimSubIdx ].Delay = a3;
     gAnimSubIdx++;
     return 0;
 }
@@ -730,7 +730,7 @@ int AnimRegPlaySfx( Obj_t *a1, char *a2, int a3 )
     Anim01_t *anim;
 
     if( AnimCancel( a1 ) == -1 ){ AnimStop(); return -1; }
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 11;
     anim->Target.Obj = a1;
     if( a2 ){
@@ -742,7 +742,7 @@ int AnimRegPlaySfx( Obj_t *a1, char *a2, int a3 )
         anim->State = 28;
     }
     anim->ImgObj = NULL;
-    anim->i07 = a3;
+    anim->Delay = a3;
     gAnimSubIdx++;
     return 0;
 }
@@ -750,14 +750,13 @@ int AnimRegPlaySfx( Obj_t *a1, char *a2, int a3 )
 int AnimRegAnimateForever( Obj_t *who, int animId, int delay )
 {
     Anim01_t *anim;
-DD
-printf("*** Anim Reg animate: Id=%i, Delay=%i\n", animId, delay );
+
     if( AnimCancel( who ) == -1 ){ AnimStop(); return -1; }
-    anim = &gAnimations[ gAnimIdx ].i05[ gAnimSubIdx ];
+    anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 25;
     anim->Target.Obj = who;
     anim->Silence = animId;
-    anim->i07 = delay;
+    anim->Delay = delay;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( ArtMakeId( OBJTYPE( who->ImgId ), who->ImgId & 0xFFF, anim->Silence, (who->ImgId & 0xF000) >> 12, who->Orientation + 1), &anim->ImgObj ) ){ AnimStop(); return -1; }
     ArtClose( anim->ImgObj );
@@ -775,12 +774,12 @@ int AnimUnk68( int a1, int a2 )
     a1 |= 0x100;
     if( (Ap = AnimReserve( a1 )) == -1 ) return -1;        
     gAnimations[ Ap ].Flags = 16;
-    anim = gAnimations[ gAnimIdx ].i05;
+    anim = gAnimations[ gAnimIdx ].AnimList;
     anim[ gAnimSubIdx ].Target.Obj = 0;
     anim[ gAnimSubIdx ].State = 26;
     anim[ gAnimSubIdx ].ImgObj = 0;
     anim[ gAnimSubIdx ].Ap.Int = Ap;
-    anim[ gAnimSubIdx ].i07 = a2;
+    anim[ gAnimSubIdx ].Delay = a2;
     gAnimSubIdx++;
     return 0;
 }
@@ -792,28 +791,29 @@ int AnimStateMachine( int AnimIdx )
     VidRect_t v18, Area, Area1;
 
     if( AnimIdx == -1 ) return -1;
-    if( gAnimations[ AnimIdx ].i01 == -1000 ) return -1;
+    if( gAnimations[ AnimIdx ].CurrIdx == -1000 ) return -1;
     do{
-        n = gAnimations[ AnimIdx ].i01;
+        n = gAnimations[ AnimIdx ].CurrIdx;
         if( n >= gAnimations[ AnimIdx ].Steps ) return 0;
         if( n > gAnimations[ AnimIdx ].Step ){
-            tmp = gAnimations[ AnimIdx ].i05[ n ].i07;
+            tmp = gAnimations[ AnimIdx ].AnimList[ n ].Delay;
             if( tmp < 0 ) return 0;
             if( tmp > 0 ){
-                gAnimations[ AnimIdx ].i05[ n ].i07--;
+                gAnimations[ AnimIdx ].AnimList[ n ].Delay--;
                 return 0;
             }
         }
-        anim = &gAnimations[ AnimIdx ].i05[ gAnimations[ AnimIdx ].i01++ ];
+        anim = &gAnimations[ AnimIdx ].AnimList[ gAnimations[ AnimIdx ].CurrIdx++ ];
+//printf( "=>%i %i %i\n", AnimIdx, gAnimations[ AnimIdx ].CurrIdx, anim->State );
         switch( anim->State ){
             case 0: err = AnimUnk08( anim->Target.Obj, anim->GpPtr, anim->Ap.Int, anim->Silence, AnimIdx ); break;
             case 1: err = AnimUnk10( anim->Target.Obj, anim->TargetPos, anim->Elevation, anim->Ap.Int, anim->Silence, AnimIdx ); break;
             case 2: err = AnimUnk12( anim->Target.Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx, 0x00 ); break;
             case 3: err = AnimUnk12( anim->Target.Obj, anim->TargetPos, anim->Elevation, anim->Silence, AnimIdx, 0x10 ); break;
-            case 4: err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 0x00 ); break;
-            case 5: err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 0x01 ); break; //!
+            case 4: err = AnimAddAnimation( anim->Target.Obj, anim->Silence, AnimIdx, 0x00 ); break;
+            case 5: err = AnimAddAnimation( anim->Target.Obj, anim->Silence, AnimIdx, ANIM_FLG_REVERSE ); break;
             case 6: 
-        	err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 0x40 ); 
+        	err = AnimAddAnimation( anim->Target.Obj, anim->Silence, AnimIdx, ANIM_FLG_40 ); 
         	if( err == -1 ){
                     if( !ObjUnk33( anim->Target.Obj, &Area1 ) ) TileUpdateArea( &Area1, anim->Target.Obj->Elevation );
                     if( AnimIdx != -1 ) AnimUpdate( AnimIdx, 0 );
@@ -866,7 +866,7 @@ int AnimStateMachine( int AnimIdx )
         	err = AnimUpdate( AnimIdx, 0 ); 
         	break;
             case 17: err = AnimUnk29( anim->Target.Obj, AnimIdx, anim->TargetPos); break;
-            case 18: err = AnimUnk17( anim->Target.Obj, 38, AnimIdx, anim->TargetPos ); break;
+            case 18: err = AnimAddAnimation( anim->Target.Obj, 38, AnimIdx, anim->TargetPos ); break;
             case 19: // light animation
                 ObjSetLight( anim->Target.Obj, anim->TargetPos, anim->Target.Obj->LightIntensity, &Area ); // obj, radius, intensity, area
                 TileUpdateArea( &Area, anim->Target.Obj->Elevation );
@@ -882,9 +882,7 @@ int AnimStateMachine( int AnimIdx )
                 }                
                 err = AnimUpdate( AnimIdx, 0 ); 
                 break;
-            case 25: 
-DD 
-        	err = AnimUnk17( anim->Target.Obj, anim->Silence, AnimIdx, 0x80 ); break;
+            case 25: err = AnimAddAnimation( anim->Target.Obj, anim->Silence, AnimIdx, ANIM_FLG_FOREVER ); break;
             case 26:
                 gAnimations[ anim->Ap.Int ].Flags &= ~0x10;
                 if( (err = AnimUpdate( anim->Ap.Int, 1 ) ) != -1 ) err = AnimUpdate( AnimIdx, 0 );
@@ -893,14 +891,15 @@ DD
             default: err = -1; break;
         }
 	if( err == -1 ) AnimEnd( AnimIdx );
-    }while( gAnimations[ AnimIdx ].i01 != -1000 );
+    }while( gAnimations[ AnimIdx ].CurrIdx != -1000 );
     return -1;
 }
 
 int AnimUpdate( int AnimIdx, int Flg )
 {
-    if( AnimIdx == -1 || gAnimations[ AnimIdx ].i01 == -1000 ) return -1;
+    if( AnimIdx == -1 || gAnimations[ AnimIdx ].CurrIdx == -1000 ) return -1;
     gAnimations[ AnimIdx ].Step++;
+printf("==>%i %i\n",gAnimations[ AnimIdx ].Step, gAnimations[ AnimIdx ].Steps);
     if( gAnimations[ AnimIdx ].Step == gAnimations[ AnimIdx ].Steps ) return AnimEnd( AnimIdx );
     if( Flg ) return AnimStateMachine( AnimIdx );
     return 0;
@@ -912,20 +911,20 @@ int AnimEnd( int idx )
     Anim01_t *p;
     int i, j, tmp;
 
-    if( idx == -1 || gAnimations[ idx ].i01 == -1000 ) return -1;
-    for( i = 0; i < gAnimCnt1; i++  ) if( idx == gAnimUnk23[ i ].AnimIdx ) gAnimUnk23[ i ].Stat = -1000;
+    if( idx == -1 || gAnimations[ idx ].CurrIdx == -1000 ) return -1;
+    for( i = 0; i < gAnimListCnt; i++  ) if( idx == gAnimUnk23[ i ].AnimIdx ) gAnimUnk23[ i ].ActionMove = -1000;
     
      for( i = 0; i < gAnimations[ idx ].Steps; i++ ){
-        if( gAnimations[ idx ].i05[ i ].State != 10 ) continue;
-        if( i >= gAnimations[ idx ].Step && !(gAnimations[ idx ].i05[ i ].i10 & 1 ) ) continue;
-        ObjDestroy( gAnimations[ idx ].i05[ i ].Target.Obj, &Area );
-        TileUpdateArea( &Area, gAnimations[ idx ].i05[ i ].Target.Obj->Elevation );                
+        if( gAnimations[ idx ].AnimList[ i ].State != 10 ) continue;
+        if( i >= gAnimations[ idx ].Step && !(gAnimations[ idx ].AnimList[ i ].i10 & 1 ) ) continue;
+        ObjDestroy( gAnimations[ idx ].AnimList[ i ].Target.Obj, &Area );
+        TileUpdateArea( &Area, gAnimations[ idx ].AnimList[ i ].Target.Obj->Elevation );                
     }
-    p = gAnimations[ idx ].i05;
+    p = gAnimations[ idx ].AnimList;
     for( i = 0; i < gAnimations[ idx ].Steps; i++, p++ ){
         if( p->ImgObj ) ArtClose( p->ImgObj );
         if( p->State == 11 || p->State == 12 ){
-            if( i < gAnimations[ idx ].i01 ) continue;            
+            if( i < gAnimations[ idx ].CurrIdx ) continue;            
             if( p->i10 & 1 ){
                 p->Callback11( p->GpPtr, p->Target.Obj );
             } else if( p->State == 11 && p->Callback11 == GSoundDbgPlayA ){
@@ -936,23 +935,23 @@ int AnimEnd( int idx )
         if( p->State == 26 ) continue;
         if( OBJTYPE( p->Target.Obj->ImgId ) != TYPE_CRIT ) continue;
         for( j = 0; j < i; j++ ){
-            if( p->Target.Obj != gAnimations[ idx ].i05[ j ].Target.Obj ) continue;
-            tmp = gAnimations[ idx ].i05[ j ].State;
+            if( p->Target.Obj != gAnimations[ idx ].AnimList[ j ].Target.Obj ) continue;
+            tmp = gAnimations[ idx ].AnimList[ j ].State;
             if( tmp != 11 && tmp != 12 ) break;
         }
         if( j != i ) continue;
         for( j = 0; j < gAnimations[ idx ].Step; j++ ){
-            if( gAnimations[ idx ].i05[ j ].State == 10 && p->Target.Obj == gAnimations[ idx ].i05[ j ].Target.Obj ) break;
+            if( gAnimations[ idx ].AnimList[ j ].State == 10 && p->Target.Obj == gAnimations[ idx ].AnimList[ j ].Target.Obj ) break;
         }                        
 
         if( j != gAnimations[ idx ].Step ) continue;
-        for( j = 0; j < gAnimCnt1; j++ ){
-    	    if( p->Target.Obj == gAnimUnk23[ j ].Obj ){ gAnimUnk23[ j ].Stat = -1000; break; }
+        for( j = 0; j < gAnimListCnt; j++ ){
+    	    if( p->Target.Obj == gAnimUnk23[ j ].Obj ){ gAnimUnk23[ j ].ActionMove = -1000; break; }
         }                            
         if( (gAnimations[ idx ].Flags & 0xff) >= 0 && !CritterUnk31( p->Target.Obj ) ) AnimUnk24( p->Target.Obj, p->Target.Obj->Orientation, -1);
     }
     gAnimations[ idx ].Step = -1;
-    gAnimations[ idx ].i01 = -1000;
+    gAnimations[ idx ].CurrIdx = -1000;
     if( gAnimations[ idx ].Flags & 2 ) CombatUnk62();
     gAnimations[ idx ].Flags = ( gAnimUnk40 ) ? 0x20 : 0;
     return 0;
@@ -1253,7 +1252,7 @@ int AnimUnk08( Obj_t *a1, Obj_t *a2, int a3, int a4, int a5 )
     dAp = ((a1->Flags & 0x800) != 0) + 1;
     gAnimUnk23[ v8 ].Ap -= dAp;
     if( gAnimUnk23[ v8 ].Ap <= 0 ){
-        gAnimUnk23[ v8 ].Stat = -1000;
+        gAnimUnk23[ v8 ].ActionMove = -1000;
         AnimUpdate( a5, 0 );
     }
     if( dAp ) gAnimUnk23[ v8 ].GridPos = TileGetTileNumInDir( a2->GridId, gAnimUnk23[ v8 ].Path[ dAp + gAnimUnk23[ v8 ].Ap ], 1 );
@@ -1383,7 +1382,7 @@ int AnimUnk10( Obj_t *obj, unsigned int MapIdx, int MapLvl, int Ap, int Silence,
     if( (k = AnimCreateTrace( obj, MapIdx, MapLvl, -1, Silence, 0, AnimIdx )) == -1 ) return -1;    
     if( !ObjReach( obj, MapIdx, MapLvl ) ) return 0;        
     if( --gAnimUnk23[ k ].Ap <= 0 ){ // reached destination
-        gAnimUnk23[ k ].Stat = -1000;
+        gAnimUnk23[ k ].ActionMove = -1000;
         AnimUpdate( AnimIdx, 0 );
     }
     gAnimUnk23[ k ].GridPos = TileGetTileNumInDir( MapIdx, gAnimUnk23[ k ].Path[ gAnimUnk23[ k ].Ap ], 1 ); // stop position
@@ -1393,22 +1392,22 @@ int AnimUnk10( Obj_t *obj, unsigned int MapIdx, int MapLvl, int Ap, int Silence,
 
 int AnimCreateTrace( Obj_t *obj, int DstIdx, int MapLvl, int Ap, int a5, int a6, int AnimIdx )
 {
-    if( gAnimCnt1 == 24 ) return -1;
-    gAnimUnk23[ gAnimCnt1 ].Obj = obj;
-    gAnimUnk23[ gAnimCnt1 ].Flags = ( a6 ) ? 0x20 : 0;
-    gAnimUnk23[ gAnimCnt1 ].Stat = -2000;
-    gAnimUnk23[ gAnimCnt1 ].ArtId = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, a5, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 );
-    gAnimUnk23[ gAnimCnt1 ].Time = 0;
-    gAnimUnk23[ gAnimCnt1 ].Speed = AnimGetSpeed( obj, gAnimUnk23[ gAnimCnt1 ].ArtId );
-    gAnimUnk23[ gAnimCnt1 ].GridPos = DstIdx;
-    gAnimUnk23[ gAnimCnt1 ].AnimIdx = AnimIdx;
-    gAnimUnk23[ gAnimCnt1 ].i04 = a5;
-    gAnimUnk23[ gAnimCnt1 ].Ap = AnimFindTrace( obj, obj->GridId, DstIdx, gAnimUnk23[ gAnimCnt1 ].Path, a6 );
-    if( gAnimUnk23[ gAnimCnt1 ].Ap ){
-        if( Ap != -1 && gAnimUnk23[ gAnimCnt1 ].Ap > Ap ) gAnimUnk23[ gAnimCnt1 ].Ap = Ap;
-	return gAnimCnt1++;
+    if( gAnimListCnt == 24 ) return -1;
+    gAnimUnk23[ gAnimListCnt ].Obj = obj;
+    gAnimUnk23[ gAnimListCnt ].Flags = ( a6 ) ? ANIM_FLG_20 : 0;
+    gAnimUnk23[ gAnimListCnt ].ActionMove = -2000;
+    gAnimUnk23[ gAnimListCnt ].ArtId = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, a5, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 );
+    gAnimUnk23[ gAnimListCnt ].Time = 0;
+    gAnimUnk23[ gAnimListCnt ].Speed = AnimGetSpeed( obj, gAnimUnk23[ gAnimListCnt ].ArtId );
+    gAnimUnk23[ gAnimListCnt ].GridPos = DstIdx;
+    gAnimUnk23[ gAnimListCnt ].AnimIdx = AnimIdx;
+    gAnimUnk23[ gAnimListCnt ].i04 = a5;
+    gAnimUnk23[ gAnimListCnt ].Ap = AnimFindTrace( obj, obj->GridId, DstIdx, gAnimUnk23[ gAnimListCnt ].Path, a6 );
+    if( gAnimUnk23[ gAnimListCnt ].Ap ){
+        if( Ap != -1 && gAnimUnk23[ gAnimListCnt ].Ap > Ap ) gAnimUnk23[ gAnimListCnt ].Ap = Ap;
+	return gAnimListCnt++;
     }
-    gAnimUnk23[ gAnimCnt1 ].Stat = -1000;
+    gAnimUnk23[ gAnimListCnt ].ActionMove = -1000;
     return -1;    
 }
 
@@ -1416,29 +1415,29 @@ int AnimUnk12( Obj_t *obj, int a2, int a3, int a4, int a5, int Flags )
 {
     int n;
 
-    if( gAnimCnt1 == 24 ) return -1;
-    gAnimUnk23[ gAnimCnt1 ].Obj = obj;
-    gAnimUnk23[ gAnimCnt1 ].Flags = Flags | 0x02;
+    if( gAnimListCnt == 24 ) return -1;
+    gAnimUnk23[ gAnimListCnt ].Obj = obj;
+    gAnimUnk23[ gAnimListCnt ].Flags = Flags | ANIM_FLG_2;
     if( a4 == -1 ){
-        gAnimUnk23[ gAnimCnt1 ].ArtId = obj->ImgId;
-        gAnimUnk23[ gAnimCnt1 ].Flags |= 0x04;
+        gAnimUnk23[ gAnimListCnt ].ArtId = obj->ImgId;
+        gAnimUnk23[ gAnimListCnt ].Flags |= ANIM_FLG_4;
     } else {
-        gAnimUnk23[ gAnimCnt1 ].ArtId = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, a4, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1);
+        gAnimUnk23[ gAnimListCnt ].ArtId = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, a4, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1);
     }
-    gAnimUnk23[ gAnimCnt1 ].Stat = -2000;
-    gAnimUnk23[ gAnimCnt1 ].Time = 0;
-    gAnimUnk23[ gAnimCnt1 ].Speed = AnimGetSpeed( obj, gAnimUnk23[ gAnimCnt1 ].ArtId );
-    gAnimUnk23[ gAnimCnt1 ].AnimIdx = a5;
+    gAnimUnk23[ gAnimListCnt ].ActionMove = -2000;
+    gAnimUnk23[ gAnimListCnt ].Time = 0;
+    gAnimUnk23[ gAnimListCnt ].Speed = AnimGetSpeed( obj, gAnimUnk23[ gAnimListCnt ].ArtId );
+    gAnimUnk23[ gAnimListCnt ].AnimIdx = a5;
     if( OBJTYPE( obj->ImgId ) == 1 ){
         n = ( ( obj->ImgId ) >> 16 == 2 ) ? 16 : 4;
     } else {
         n = 32;
     }
-    if( !( gAnimUnk23[ gAnimCnt1 ].Ap = AnimUnk06( obj, obj->GridId, a2, gAnimUnk23[ gAnimCnt1 ].Tab, 0, n ) ) ){
-        gAnimUnk23[ gAnimCnt1 ].Stat = -1000;
+    if( !( gAnimUnk23[ gAnimListCnt ].Ap = AnimUnk06( obj, obj->GridId, a2, gAnimUnk23[ gAnimListCnt ].Tab, 0, n ) ) ){
+        gAnimUnk23[ gAnimListCnt ].ActionMove = -1000;
         return -1;
     }
-    gAnimCnt1++;
+    gAnimListCnt++;
     return 0;
 }
 
@@ -1446,22 +1445,22 @@ int AnimUnk13( Obj_t *obj, int a2, int a3, int a4, int a5 )
 {
     Anim03_t *v8;
 
-    if( gAnimCnt1 == 24 ) return -1;
-    v8 = &gAnimUnk23[ gAnimCnt1 ];
-    v8->Flags = 2;
+    if( gAnimListCnt == 24 ) return -1;
+    v8 = &gAnimUnk23[ gAnimListCnt ];
+    v8->Flags = ANIM_FLG_2;
     v8->Obj = obj;
     if( a4 == -1 ){
         v8->ArtId = obj->ImgId;
-        v8->Flags |= 0x04;
+        v8->Flags |= ANIM_FLG_4;
     } else {
         v8->ArtId = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, a4, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1);
     }
-    v8->Stat = -2000;
+    v8->ActionMove = -2000;
     v8->Time = 0;
     v8->Speed = AnimGetSpeed( obj, v8->ArtId );
     v8->AnimIdx = a5;    
-    if( !(v8->Ap = AnimUnk09( obj, obj->GridId, obj->Elevation, a2, a3, gAnimUnk23[ gAnimCnt1 ].Tab, 0 ) ) ){ v8->Stat = -1000; return -1; }
-    gAnimCnt1++;
+    if( !(v8->Ap = AnimUnk09( obj, obj->GridId, obj->Elevation, a2, a3, gAnimUnk23[ gAnimListCnt ].Tab, 0 ) ) ){ v8->ActionMove = -1000; return -1; }
+    gAnimListCnt++;
     return 0;
 }
 
@@ -1469,23 +1468,23 @@ int AnimUnk14( Obj_t *obj, int a2, int a3 )
 {
     Anim03_t *v6;
 
-    if( gAnimCnt1 == 24 ) return -1;
+    if( gAnimListCnt == 24 ) return -1;
     if( AnimUnk30( obj->GridId, obj->Elevation ) == obj->Elevation ) return -1;
-    v6 = &gAnimUnk23[ gAnimCnt1 ];
-    v6->Flags = 2;
+    v6 = &gAnimUnk23[ gAnimListCnt ];
+    v6->Flags = ANIM_FLG_2;
     v6->Obj = obj;
     if( a2 == -1 ){
-        v6->Flags |= 0x04;
+        v6->Flags |= ANIM_FLG_4;
         v6->ArtId = obj->ImgId;
     } else {
         v6->ArtId = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, a2, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 );
     }
-    v6->Stat = -2000;
+    v6->ActionMove = -2000;
     v6->Time = 0;
     v6->Speed = AnimGetSpeed( obj, v6->ArtId );
     v6->AnimIdx = a3;    
-    if( !(v6->Ap = AnimUnk07( obj, obj->GridId, obj->GridId, v6->Tab, 0, 16, ObjReach )) ){ v6->Stat = -1000; return -1; } 
-    gAnimCnt1++;
+    if( !(v6->Ap = AnimUnk07( obj, obj->GridId, obj->GridId, v6->Tab, 0, 16, ObjReach )) ){ v6->ActionMove = -1000; return -1; } 
+    gAnimListCnt++;
     return 0;
 }
 
@@ -1498,7 +1497,7 @@ void AnimMovement( int AnimIdx )
     int v7, y, v10, v16, CurrentAP, x, dir;
 
     obj1 = gAnimUnk23[ AnimIdx ].Obj;
-    if( gAnimUnk23[ AnimIdx ].Stat == -2000 ){
+    if( gAnimUnk23[ AnimIdx ].ActionMove == -2000 ){
         ObjMoveToTile( gAnimUnk23[ AnimIdx ].Obj, obj1->GridId, obj1->Elevation, &Area12 );
         ObjSetFrame( obj1, 0, &Area3 );
         RegionExpand( &Area12, &Area3, &Area12 );
@@ -1506,7 +1505,7 @@ void AnimMovement( int AnimIdx )
         RegionExpand( &Area12, &Area3, &Area12 );
         ObjSetShape( obj1, ArtMakeId( OBJTYPE( obj1->ImgId ), obj1->ImgId & 0xFFF, gAnimUnk23[ AnimIdx ].i04, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ), &Area3 );
         RegionExpand( &Area12, &Area3, &Area12 );
-        gAnimUnk23[ AnimIdx ].Stat = 0;
+        gAnimUnk23[ AnimIdx ].ActionMove = 0;
     } else {
         ObjIncFrame( gAnimUnk23[ AnimIdx ].Obj, &Area12 ); // movement animation advance
     }    
@@ -1520,7 +1519,7 @@ void AnimMovement( int AnimIdx )
     ObjMove( obj1, x, y, &Area3 ); // update position
     RegionExpand( &Area12, &Area3, &Area12 );
 
-    dir = gAnimUnk23[ AnimIdx ].Path[ gAnimUnk23[ AnimIdx ].Stat ] & 0x07;
+    dir = gAnimUnk23[ AnimIdx ].Path[ gAnimUnk23[ AnimIdx ].ActionMove ] & 0x07;
     y = gTileHexY[ dir ];
     x = gTileHexX[ dir ];
     // outside hex area?
@@ -1539,9 +1538,9 @@ void AnimMovement( int AnimIdx )
                     RegionExpand( &Area12, &Area3, &Area12 );
                     ObjSetRotation( obj1, gAnimUnk23[ AnimIdx ].Path[ 0 ], &Area3 );
                     RegionExpand( &Area12, &Area3, &Area12 );
-                    gAnimUnk23[ AnimIdx ].Stat = 0;
+                    gAnimUnk23[ AnimIdx ].ActionMove = 0;
                 } else {
-                    gAnimUnk23[ AnimIdx ].Stat = -1000;
+                    gAnimUnk23[ AnimIdx ].ActionMove = -1000;
                 }
                 v10 = -1;
             }
@@ -1563,11 +1562,11 @@ void AnimMovement( int AnimIdx )
                 if( obj1 == gObjDude ) IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
                 v16 = gCombatMovePts + obj1->Critter.State.CurrentAP <= 0;
             }
-            gAnimUnk23[ AnimIdx ].Stat++;
-            if( gAnimUnk23[ AnimIdx ].Stat == gAnimUnk23[ AnimIdx ].Ap || v16 ){
-                gAnimUnk23[ AnimIdx ].Stat = -1000;
+            gAnimUnk23[ AnimIdx ].ActionMove++;
+            if( gAnimUnk23[ AnimIdx ].ActionMove == gAnimUnk23[ AnimIdx ].Ap || v16 ){
+                gAnimUnk23[ AnimIdx ].ActionMove = -1000;
             } else {
-                ObjSetRotation( obj1, gAnimUnk23[ AnimIdx ].Path[ gAnimUnk23[ AnimIdx ].Stat ], &Area3 );
+                ObjSetRotation( obj1, gAnimUnk23[ AnimIdx ].Path[ gAnimUnk23[ AnimIdx ].ActionMove ], &Area3 );
                 RegionExpand( &Area12, &Area3, &Area12 );
                 ObjMove( obj1, x, y, &Area3 );
                 RegionExpand( &Area12, &Area3, &Area12 );
@@ -1575,7 +1574,7 @@ void AnimMovement( int AnimIdx )
         }
     }
     TileUpdateArea( &Area12, gAnimUnk23[ AnimIdx ].Obj->Elevation );
-    if( gAnimUnk23[ AnimIdx ].Stat == -1000 ) AnimUpdate( gAnimUnk23[ AnimIdx ].AnimIdx, 1 );
+    if( gAnimUnk23[ AnimIdx ].ActionMove == -1000 ) AnimUpdate( gAnimUnk23[ AnimIdx ].AnimIdx, 1 );
 }
 
 void AnimMoveReverse( int AnimIdx )
@@ -1588,54 +1587,54 @@ void AnimMoveReverse( int AnimIdx )
     int fpd;
 DD
     obj = gAnimUnk23[ AnimIdx ].Obj;
-    if( gAnimUnk23[ AnimIdx ].Stat == -2000 ){
+    if( gAnimUnk23[ AnimIdx ].ActionMove == -2000 ){
         ObjSetShape( gAnimUnk23[ AnimIdx ].Obj, gAnimUnk23[ AnimIdx ].ArtId, &Area1 );
-        gAnimUnk23[ AnimIdx ].Stat = 0;
+        gAnimUnk23[ AnimIdx ].ActionMove = 0;
     } else {
-        ObjGetRefreshArea(gAnimUnk23[ AnimIdx ].Obj, &Area1 );
+        ObjGetRefreshArea( gAnimUnk23[ AnimIdx ].Obj, &Area1 );
     }    
     if( (Img = ArtLoadImg( obj->ImgId, &ImgObj )) ){
         fpd = ArtGetFpd( Img ) - 1;
         ArtClose( ImgObj );
-        if( !(gAnimUnk23[ AnimIdx ].Flags & 0x04) && ( !( gAnimUnk23[ AnimIdx ].Flags & 0x10 ) || ( fpd > obj->FrameNo ) ) ){
+        if( !(gAnimUnk23[ AnimIdx ].Flags & 0x04) && ( !( gAnimUnk23[ AnimIdx ].Flags & ANIM_FLG_10 ) || ( fpd > obj->FrameNo ) ) ){
             ObjIncFrame( obj, &Area2 );
             RegionExpand( &Area1, &Area2, &Area1 );
         }
-        if( gAnimUnk23[ AnimIdx ].Stat < gAnimUnk23[ AnimIdx ].Ap ){
-            t = &gAnimUnk23[ AnimIdx ].Tab[ gAnimUnk23[ AnimIdx ].Stat ];
+        if( gAnimUnk23[ AnimIdx ].ActionMove < gAnimUnk23[ AnimIdx ].Ap ){
+            t = &gAnimUnk23[ AnimIdx ].Tab[ gAnimUnk23[ AnimIdx ].ActionMove ];
             ObjMoveToTile( obj, t->GridPos, t->i02, &Area2 );
             RegionExpand( &Area1, &Area2, &Area1 );
             ObjMove( obj, t->i03, t->i04, &Area2 );
             RegionExpand( &Area1, &Area2, &Area1 );
-            gAnimUnk23[ AnimIdx ].Stat++;
+            gAnimUnk23[ AnimIdx ].ActionMove++;
         }
-        if( gAnimUnk23[ AnimIdx ].Stat == gAnimUnk23[ AnimIdx ].Ap && ((gAnimUnk23[ AnimIdx ].Flags & 0x10) == 0 || obj->FrameNo == fpd) ) gAnimUnk23[ AnimIdx ].Stat = -1000;
+        if( gAnimUnk23[ AnimIdx ].ActionMove == gAnimUnk23[ AnimIdx ].Ap && ((gAnimUnk23[ AnimIdx ].Flags & 0x10) == 0 || obj->FrameNo == fpd) ) gAnimUnk23[ AnimIdx ].ActionMove = -1000;
         TileUpdateArea( &Area1, gAnimUnk23[ AnimIdx ].Obj->Elevation );
-        if( gAnimUnk23[ AnimIdx ].Stat == -1000 ) AnimUpdate( gAnimUnk23[ AnimIdx ].AnimIdx, 1 );
+        if( gAnimUnk23[ AnimIdx ].ActionMove == -1000 ) AnimUpdate( gAnimUnk23[ AnimIdx ].AnimIdx, 1 );
     }
 }
 
-int AnimUnk17( Obj_t *obj, int a2, int AnimIdx, int a4 )
+int AnimAddAnimation( Obj_t *obj, int a2, int AnimIdx, int Flags )
 {
     int Id;
 
-    if( gAnimCnt1 == 24 ) return -1;
+    if( gAnimListCnt == 24 ) return -1;
     if( a2 == 38 ){
-        gAnimUnk23[ gAnimCnt1 ].Flags = 0;
-        Id = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, 38, a4, obj->Orientation + 1 );
+        Id = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, 38, Flags, obj->Orientation + 1 );
+        gAnimUnk23[ gAnimListCnt ].Flags = 0;
     } else {
         Id = ArtMakeId( OBJTYPE( obj->ImgId ), obj->ImgId & 0xFFF, a2, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 );
-        gAnimUnk23[ gAnimCnt1 ].Flags = a4;
+        gAnimUnk23[ gAnimListCnt ].Flags = Flags;
     }
     if( !ArtFileExist( Id ) ) return -1;
-    gAnimUnk23[ gAnimCnt1 ].Obj = obj;
-    gAnimUnk23[ gAnimCnt1 ].ArtId = Id;
-    gAnimUnk23[ gAnimCnt1 ].AnimIdx = AnimIdx;
-    gAnimUnk23[ gAnimCnt1 ].Time = 0;
-    gAnimUnk23[ gAnimCnt1 ].Speed = AnimGetSpeed(obj, gAnimUnk23[gAnimCnt1].ArtId);
-    gAnimUnk23[ gAnimCnt1 ].Stat = 0;
-    gAnimUnk23[ gAnimCnt1 ].Ap = 0;
-    gAnimCnt1++;
+    gAnimUnk23[ gAnimListCnt ].Obj = obj;
+    gAnimUnk23[ gAnimListCnt ].ArtId = Id;
+    gAnimUnk23[ gAnimListCnt ].AnimIdx = AnimIdx;
+    gAnimUnk23[ gAnimListCnt ].Time = 0;
+    gAnimUnk23[ gAnimListCnt ].Speed = AnimGetSpeed( obj, gAnimUnk23[ gAnimListCnt ].ArtId );
+    gAnimUnk23[ gAnimListCnt ].ActionMove = 0;
+    gAnimUnk23[ gAnimListCnt ].Ap = 0;
+    gAnimListCnt++;
     return 0;
 }
 
@@ -1648,10 +1647,10 @@ void AnimProcess()
     CachePool_t *ImgObj;
     Obj_t *obj;
 
-    if( !gAnimCnt1 ) return;
+    if( !gAnimListCnt ) return;
     gAnimUnk40 = 1;    
-    for( i = 0; i < gAnimCnt1; i++ ){
-        if( gAnimUnk23[ i ].Stat == -1000 ) continue;
+    for( i = 0; i < gAnimListCnt; i++ ){
+        if( gAnimUnk23[ i ].ActionMove == -1000 ) continue;
 	// test if time passed for given animation
         SysTime = TimerGetSysTime();
         if( (unsigned int)TimerDiff( SysTime, gAnimUnk23[ i ].Time ) < gAnimUnk23[ i ].Speed ) continue;
@@ -1661,7 +1660,7 @@ void AnimProcess()
         AnimIdx = gAnimUnk23[ i ].AnimIdx;
         if( AnimStateMachine( AnimIdx ) == -1 ) continue;
         if( gAnimUnk23[ i ].Ap > 0 ){
-            if( gAnimUnk23[ i ].Flags & 0x02 ){
+            if( gAnimUnk23[ i ].Flags & ANIM_FLG_2){
                 AnimMoveReverse( i );
     	    } else {
     		n = obj->GridId;
@@ -1670,14 +1669,14 @@ void AnimProcess()
             }
             continue;
         }
-        if( gAnimUnk23[ i ].Stat == 0 ){
-            for( j = 0; j < gAnimCnt1; j++ ){
-                if( obj == gAnimUnk23[ j ].Obj && gAnimUnk23[ j ].Stat == -2000 ){
-                    gAnimUnk23[ j ].Stat = -1000;
+        if( gAnimUnk23[ i ].ActionMove == 0 ){
+            for( j = 0; j < gAnimListCnt; j++ ){
+                if( obj == gAnimUnk23[ j ].Obj && gAnimUnk23[ j ].ActionMove == -2000 ){
+                    gAnimUnk23[ j ].ActionMove = -1000;
                     AnimUpdate( gAnimUnk23[ j ].AnimIdx, 1 );
                 }
             }
-            gAnimUnk23[ i ].Stat = -2000;
+            gAnimUnk23[ i ].ActionMove = -2000;
         }
         ObjGetRefreshArea( obj, &Area1 );
         ImgId = obj->ImgId;
@@ -1691,7 +1690,7 @@ void AnimProcess()
             ObjSetShape( obj, gAnimUnk23[ i ].ArtId, &Area2 );
             RegionExpand( &Area1, &Area2, &Area1 );    	    
     	    if( (Img = ArtLoadImg( obj->ImgId, &ImgObj )) ){
-            	if( gAnimUnk23[ i ].Flags & 0x01  ){
+            	if( gAnimUnk23[ i ].Flags & ANIM_FLG_REVERSE ){
             	    n = ArtGetFpd( Img ) - 1;
             	} else {
             	    n = 0;
@@ -1710,41 +1709,41 @@ void AnimProcess()
             TileUpdateArea( &Area1, gMapCurrentLvl );
             continue;
         }
-        if( !(gAnimUnk23[ i ].Flags & 0x01) ){
+        // play animation
+        if( gAnimUnk23[ i ].Flags & ANIM_FLG_REVERSE ){
+	    if( (gAnimUnk23[ i ].Flags & ANIM_FLG_FOREVER) || obj->FrameNo ){
+        	if( ( Img = ArtLoadImg( obj->ImgId, &ImgObj ) ) ){
+            	    ArtGetFrameShift( Img, obj->FrameNo, obj->Orientation, &xpos, &ypos );
+            	    ArtClose( ImgObj );
+        	}
+        	ObjDecFrame( obj, &Area2 );
+        	RegionExpand( &Area1, &Area2, &Area1 );
+        	ObjMove( obj, -xpos, -ypos, &Area2 );
+        	RegionExpand( &Area1, &Area2, &Area1 );
+        	TileUpdateArea( &Area1, gMapCurrentLvl );
+    	    } else {
+        	gAnimUnk23[ i ].ActionMove = -1000;
+    		AnimUpdate( gAnimUnk23[ i ].AnimIdx, 1 );
+    	    }
+        } else {
             Img = ArtLoadImg( obj->ImgId, &ImgObj );
             if( !Img ){
         	TileUpdateArea( &Area1, gMapCurrentLvl );
         	continue;
             }
-            if( ( gAnimUnk23[ i ].Flags & 0x80 ) || ((ArtGetFpd( Img ) - 1) != obj->FrameNo) ){
+            if( ( gAnimUnk23[ i ].Flags & ANIM_FLG_FOREVER ) || ( obj->FrameNo != (ArtGetFpd( Img ) - 1 ) ) ){
             	ObjIncFrame( obj, &Area2 );
             	RegionExpand( &Area1, &Area2, &Area1 );
             	ArtGetFrameShift( Img, obj->FrameNo, obj->Orientation, &xpos, &ypos );
             	ObjMove( obj, xpos, ypos, &Area2 );
             	RegionExpand( &Area1, &Area2, &Area1 );
-            	ArtClose( ImgObj );
             	TileUpdateArea( &Area1, gMapCurrentLvl );
-            } else {
-                gAnimUnk23[ i ].Stat = -1000;
-                ArtClose( ImgObj );
-                if( (gAnimUnk23[ i ].Flags & 0x40 ) && !ObjUnk33( obj, &AreaOut ) ) TileUpdateArea( &AreaOut, obj->Elevation );
+            } else { // animation finish
+                gAnimUnk23[ i ].ActionMove = -1000;
+                if( (gAnimUnk23[ i ].Flags & ANIM_FLG_40 ) && !ObjUnk33( obj, &AreaOut ) ) TileUpdateArea( &AreaOut, obj->Elevation );
                 AnimUpdate( gAnimUnk23[ i ].AnimIdx, 1 );                    
             }
-    	    continue;
-        }
-	if( (gAnimUnk23[ i ].Flags & 0x80) || obj->FrameNo ){
-            if( ( Img = ArtLoadImg( obj->ImgId, &ImgObj ) ) ){
-                ArtGetFrameShift( Img, obj->FrameNo, obj->Orientation, &xpos, &ypos );
-                ArtClose( ImgObj );
-            }
-            ObjDecFrame( obj, &Area2 );
-            RegionExpand( &Area1, &Area2, &Area1 );
-            ObjMove( obj, -xpos, -ypos, &Area2 );
-            RegionExpand( &Area1, &Area2, &Area1 );
-            TileUpdateArea( &Area1, gMapCurrentLvl );
-        } else {
-            gAnimUnk23[ i ].Stat = -1000;
-    	    AnimUpdate( gAnimUnk23[ i ].AnimIdx, 1 );
+            ArtClose( ImgObj );
         }
     }
     gAnimUnk40 = 0;
@@ -1758,19 +1757,19 @@ void AnimClean()
     for( i = 0; i != 32; i++ ){
         if( gAnimations[ i ].Flags & 0x20 ) gAnimations[ i ].Flags = 0;
     }    
-    for( i = 0; i < gAnimCnt1; i++){
-        if( gAnimUnk23[ i ].Stat != -1000 ) continue;
-        for( j = i + 1; j < gAnimCnt1; j++ ){
-            if( gAnimUnk23[ j ].Stat != -1000 ) break;
+    for( i = 0; i < gAnimListCnt; i++){
+        if( gAnimUnk23[ i ].ActionMove != -1000 ) continue;
+        for( j = i + 1; j < gAnimListCnt; j++ ){
+            if( gAnimUnk23[ j ].ActionMove != -1000 ) break;
         }                
-        if( j == gAnimCnt1 ) break;
+        if( j == gAnimListCnt ) break;
         if( i != j ){
             memcpy( &gAnimUnk23[ i ], &gAnimUnk23[ j ], sizeof( Anim03_t ) );
-            gAnimUnk23[ j ].Stat = -1000;
+            gAnimUnk23[ j ].ActionMove = -1000;
             gAnimUnk23[ j ].Flags = 0;
         }
     }
-    gAnimCnt1 = i;
+    gAnimListCnt = i;
 }
 
 int AnimGetTarget( int *Ap )
@@ -1855,7 +1854,7 @@ void AnimAmbient()
     	    }
         }
         if( v7 ) AnimRegPlaySfx( obj, GSoundCharacterFileName( obj, 0, 0 ), 0 );        
-        AnimRegAnim( obj, 0, 0 );
+        AnimRegAnimation( obj, 0, 0 );
         AnimRegEnd();
         Speed = 20 / ObjCount;
         if( 20 / ObjCount < 1 ){ 
@@ -1916,7 +1915,7 @@ int AnimUnk25( Obj_t *obj )
     int n;
 
     AnimRegStart( 2 );
-    AnimRegAnim( obj, ( (obj->ImgId & 0xFF0000) >> 16 == 20 ) ? 37 : 36, 0 );
+    AnimRegAnimation( obj, ( (obj->ImgId & 0xFF0000) >> 16 == 20 ) ? 37 : 36, 0 );
     n = AnimRegEnd();
     obj->Scenery.i07 &= ~0x02;
     return n;
@@ -1981,7 +1980,7 @@ void AnimReset()
     gAnimIdx = -1;
     for( i = 0; i < 32; i++ ) AnimEnd( i );
     gAnimUnk41 = 0;
-    gAnimCnt1 = 0;
+    gAnimListCnt = 0;
 }
 
 int AnimUnk30( int GridIdx, int Cnt )

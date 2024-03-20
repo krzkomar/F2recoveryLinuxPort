@@ -35,7 +35,7 @@ int ActionUnk40( Obj_t *obj, int *a2, int a3, int a4, int a5 )
     AnimRegPlaySfx( obj, GSoundCharacterFileName( obj, *a2, 1 ), a5 );
     if( i <= 0 ){
         GridId = obj->GridId;
-        AnimRegAnimateForever( obj, *a2, 0 );
+        AnimRegAnimation( obj, *a2, 0 );
     } else {
         GridId = TileGetTileNumInDir( obj->GridId, a4, i );
         AnimUnk45( obj, GridId, obj->Elevation, *a2, 0 );
@@ -56,7 +56,7 @@ int ActionAnimGore( Obj_t *obj, int a2, int a3 )
         if( a2 != 21 ) return a2;
         n = 35;
     }
-    if( ArtFileExist( ArtMakeId( 1, obj->ImgId & 0xFFF, n, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ) ) ) AnimRegAnimateForever( obj, n, a3 );
+    if( ArtFileExist( ArtMakeId( 1, obj->ImgId & 0xFFF, n, (obj->ImgId & 0xF000) >> 12, obj->Orientation + 1 ) ) ) AnimRegAnimation( obj, n, a3 );
     return n;
 }
 
@@ -136,13 +136,13 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
                     result = ActionUnk40( obj1, &a2, a6, a7, 0 );
                 } else {
             	    a2 = ActionUnk14( obj1, a2 );
-    		    result = AnimRegAnimateForever( obj1, a2, 0 );
+    		    result = AnimRegAnimation( obj1, a2, 0 );
     		}
     		goto LABEL_47;
             }
             if( obj3 & 0x400 ){
                 if( ArtFileExist( ArtMakeId( 1, obj1->ImgId & 0xFFF, 33, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ) ) ){
-                    AnimRegAnimateForever( obj1, 33, a10 );
+                    AnimRegAnimation( obj1, 33, a10 );
                     result = AnimUnk62( obj1, ArtMakeId( 1, obj1->ImgId & 0xFFF, 0, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ), -1 );
                     goto LABEL_47;
                 }
@@ -150,7 +150,7 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
             if( a6 ){
                 a2 = (a5 == 0) + 20;
                 ActionUnk40( obj1, &a2, a6, a7, a10 );
-    		result = AnimRegAnimateForever( obj1, ( a2 == 20 ) ? 37 : 36, -1 );
+    		result = AnimRegAnimation( obj1, ( a2 == 20 ) ? 37 : 36, -1 );
     		goto LABEL_47;
             }
             if( a5 ){
@@ -165,7 +165,7 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
             	    v21 = 15;
         	}
             }
-    	    result = AnimRegAnimateForever( obj1, v21, 0 );
+    	    result = AnimRegAnimation( obj1, v21, 0 );
     	    goto LABEL_47;
         } else {        
             if( ArtMakeId( 5, 10, 0, 0, 0 ) == obj4->ImgId ){
@@ -185,7 +185,7 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
                 } else {
                     AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, a2, 3 ), a10 );
                     a2 = ActionUnk14( obj1, a2 );
-                    result = AnimRegAnimateForever( obj1, a2, 0 );
+                    result = AnimRegAnimation( obj1, a2, 0 );
                     if( a2 == 21 || a2 == 20 ){
                         result = ActionAnimGore( obj1, a2, -1 );
                         a2 = result;
@@ -195,7 +195,7 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
             }
             if( ArtFileExist( ArtMakeId( 1, obj1->ImgId & 0xFFF, 33, (obj1->ImgId & 0xF000) >> 12, obj1->Orientation + 1 ) ) ){
                 AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, a2, 0 ), a10 );
-                AnimRegAnimateForever( obj1, a2, 0 );                
+                AnimRegAnimation( obj1, a2, 0 );                
                 v39 = RandMinMax( 0, 5 );
                 for( v18 = RandMinMax( 2, 5 ); v18 > 0; v18-- ){
                     v19 = TileGetTileNumInDir( obj1->GridId, v39, v18 );
@@ -210,7 +210,7 @@ int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int 
             }
             a2 = 29;
             AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, 29, 0 ), -1 );
-    	    result = AnimRegAnimateForever( obj1, a2, 0 );
+    	    result = AnimRegAnimation( obj1, a2, 0 );
     	    goto LABEL_47;
         }
     }
@@ -358,27 +358,27 @@ int ActionUnk29( Combat_t *cmbt, int a2 )
         } else {
     	    strcpy( stmp, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ) );
         }
-        AnimRegAnimateForever( cmbt->Dude, a2, 0 );
+        AnimRegAnimation( cmbt->Dude, a2, 0 );
         AnimRegPlaySfx( cmbt->Dude, stmp, ActionFrame );
         ActionUnk31( cmbt, a2, 0 );
     } else {
         if( cmbt->Comp->Critter.State.CombatResult & 0x03 ){
             AnimRegPlaySfx( cmbt->Dude, stmp, -1 );
-            AnimRegAnimateForever( cmbt->Dude, a2, 0 );
+            AnimRegAnimation( cmbt->Dude, a2, 0 );
         } else {
             if( (Img = ArtLoadImg( ArtMakeId( 1, cmbt->Comp->ImgId & 0xFFF, 13, (cmbt->Comp->ImgId & 0xF000) >> 12, cmbt->Comp->Orientation + 1 ), &ImgObj ) ) ){
                 Frame = ArtGetActionFrame( Img );
                 ArtClose( ImgObj );
                 if( Frame <= ActionFrame ){
                     AnimRegPlaySfx( cmbt->Dude, stmp, -1 );
-                    AnimRegAnimateForever( cmbt->Dude, a2, 0 );
+                    AnimRegAnimation( cmbt->Dude, a2, 0 );
                     AnimRegPlaySfx( cmbt->Comp, GSoundCharacterFileName( cmbt->Comp, 13, 0 ), ActionFrame - Frame );
-                    AnimRegAnimateForever( cmbt->Comp, 13, 0 );
+                    AnimRegAnimation( cmbt->Comp, 13, 0 );
                 } else {
                     AnimRegPlaySfx( cmbt->Comp, GSoundCharacterFileName( cmbt->Comp, 13, 0 ), -1 );
-                    AnimRegAnimateForever( cmbt->Comp, 13, 0 );
+                    AnimRegAnimation( cmbt->Comp, 13, 0 );
                     AnimRegPlaySfx( cmbt->Dude, stmp, Frame - ActionFrame );
-                    AnimRegAnimateForever( cmbt->Dude, a2, 0 );
+                    AnimRegAnimation( cmbt->Dude, a2, 0 );
                 }
             }
         }
@@ -430,7 +430,7 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
     if( a2 == 18 ){
         if( WeaponBase == 6 || WeaponBase == 3 || WeaponBase == 5 ) v50 = 1;
     } else {
-        AnimRegAnimateForever( cmbt->Dude, 43, -1 );
+        AnimRegAnimation( cmbt->Dude, 43, -1 );
     }
     AiCombatTaunts( cmbt->Dude, cmbt, 2, 0 );
     if( (cmbt->Dude->ImgId & 0xF000) >> 12 ){
@@ -438,13 +438,13 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
     } else {
 	AnimRegPlaySfx( cmbt->Dude, GSoundCharacterFileName( cmbt->Dude, a2, 0 ), -1 );
     }
-    AnimRegAnimateForever( cmbt->Dude, a2, 0 );
+    AnimRegAnimation( cmbt->Dude, a2, 0 );
     if( a2 != 47 ){
         if( ( cmbt->DudeInjuries & 0x100 ) || !( cmbt->DudeInjuries & 0x200 ) ){
             if( ProtoGetObj( Item59( cmbt->HandEq ), &proto ) == -1 || proto->ImgId == -1 ){
                 if( !( cmbt->DudeInjuries & 0x100 ) ){
                     if( !( cmbt->Comp->Critter.State.CombatResult & 0x03 ) ){
-                        AnimRegAnimateForever( cmbt->Comp, 13, ActionFrame );
+                        AnimRegAnimation( cmbt->Comp, 13, ActionFrame );
                         goto LABEL_57;
                     }
                 }
@@ -547,7 +547,7 @@ LABEL_58:
         	}
             }
         } else {
-            AnimRegAnimateForever( cmbt->Dude, 44, -1 );
+            AnimRegAnimation( cmbt->Dude, 44, -1 );
         }
     }
     if( AnimRegEnd() == -1 ){
@@ -603,10 +603,10 @@ int ActionLadderClimb( Obj_t *obj1, Obj_t *obj2 )
     AnimSetCallback11( obj1, (AnimU_t)obj2, (void *)UseApUpdate, -1 );
     if( (tmp = (obj1->ImgId & 0xF000) >> 12) ){
         AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, 39, 0 ), -1 );
-        AnimRegAnimateForever( obj1, 39, 0 );
+        AnimRegAnimation( obj1, 39, 0 );
     }
     AnimRegPlaySfx( obj1, GSoundCharacterFileName( obj1, 4, 0 ), -1 );
-    AnimRegAnimateForever( obj1, 4, 0 );
+    AnimRegAnimation( obj1, 4, 0 );
     AnimSetCallback11( obj1, (AnimU_t)obj2, (void *)UseObject, -1 );
     if( tmp ) AnimUnk63( obj1, tmp, -1 );
     return AnimRegEnd();
@@ -645,7 +645,7 @@ DD
     v15 = (dude->ImgId & 0xF000) >> 12;
     if( v15 ){
         AnimRegPlaySfx( dude, GSoundCharacterFileName(dude, 39, 0), -1 );
-        AnimRegAnimateForever( dude, 39, 0 );
+        AnimRegAnimation( dude, 39, 0 );
     }
     v9 = OBJTYPE( object->ImgId );
     if( v9 == TYPE_CRIT && CritterUnk31( object ) ){
@@ -655,7 +655,7 @@ DD
     } else {
         v13 = 11;
     }
-    if( Type != PR_SCN_STAIRS && !ap ) AnimRegAnimateForever( dude, v13, -1 );
+    if( Type != PR_SCN_STAIRS && !ap ) AnimRegAnimation( dude, v13, -1 );
     if( ap )
         AnimSetCallback12( dude, object, (AnimU_t)ap, (void *)UseObjOnObj, -1 );
     else
@@ -671,10 +671,10 @@ int ActionUseOnScenery( Obj_t *obj1, Obj_t *obj2 )
 
 int ActionPlayerPickup( Obj_t *obj )
 {
-    return ActionPickupItem( gObjDude, obj );
+    return ActionUseOnItem( gObjDude, obj );
 }
 
-int ActionPickupItem( Obj_t *Critter, Obj_t *Item )
+int ActionUseOnItem( Obj_t *Critter, Obj_t *Item )
 {
     ArtFrmHdr_t *Img;
     Proto_t *proto;
@@ -702,7 +702,7 @@ int ActionPickupItem( Obj_t *Critter, Obj_t *Item )
     ProtoGetObj( Item->Pid, &proto );
 
     if( proto->Critt.Type != PR_ITEM_CONTAINER || ProtoItemAccessible( Item->Pid ) ){
-        AnimRegAnimateForever( Critter, 10, 0 );
+        AnimRegAnimation( Critter, 10, 0 );
         if( (Img = ArtLoadImg( ArtMakeId(1, Critter->ImgId & 0xFFF, 10, (Critter->ImgId & 0xF000) >> 12, Critter->Orientation + 1 ), &ImgObj ) ) ){
             ActionFrame = ArtGetActionFrame( Img );
             ArtClose( ImgObj );
@@ -722,9 +722,9 @@ int ActionPickupItem( Obj_t *Critter, Obj_t *Item )
 DD
         if( (tmp = (Critter->ImgId & 0xF000) >> 12) ){
             AnimRegPlaySfx( Critter, GSoundCharacterFileName( Critter, 39, 0 ), -1 );
-            AnimRegAnimateForever( Critter, 39, -1 );
+            AnimRegAnimation( Critter, 39, -1 );
         }
-        AnimRegAnimateForever( Critter, ((proto->Critt.BaseStat[1] & 1) == 0) + 10, 0 );
+        AnimRegAnimation( Critter, ((proto->Critt.BaseStat[1] & 1) == 0) + 10, 0 );
         if( (Img = ArtLoadImg( ArtMakeId( 1, Critter->ImgId & 0xFFF, ((proto->Critt.BaseStat[1] & 1) == 0) + 10, 0, Critter->Orientation + 1 ), &ImgObj )) ){
             ArtGetActionFrame( Img );
             ArtClose( ImgObj );
@@ -893,7 +893,7 @@ printf("=Target=>0x%x %i\n", target->Pid, target->Pid );
         ArtGetActionFrame( Img );
         ArtClose( ImgObj );
     }
-    AnimRegAnimateForever( v4, v11, -1 );
+    AnimRegAnimation( v4, v11, -1 );
     AnimSetCallback12( v4, target, (AnimU_t)SkillNo, (void *)UseUseSkill, -1 );
     return AnimRegEnd();
 }

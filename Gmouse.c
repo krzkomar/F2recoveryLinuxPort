@@ -395,7 +395,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             case 1: // pointed object
                 if( !( obj = GmouseGetObject( -1, 1, gMapCurrentLvl ) ) ) return;
                 switch( OBJTYPE( obj->ImgId ) ){
-                    case TYPE_ITEM: ActionPickupItem( gObjDude, obj ); break;
+                    case TYPE_ITEM: ActionUseOnItem( gObjDude, obj ); break;
                     case TYPE_CRIT:
                         if( obj == gObjDude ){
                             if( !((gObjDude->ImgId & 0xFF0000) >> 16) && !ObjTurnCW( obj, &Area2 ) ) TileUpdateArea( &Area2, obj->Elevation );
@@ -548,7 +548,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             switch( OBJTYPE( obj->ImgId ) ){
         	case TYPE_CRIT: ActionUseOnCritter( gObjDude, obj ); break;
         	case TYPE_SCEN: ActionUseOnScenery( gObjDude, obj ); break;
-        	default: ActionPickupItem( gObjDude, obj ); break;
+        	default: ActionUseOnItem( gObjDude, obj ); break;
             }
             break;
         case INV_ACT_SKILL:

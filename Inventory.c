@@ -1533,7 +1533,7 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
         if( SelectedHand == a3 ){
             if( (a1->ImgId & 0xF000) >> 12 && a4 && !MapAmbientEnabled() ){
                 AnimRegPlaySfx( a1, GSoundCharacterFileName( a1, 39, 0 ), 0 );
-                AnimRegAnim( a1, 39, 0 );
+                AnimRegAnimation( a1, 39, 0 );
             }
             if( !a4 || MapAmbientEnabled() ){
                 AnimUnk24( a1, a1->Orientation, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, tmp, a1->Orientation + 1 ) );
@@ -1578,7 +1578,7 @@ int InvUnk30( Obj_t *a1, int Lhand, int a3 )
         if( a3 && !MapAmbientEnabled() ){
             AnimRegStart( 2 );
             AnimRegPlaySfx( a1, GSoundCharacterFileName( a1, 39, 0 ), 0 );
-            AnimRegAnim( a1, 39, 0 );
+            AnimRegAnimation( a1, 39, 0 );
             AnimUnk62( a1, ArtMakeId( 1, a1->ImgId & 0xFFF, 0, 0, a1->Orientation + 1 ), -1 );
             return AnimRegEnd();
         }

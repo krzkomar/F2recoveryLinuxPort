@@ -31,7 +31,7 @@ int ActionLadderClimb( Obj_t *obj1, Obj_t *obj2 );
 int ActionUseSceneryObject( Obj_t *obj1, Obj_t *obj2, Obj_t *a3 );
 int ActionUseOnScenery( Obj_t *obj1, Obj_t *obj2 );
 int ActionPlayerPickup( Obj_t *obj );
-int ActionPickupItem( Obj_t *Critter, Obj_t *Obj );
+int ActionUseOnItem( Obj_t *Critter, Obj_t *Obj );
 int ActionUseOnCritter( Obj_t *a1, Obj_t *a2 );
 int ActionUseSneak( int SkillId );
 int ActionUnk20( Obj_t *obj );
