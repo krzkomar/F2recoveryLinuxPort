@@ -1,14 +1,14 @@
 #include "FrameWork.h"
 
 #define OBJ_UNLINK( p1, p2 )	\
-        if( p1 ){	\
-            p1->Next = p2->Next;	\
-        } else {	\
-	    if( p2->object->GridId == -1 ){	\
-    		gObjOffGridObjs = gObjOffGridObjs->Next;	\
+        if( p1 ){\
+            p1->Next = p2->Next;\
+        } else {\
+	    if( p2->object->GridId == -1 ){\
+    		gObjOffGridObjs = gObjOffGridObjs->Next;\
     		}\
-	    else	\
-    		gObjGridObjects[p2->object->GridId] = gObjGridObjects[ p2->object->GridId ]->Next;	\    
+	    else\
+    		gObjGridObjects[p2->object->GridId] = gObjGridObjects[ p2->object->GridId ]->Next;\
         }
 
 
@@ -968,7 +968,7 @@ int ObjSetLight( Obj_t *obj, int LightRadius, int LightIntensity, VidRect_t *Are
 {
     int ret;
     VidRect_t rect;
-DD
+
     if( !obj ) return -1;
     ret = ObjLightedOff( obj, Area );
     if( LightIntensity > 0 ){
@@ -1003,7 +1003,7 @@ int ObjGetLightIntensity( Obj_t *obj )
 int ObjLightedOn( Obj_t *obj, VidRect_t *Area )
 {
     if( !obj ) return -1;
-DD
+
     if( obj->LightIntensity <= 0 ){
         obj->Flags &= ~PRFLG_LIGHTED;
         return -1;
@@ -1019,7 +1019,7 @@ DD
 
 int ObjLightedOff( Obj_t *obj, VidRect_t *rect )
 {
-DD
+
     if( !obj ) return -1;
     if( obj->LightIntensity <= 0 ){
 	obj->Flags &= ~PRFLG_LIGHTED;
@@ -1222,8 +1222,7 @@ void ObjClear()
 {
     int i;
     ObjList_t *p, *q, *tmp;
-DD
-printf( "FLUSH:*******************************************************\n" );    
+
     ScptFlush();
     for( i = 0; i != 200*200; i++ ){
         q = NULL;
@@ -1415,7 +1414,7 @@ Obj_t *ObjUnk55( unsigned int GridIdx, Obj_t *obj, int MapLvl )
 {
     ObjList_t *p;
     int type, i, Pos;
-DD
+
     if ( GridIdx > 39999 ) return NULL;    
     for( p = gObjGridObjects[ GridIdx ]; p; p = p->Next ){
         if( MapLvl != p->object->Elevation ) continue;
@@ -1440,7 +1439,7 @@ Obj_t *ObjUnk56( unsigned int GridIdx, Obj_t *obj, int MapLvl )
 {
     ObjList_t *p;
     int type, i, Pos;
-DD
+
     if( GridIdx > 39999 ) return NULL;    
     for( p = gObjGridObjects[ GridIdx ]; p; p = p->Next ){
         if( MapLvl != p->object->Elevation ) continue;        
