@@ -12,7 +12,7 @@ int AudioFileExt( char *fname )
 {
     char *s;
 
-    s = strchr( fname, '.' );
+    s = strrchr( fname, '.' );
     if( s ) strcpy( s + 1, "raw" );
     return 0;
 }

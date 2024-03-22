@@ -333,7 +333,7 @@ void EndGameUnk10( int FileId, int a2 )
     char *s, stmp[ 260 ], fname[ 44 ];
 
     if( ArtGetFilenameFromList( FileId, a2, fname ) ) return;
-    if( (s = strchr( fname, '.' )) ) *s = '\0';
+    if( (s = strrchr( fname, '.' )) ) *s = '\0';
     if( strlen( fname ) > 8 ) return;
     sprintf( stmp, "%s/%s.pal", "art/intrface", fname );
     PalLoadFromFile( stmp );

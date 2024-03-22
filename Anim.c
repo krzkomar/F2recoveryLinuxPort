@@ -58,7 +58,7 @@ void AnimClose()
 int AnimRegStart( int Type )
 {
     int Idx;
-printf("Animate reg start: %x\n", Type);
+
     if( gAnimIdx != -1 || gAnimUnk41 ) return -1;
     if( ( Idx = AnimReserve( Type ) ) == -1 ) return -1;
     gAnimations[ Idx ].Flags |= 0x08;
@@ -119,7 +119,7 @@ int AnimRegClear( Obj_t *obj )
 int AnimRegEnd()
 {
     int tmp;
-printf("Animate reg end\n");
+
     if( gAnimIdx == -1 ) return -1;
     gAnimations[ gAnimIdx ].CurrIdx = 0;
     gAnimations[ gAnimIdx ].Steps = gAnimSubIdx;
@@ -804,7 +804,6 @@ int AnimStateMachine( int AnimIdx )
             }
         }
         anim = &gAnimations[ AnimIdx ].AnimList[ gAnimations[ AnimIdx ].CurrIdx++ ];
-//printf( "=>%i %i %i\n", AnimIdx, gAnimations[ AnimIdx ].CurrIdx, anim->State );
         switch( anim->State ){
             case 0: err = AnimUnk08( anim->Target.Obj, anim->GpPtr, anim->Ap.Int, anim->Silence, AnimIdx ); break;
             case 1: err = AnimUnk10( anim->Target.Obj, anim->TargetPos, anim->Elevation, anim->Ap.Int, anim->Silence, AnimIdx ); break;
@@ -899,7 +898,6 @@ int AnimUpdate( int AnimIdx, int Flg )
 {
     if( AnimIdx == -1 || gAnimations[ AnimIdx ].CurrIdx == -1000 ) return -1;
     gAnimations[ AnimIdx ].Step++;
-printf("==>%i %i\n",gAnimations[ AnimIdx ].Step, gAnimations[ AnimIdx ].Steps);
     if( gAnimations[ AnimIdx ].Step == gAnimations[ AnimIdx ].Steps ) return AnimEnd( AnimIdx );
     if( Flg ) return AnimStateMachine( AnimIdx );
     return 0;
@@ -1585,7 +1583,7 @@ void AnimMoveReverse( int AnimIdx )
     CachePool_t *ImgObj;
     Anim04_t *t;    
     int fpd;
-DD
+
     obj = gAnimUnk23[ AnimIdx ].Obj;
     if( gAnimUnk23[ AnimIdx ].ActionMove == -2000 ){
         ObjSetShape( gAnimUnk23[ AnimIdx ].Obj, gAnimUnk23[ AnimIdx ].ArtId, &Area1 );

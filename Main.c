@@ -403,7 +403,7 @@ int MainUnk08( char *a1, char *path )
     int c;
 
     lang = NULL;    
-    if( !( s = strchr( a1, '/' ) ) ) return -1;
+    if( !( s = strrchr( a1, '/' ) ) ) return -1;
     if( CfgGetString( &gConfiguration, "system", "language", &lang ) != 1 ){
         eprintf( "MAIN: Error grabing language for ending. Defaulting to english.\n" );
         lang = "english";

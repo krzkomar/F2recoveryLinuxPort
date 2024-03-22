@@ -52,7 +52,7 @@ char *DataFileUnk06( char *fname, int *pW, int *pH )
     char *s;
 
     fname = gDataFileUnk01( fname );
-    s = strchr( fname, '.' );
+    s = strrchr( fname, '.' );
     if( s ){
         if( !strcasecmp( s + 1, "pcx" ) ) return PcxLoad( fname, pW, pH, gDataFileUnk03 );
         if( gDataFileUnk02 ) return gDataFileUnk02();

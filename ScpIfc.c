@@ -383,7 +383,7 @@ void ScpIfc_PlayMovie1( Intp_t *scr )
     ARG_TYPE( Type, SCR_STRING, "Invalid arg given to playmovie" );
     SCP_DBGA( "playmovie1( [%x]%i )", Type, Arg );
     strcpy( gScpIfcUnk03, IntpGetString( scr, TYPEH( Type ), Arg ) );
-    if( !strchr( gScpIfcUnk03, '.' ) ) strcpy( gScpIfcUnk03 + strlen( gScpIfcUnk03 ), ".mve" );
+    if( !strrchr( gScpIfcUnk03, '.' ) ) strcpy( gScpIfcUnk03 + strlen( gScpIfcUnk03 ), ".mve" );
     WinFillRect( scr->i34 );
     scr->Flags |= 0x10;
     scr->Func = ScpIfcUnk06;
@@ -407,7 +407,7 @@ void ScpIfc_PlayMovie( Intp_t *scr )
 	Type5, Arg5, Type4, Arg4, Type3, Arg3, Type2, Arg2, Type1, Arg1
     );
     strcpy( gScpIfcUnk04, IntpGetString( scr, TYPEH( Type5 ), Arg5 ) );
-    if( !strchr( gScpIfcUnk04, '.') ) strcpy( gScpIfcUnk04 + strlen( gScpIfcUnk04 ), ".mve" );
+    if( !strrchr( gScpIfcUnk04, '.') ) strcpy( gScpIfcUnk04 + strlen( gScpIfcUnk04 ), ".mve" );
     WinFillRect( scr->i34 );
     scr->Func = ScpIfcUnk06;
     scr->Flags |= 0x10;    

@@ -368,7 +368,7 @@ int MouseMgrLoadCursor( char *fname )
         }
         return 1;
     } else {
-        s = strchr( fname, '.' );
+        s = strrchr( fname, '.' );
         if( s && !strcasecmp( s + 1, "mou" ) ) return MouseMgrLoadMou( fname, 0, 0 );
         s = gMouseMgrHandlerCb( fname );        
         if( !( fh = dbOpen( s, "r" ) ) ){ eprintf( "Can't find %s\n", s ); return 0; }

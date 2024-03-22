@@ -280,7 +280,7 @@ void SysLoadConfiguration( int MapperFlag, int argc, char **argv )
         CfgSetInteger(&gConfiguration, "mapper", "default_f8_as_game", 1);
         CfgSetInteger(&gConfiguration, "mapper", "sort_script_list", 0);
     }    
-    if( (s = strchr(*argv, '/')) ) {
+    if( (s = strrchr(*argv, '/')) ) {
         *s = '\0';
         sprintf( gCfgPath, "%s/%s", *argv, "fallout2.cfg" );
         *s = '/';

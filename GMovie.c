@@ -190,12 +190,12 @@ char *GMovieCreateSubtitlesPath( char *Path )
     language = 0;
 printf("---GMovieCreatePath-->%s\n", Path);
     CfgGetString( &gConfiguration, "system", "language", &language );
-    s = strchr( Path, '/' );
+    s = strrchr( Path, '/' );
 printf("-->'%s' '%s'\n", Path, s);
     if( s ) Path = s + 1;
 
     sprintf( gMovieSubTitlesPath, "text/%s/%s", language, Path );
-    s = strchr( gMovieSubTitlesPath, '.' );
+    s = strrchr( gMovieSubTitlesPath, '.' );
     if( *s ) *s = '\0';
     strcpy( &gMovieSubTitlesPath[ strlen( gMovieSubTitlesPath ) ], ".sve" );
     return gMovieSubTitlesPath;

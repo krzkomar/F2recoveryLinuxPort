@@ -11,7 +11,7 @@ int AudiofExt( char *fname )
 {
     char *p;
 
-    p = strchr( fname, '.' );
+    p = strrchr( fname, '.' );
     if( p ) strcpy(p + 1, "raw");
     return 0;
 }

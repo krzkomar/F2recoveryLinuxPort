@@ -1,19 +1,33 @@
 #include "FrameWork.h"
 
+#define MSG_DISPL_PIXEL_HEIGHT	60
+#define MSG_DISPL_PIXEL_WIDTH	167
+#define MSG_DISPL_H		100
+#define MSG_DISPL_W		80
+#define MSG_FONT_ID		101
+#define MSG_TEXT_COLOR		gPalColorCubeRGB[0][31][0]
+#define MSG_POSX		23
+#define MSG_POSY		24
+#define MSG_BUTT_H		30
+#define MSG_CLICK_SND		"monitor"
+#define MSG_CLICK_TIME		500
+#define MSG_INDEX_CHAR		149
+
 int gIfcMsgEnable = 0;
 VidRect_t gIfcMsgArea = { 0x17, 0x18, 0x0BD, 0x53 };
 int gIfcMsgButtDn = -1;
 int gIfcMsgButtUp = -1;
 
-char gIfcMsgBufLines[ 100 * 80 ];
+char gIfcMsgBufLines[ MSG_DISPL_H * MSG_DISPL_W ];
 char *gIfcMsgSurf;
 int gIfcMsgDisplLines;
 int gIfcMsgBtEnable;
-int gIfcMsgUnk06;
+int gIfcMsgDisplOffset;
 int gIfcMsgWidth;
 int gIfcMsgLines;
 int gIfcMsgLinesCounter;
 int gIfcMsgTime;
+
 
 /*****************************************/
 
@@ -27,27 +41,27 @@ int IfcMsgInit()
     if( gIfcMsgEnable ) return 0;
 
     Font = FontGetCurrent();
-    FontSet( 101 );
-    gIfcMsgLines = 100;
-    gIfcMsgDisplLines = 60 / gFont.ChrHeight();
+    FontSet( MSG_FONT_ID );
+    gIfcMsgLines = MSG_DISPL_H;
+    gIfcMsgDisplLines = MSG_DISPL_PIXEL_HEIGHT / gFont.ChrHeight();
     gIfcMsgLinesCounter = 0;
-    gIfcMsgUnk06 = 0;
+    gIfcMsgDisplOffset = 0;
     FontSet( Font );
-    if( !( gIfcMsgSurf = Malloc( 10020 ) ) ) return -1;    
+    if( !( gIfcMsgSurf = Malloc( MSG_DISPL_PIXEL_HEIGHT * MSG_DISPL_PIXEL_WIDTH ) ) ) return -1;    
     if( !(art = ArtLoadImg( ArtMakeId( 6, 16, 0, 0, 0 ), &ImgObj )) ){ Free( gIfcMsgSurf ); return -1; }
     img = ArtGetObjData( art, 0, 0 );
     gIfcMsgWidth = ArtGetObjWidth( art, 0, 0 );
-    ScrCopy( &img[24 * gIfcMsgWidth + 23], 167, 60, gIfcMsgWidth, gIfcMsgSurf, 167 );
+    ScrCopy( WIN_XY( MSG_POSX, MSG_POSY, gIfcMsgWidth, img ), MSG_DISPL_PIXEL_WIDTH, MSG_DISPL_PIXEL_HEIGHT, gIfcMsgWidth, gIfcMsgSurf, MSG_DISPL_PIXEL_WIDTH );
     ArtClose( ImgObj );
-    gIfcMsgButtUp = WinCreateButton( gIfcWin, 23, 24, 167, 30, -1, -1, -1, -1, 0, 0, 0, 0 );
+    gIfcMsgButtUp = WinCreateButton( gIfcWin, MSG_POSX, MSG_POSY, MSG_DISPL_PIXEL_WIDTH, MSG_BUTT_H, -1, -1, -1, -1, 0, 0, 0, 0 );
     if( gIfcMsgButtUp != -1 ) WinSetButtonHandler( gIfcMsgButtUp, IfcMsgSetCursorA, IfcMsgSetCursorC, IfcMsgButtUp, 0 );
-    gIfcMsgButtDn = WinCreateButton( gIfcWin, 23, 54, 167, 30, -1, -1, -1, -1, 0, 0, 0, 0 );
+    gIfcMsgButtDn = WinCreateButton( gIfcWin, MSG_POSX, MSG_POSY + MSG_BUTT_H, MSG_DISPL_PIXEL_WIDTH, MSG_BUTT_H, -1, -1, -1, -1, 0, 0, 0, 0 );
     if( gIfcMsgButtDn != -1 ) WinSetButtonHandler( gIfcMsgButtDn, IfcMsgSetCursorB, IfcMsgSetCursorC, IfcMsgButtDn, 0 );
     gIfcMsgBtEnable = 1;
     gIfcMsgEnable = 1;
-    for( i = 0; i < gIfcMsgLines; i++ ) gIfcMsgBufLines[ i*80 ] = '\0';
+    for( i = 0; i < gIfcMsgLines; i++ ) gIfcMsgBufLines[ i * MSG_DISPL_W ] = '\0';
     gIfcMsgLinesCounter = 0;
-    gIfcMsgUnk06 = 0;
+    gIfcMsgDisplOffset = 0;
     IfcMsgUpdate();    
     return 0;
 }
@@ -57,9 +71,9 @@ void IfcMsgFlush()
     int i;
 
     if( !gIfcMsgEnable ) return;
-    for( i = 0; i < gIfcMsgLines; i++ ) gIfcMsgBufLines[ i*80 ] = '\0';
+    for( i = 0; i < gIfcMsgLines; i++ ) gIfcMsgBufLines[ i * MSG_DISPL_W ] = '\0';
     gIfcMsgLinesCounter = 0;
-    gIfcMsgUnk06 = 0;
+    gIfcMsgDisplOffset = 0;
     IfcMsgUpdate();
 }
 
@@ -72,62 +86,59 @@ void IfcMsgClose()
 
 void IfcMsgOut( char *str )
 {
-    int Font, Time, len;
-    char *v1, *s, v19;
+    char IndexStr[2], IndexChar, *Rest, *s;
+    int IdxWidth, time, CurrentFont;
 
-    v1 = 0;
-    v19 = 149;
-    if( !gIfcMsgEnable ) return;
-    Font = FontGetCurrent();
+    Rest = NULL;
+    IndexChar = MSG_INDEX_CHAR;
+    if( gIfcMsgEnable == 0 ) return;
+    CurrentFont = FontGetCurrent();
     FontSet( 101 );
-    gFont.LineWidth( "*" );
-    if( !IN_COMBAT ){
-        Time = TimerGetTime();
-        if( TimerDiff( Time, gIfcMsgTime ) >= 500 ){
-            gIfcMsgTime = Time;
-            GSoundPlay( "monitor" );
-        }
+    IndexStr[ 0 ] = MSG_INDEX_CHAR;
+    IndexStr[ 1 ] = '\0';
+    IdxWidth = gFont.LineWidth( IndexStr );
+    if( IN_COMBAT ) return;
+    time = TimerGetTime();
+    if( TimerDiff( time, gIfcMsgTime ) >= MSG_CLICK_TIME ){
+	gIfcMsgTime = time;
+	GSoundPlay( MSG_CLICK_SND );
     }
     while( 1 ){
-        if( gFont.LineWidth( str ) > (167 - gIfcMsgDisplLines) ){
-    	    if( !(s = strchr( str, ' ' )) ){
-		s = &gIfcMsgBufLines[ 80 * gIfcMsgLinesCounter ];
-		if( v19 ){
-    		    s++;
-    		    gIfcMsgBufLines[ 80 * gIfcMsgLinesCounter ] = v19;
-    		    len = 78;
-		} else {
-    		    len = 79;
-		}
-		strncpy( s, str, len );
-		gIfcMsgBufLines[ 80 * gIfcMsgLinesCounter + 79 ] = '\0';
-		gIfcMsgLinesCounter = (gIfcMsgLinesCounter + 1) % gIfcMsgLines;
-    		break;
-    	    }
-    	    if( v1 ) *v1 = ' ';
-    	    v1 = s;
-    	    *s = '\0';
-        } else {
-    	    s = &gIfcMsgBufLines[ 80 * gIfcMsgLinesCounter ];
-    	    if( v19 ){
-        	s++;
-        	gIfcMsgBufLines[ 80 * gIfcMsgLinesCounter ] = v19;
-        	v19 = 0;
-        	strncpy( s, str, 78 );
-    	    } else {
-        	strncpy( s, str, 79 );
-    	    }            
-    	    gIfcMsgBufLines[ 80 * gIfcMsgLinesCounter + 79 ] = 0;
-    	    gIfcMsgLinesCounter = (gIfcMsgLinesCounter + 1) % gIfcMsgLines;
-    	    if( !v1 ) break;
-    	    str = v1 + 1;
-    	    *v1 = ' ';
-    	    v1 = 0;
-        }
+	if( gFont.LineWidth( str ) > (167 - gIfcMsgDisplLines - IdxWidth) ){
+	    if( (s = strrchr( str, ' ' )) != 0 ){
+		if( Rest ) *Rest = ' ';
+		Rest = s;    
+		if( Rest ) *Rest = '\0';
+		continue;
+	    }
+	    if( IndexChar == 0 ){
+		strncpy( gIfcMsgBufLines + gIfcMsgLinesCounter * 80, str, 79 );
+	    } else {
+		gIfcMsgBufLines[ gIfcMsgLinesCounter * 80 ] = IndexChar;
+		strncpy( gIfcMsgBufLines + gIfcMsgLinesCounter * 80 + 1, str, 78 );
+	    }
+	    gIfcMsgBufLines[ gIfcMsgLinesCounter * 80 + 79 ] = '\0';
+	    gIfcMsgLinesCounter = (gIfcMsgLinesCounter + 1) % gIfcMsgLines;
+	    break;
+	}
+	if( IndexChar == 0 ){
+	    strncpy( gIfcMsgBufLines + gIfcMsgLinesCounter * 80, str, 79 );
+	} else {
+	    gIfcMsgBufLines[ gIfcMsgLinesCounter * 80 ] = IndexChar;
+    	    IndexChar = 0;
+	    IdxWidth = 0;
+	    strncpy( gIfcMsgBufLines + gIfcMsgLinesCounter * 80 + 1, str, 78 );
+	}
+	gIfcMsgBufLines[ gIfcMsgLinesCounter * 80 + 79 ] = '\0';
+	gIfcMsgLinesCounter = (gIfcMsgLinesCounter + 1) % gIfcMsgLines;
+	if( Rest == 0 ) break;
+	str = Rest + 1;
+	*Rest = ' ';
+	Rest = NULL;
     }
-    FontSet( Font );
-    gIfcMsgUnk06 = gIfcMsgLinesCounter;
-    IfcMsgUpdate();    
+    FontSet( CurrentFont );
+    gIfcMsgDisplOffset = gIfcMsgLinesCounter;
+    IfcMsgUpdate();
 }
 
 void IfcMsgUpdate()
@@ -137,13 +148,13 @@ void IfcMsgUpdate()
 
     if( !gIfcMsgEnable ) return;            
     if( !(surf = WinGetSurface( gIfcWin )) ) return;
-    p = surf + 24 * gIfcMsgWidth + 23;
-    ScrCopy( gIfcMsgSurf, 167, 60, 167, p, gIfcMsgWidth );
+    p = WIN_XY( MSG_POSX, MSG_POSY, gIfcMsgWidth, surf );
+    ScrCopy( gIfcMsgSurf, MSG_DISPL_PIXEL_WIDTH, MSG_DISPL_PIXEL_HEIGHT, MSG_DISPL_PIXEL_WIDTH, p, gIfcMsgWidth );
     fnt = FontGetCurrent();
-    FontSet( 101 );
+    FontSet( MSG_FONT_ID );
     for( i = 0; i < gIfcMsgDisplLines; i++ ){
-	n = ((gIfcMsgLines - gIfcMsgDisplLines + gIfcMsgUnk06 + i) % gIfcMsgLines) * 80;
-        gFont.Print( p + i * gIfcMsgWidth * gFont.ChrHeight(), &gIfcMsgBufLines[ n ], 167, gIfcMsgWidth, gPalColorCubeRGB[0][31][0] );
+	n = ((gIfcMsgLines - gIfcMsgDisplLines + gIfcMsgDisplOffset + i) % gIfcMsgLines) * MSG_DISPL_W;
+        gFont.Print( p + i * gIfcMsgWidth * gFont.ChrHeight(), &gIfcMsgBufLines[ n ], MSG_DISPL_PIXEL_WIDTH, gIfcMsgWidth, MSG_TEXT_COLOR );
     }
     WinAreaUpdate( gIfcWin, &gIfcMsgArea );
     FontSet( fnt );
@@ -151,16 +162,16 @@ void IfcMsgUpdate()
 
 void IfcMsgButtUp()
 {
-    if( (gIfcMsgLines + gIfcMsgUnk06 - 1) % gIfcMsgLines != gIfcMsgLinesCounter ){
-        gIfcMsgUnk06 = (gIfcMsgLines + gIfcMsgUnk06 - 1) % gIfcMsgLines;
+    if( (gIfcMsgLines + gIfcMsgDisplOffset - 1) % gIfcMsgLines != gIfcMsgLinesCounter ){
+        gIfcMsgDisplOffset = (gIfcMsgLines + gIfcMsgDisplOffset - 1) % gIfcMsgLines;
         IfcMsgUpdate();
     }
 }
 
 void IfcMsgButtDn()
 {
-    if( gIfcMsgUnk06 != gIfcMsgLinesCounter ){
-        gIfcMsgUnk06 = (gIfcMsgUnk06 + 1) % gIfcMsgLines;
+    if( gIfcMsgDisplOffset != gIfcMsgLinesCounter ){
+        gIfcMsgDisplOffset = (gIfcMsgDisplOffset + 1) % gIfcMsgLines;
         IfcMsgUpdate();
     }
 }

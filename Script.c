@@ -1810,7 +1810,7 @@ int ScptGetMsgStr( int MsgPage, Msg_t **Msg )
     if( gScptMsgBook[ MsgPage ].Count == 0 ){
 	fname[0] = '\0';
 	ScptGetScriptFname( MsgPage & 0xFFFFFF, fname );
-	p = strchr( fname, '.' );
+	p = strrchr( fname, '.' );
 	if( p ) *p = '\0';
 	sprintf( stmp, "dialog/%s.msg", fname );
 	if( MessageLoad( &gScptMsgBook[ MsgPage ], stmp ) != 1 ){ eprintf( "\nError loading script dialog message file!" ); return -1; }

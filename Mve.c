@@ -723,7 +723,7 @@ int MveSetEffects( char *Path )
     if( !Path ) return -1;
     if( !CfgInit( &Cfg ) ) return -1;    
     strcpy( CfgPath, Path );
-    if( (s = strchr( CfgPath, '.' )) ) *s = '\0';
+    if( (s = strrchr( CfgPath, '.' )) ) *s = '\0';
     strcpy( &CfgPath[ strlen( CfgPath ) ], ".cfg" );
     if( CfgLoadFromFile( &Cfg, CfgPath, 1 ) == 1 && CfgGetInteger( &Cfg, "info", "total_effects", &TotalEfx ) == 1 && TotalEfx > 0 ){
         EffectTable = Malloc( sizeof( int ) * TotalEfx );
