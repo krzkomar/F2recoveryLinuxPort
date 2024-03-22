@@ -172,7 +172,8 @@ int FontMgrGetCurId()
 void FontMgrPrint( unsigned char *Dst, char *Str, int FieldPixSize, int Pitch, int Color )
 {
     FontMgr_t *data;
-    int w, j, MonoGap, i, chr;
+    int w, j, MonoGap, i;
+    uint32_t chr;
     unsigned char *p, *s, *scr, *ofs, *Pal;
 
     while( 1 ){
@@ -191,7 +192,7 @@ void FontMgrPrint( unsigned char *Dst, char *Str, int FieldPixSize, int Pitch, i
 
     Pal = (unsigned char *)PalExtOpen( Color );
 
-    for( ; (chr = *Str); Str++ ){
+    for( ; (chr = *Str & 0xff); Str++ ){
         w = ( chr == ' ' ) ? data->SpaceW : data->dsc[ chr ].Width;
         if( Color & FONT_MONOSPACE ){
             scr = Dst + MonoGap;
