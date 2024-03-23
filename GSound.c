@@ -2,7 +2,7 @@
 
 char gGSoundProtoFileName[13];
 int gGSoundDbgEn = 0;
-int gGSoundDbgLog = 0; // debug
+int gGSoundDbgLog = 1; // debug
 int gGSoundMusicOn = 0;
 int gGSound_Unk61 = 0;
 int gGSoundBgUnk01 = 0;
@@ -88,7 +88,7 @@ int GSoundInit()
 
         if( tmp ){
             if( gGSoundDbgEn && !gGSoundMusicOn ){
-//                MveSetMusicVolume( lround( gGSoundMusicVol * 0.94 ) );
+                MveSetMusicVolume( lround( gGSoundMusicVol * 0.94 ) );
                 gGSoundMusicOn = 1;
                 GSoundRestartBg( 12 );
             }
@@ -131,7 +131,7 @@ void GSoundReset()
         gGSoundSpeech = NULL;
     }
     if( gGSound_Unk61 && gGSoundDbgEn && !gGSoundMusicOn ){
-//        MveSetMusicVolume( lround( gGSoundMusicVol * 0.94) );
+        MveSetMusicVolume( lround( gGSoundMusicVol * 0.94) );
         gGSoundMusicOn = 1;
         GSoundRestartBg( 12 );
     }
@@ -237,7 +237,7 @@ void GSoundOff()
 void GSoundOn()
 {
     if( !gGSoundDbgEn || gGSoundMusicOn ) return;        
-//    MveSetMusicVolume( lround( gGSoundMusicVol * 0.94 ) );
+    MveSetMusicVolume( lround( gGSoundMusicVol * 0.94 ) );
     gGSoundMusicOn = 1;
     GSoundRestartBg( 12 );
 }
@@ -1062,7 +1062,7 @@ void GSoundOldMusFileDel()
     if( !gGSoundBgFname[0] ) return;    
     sprintf( stmp, "%s%s%s", gGSoundPath[ 1 ], gGSoundBgFname, ".acm" );
     if( xFileRemove( stmp ) ){
-        GSLOG( "Deleting old music file failed.\n" );
+        GSLOG( "Deleting old music file '%s' failed.\n", stmp );
     }
     gGSoundBgFname[ 0 ] = 0;
 }
