@@ -36,9 +36,9 @@ void Credits( const char *fname, int WallPaperId, char sel )
             SoundUpdateAll();
             CycleColorStop();
             GmouseLoadCursor( 0 );
-            CursorClr = MseIsCursorClear();
+            CursorClr = MseCursorHidden();
             cc = CursorClr == 0;
-            if( CursorClr ) MseDrawCursor();
+            if( CursorClr ) MseCursorShow();
             win = WinCreateWindow( 0, 0, 640, 480, COLOR_ALPHA, 0x14 );
             SoundUpdateAll();
             if( win != -1 ){
@@ -125,7 +125,7 @@ void Credits( const char *fname, int WallPaperId, char sel )
                 SoundUpdateAll();
                 WinClose( win );
             }
-            if( !cc ) MseCursorRedraw();
+            if( !cc ) MseCursorHide();
             GmouseLoadCursor(1);
             CycleColorStart();
             dbClose( gCreditsFh );

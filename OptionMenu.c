@@ -353,14 +353,14 @@ int OptPauseWindow( int Flg )
 void OptPauseUnk01( int a1 )
 {
     if( a1 ){
-        MseCursorRedraw();
+        MseCursorHide();
     } else {
-        MseCursorRedraw();
+        MseCursorHide();
         TileUpdate();
         GrUnk10( (unsigned char *)WinGetSurface( gMapIsoWin ), 640, WinGetHeight( gMapIsoWin ), 640 );
         WinUpdate( gMapIsoWin );
     }
-    MseDrawCursor();
+    MseCursorShow();
 }
 
 void OptPrefDialog()

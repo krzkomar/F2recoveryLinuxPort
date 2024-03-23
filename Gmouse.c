@@ -116,7 +116,7 @@ int GmouseReset()
 void GmouseClose()
 {
     if( !gGmouseInited ) return;    
-    MseCursorRedraw();
+    MseCursorHide();
     MseSetStaticCursor( 0, 0, 0, 0, 0, 0, 0 );
     if( gGmouseUnk13 ){
         GmouseCloseImages();

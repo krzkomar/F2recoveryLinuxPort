@@ -383,7 +383,7 @@ int GdialogStart()
 
 void GdialogFinish()
 {
-    MseDrawCursor();
+    MseCursorShow();
     GdialogEnd();
     gDlgOptionCnt = 0;
     gDlgReplyMsgList = -1;
@@ -908,7 +908,7 @@ int GdialogUnk35( int a1 )
 {
     int reaction;
 
-    MseCursorRedraw();
+    MseCursorHide();
     GdialogOptionsRemove();
     if( gDlgOptions[ a1 ].MsgPage == -4 )
         GdialogAddOptionToReviewStr( gDlgOptions[ a1 ].Text );
@@ -934,7 +934,7 @@ int GdialogUnk35( int a1 )
     if( gDlgUnk17 < 2 ){
         if( gDlgOptions[ a1 ].ProcedureTargetId ) SciRunProcedure( gDlgScript, gDlgOptions[ a1 ].ProcedureTargetId );
     }
-    MseDrawCursor();
+    MseCursorShow();
     if( !gDlgOptionCnt ) return -1;
     GdialogCreateDialog();
     return 0;
@@ -1242,7 +1242,7 @@ void GdialogTransition( int a1 )
     int v8;
 
     if ( gDlgFidgetImg && gDlgMainWin == -1 ) return;
-    MseCursorRedraw();
+    MseCursorHide();
     eprintf( "Starting transition...\n" );
     GdialogUnk43();
     if( gDlgFidgetImg ){
@@ -1260,7 +1260,7 @@ void GdialogTransition( int a1 )
     }
     if( ArtClose( ImgObj ) == -1 ) eprintf( "\tError unlocking transition...\n" );
     eprintf( "Finished transition...\n" );
-    MseDrawCursor();
+    MseCursorShow();
 }
 
 void GdialogUnk45()

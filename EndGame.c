@@ -75,14 +75,14 @@ void EndGameUnk02()
     flg1 = 0;
     if( (flg2 = MapAmbientDisable()) ) flg1 = GmouseUnk58();
     if( flg1 ) GmouseUnk03();
-    IsCursorClear = MseIsCursorClear();
-    if( IsCursorClear ) MseDrawCursor();
+    IsCursorClear = MseCursorHidden();
+    if( IsCursorClear ) MseCursorShow();
     CursorId = GmouseGetCursorId();
     GmouseLoadCursor(1);
     msg.Id = 30; // 'Do you want to continue playing ?'
     if( MessageGetMsg( &gMessage, &msg ) == 1 && !DlgBox(msg.Text, 0, 0, 169, 117, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 16) ) gMenuEscape = 2;
     GmouseLoadCursor( CursorId );
-    if( IsCursorClear ) MseCursorRedraw();
+    if( IsCursorClear ) MseCursorHide();
     if( flg1 ) GmouseIsoEnter();
     if( flg2 ) MapAmbientEnable();
 }
@@ -97,9 +97,9 @@ int EndGameUnk03()
     gEndGameUnk10 = MapAmbientDisable();
     CycleColorStop();
     GmouseLoadCursor( 0 );
-    IsCursorClear = MseIsCursorClear();
+    IsCursorClear = MseCursorHidden();
     gEndGameUnk11 = (IsCursorClear == 0);
-    if( IsCursorClear ) MseDrawCursor();
+    if( IsCursorClear ) MseCursorShow();
     gEndGameUnk16 = FontGetCurrent();
     FontSet( 101 );
     FadeStep( gFadePaletteC );
@@ -135,7 +135,7 @@ void EndGameUnk04()
     FontSet( gEndGameUnk16 );
     GSoundUnk33( 0 );
     WinClose( gEndGameWindow );
-    if( !gEndGameUnk11 ) MseCursorRedraw();
+    if( !gEndGameUnk11 ) MseCursorHide();
     GmouseLoadCursor( 1 );
     PalLoadFromFile( "color.pal" );
     FadeStep( gPalBase );

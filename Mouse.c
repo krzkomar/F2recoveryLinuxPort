@@ -22,7 +22,7 @@ static double 	gMseSpeed = 1.0;
 static int 	gMseAnimTimer = 0;
 static int 	gMseButtonsOld = 0;
 
-static int 	gMseCursorClear;
+static int 	gMseCursorHide;
 static int 	gMseOldX;
 static int 	gMseHeight;
 static int 	gMseOldY;
@@ -49,7 +49,7 @@ int MseInit()
 {
     gMseAcq = 0;
     gMseDisable = 0;
-    gMseCursorClear = 1;
+    gMseCursorHide = 1;
     MseCursorInit();
     if( MseSetStaticCursor( NULL, 0, 0, 0, 0, 0, 0 ) == -1 ) return -1;
     if( InputMouseAcquire() != 1 ) return -1;
@@ -110,16 +110,16 @@ int MseSetStaticCursor( char *Data, int Width, int Height, int Pitch, int Xcente
         Ycenter = 1;
         Alpha = MSE_CURSOR_COLOR_ALPHA;
     }
-    clean = gMseCursorClear;
+    clean = gMseCursorHide;
     if( !clean && gMseAcq ){ // cursor is dirty
-        gMseCursorClear = 1;
+        gMseCursorHide = 1;
         MseGetCursorSizeRect( &MouseArea );
         WinUpdateArea( &MouseArea );
     }
     if( Width != gMseWidth || Height != gMseHeight ){ // realloc memory if picture size differs
         if( !( pic = Malloc( Width * Height ) ) ){
             if( clean )return -1;
-            MseDrawCursor();            
+            MseCursorShow();            
         }
         if( gMseCursorPic ) Free( gMseCursorPic ); // free old picture
         gMseCursorPic = pic;
@@ -136,7 +136,7 @@ int MseSetStaticCursor( char *Data, int Width, int Height, int Pitch, int Xcente
     gMseY += gMseCenterY - Ycenter;
     gMseCenterY = Ycenter;
     MseCursorClipMain();
-    if( !clean ) MseDrawCursor();
+    if( !clean ) MseCursorShow();
     gMseOldX = gMseX;
     gMseOldY = gMseY;
     return 0;
@@ -178,10 +178,10 @@ void MseUpdateAnimatedCursor()
     gMseAnimTimer = TimerGetSysTime();
     if( ++gMseAnimFrameNo == gMseAnimFrameCnt ) gMseAnimFrameNo = 0;
     gMseAnimCursorFrame = &gMseAnimCursorFrames[ gMseWidth * gMseHeight * gMseAnimFrameNo ];
-    if( !gMseCursorClear ) MseDrawCursor();
+    if( !gMseCursorHide ) MseCursorShow();
 }
 
-void MseDrawCursor()
+void MseCursorShow()
 {
     char *MouseBmp;
     int dstIdx; int j; int srcIdx; int SrcX; int Width; int SrcY; int Height; int srcLine; int i;
@@ -189,7 +189,7 @@ void MseDrawCursor()
 
     MouseBmp = gMseCursorPic;
     if( gMseAcq ){
-        if( !gMseBlitAlpha || !gMseCursorClear ){
+        if( !gMseBlitAlpha || !gMseCursorHide ){
             WinWhipeCursor( gMseCursorPic ); // whipes current cursor
             MouseBmp = gMseCursorPic;
             // update transparency to cursor frame
@@ -227,27 +227,27 @@ void MseDrawCursor()
         }
         gMseCursorPic = MouseBmp;
         
-        if( gMseBlitAlpha && gMseCursorClear )
+        if( gMseBlitAlpha && gMseCursorHide )
             gMseBlitAlpha( gMseAnimCursorFrame, gMsePitch, gMseHeight, SrcX, SrcY, Width, Height, SrcX + gMseX, SrcY + gMseY, gMseAlpha );
         else
             gMseBlit( gMseCursorPic, gMseWidth, gMseHeight, SrcX, SrcY, Width, Height, SrcX + gMseX, SrcY + gMseY );
         MouseBmp = gMseCursorPic;
-        gMseCursorClear = 0;
+        gMseCursorHide = 0;
     }
     gMseCursorPic = MouseBmp;
 }
 
-void MseCursorRedraw()
+void MseCursorHide()
 {
     VidRect_t tmp;
 
-    if( !gMseAcq || gMseCursorClear ) return;        
+    if( !gMseAcq || gMseCursorHide ) return;        
 
     tmp.lt = gMseX;
     tmp.tp = gMseY;
     tmp.rt = gMseWidth + gMseX - 1;
     tmp.bm = gMseHeight + gMseY - 1;
-    gMseCursorClear = 1; // dirty flag
+    gMseCursorHide = 1; // cursor off
     WinUpdateArea( &tmp );
 }
 
@@ -255,12 +255,15 @@ void MseUpdate()
 {
     InputMouse_t mstat;
     int x_axis, y_axis;
-    char buttons;
+    unsigned char buttons;
 
-    if( !gMseAcq || gMseCursorClear || gMseDisable ) return;
+    if( !gMseAcq ) return;
+    buttons = gMseCursorHide & 0xff;
+    if( gMseCursorHide || gMseDisable ) return;
     if( InputMouseGetData( &mstat ) == 1 ){
         x_axis = mstat.x;
         y_axis = mstat.y;
+
         if( mstat.BtL == 1 ) buttons = MSE_LBUTT;
         if( mstat.BtR == 1 ) buttons |= MSE_RBUTT;
     } else {
@@ -288,8 +291,7 @@ void MseProcess( int x, int y, int buttons)
     static int  OldX = -1, OldY = -1;
     int usave;
     VidRect_t rect;
-
-    if( !gMseAcq || gMseCursorClear ) return;
+    if( !gMseAcq || gMseCursorHide ) return;
 
     if( ( x != OldX) || ( y != OldY ) || (buttons != gMseButtonsOld) ){
 /*
@@ -365,7 +367,7 @@ void MseProcess( int x, int y, int buttons)
         MseCursorClipMain();
         WinUpdateArea( &rect ); // clear cursor
 	gVidUpdateForbid = usave;
-        MseDrawCursor(); // draw cursor at new position
+        MseCursorShow(); // draw cursor at new position
         gMseOldX = gMseX;
         gMseOldY = gMseY;
         OldX = x; 
@@ -439,9 +441,9 @@ int MseGetButtons()
     return gMseButtStat;
 }
 
-int MseIsCursorClear()
+int MseCursorHidden()
 {
-    return gMseCursorClear;
+    return gMseCursorHide;
 }
 
 void MseGetCursorSize( int *Width, int *Height )
@@ -455,9 +457,9 @@ void MseCursorMoveCenter( int x, int y )
     VidRect_t rect;
     int clean;
 
-    clean = gMseCursorClear;
-    if( !gMseCursorClear && gMseAcq && !gMseCursorClear ){
-        gMseCursorClear = 1;
+    clean = gMseCursorHide;
+    if( !gMseCursorHide && gMseAcq && !gMseCursorHide ){
+        gMseCursorHide = 1;
         MseGetCursorSizeRect( &rect );
         WinUpdateArea( &rect );
     }
@@ -470,7 +472,7 @@ void MseCursorMoveCenter( int x, int y )
     gMseOldY = gMseY;
     gMseCenterY = y;
 
-    if( !clean ) MseDrawCursor();
+    if( !clean ) MseCursorShow();
 }
 
 int MseIsAcquired()
@@ -526,7 +528,7 @@ double MseGetSpeed()
 int MseGetTime()
 {
     if( gMseSampleTime ){
-        if( gMseAcq && !gMseCursorClear && !gMseDisable ) return TimerCurrDiff( gMseTimeEv );
+        if( gMseAcq && !gMseCursorHide && !gMseDisable ) return TimerCurrDiff( gMseTimeEv );
         gMseSampleTime = 0;
     }
     return 0;

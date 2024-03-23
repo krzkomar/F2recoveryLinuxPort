@@ -101,9 +101,9 @@ void SysQuitDlg()
     else
         e = 0;
     if( e ) GmouseUnk03();
-    IsCursorClear = MseIsCursorClear();
+    IsCursorClear = MseCursorHidden();
     CursorUpdate = IsCursorClear == 0;
-    if( CursorUpdate ) MseDrawCursor();
+    if( CursorUpdate ) MseCursorShow();
     CursorId = GmouseGetCursorId();
     GmouseLoadCursor( 1 );
     msg.Id = 0; // 'Are you sure you want to quit?'
@@ -111,7 +111,7 @@ void SysQuitDlg()
 	DlgBox( msg.Text, 0, 0, 169, 117, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 16 ) == 1 
       ) gMenuEscape = 2;
     GmouseLoadCursor( CursorId );
-    if( !CursorUpdate ) MseCursorRedraw();
+    if( !CursorUpdate ) MseCursorHide();
     if( e ) GmouseIsoEnter();
     if( k ) MapAmbientEnable();
 }

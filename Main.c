@@ -34,9 +34,9 @@ void MainGame( int argc, char **argv )
     	    KeyFlush();
             GSoundSetBg( "07desert", 11 );
             MainMenuFadeInit( 1 );
-            MseDrawCursor();
+            MseCursorShow();
             MenuSelection = MainMenuHandle();
-            MseCursorRedraw();
+            MseCursorHide();
             CfgGetInteger( &gConfiguration, "preferences", "language_filter", &lang );
             switch( MenuSelection ){
                 case -1:
@@ -80,10 +80,10 @@ void MainGame( int argc, char **argv )
                     gObjDude->Flags &= ~0x08;
                     gMainUnk08 = 0;
                     ObjUnk32( gObjDude, 0 );
-                    MseCursorRedraw();
+                    MseCursorHide();
                     MapMsgInit();
                     GmouseLoadCursor( 0 );
-                    MseDrawCursor();
+                    MseCursorShow();
                     PalLoadFromFile( "color.pal" );
                     FadeStep( gPalBase );
 		    switch( LsgMenuGameLoad( 0 ) ){
@@ -126,10 +126,10 @@ void MainGame( int argc, char **argv )
                     break;
                 case 9:                 // Option Menu
                     MainMenuUpdate( 0 );
-                    MseDrawCursor();
+                    MseCursorShow();
                     OptMenu( 'p' );
                     GmouseLoadCursor( 1 );
-                    MseDrawCursor();
+                    MseCursorShow();
                     MainMenuFadeInit( 0 );
                     break;
                 default:
@@ -174,14 +174,14 @@ int MainGameCreate( char *MapName )
     gMainUnk08 = 0;
     gObjDude->Flags &= ~0x08;
     ObjUnk32( gObjDude, NULL );
-    MseCursorRedraw();
+    MseCursorHide();
     win = WinCreateWindow( 0, 0, 640, 480, gPalColorCubeRGB[0][0][0], 20 );
     WinUpdate( win );
     PalLoadFromFile( "color.pal" );
     FadeStep( gPalBase );
     MapMsgInit();
     GmouseLoadCursor( 0 );
-    MseDrawCursor();
+    MseCursorShow();
     MapLoadMAP( MapName );
     WmStartMapMusic();
     FadeStep( gFadePaletteB );
@@ -197,10 +197,10 @@ int MainUnk01()
     gMainUnk08 = 0;
     gObjDude->Flags &= ~0x08;
     ObjUnk32( gObjDude, 0 );
-    MseCursorRedraw();
+    MseCursorHide();
     MapMsgInit();
     GmouseLoadCursor( 0 );
-    MseDrawCursor();
+    MseCursorShow();
     return 0;
 }
 
@@ -214,9 +214,10 @@ void MainGameLoop()
 {
     int IsCursorClear, sel, crs;
 
-    IsCursorClear = MseIsCursorClear();
+    while( InpUpdate() != -1 ); // added for flushing input
+    IsCursorClear = MseCursorHidden();
     crs = (IsCursorClear == 0);
-    if( IsCursorClear ) MseDrawCursor();
+    if( IsCursorClear ) MseCursorShow();
     gMainUnk05 = 0;
     ScptEnable();
     while( !gMenuEscape ){
@@ -232,7 +233,7 @@ void MainGameLoop()
         }
     }
     ScptDisable();
-    if( !crs ) MseCursorRedraw();
+    if( !crs ) MseCursorHide();
 }
 
 int MainUnk03()
@@ -335,9 +336,9 @@ void MainUnk05()
     ArtExpandCache();
     CycleColorStop();
     GmouseLoadCursor( 0 );
-    IsCursorClear = MseIsCursorClear();
+    IsCursorClear = MseCursorHidden();
     clb = (IsCursorClear == 0);
-    if( IsCursorClear ) MseDrawCursor();
+    if( IsCursorClear ) MseCursorShow();
     Window = WinCreateWindow( 0, 0, 640, 480, 0, 4 );
     WinId = Window;
     if( Window != -1 ){
@@ -386,7 +387,7 @@ void MainUnk05()
         }
         WinClose( WinId );
     }
-    if( !clb ) MseCursorRedraw();
+    if( !clb ) MseCursorHide();
     GmouseLoadCursor( 1 );
     CycleColorStart();
 }

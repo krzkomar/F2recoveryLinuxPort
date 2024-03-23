@@ -38,14 +38,14 @@ void SdfUnk02( Sdf_t *sdf )
     if( gSdf != 1 ) return;
     sprintf( stmp, "%s%s", "selfrun/", sdf->vcrname );
     if( RecPlayInit( stmp, 5, (void *)SdfUnk05 ) != 1 ) return;
-    clr = MseIsCursorClear();
-    if( clr ) MseDrawCursor();
+    clr = MseCursorHidden();
+    if( clr ) MseCursorShow();
     while( gSdf == 1 ){
         sel = InpUpdate();
         if( sel != sdf->i28 ) GameProcess( sel, 0 );
     }
     while( MseGetButtons() ) InpUpdate();
-    if( !(clr == 0) ) MseCursorRedraw();
+    if( !(clr == 0) ) MseCursorHide();
 }
 
 int SdfUnk03( char *fname, char *vcrname, Sdf_t *sdf )
@@ -71,7 +71,7 @@ void SdfUnk04( Sdf_t *sdf )
     if( gSdf != 2 ) return;
     sprintf( stmp, "%s%s", "selfrun/", sdf->vcrname );
     if( RecRecInit( stmp ) == 1 ){        
-        if( MseIsCursorClear() ) MseDrawCursor();
+        if( MseCursorHidden() ) MseCursorShow();
         for( brk = 0; !brk; ){
             sel = InpUpdate();
             if( sel == sdf->i28 ){

@@ -57,7 +57,7 @@ int NgNewGame()
     ExtCode = 0;
     brk = 0;
     if( NgCharMenuCreate() != 1 ) return 0;    
-    if( (clr = MseIsCursorClear()) ) MseDrawCursor();
+    if( (clr = MseCursorHidden()) ) MseCursorShow();
     PalLoadFromFile( "color.pal" );
     FadeStep( gPalBase );
     while( !brk ){
@@ -94,7 +94,7 @@ int NgNewGame()
     } 
     FadeStep( gFadePaletteC );
     NgClose();
-    if( clr ) MseCursorRedraw();
+    if( clr ) MseCursorHide();
     return ExtCode;
 }
 

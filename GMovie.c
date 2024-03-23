@@ -70,7 +70,7 @@ int GMovieSave( xFile_t *fh )
 int GMoviePlay( int MovieId, int Flags )
 {
     char butt, FilePath[260], *Language, SubsColor;
-    int err, Win, flen, CursorUpdate, FileLen, SubTit, MseButt, MseY, MseX, SaveFont, flg;
+    int err, Win, flen, CursorHidden, FileLen, SubTit, MseButt, MseY, MseX, SaveFont, flg;
 
     gMovieError = 1;
     eprintf( "\nPlaying movie: %s\n", gMovieFileList[ MovieId ] );
@@ -93,7 +93,7 @@ int GMoviePlay( int MovieId, int Flags )
 	}
     }
     if( Flags & MOVIE_FADE_IN ){
-        FadeStep( gFadePaletteC );
+//        FadeStep( gFadePaletteC );
         gMovieFading = 1;
     }
     if( (Win = WinCreateWindow( 0, 0, 640, 480, 0, 16 )) == -1 ){ gMovieError = 0; return -1; }
@@ -121,12 +121,12 @@ int GMoviePlay( int MovieId, int Flags )
         SaveFont = FontGetCurrent();
         WinSetFont( MOVIE_SUBS_FONT );
     }
-    if( (CursorUpdate = MseIsCursorClear()) ){
+    if( (CursorHidden = MseCursorHidden()) ){
         GmouseLoadCursor( 0 );
-        MseDrawCursor();
+        MseCursorShow();
     }
-    while( MseGetButtons() ) MseUpdate();
-    MseCursorRedraw();
+    while( MseGetButtons() ){ InputPoll(); MseUpdate(); };
+    MseCursorHide();
     CycleColorStop();
     MveSetEffects( FilePath );
     VidCls();
@@ -135,7 +135,7 @@ int GMoviePlay( int MovieId, int Flags )
     while( MveIsPlaying() && !gMenuEscape && ( InpUpdate() == -1 ) ){
         MseGetData( &MseX, &MseY, &MseButt );
         butt |= MseButt;
-//        if( !((butt & 0x01) || (butt & 0x02)) || (MseButt & 0x01) || (MseButt & 0x02) ) break;
+	if(!( ( (butt & 1) == 0 && (butt & 2) == 0 ) || ((MseButt & 1) != 0 || (MseButt & 2) != 0) ) ) break;
     };
     MveAbort();
     MveEffectsClear();
@@ -145,7 +145,7 @@ int GMoviePlay( int MovieId, int Flags )
     gMovieList[ MovieId ] = 1;
     CycleColorStart();
     GmouseLoadCursor( 1 );
-    if( CursorUpdate ) MseDrawCursor();
+    if( !CursorHidden ) MseCursorShow();
     if( SubTit == 1 ){
         PalLoadFromFile( "color.pal" );
         WinSetFont( SaveFont );
@@ -188,10 +188,8 @@ char *GMovieCreateSubtitlesPath( char *Path )
     char *s, *language;
 
     language = 0;
-printf("---GMovieCreatePath-->%s\n", Path);
     CfgGetString( &gConfiguration, "system", "language", &language );
     s = strrchr( Path, '/' );
-printf("-->'%s' '%s'\n", Path, s);
     if( s ) Path = s + 1;
 
     sprintf( gMovieSubTitlesPath, "text/%s/%s", language, Path );

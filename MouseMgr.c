@@ -455,13 +455,13 @@ void MouseMgrUnk10()
     if( gMouseMgrCache[ gMouseMgrCurrentIdx ].Type == M_STATIC ) MouseMgrCursorUpdate();
 }
 
-void MouseMgrRedraw()
+void MouseMgrCursorHide()
 {
-    MseCursorRedraw();
+    MseCursorHide();
 }
 
-void MouseMgrDrawCursor()
+void MouseMgrCursorShow()
 {
-    MseDrawCursor();
+    MseCursorShow();
 }
 

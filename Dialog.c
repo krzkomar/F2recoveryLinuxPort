@@ -376,7 +376,7 @@ void DialogUnk20( int a1 )
         WinMoveTop(gSayUnk113);
         WinUpdate(gSayUnk113);
         MouseMgrCursorUpdate();
-        MouseMgrDrawCursor();
+        MouseMgrCursorShow();
     }
 }
 
@@ -484,7 +484,7 @@ int DialogUnk24( int eax0 )
     WinMoveTop( win );
     WinUpdate( win );
     MouseMgrCursorUpdate();
-    MouseMgrDrawCursor();
+    MouseMgrCursorShow();
     v34 = Cnt3;
     while( v64 == -1 ){
         sel = WinDlgProcess();
@@ -753,8 +753,8 @@ int DialogEnd( int Pid )
 {
     int IsCursorClear, v5, Cnt, v8;
 
-    IsCursorClear = MseIsCursorClear();
-    MouseMgrRedraw();
+    IsCursorClear = MseCursorHidden();
+    MouseMgrCursorHide();
     if( gSayDialog[ gSayModeLvl ].i07 != 1 ){ TextBoxUnk03( "Error, can't call sayEnd inside of option target procedure" ); return -1; }
     if( Pid != -1 ){
         v5 = (Pid >> 24) & 0xff;
@@ -767,7 +767,7 @@ int DialogEnd( int Pid )
     }
     DialogUnk29( 7 * v5 );
     if( DialogUnk14() ) v8 = -1;
-    if( IsCursorClear ) MouseMgrRedraw();
+    if( IsCursorClear ) MouseMgrCursorHide();
     return v8;
 }
 

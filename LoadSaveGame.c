@@ -350,9 +350,9 @@ int LsgMakeThumbnail()
     if( !(gLsgThumbnailBuffer = Malloc( THUMBNAIL_SIZE )) ) return -1;
     n = GmouseUnk58();
     if( n ) GmouseUnk03();
-    MseCursorRedraw();
+    MseCursorHide();
     TileUpdate();
-    MseDrawCursor();
+    MseCursorShow();
     if( n ) GmouseIsoEnter();
     ScrScaleImg( WinGetSurface( gMapIsoWin ), 640, 380, 640, gLsgThumbnailBuffer, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH );
     gLsgThumbnailEnd = gLsgThumbnailBuffer;
@@ -580,9 +580,9 @@ int LsgMenuCreate( unsigned int mode )
     GmouseLoadCursor(1);
     if( mode <= 1 ){ // save
         if( (i = GmouseUnk58()) ) GmouseUnk03();
-        MseCursorRedraw();
+        MseCursorHide();
         TileUpdate();
-        MseDrawCursor();
+        MseCursorShow();
         if( i ) GmouseIsoEnter();
         ScrScaleImg( WinGetSurface( gMapIsoWin ), 640, 380, 640, gLsgThumbnailEnd, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH );
     }

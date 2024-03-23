@@ -710,7 +710,7 @@ void PipArchives( int Selected )
         if( GMovieEnabled( i ) && (--Selected <= 0) ) break;
     }    
     if( i <= 17 )
-        GMoviePlay( i, 11 );
+        GMoviePlay( i, MOVIE_BGSND_PAUSE | MOVIE_FADE_OUT | MOVIE_FADE_IN );
     else
         eprintf( "\n ** Selected movie not found in list! **\n" );
 

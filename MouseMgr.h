@@ -66,8 +66,8 @@ int MouseMgrLoadMou( char *fname, int CentX, int CentY );
 int MouseMgrLoadCursor( char *fname );
 void MouseMgrCursorUpdate();
 void MouseMgrUnk10();
-void MouseMgrRedraw();
-void MouseMgrDrawCursor();
+void MouseMgrCursorHide();
+void MouseMgrCursorShow();
 
 
 

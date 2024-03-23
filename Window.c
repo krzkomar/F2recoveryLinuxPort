@@ -597,11 +597,11 @@ void WinRedraw( Window_t *win, VidRect_t *Geometry, char *pSurface )
         WinRedrawArea( Geometry, gWinSurface );
         width  = Geometry->rt - Geometry->lt + 1;
         height = Geometry->bm - Geometry->tp + 1;
-        if( MseIsCursorClear() || !MseCursorInArea( Geometry->lt, Geometry->tp, Geometry->bm, Geometry->rt ) ){
+        if( MseCursorHidden() || !MseCursorInArea( Geometry->lt, Geometry->tp, Geometry->bm, Geometry->rt ) ){
             WinDrawCursor( win, Geometry );
             gVidCopyA( gWinSurface, width, height, 0, 0, width, height, Geometry->lt, Geometry->tp );
         } else {
-            MseDrawCursor();
+            MseCursorShow();
             MseGetCursorSizeRect( &MouseArea );
             for( region = RegionsUnk01( Geometry, &MouseArea ); region; region = region->Prev ){
                 WinDrawCursor( win, &region->Area );
@@ -687,7 +687,7 @@ void WinRedraw( Window_t *win, VidRect_t *Geometry, char *pSurface )
                 RegionsPush( p );
                 p = t;
             }
-            if( !gWinRedrawAreaRun && !pSurface && !MseIsCursorClear() && MseCursorInArea(Geometry->lt, Geometry->tp, Geometry->bm, Geometry->rt) ) MseDrawCursor();
+            if( !gWinRedrawAreaRun && !pSurface && !MseCursorHidden() && MseCursorInArea(Geometry->lt, Geometry->tp, Geometry->bm, Geometry->rt) ) MseCursorShow();
         } else {
     	    RegionsPush( region );
         }    
@@ -715,7 +715,7 @@ void WinRegionUpdate( Window_t *Win, Regions_t **Mse, char *pSurface )
     	}
     	RegionsUpdate( Mse, &gWinWindows[ i ]->Geometry );
     }
-    if( (pSurface == gWinSurface || !pSurface) && !MseIsCursorClear() ){
+    if( (pSurface == gWinSurface || !pSurface) && !MseCursorHidden() ){
         MseGetCursorSizeRect( &MseCursorArea );
         RegionsUpdate( Mse, &MseCursorArea );
     }
@@ -785,8 +785,8 @@ void WinRedrawArea( VidRect_t *Area, char *Surface )
         WinRedraw( gWinWindows[ i ], Area, Surface );
     }
     gWinRedrawAreaRun = 0;
-    if( !Surface && !MseIsCursorClear() ){
-        if( MseCursorInArea( Area->lt, Area->tp, Area->bm, Area->rt ) ) MseDrawCursor();
+    if( !Surface && !MseCursorHidden() ){
+        if( MseCursorInArea( Area->lt, Area->tp, Area->bm, Area->rt ) ) MseCursorShow();
     }
 }
 

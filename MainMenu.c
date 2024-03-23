@@ -140,9 +140,9 @@ int MainMenuHandle()
     int SelCode,IsCursorClear, CursorClean,time, key, i;
 
     gMainMenuHandlerGuard = 1;
-    IsCursorClear = MseIsCursorClear();
+    IsCursorClear = MseCursorHidden();
     CursorClean = (IsCursorClear == 0);
-    if( IsCursorClear ) MseDrawCursor();
+    if( IsCursorClear ) MseCursorShow();
     time = TimerGetSysTime();
 
     for( SelCode = -1; SelCode == -1; ){
@@ -177,7 +177,7 @@ int MainMenuHandle()
             SelCode = 4;
         }        
     }
-    if( !CursorClean ) MseCursorRedraw();
+    if( !CursorClean ) MseCursorHide();
     gMainMenuHandlerGuard = 0;
     return SelCode;
 }

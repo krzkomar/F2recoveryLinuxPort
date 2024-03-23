@@ -158,9 +158,9 @@ int RecRecord()
                     KeySetLang( gRec[ gRecFrame ].mbutt );
                     while( MseGetButtons() ) MseUpdate();
                     gRecState = 1;
-                    MseCursorRedraw();
+                    MseCursorHide();
                     MseSetCursorPosition( gRec[ gRecFrame ].mx, gRec[ gRecFrame ].my );
-                    MseDrawCursor();
+                    MseCursorShow();
                     KeyFlush();
                     gRecPlayUnk04 = gRecPlayUnk01;
                     gRecTimer = TimerGetSysTime();

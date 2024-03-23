@@ -294,10 +294,10 @@ void ScpIfcUnk02( float a1 )
 {
     int c;
 
-    c = MseIsCursorClear();
-    MseCursorRedraw();
+    c = MseCursorHidden();
+    MseCursorHide();
     ScpIfcPal( PalGetCurrent(), gScpIfcUnk02, a1, 1);
-    if( !c ) MseDrawCursor();
+    if( !c ) MseCursorShow();
 }
 
 void ScpIfcUnk03( float a1 )
@@ -309,10 +309,10 @@ void ScpIfcUnk04( float a1 )
 {
     int c;
 
-    c = MseIsCursorClear();
-    MseCursorRedraw();
+    c = MseCursorHidden();
+    MseCursorHide();
     ScpIfcPal( PalGetCurrent(), gScpIfcUnk02, a1, 0 );
-    if( !c ) MseDrawCursor();
+    if( !c ) MseCursorShow();
 }
 
 void ScpIfcUnk05( float a1 )
@@ -348,10 +348,10 @@ void ScpIfc_FadeOut( Intp_t *scr )
     ARG_TYPE( Type, SCR_INT, "Invalid type given to fadeout\n" );
     SCP_DBGA( "fadeout( [%x]%i )", Type, Arg );
     scr->Flags |= 0x20;
-    cc = MseIsCursorClear();
-    MseCursorRedraw();
+    cc = MseCursorHidden();
+    MseCursorHide();
     ScpIfcPal( PalGetCurrent(), gScpIfcUnk02, Argf, 1 );
-    if( !cc ) MseDrawCursor();
+    if( !cc ) MseCursorShow();
     gScpIfcUnk01 = 0;
     scr->Flags = scr->Flags & ~0x20;
 }
@@ -1154,12 +1154,12 @@ void ScpIfc_MouseRedraw( Intp_t *scr )
     SCP_DBG_VAR;
 
     SCP_DBGA( "MouseRedraw()" );
-    MseCursorRedraw();
+    MseCursorHide();
 }
 
 void ScpIfc_MouseDrawCursor()
 {
-    MseDrawCursor();
+    MseCursorShow();
 }
 
 void ScpIfc_MouseShape( Intp_t *scr )
