@@ -91,6 +91,7 @@ typedef struct
   unsigned short PalStart;
   unsigned short PalCount;
   unsigned short Flags;
+  char data[];
 } MveOpPal_t;
 
 typedef struct 

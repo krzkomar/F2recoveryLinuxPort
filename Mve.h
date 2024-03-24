@@ -25,7 +25,7 @@ typedef struct
 typedef struct _MveSubTitle_t
 {
     char	*Line;
-    int		Frame;
+    int	Frame;
     struct _MveSubTitle_t *Next;
 } MveSubTitle_t;
 
@@ -88,7 +88,7 @@ int MveSetFlags( char flags );
 void MveUnk19( int result );
 void MveUnk21( float r, float g, float b );
 void MveSetPaletteCb( int (*modulator)() );
-void MveSetFadingCb( int (*Cb)(void) );
+void MveSetFadingCb( int (*Cb)(int CurrentFrame) );
 int MveOpenMRA( char *fname );
 void MveUnk24();
 xFile_t *MveOpenMovie( char *fname );

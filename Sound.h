@@ -255,7 +255,7 @@ SoundStr_t *SoundStrCreate( int, int, int );
 int SoundStrQueue( SoundStr_t *str, void *buff, int size );
 void SoundStrClose( SoundStr_t *str );
 void SoundStrPlay( SoundStr_t *str, int );
-
+void SoundSetVolume( int source, double volume );
 
 
 

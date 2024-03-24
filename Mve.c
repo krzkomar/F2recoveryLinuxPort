@@ -4,7 +4,7 @@ VidRect_t gMveWinArea;
 VidRect_t gMveArea;
 int (*gMveUnk23)(void);
 int (*gMveUnk01)();
-int (*gMveFadingCb)(void);
+int (*gMveFadingCb)(int CurrentFrame);
 int (*gMveUnk24)(void);
 char *(*gMveGetSubsFname)(void);
 int (*gMvePrepCb)(void);
@@ -55,7 +55,7 @@ int (*gMveFunc[8])() = {
     MveUnk10,
     MveUnk10
 };
-void (*gMvePalMod)(Pal8_t *, int first, int last) = (void *)PalModulate;
+void (*gMvePalMod)(Pal8_t *, unsigned int first, int last) = (void *)PalModulate;
 int gMveSubsR = 31;
 int gMveSubsG = 31;
 int gMveSubsB = 31;
@@ -262,7 +262,7 @@ int MveUnk13( int WinId, char *pSrc, int Width, int Height, int Pitch )
 
 void MveSetPal( Pal8_t *pal, int first, int cnt )
 {
-    if( cnt ) gMvePalMod( pal, first, first + cnt - 1 );
+    if( cnt ) gMvePalMod( &pal[ first ], first, first + cnt - 1 );
 }
 
 int MveNullHandler()
@@ -385,10 +385,10 @@ void MveSetPaletteCb( int (*modulator)() )
     if( modulator )
         gMvePalMod = (void *)modulator;
     else
-        gMvePalMod = (void *)PalModulate;
+        gMvePalMod = PalModulate;
 }
 
-void MveSetFadingCb( int (*Cb)(void) )
+void MveSetFadingCb( int (*Cb)(int CurrentFrame) )
 {
     gMveFadingCb = Cb;
 }
@@ -646,16 +646,19 @@ void MvePlay()
         eprintf( "Movie aborted\n" );
         MveFinish( 1 );
         return;
-    } else if( gMveStat & MVE_STAT_ERROR ){
+    }
+    if( gMveStat & MVE_STAT_ERROR ){
         eprintf( "Movie error\n" );
         MveFinish( 1 );
         return;
     }        
     if( MvePlayChunk() == -1 ){
         MveFinish( 1 );
-    } else if( gMveFadingCb ){
+        return;
+    }
+    if( gMveFadingCb ){
         MovGetFrameNo( &frame, &drop );
-        gMveFadingCb();
+        gMveFadingCb( frame );
     }        
 }
 
@@ -686,7 +689,7 @@ int MveFxInit()
 
 void MveUnk37()
 {
-    if( !gMveEffectsFlg ) return;
+    if( !gMveEffectsFlg ) return;    
     MveSetFadingCb( NULL );
     MveSetPaletteCb( NULL );
     MveFadeClear();
@@ -753,14 +756,15 @@ int MveSetEffects( char *Path )
                     FadeNew->Type = FadeType;
                     FadeNew->Color.r = FadeColor[0];
                     FadeNew->Color.g = FadeColor[1];
-                    FirstFrame = FadeNew->FirstFrame;
                     FadeNew->Color.b = FadeColor[2];
+                    FirstFrame = FadeNew->FirstFrame;
                     if( FirstFrame <= 1 ) gMveUnk57 = 1;
+                    // link
                     tmp = gMveFade;
                     gMveFade = FadeNew;
                     FadeNew->Next = (void *)tmp;
                 }
-                if( i ){
+                if( TotalEfx ){
                     MveSetFadingCb( (void *)MveSetFadeEFX );
                     MveSetPaletteCb( (void *)MveSetPaletteEFX );
                     err = 0;
@@ -795,22 +799,23 @@ void MveSetFadeEFX( int CurrentFrame )
 {
     Pal8_t NewPal[ 256 ];
     MveFade_t *p;
-    int n, i;
-    
+    int n, i, steps;
+
     for( p = gMveFade; p; p = (void *)p->Next ){
         if( CurrentFrame >= p->FirstFrame && CurrentFrame <= p->LastFrame){
     	    n = CurrentFrame - p->FirstFrame + 1;
-    	    if( p->Type == 1 ){
+    	    steps = p->Steps;
+    	    if( p->Type == 1 ){ // fade in
     		for( i = 0; i < 256; i++ ){
-        	    NewPal[ i ].g = p->Color.r - n * ( p->Color.r - gMveFx[ i ].r ) / p->Steps;
-        	    NewPal[ i ].b = p->Color.g - n * ( p->Color.g - gMveFx[ i ].g ) / p->Steps;
-        	    NewPal[ i ].r = p->Color.b - n * ( p->Color.b - gMveFx[ i ].b ) / p->Steps;
+        	    NewPal[ i ].r = p->Color.r - n * ( (int)p->Color.r - (int)gMveFx[ i ].r ) / steps;
+        	    NewPal[ i ].g = p->Color.g - n * ( (int)p->Color.g - (int)gMveFx[ i ].g ) / steps;
+        	    NewPal[ i ].b = p->Color.b - n * ( (int)p->Color.b - (int)gMveFx[ i ].b ) / steps;
     		}
-    	    } else {
+    	    } else { // fade out
     		for( i = 0; i < 256; i++ ){
-        	    NewPal[ i ].g = gMveFx[ i ].r - n * ( gMveFx[ i ].r - p->Color.r ) / p->Steps;
-        	    NewPal[ i ].b = gMveFx[ i ].g - n * ( gMveFx[ i ].g - p->Color.g ) / p->Steps;
-        	    NewPal[ i ].r = gMveFx[ i ].b - n * ( gMveFx[ i ].b - p->Color.b ) / p->Steps;
+        	    NewPal[ i ].r = (int)gMveFx[ i ].r - n * ( (int)gMveFx[ i ].r - (int)p->Color.r ) / steps;
+        	    NewPal[ i ].g = (int)gMveFx[ i ].g - n * ( (int)gMveFx[ i ].g - (int)p->Color.g ) / steps;
+        	    NewPal[ i ].b = (int)gMveFx[ i ].b - n * ( (int)gMveFx[ i ].b - (int)p->Color.b ) / steps;
     		}
     	    }
     	    FadeSetPalette( NewPal );

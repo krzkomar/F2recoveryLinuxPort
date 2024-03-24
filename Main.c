@@ -26,7 +26,6 @@ void MainGame( int argc, char **argv )
 //    GMoviePlay( 0, MOVIE_FADE_IN );
 //    GMoviePlay( 1, 0  );
 //    GMoviePlay( 16, 0 );
-//return;
     if( !MainMenuCreate() ){
         zm = 1;
         ExitFlg = 0;

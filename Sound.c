@@ -68,7 +68,7 @@ int gSoundDriverOn;
 
 ALCchar *gSoundAlcDevice = NULL;
 ALCcontext *gSoundContext = NULL;
-ALuint gSoundSrc[3];
+ALuint gSoundSrc[4];
 
 /**********************************************************************************/
 static void SoundTimerKill( int Id )
@@ -161,7 +161,7 @@ int SoundInit( int rr, int BitFmt, int BuffSize, int SampleRate )
     alListener3f( AL_POSITION, 0, 0, 1.0 );
     alListener3f( AL_VELOCITY, 0, 0, 0 );
     alListenerfv( AL_ORIENTATION, ListenerOri );
-    alGenSources( (ALuint)3, (ALuint *)&gSoundSrc );
+    alGenSources( (ALuint)4, (ALuint *)&gSoundSrc );
 
     // background, looped
     alSourcef( gSoundSrc[0], AL_PITCH, 1 );
@@ -184,11 +184,24 @@ int SoundInit( int rr, int BitFmt, int BuffSize, int SampleRate )
     alSource3f( gSoundSrc[2], AL_VELOCITY, 0, 0, 0 );
     alSourcei( gSoundSrc[2], AL_LOOPING, AL_FALSE );
 
+    // Movie stream
+    alSourcef( gSoundSrc[3], AL_PITCH, 1 );
+    alSourcef( gSoundSrc[3], AL_GAIN, 1 );    
+    alSource3f( gSoundSrc[3], AL_POSITION, 0, 0, 0 );
+    alSource3f( gSoundSrc[3], AL_VELOCITY, 0, 0, 0 );
+    alSourcei( gSoundSrc[3], AL_LOOPING, AL_FALSE );
+
+
     SoundSetMasterVol( 32767 );
 
     gSoundErrno = 0;
     gSoundDriverOn = 1;
     return 0;
+}
+
+void SoundSetVolume( int Src, double volume )
+{
+    alSourcef( gSoundSrc[ Src ], AL_GAIN, volume );
 }
 
 void SoundClose()
@@ -1135,7 +1148,7 @@ SoundStr_t *SoundStrCreate( int Freq, int Stereo, int bits )
     str->Bits = bits;
     str->Freq = Freq;
     str->BuffIdx = 0;
-    str->SourceId = gSoundSrc[ 1 ];
+    str->SourceId = gSoundSrc[ 3 ];
     return str;
 }
 

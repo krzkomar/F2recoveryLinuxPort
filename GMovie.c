@@ -84,6 +84,7 @@ int GMoviePlay( int MovieId, int Flags )
         sprintf( FilePath, "art/%s/cuts/%s", Language, gMovieFileList[ MovieId ] );
         err = dbCheckFileLength( FilePath, &FileLen ) + 1;
     }
+printf("=>%s\n", Language);
     if( !err ){
 	sprintf( FilePath, "art/cuts/%s", gMovieFileList[ MovieId ] );
 	if( dbCheckFileLength(FilePath, &FileLen) == -1 ){
@@ -93,7 +94,7 @@ int GMoviePlay( int MovieId, int Flags )
 	}
     }
     if( Flags & MOVIE_FADE_IN ){
-//        FadeStep( gFadePaletteC );
+        FadeStep( gFadePaletteC );
         gMovieFading = 1;
     }
     if( (Win = WinCreateWindow( 0, 0, 640, 480, 0, 16 )) == -1 ){ gMovieError = 0; return -1; }
@@ -192,7 +193,7 @@ char *GMovieCreateSubtitlesPath( char *Path )
     s = strrchr( Path, '/' );
     if( s ) Path = s + 1;
 
-    sprintf( gMovieSubTitlesPath, "text/%s/%s", language, Path );
+    sprintf( gMovieSubTitlesPath, "text/%s/cuts/%s", language, Path );
     s = strrchr( gMovieSubTitlesPath, '.' );
     if( *s ) *s = '\0';
     strcpy( &gMovieSubTitlesPath[ strlen( gMovieSubTitlesPath ) ], ".sve" );

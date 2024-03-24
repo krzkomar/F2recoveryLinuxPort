@@ -100,7 +100,7 @@ int gMovUnk15 = 0;
 Sound_t *gMovSoundDrv = NULL;
 short *gMovSoundBuffer = NULL;
 int gMovSoundBufferSize = 0; // added
-int gMovSoundVol = 0;
+double gMovSoundVol = 1.0;
 int gMovAudioPlaying = 0;
 int gMovSndPan = 0;
 SDL_Surface *gMovSurfaceA = NULL;
@@ -108,7 +108,7 @@ SDL_Surface *gMovSurfaceB = NULL;
 int (*gMovVideoCopy)( char *, int, int, int, int, int, int, int, int );
 int gMovUnk13 = 1;
 int gMovUnk12 = 0;
-int (*gMovSetPalette)( Pal8_t *Palette, int PalStart, int PalCount );
+void (*gMovSetPalette)( Pal8_t *Palette, int PalStart, int PalCount );
 int gMovSoundStopped = 0;
 int gMovRun = 0;
 int gMovMemProt = 0;
@@ -224,8 +224,8 @@ void MovSetSoundDrv( void *sndDrv )
 
 void MovSetSndVolume( double Vol )
 {
-    gMovSoundVol = Vol;
-//    if( gMovSoundBuffer )  gMovSoundBuffer->lpVtbl->SetVolume( gMovSoundBuffer, LODWORD(Vol) );
+    gMovSoundVol = (10000.0 + Vol)/10000.0;
+    SoundSetVolume( 3, gMovSoundVol );
 }
 
 void MovSetAspect( int Width, int Height, int Lines, int a4, int *Screen, unsigned int a6, unsigned int a7, int (*Cb)(int, int, int), int a9 )
@@ -259,7 +259,7 @@ void MovNullHandlerCb()
 
 void MovSetupPalette( void (*pal)(Pal8_t *, int first, int cnt) )
 {
-    gMovSetPalette = (void *)pal;
+    gMovSetPalette = pal;
 }
 
 /*
@@ -526,7 +526,7 @@ int MovStep()
             	    break;
         	case 12: // Set Palette
         	    TT( "Set palette", OpcodeHdr.Opcode )
-            	    MovSetPalette( (char *)&Chunk->Pal.Flags, Chunk->Pal.PalStart, Chunk->Pal.PalCount );
+            	    MovSetPalette( &Chunk->Palette.PalData, Chunk->Pal.PalStart, Chunk->Pal.PalCount );
             	    break;
         	case 13: // Set Palette Entries Compressed
         	    TT( "Set palette entries compressed", OpcodeHdr.Opcode )
@@ -664,6 +664,7 @@ void MovAudioFrame( char *SndData, short Size )
     if( !gMovSoundBuffer ) return;    
     MovAudioDecode( gMovSoundBuffer, SndData, Size );
     gMovBufOffset += Size;
+DD
     SoundStrQueue( sstr, gMovSoundBuffer, Size );    
 }
 
@@ -794,6 +795,7 @@ void MovCreateGradient( char BaseA, char a2, char a3, char BaseB, char a5, char 
 
 void MovSetPalette( char *Pal, short Start, short Count )
 {
+printf("=Palette=>%i %i\n", Start, Count );
     memcpy( &gMovPaletteA[ Start ], Pal, 3 * Count );
 }
 
