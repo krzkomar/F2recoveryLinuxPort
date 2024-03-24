@@ -137,11 +137,11 @@ int LsgSaveGameMenu( int Mode )
     gLsgError = 0;
     if( CfgGetString( &gConfiguration, "system", "master_patches", &gLsgMasterPatches ) != 1 ){
         eprintf( "\nLOADSAVE: Error reading patches config variable! Using default.\n" );
-        gLsgMasterPatches = "/FALLOUT/CD/DATA/SAVEGAME";
+        gLsgMasterPatches = "/fallout/cd/data/savegame";
     }
     if( Mode == 2 && gLsgUnk01 ){
-        sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-        strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "SAVE.DAT" );
+        sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+        strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "save.dat" );
         gLsgFileHandler = dbOpen( gLsgFileName, "rb" );
         if( gLsgFileHandler ){
             LsgSlotLoad( gLsgSelectedSlotIdx );
@@ -153,7 +153,7 @@ int LsgSaveGameMenu( int Mode )
         GmouseLoadCursor( 1 );
         if( tb == -1 ){
     	    if( MessageInit( &gLsgMsg ) != 1 ) return -1;
-    	    sprintf( a1, "%s%s", gGamePath, "LSGAME.MSG" );
+    	    sprintf( a1, "%s%s", gGamePath, "lsgame.msg" );
     	    if( MessageLoad( &gLsgMsg, a1 ) != 1 ) return -1;
     	    GSoundPlay( "iisxxxx1" );
     	    strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 132 ) );
@@ -173,7 +173,7 @@ int LsgSaveGameMenu( int Mode )
             GSoundPlay( "iisxxxx1" );
             strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
             strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
-            sprintf( gLsgUnk38, "\"%s/\"", "SAVEGAME" );
+            sprintf( gLsgUnk38, "\"%s/\"", "savegame" );
             strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
             DlgBox( gLsgBakFileName, Str2, 2, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
             LsgClose( 0 );
@@ -314,7 +314,7 @@ int LsgSaveGameMenu( int Mode )
                             GSoundPlay( "iisxxxx1" );
                             strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
                             strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
-                            sprintf(gLsgUnk38, "\"%s/\"", "SAVEGAME");
+                            sprintf(gLsgUnk38, "\"%s/\"", "savegame");
                             strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
                             DlgBox( gLsgBakFileName, Str2, 2, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
                             LsgClose(0);
@@ -374,7 +374,7 @@ int LsgMenuGameLoad( unsigned int arg )
 
     if( CfgGetString( &gConfiguration, "system", "master_patches", &gLsgMasterPatches) != 1 ){
         eprintf( "\nLOADSAVE: Error reading patches config variable! Using default.\n" );
-        gLsgMasterPatches = "/FALLOUT/CD/DATA/SAVEGAME";
+        gLsgMasterPatches = "/fallout/cd/data/savegame";
     }
 
     if( arg == 2 && gLsgUnk01 ){ // fast load ?
@@ -384,7 +384,7 @@ int LsgMenuGameLoad( unsigned int arg )
         }
         if( LsgLoad( gLsgSelectedSlotIdx ) == -1 ){
     	    if( MessageInit( &gLsgMsg ) != 1 ) return -1;
-    	    sprintf( stmp2, "%s%s", gGamePath, "LSGAME.MSG" );
+    	    sprintf( stmp2, "%s%s", gGamePath, "lsgame.msg" );
     	    if( MessageLoad( &gLsgMsg, stmp2 ) != 1 ) return -1;
     	    if( win != -1 ) WinClose( win );
     	    GmouseLoadCursor( 1 );
@@ -417,7 +417,7 @@ int LsgMenuGameLoad( unsigned int arg )
         GSoundPlay( "iisxxxx1" );
         strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
         strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
-        sprintf( gLsgUnk38, "\"%s/\"", "SAVEGAME" );
+        sprintf( gLsgUnk38, "\"%s/\"", "savegame" );
         strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
         DlgBox( gLsgBakFileName, Str2, 2, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
         LsgClose( mode );
@@ -569,7 +569,7 @@ int LsgMenuCreate( unsigned int mode )
     FontSet( 103 );
     gLsgUnk18 = 0;
     if( MessageInit( &gLsgMsg ) != 1 ) return -1;
-    sprintf( gLsgMsgPath, "%s%s", gGamePath, "LSGAME.MSG" );
+    sprintf( gLsgMsgPath, "%s%s", gGamePath, "lsgame.msg" );
     if( MessageLoad( &gLsgMsg, gLsgMsgPath ) != 1 ) return -1;
     if( !( gLsgThumbnailBuffer = Malloc( THUMBNAIL_SIZE ) ) ){ MessageClose( &gLsgMsg ); FontSet( gLsgFontSave ); return -1; }
 
@@ -658,9 +658,9 @@ int LsgSaveGame()
     gLsgUnk55 = -1;
     GmouseLoadCursor( 25 );
     GSoundBgPause();
-    sprintf( gLsgFileName, "%s/%s", gLsgMasterPatches, "SAVEGAME" );
+    sprintf( gLsgFileName, "%s/%s", gLsgMasterPatches, "savegame" );
     xDirCreate( gLsgFileName );
-    sprintf( gLsgFileName, "%s/%s/%s%.2d", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgFileName, "%s/%s/%s%.2d", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     xDirCreate( gLsgFileName );
     strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "/proto" );
     xDirCreate( gLsgFileName );
@@ -669,15 +669,15 @@ int LsgSaveGame()
     strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "/items" );
     xDirCreate( gLsgFileName );
     if( LsgBackup() == -1 ) eprintf( "\nLOADSAVE: Warning, can't backup save file!\n" );
-    sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-    strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "SAVE.DAT" );
+    sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+    strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "save.dat" );
     eprintf( "\nLOADSAVE: Save name: %s\n", gLsgFileName );
     gLsgFileHandler = dbOpen( gLsgFileName, "wb" );
     if( !gLsgFileHandler ){
         eprintf("\nLOADSAVE: ** Error opening save game for writing! **\n");
         LsgBackupRestore();
-        sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-        LsgDeleteFiles( gLsgFileName, "BAK" );
+        sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+        LsgDeleteFiles( gLsgFileName, "bak" );
         PartyRejoinAll();
         GSoundBgUnPause();
         return -1;
@@ -688,8 +688,8 @@ int LsgSaveGame()
         eprintf( "LOADSAVE: Save file header size written: %d bytes.\n", dbtell( gLsgFileHandler ) - PrevPos );
         dbClose( gLsgFileHandler );
         LsgBackupRestore();
-        sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-        LsgDeleteFiles( gLsgFileName, "BAK" );
+        sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+        LsgDeleteFiles( gLsgFileName, "bak" );
         PartyRejoinAll();
         GSoundBgUnPause();
         return -1;
@@ -701,8 +701,8 @@ int LsgSaveGame()
             eprintf( "\nLOADSAVE: ** Error writing save function #%d data! **\n", i );
             dbClose( gLsgFileHandler );
     	    LsgBackupRestore();
-            sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-            LsgDeleteFiles( gLsgFileName, "BAK" );
+            sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+            LsgDeleteFiles( gLsgFileName, "bak" );
             PartyRejoinAll();
             GSoundBgUnPause();
             return -1;
@@ -711,8 +711,8 @@ int LsgSaveGame()
     }
     eprintf( "LOADSAVE: Total save data written: %ld bytes.\n", (long int)dbtell( gLsgFileHandler ) );
     dbClose( gLsgFileHandler );
-    sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-    LsgDeleteFiles( gLsgFileName, "BAK" );
+    sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+    LsgDeleteFiles( gLsgFileName, "bak" );
     gLsgMsgLine.Id = 140;
     if( MessageGetMsg( &gLsgMsg, &gLsgMsgLine ) == 1 )
         IfcMsgOut( gLsgMsgLine.Text );
@@ -739,8 +739,8 @@ printf("*********************** LOAD SAVE *******************************\n");
         CombatUnk21();
         GmouseLoadCursor( 25 );
     }
-    sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-    strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "SAVE.DAT" );
+    sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+    strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "save.dat" );
     eprintf( "\nLOADSAVE: Load name: %s\n", gLsgSlots[SlotNo].SaveName );
     gLsgFileHandler = dbOpen(gLsgFileName, "rb");
     if( !gLsgFileHandler ){
@@ -772,7 +772,7 @@ printf("*********************** LOAD SAVE *******************************\n");
     eprintf( "LOADSAVE: Total load data read: %ld bytes.", (long int)dbtell( gLsgFileHandler ) );
     dbClose( gLsgFileHandler );
     sprintf( gLsgMsgPath, "%s/", "maps" );
-    LsgDeleteFiles( gLsgMsgPath, "BAK" );
+    LsgDeleteFiles( gLsgMsgPath, "bak" );
     ProtoDudeImgInit();
     gLsgMsgLine.Id = 141;
     if( MessageGetMsg( &gLsgMsg, &gLsgMsgLine ) == 1 )
@@ -898,7 +898,7 @@ int LsgLoadSlots()
     int i, FileLen;
 
     for( i = 0; i < 10; i++ ){
-        sprintf( gLsgMsgPath, "%s/%s%.2d/%s", "SAVEGAME", "SLOT", i + 1, "SAVE.DAT" );
+        sprintf( gLsgMsgPath, "%s/%s%.2d/%s", "savegame", "slot", i + 1, "save.dat" );
         if( dbCheckFileLength( gLsgMsgPath, &FileLen ) ){
             gLsgSaveFilesCondition[ i ] = 0; // file not exist
             continue;
@@ -999,7 +999,7 @@ int LsgReadThumbnail( int Idx )
 
     cc = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
     if( cc && cc != 2 && cc != 3 ){
-        sprintf( gLsgMsgPath, "%s/%s%.2d/%s", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1, "SAVE.DAT" );
+        sprintf( gLsgMsgPath, "%s/%s%.2d/%s", "savegame", "slot", gLsgSelectedSlotIdx + 1, "save.dat" );
         eprintf( " Filename %s\n", gLsgMsgPath );
         if( !(fh = dbOpen( gLsgMsgPath, "rb" ) ) ){
             eprintf( "\nLOADSAVE: ** (A) Error reading thumbnail #%d! **\n", Idx );
@@ -1159,32 +1159,32 @@ int LsgFSaveMaps( xFile_t *fh1 )
 	for( i = 1; i < gPartyCount; i++ ){
     	    if( (t = gPartyPids[ i ]) == -2 ) continue;
     	    if( ProtoGetFName( gPartyPids[ i ], stmp ) ) continue;
-    	    s = (t >> 24) == 1 ? "PROTO/CRITTERS" : "PROTO/ITEMS";
+    	    s = (t >> 24) == 1 ? "proto/critters" : "proto/items";
     	    sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, s, stmp );
-    	    sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s/%s", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1, s, stmp );
+    	    sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s/%s", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1, s, stmp );
     	    if( FileDeflate( gLsgBakFileName, gLsgCurFileName ) == -1 ) return -1;
 	}
     }
-    sprintf( gLsgBakFileName, "%s/*.%s", "MAPS", "SAV" );
+    sprintf( gLsgBakFileName, "%s/*.%s", "maps", "sav" );
     if( (n = dbGetFileList( gLsgBakFileName, &FileList ) ) == -1 ) return -1;
     if( dbputBei( fh1, n ) == -1 ){ dbDelFileList( FileList ); return -1; }
     if( n ){ dbDelFileList( FileList ); return -1; }
-    sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     if( LsgDeleteFiles( gLsgFileName, "sav" ) == -1 ){ dbDelFileList( FileList ); return -1; }
-    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-    strcpy( gLsgFileName + strlen( gLsgFileName ), CharEditFnameChgExt(gLsgBakFileName, "AUTOMAP.DB", "SAV" ) );
+    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+    strcpy( gLsgFileName + strlen( gLsgFileName ), CharEditFnameChgExt(gLsgBakFileName, "automap.db", "sav" ) );
     xFileRemove( gLsgFileName );
     for( i = 0; i < n; i++ ){
 	if( dbwrite( FileList[ i ], strlen( FileList[ i ] ) + 1, 1, fh1 ) != 1 ){ dbDelFileList( FileList ); return -1; }
-        sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, "MAPS", FileList[ i ] );
-        sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1, FileList[ i ] );
+        sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, "maps", FileList[ i ] );
+        sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1, FileList[ i ] );
         if( FileDeflate( gLsgBakFileName, gLsgCurFileName ) == -1 ) break;
     }
     dbDelFileList( FileList );    
-    sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1, CharEditFnameChgExt( gLsgBakFileName, "AUTOMAP.DB", "SAV" ) );
-    sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, "MAPS", "AUTOMAP.DB" );
+    sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1, CharEditFnameChgExt( gLsgBakFileName, "automap.db", "sav" ) );
+    sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, "maps", "automap.db" );
     if( FileDeflate( gLsgBakFileName, gLsgCurFileName) == -1 ) return -1;
-    sprintf( gLsgBakFileName, "%s/%s", "MAPS", "AUTOMAP.DB" );
+    sprintf( gLsgBakFileName, "%s/%s", "maps", "automap.db" );
     if( !(fh2 = dbOpen( gLsgBakFileName, "rb" ) ) ) return -1;
     if( (n = dbFileLength( fh2 ) ) == -1 ){ dbClose( fh2 ); return -1; }
     dbClose( fh2 );
@@ -1200,38 +1200,35 @@ int LsgSlotMap2Game( xFile_t *fh )
 
     eprintf( "LOADSAVE: in SlotMap2Game\n" );
     if( dbgetBei( fh, &n ) == -1 ){ eprintf( "LOADSAVE: returning 1\n" ); return -1; }
+
     if( !n ){ eprintf( "LOADSAVE: returning 2\n" ); return -1; }
     sprintf( gLsgBakFileName, "%s/", "proto/critters" );
     if( LsgDeleteFiles( gLsgBakFileName, "pro" ) == -1 ){ eprintf( "LOADSAVE: returning 3\n" ); return -1; }
     sprintf( gLsgBakFileName, "%s/", "proto/items" );
     if( LsgDeleteFiles( gLsgBakFileName, "pro" ) == -1 ){ eprintf( "LOADSAVE: returning 4\n" ); return -1; }
     sprintf( gLsgBakFileName, "%s/", "maps" );
-    if( LsgDeleteFiles( gLsgBakFileName, "SAV" ) == -1 ){ eprintf( "LOADSAVE: returning 5\n" ); return -1; }
-    sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, "maps", "AUTOMAP.DB" );
+    if( LsgDeleteFiles( gLsgBakFileName, "sav" ) == -1 ){ eprintf( "LOADSAVE: returning 5\n" ); return -1; }
+    sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, "maps", "automap.db" );
     xFileRemove( gLsgBakFileName );                    
-
     for( i = 1; i < gPartyCount; i++ ){
 	if( gPartyPids[ i ] == -2 ) continue;
         if( ProtoGetFName( gPartyPids[ i ], stmp1 ) ) continue;
         sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, ( gPartyPids[ i ] >> 24) == 1 ? "proto/critters" : "proto/items", stmp1 );
-        sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s/%s", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1, 
+        sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s/%s", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1, 
     		    ( gPartyPids[ i ] >> 24) == 1 ? "proto/critters" : "proto/items", stmp1 );
         if( FileInflateB( gLsgCurFileName, gLsgBakFileName ) == -1 ){ eprintf( "LOADSAVE: returning 6\n" ); return -1; }
     }                    
-
     for( i = 0; i < n; i++ ){
         if( LsgReadFname( stmp2, fh ) == -1 ) return -1;
-        sprintf( gLsgBakFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1, stmp2 );
+        sprintf( gLsgBakFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1, stmp2 );
         sprintf( gLsgCurFileName, "%s/%s/%s", gLsgMasterPatches, "maps", stmp2 );
         if( FileInflateB( gLsgBakFileName, gLsgCurFileName ) == -1 ){ eprintf( "LOADSAVE: returning 7\n" ); return -1; }
     }
-
-    sprintf( gLsgBakFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1, CharEditFnameChgExt( gLsgCurFileName, "AUTOMAP.DB", "SAV" ) );
-    sprintf( gLsgCurFileName, "%s/%s/%s", gLsgMasterPatches, "maps", "AUTOMAP.DB" );
+    sprintf( gLsgBakFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1, CharEditFnameChgExt( gLsgCurFileName, "automap.db", "sav" ) );
+    sprintf( gLsgCurFileName, "%s/%s/%s", gLsgMasterPatches, "maps", "automap.db" );
     if( FileInflateA( gLsgBakFileName, gLsgCurFileName ) == -1 ){ eprintf( "LOADSAVE: returning 8\n" ); return -1; }
-    sprintf( gLsgCurFileName, "%s/%s", "maps", "AUTOMAP.DB" );
+    sprintf( gLsgCurFileName, "%s/%s", "maps", "automap.db" );
     if( dbgetBei( fh, &i ) == -1 ){ eprintf( "LOADSAVE: returning 9\n" ); return -1; }
-
     if( MapLoadSAV( gLsgSlots[ gLsgSelectedSlotIdx ].MapFname ) == -1 ){ eprintf( "LOADSAVE: returning 13\n" ); return -1; }
     return 0;        
 }
@@ -1243,7 +1240,7 @@ int LsgReadFname( char *str, xFile_t *fh )
     i = 14;
     while( (c = dbgetc( fh )) != -1 ){
         i--;
-        *str++ = c;
+        *str++ = tolower( c );
         if( i == -1 || c == '\0' ) return i ? 0 : 1;        
     }
     return 0;
@@ -1286,7 +1283,7 @@ int LsgDeleteMapFiles()
 {
     char tmp[ 260 ];
     sprintf( tmp, "%s/", "maps" );
-    return LsgDeleteFiles( tmp, "SAV" );
+    return LsgDeleteFiles( tmp, "sav" );
 }
 
 int LsgDeleteFiles( char *path, char *Extension )
@@ -1319,30 +1316,30 @@ int LsgBackup()
     int i, files;
 
     eprintf( "\nLOADSAVE: Backing up save slot files..\n" );
-    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     strcpy( gLsgBakFileName, gLsgFileName );
-    strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), "SAVE.DAT" );
-    CharEditFnameChgExt( gLsgCurFileName, gLsgBakFileName, "BAK" );
+    strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), "save.dat" );
+    CharEditFnameChgExt( gLsgCurFileName, gLsgBakFileName, "bak" );
     if( (fh = dbOpen( gLsgBakFileName, "rb") ) ){
         dbClose( fh );
         if( FileRename( gLsgBakFileName, gLsgCurFileName ) ) return -1;
     }
-    sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-    sprintf( gLsgBakFileName, "%s*.%s", gLsgFileName, "SAV" );
+    sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgBakFileName, "%s*.%s", gLsgFileName, "sav" );
     if( (files = dbGetFileList( gLsgBakFileName, &FileList ) ) == -1 ) return -1;
     gLsgUnk55 = files;
-    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     for( i = gLsgUnk55; --i != -1; ){
         strcpy( gLsgBakFileName, gLsgFileName );
         strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), FileList[ i ] );
-        CharEditFnameChgExt( gLsgCurFileName, gLsgBakFileName, "BAK" );
+        CharEditFnameChgExt( gLsgCurFileName, gLsgBakFileName, "bak" );
         if( FileRename( gLsgBakFileName, gLsgCurFileName ) ){ dbDelFileList( FileList ); return -1; }
     }
     dbDelFileList( FileList );
     eprintf( "\nLOADSAVE: %d map files backed up.\n", files );
-    sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-    sprintf( gLsgBakFileName, "%s/%s", gLsgFileName, CharEditFnameChgExt(gLsgUnk38, "AUTOMAP.DB", "SAV" ) );
-    sprintf( gLsgCurFileName, "%s/%s", gLsgFileName, CharEditFnameChgExt(gLsgUnk38, "AUTOMAP.DB", "BAK") );
+    sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgBakFileName, "%s/%s", gLsgFileName, CharEditFnameChgExt(gLsgUnk38, "automap.db", "sav" ) );
+    sprintf( gLsgCurFileName, "%s/%s", gLsgFileName, CharEditFnameChgExt(gLsgUnk38, "automap.db", "bak") );
     gLsgUnk56 = 0;        
     if( (fh = dbOpen( gLsgBakFileName, "rb" ) ) ){
         dbClose( fh );
@@ -1359,34 +1356,34 @@ int LsgBackupRestore()
 
     eprintf( "\nLOADSAVE: Restoring save file backup...\n" );
     LsgEraseBadSlot();
-    sprintf(gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1);
+    sprintf(gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1);
     strcpy( gLsgBakFileName, gLsgFileName );
-    strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), "SAVE.DAT" );
-    CharEditFnameChgExt( gLsgCurFileName, gLsgBakFileName, "BAK" );
+    strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), "save.dat" );
+    CharEditFnameChgExt( gLsgCurFileName, gLsgBakFileName, "bak" );
     xFileRemove( gLsgBakFileName );
     if( FileRename(gLsgCurFileName, gLsgBakFileName) ){ LsgEraseBadSlot(); return -1; }
-    sprintf(gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1);
-    sprintf(gLsgBakFileName, "%s*.%s", gLsgFileName, "BAK");
+    sprintf(gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1);
+    sprintf(gLsgBakFileName, "%s*.%s", gLsgFileName, "bak");
     files = dbGetFileList( gLsgBakFileName, &FileList );
     if( files == -1 ) return -1;        
     if( files != gLsgUnk55 ){ LsgEraseBadSlot(); return -1; }
     s = gLsgBakFileName;
     i = gLsgUnk55;
-    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     while( --i != -1 ){
         strcpy( s, gLsgFileName );
         strcpy( s + strlen( s ), FileList[ i ] );
-        CharEditFnameChgExt( gLsgCurFileName, s, "SAV" );
+        CharEditFnameChgExt( gLsgCurFileName, s, "sav" );
         xFileRemove( gLsgCurFileName );
         if( FileRename( s, gLsgCurFileName ) ){ LsgEraseBadSlot(); return -1; }
     }
     dbDelFileList( FileList );
     if( !gLsgUnk56 ) return 0;
-    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     strcpy( gLsgBakFileName, gLsgFileName );
-    strcpy( &gLsgBakFileName[ strlen( gLsgBakFileName ) ], CharEditFnameChgExt( gLsgUnk38, "AUTOMAP.DB", "BAK" ) );
+    strcpy( &gLsgBakFileName[ strlen( gLsgBakFileName ) ], CharEditFnameChgExt( gLsgUnk38, "automap.db", "bak" ) );
     strcpy( gLsgCurFileName, gLsgFileName );
-    strcpy( &gLsgCurFileName[ strlen( gLsgCurFileName ) ], CharEditFnameChgExt( gLsgUnk38, "AUTOMAP.DB", "SAV" ) );
+    strcpy( &gLsgCurFileName[ strlen( gLsgCurFileName ) ], CharEditFnameChgExt( gLsgUnk38, "automap.db", "sav" ) );
     if( FileRename( gLsgBakFileName, gLsgCurFileName ) ){  LsgEraseBadSlot();  return -1; }
     return 0;            
 }
@@ -1413,24 +1410,24 @@ int LsgEraseBadSlot()
     int files;
 
     eprintf( "\nLOADSAVE: Erasing save(bad) slot...\n" );
-    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     strcpy( gLsgBakFileName, gLsgFileName );
-    strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), "SAVE.DAT" );
+    strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), "save.dat" );
     xFileRemove( gLsgBakFileName );
-    sprintf( gLsgFileName, "%s/%s%.2d/", "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
-    sprintf( gLsgBakFileName, "%s*.%s", gLsgFileName, "SAV" );
+    sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgBakFileName, "%s*.%s", gLsgFileName, "sav" );
     if( (files = dbGetFileList( gLsgBakFileName, &FileList ) ) == -1 ) files = 0;
     s = gLsgBakFileName;
-    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     while( --files != -1 ){
         strcpy( s, gLsgFileName );
         strcpy( s + strlen( s ), FileList[ files ] );
         xFileRemove( s );
     }
     dbDelFileList( FileList );
-    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "SAVEGAME", "SLOT", gLsgSelectedSlotIdx + 1 );
+    sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     strcpy( gLsgBakFileName, gLsgFileName );
-    strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), CharEditFnameChgExt( gLsgCurFileName, "AUTOMAP.DB", "SAV" ) );
+    strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), CharEditFnameChgExt( gLsgCurFileName, "automap.db", "sav" ) );
     xFileRemove( gLsgBakFileName );
     return 0;
 }

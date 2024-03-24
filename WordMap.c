@@ -1344,7 +1344,7 @@ int WmGetMapFileName( int Idx, char *FileName )
         *FileName = '\0';
         return -1;
     }
-    sprintf( FileName, "%s.MAP", gWmMaps[ Idx ].MapFileName );
+    sprintf( FileName, "%s.map", gWmMaps[ Idx ].MapFileName );
     return 0;
 }
 

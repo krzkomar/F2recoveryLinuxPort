@@ -77,7 +77,7 @@ void AutomapClose()
 
     if( CfgGetString( &gConfiguration, "system", "master_patches", &pValue ) != 1 ) return;
     
-    sprintf( stmp, "%s/%s/%s", pValue, "MAPS", "AUTOMAP.DB" );
+    sprintf( stmp, "%s/%s/%s", pValue, "maps", "automap.db" );
     xFileRemove( stmp );    
 }
 
@@ -312,7 +312,7 @@ int AutomapSave()
         if( gAutomapRawData ) v7 = 1;
     }
     if( !v7 ){ eprintf( "\nAUTOMAP: Error allocating data buffers!\n" ); return -1; }
-    sprintf( stmp, "%s/%s", "MAPS", "AUTOMAP.DB" );    
+    sprintf( stmp, "%s/%s", "maps", "automap.db" );    
     if( !( fh2 = dbOpen( stmp, "r+b" ) ) )
 	{ eprintf( "\nAUTOMAP: Error opening automap database file!\n" ); eprintf( "Error continued: automap_pip_save: path: %s", stmp ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
     if( AutomapReadHdr( fh2 ) == -1 )
@@ -344,7 +344,7 @@ int AutomapSave()
         Free( gAutomapRawData );
         return 1;
     }
-    sprintf( a1, "%s/%s", "MAPS", "AUTOMAP.TMP" );        
+    sprintf( a1, "%s/%s", "maps", "automap.tmp" );        
     if( !( fh1 = dbOpen( a1, "wb" ) ) )
         { eprintf( "\nAUTOMAP: Error creating temp file!\n" ); Free( gAutomapData ); Free( gAutomapRawData ); dbClose( fh2 ); return -1; }
     dbrewind( fh2 );
@@ -435,7 +435,7 @@ int AutomapCreateMinimap( int MapId, int MapLvl )
     char stmp[ 532 ];
 
     gAutomapRawData = NULL;
-    sprintf( stmp, "%s/%s", "maps", "AUTOMAP.DB" );
+    sprintf( stmp, "%s/%s", "maps", "automap.db" );
 
     if( !( fh = dbOpen( stmp, "r+b" ) ) )
 	{ eprintf( "\nAUTOMAP: Error opening automap database file!\n" ); eprintf( "Error continued: AM_ReadEntry: path: %s", stmp ); return -1; }
@@ -517,7 +517,7 @@ int AutomapCreateDatabase()
     gAutomap_05.c01 = 1;
     gAutomap_05.i01 = 1925;
     memcpy( gAutomap_05.tab, gAutomap_03, sizeof( gAutomap_05.tab ) );
-    sprintf( fpath, "%s/%s", "MAPS", "AUTOMAP.DB" );
+    sprintf( fpath, "%s/%s", "maps", "automap.db" );
     if( !(fh = dbOpen( fpath, "wb" )) ){
         eprintf( "\nAUTOMAP: Error creating automap database file!\n" );
         return -1;
@@ -561,13 +561,13 @@ int AutomapLoadDB( Automap_t **pAutomap )
     xFile_t *fh;
     char stmp[ 520 ];
 
-    sprintf( stmp, "%s/%s", "maps", "AUTOMAP.DB" );
+    sprintf( stmp, "%s/%s", "maps", "automap.db" );
     if( !(fh = dbOpen( stmp, "rb" ) ) ){
 	eprintf( "\nAUTOMAP: Error opening database file for reading!\n" );
 	eprintf( "Error continued: ReadAMList: path: %s\n", stmp );
 	return -1;
     }
-    if( AutomapReadHdr( fh ) == -1 ){ eprintf( "\nAUTOMAP: Error reading automap database header pt2!\n" ); dbClose( fh ); return -1; }
+    if( AutomapReadHdr( fh ) == -1 ){ eprintf( "\nAUTOMAP: Error reading automap '%s' database header pt2!\n", stmp ); dbClose( fh ); return -1; }
     dbClose( fh );
     *pAutomap = &gAutomap_05;
     return 0;

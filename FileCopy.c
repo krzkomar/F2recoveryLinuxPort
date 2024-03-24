@@ -81,7 +81,7 @@ int FileInflateB( char *SrcFileName, char *NewFileName )
     FILE *fh;
     int a, b;
 
-
+printf("Inflate %s -> %s\n", SrcFileName, NewFileName);
     if(!(fh = fopen( SrcFileName, "rb" ))) return -1;
     a = fgetc( fh );
     b = fgetc( fh );

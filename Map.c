@@ -475,15 +475,15 @@ int MapLoadMAP( char *fname )
     char *s;
     xFile_t *fh;
 
-    StrUpr( fname );
-    if( (s = strstr( fname, ".MAP" ) ) ){ 
-	// check if the file *.SAV exist
-        strcpy( s, ".SAV" ); // *.MAP -> *.SAV
+    StrLwr( fname );
+    if( (s = strstr( fname, ".map" ) ) ){ 
+	// check if the file *.sav exist
+        strcpy( s, ".sav" ); // *.map -> *.sav
         fh = dbOpen( MapGetFilePath( fname ), "rb" );
-        strcpy( s, ".MAP" ); // restore *.MAP
+        strcpy( s, ".map" ); // restore *.map
          if( fh ){
             dbClose( fh );
-            // if file *.SAV exist, load file *.MAP
+            // if file *.sav exist, load file *.map
             err = MapLoadSAV( fname );
             WmStartMapMusic();
         }
@@ -586,12 +586,12 @@ int MapLoadMapFile( xFile_t *fh )
     gMap.MapId = WmGetMapIdxByFileName( gMap.Name );
     if( !(gMap.MapFlags & MAPFLG_SAV) ){
         sprintf( stmp2, "maps/%s", gMap.Name );            
-        if( (v14 = strstr( stmp2, ".MAP" )) ){
+        if( (v14 = strstr( stmp2, ".map" )) ){
 	    *v14 = '\0';
         } else {        	
     	    if( (v14 = strstr(stmp2, ".map")) ) *v14 = '\0';
         }
-        strcpy( &stmp2[strlen(stmp2)], ".GAM" );
+        strcpy( &stmp2[strlen(stmp2)], ".gam" );
         GlobVarLoadFile(stmp2, "MAP_GLOBAL_VARS:", &gMapGlobVarsCnt, &gMapGlobVars);
         gMap.GlobVarsCnt = gMapGlobVarsCnt;
     }
@@ -661,11 +661,10 @@ Error:
 
 int MapLoadSAV( char *fname )
 {
+    char stmp2[ 16 ], stmp1[ 24 ];
     int err;
-    char stmp2[ 16 ];
-    char stmp1[ 24 ];
 
-    eprintf( "\nMAP: Loading SAVED map." );
+    eprintf( "MAP: Loading SAVED map." );
     CharEditFnameChgExt( stmp2, fname, "sav" );
     err = MapLoadMAP( stmp2 );
     if( ScptGetGameDekaSeconds() >= gMap.Time ){
@@ -675,7 +674,7 @@ int MapLoadSAV( char *fname )
     if( !WmIsCurrentMapMapSaved() ){
         eprintf( "\nDestroying RANDOM encounter map." );
         strcpy( stmp1, gMap.Name );
-        CharEditFnameChgExt( gMap.Name, stmp1, "SAV" );
+        CharEditFnameChgExt( gMap.Name, stmp1, "sav" );
         LsgDeleteFile( "maps/", gMap.Name );
         strcpy( gMap.Name, stmp1 );
     }
@@ -841,7 +840,7 @@ int MapMapSave()
     if( CfgGetString( &gConfiguration, "system", "master_patches", &patches ) == 1 ){
         strcpy( stmp + strlen( stmp ), patches );
         xDirCreate( stmp );
-        strcpy( stmp + strlen( stmp ), "/MAPS" );
+        strcpy( stmp + strlen( stmp ), "/maps" );
         xDirCreate(stmp);
     }
     if( !gMap.Name[0] ){ eprintf( "\nError: map_save: map header corrupt!" ); return -1; }
@@ -938,13 +937,13 @@ int MapSavingRandomEncounter( int a1 )
     if ( (a1 & 0x01) && !WmIsCurrentMapMapSaved() ){
         eprintf( "\nNot saving RANDOM encounter map." );
         strcpy( stmp, gMap.Name );
-        CharEditFnameChgExt( gMap.Name, stmp, "SAV" );
-        LsgDeleteFile( "MAPS/", gMap.Name );
+        CharEditFnameChgExt( gMap.Name, stmp, "sav" );
+        LsgDeleteFile( "maps/", gMap.Name );
         strcpy( gMap.Name, stmp );
     } else {
-	eprintf( "\n Saving \".SAV\" map." );
+	eprintf( "\n Saving \".sav\" map." );
 	strcpy( stmp, gMap.Name );
-        CharEditFnameChgExt( gMap.Name, stmp, "SAV" );
+        CharEditFnameChgExt( gMap.Name, stmp, "sav" );
 	if( MapMapSave() == -1 ) return -1;
 	strcpy( gMap.Name, stmp );
 	AutomapSave();
@@ -967,7 +966,7 @@ int MapUnk08()
     if( CfgGetString( &gConfiguration, "system", "master_patches", &tmp ) == 1 ){
 	strcpy( stmp, tmp );
     } else {
-        strcpy( stmp, "DATA" );
+        strcpy( stmp, "data" );
     }
     xDirCreate( stmp );
     strcpy( stmp + strlen( stmp ), "/maps" );
