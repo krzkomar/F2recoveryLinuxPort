@@ -7,18 +7,6 @@ typedef struct
   int tab[480];
 } Automap_t;
 
-/*
-int gAutomap_03[ 480 ]; 
-int gAutomapUnk10[ 160 ];
-int gAutomapImgIds[ 5 ];
-int gAutomapScannerStatus;
-Automap_t gAutomap_05;
-int gAutomapRawSize;
-char gAutomapUnk102;
-char *gAutomapRawData;
-char *gAutomapData;
-*/
-
 int AutomapInit();
 void AutomapReset();
 void AutomapClose();

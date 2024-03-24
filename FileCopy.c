@@ -24,10 +24,9 @@ int FileCopy( const char* source, const char* destination )
 int FileInflateA( char *fname1, char *fname2 ) // inflate
 {
     FILE *fh;
-    int a,b;
+    uint32_t a, b;
     int c;
-    zFile_t *fh1;
-    FILE *fh2;
+    zFile_t *zh;
 
     if(!(fh = fopen( fname1, "rb" ))) return -1;
     a = fgetc( fh );
@@ -35,22 +34,44 @@ int FileInflateA( char *fname1, char *fname2 ) // inflate
     fclose( fh );
 
     if( a == 0x1F && b == 0x8B ){ // source compressed
-        fh1 = zOpenByFileName( fname1, "rb" );	
-        fh2 = fopen( fname2, "wb" );
-        if( fh1 && fh2 ){
-            while ( (c = zgetc( fh1 )) != -1 ) fputc( c, fh2 );            
-            zclose( fh1 );
-            fclose( fh2 );
+        zh = zOpenByFileName( fname1, "rb" );	
+        fh = fopen( fname2, "wb" );
+        if( zh && fh ){
+            while( (c = zgetc( zh )) != -1 ) fputc( c, fh );            
+            zclose( zh );
+            fclose( fh );
             return 0;
         } else {
-            if( fh1 ) zclose( fh1 );
-            if( fh2 ) fclose( fh2 );
+            if( zh ) zclose( zh );
+            if( fh ) fclose( fh );
             return -1;
         }
     } else {    
         FileCopy( fname1, fname2 );
         return 0;
     }
+}
+
+int FileInflateB( char *SrcFileName, char *NewFileName )
+{
+    zFile_t *zh;
+    FILE *fh;
+    uint32_t a, b;
+
+    if(!(fh = fopen( SrcFileName, "rb" ))) return -1;
+    a = fgetc( fh );
+    b = fgetc( fh );
+    fclose( fh );
+    if( a == 31 && b == 139 ){
+        FileCopy( SrcFileName, NewFileName );
+    } else {        
+        if( !(zh = zOpenByFileName( SrcFileName, "rb" ) ) ) return -1;
+        if( !(fh = fopen( NewFileName, "wb" ) ) ){ zclose( zh ); return -1; }
+        while( (a = zgetc( zh ) ) != -1 ) fputc( a, fh );
+        zclose( zh );
+        fclose( fh );
+    }
+    return 0;
 }
 
 int FileDeflate( char *SrcFileName, char *NewFileName ) // deflate
@@ -75,26 +96,4 @@ int FileDeflate( char *SrcFileName, char *NewFileName ) // deflate
     return 0;
 }
 
-int FileInflateB( char *SrcFileName, char *NewFileName )
-{
-    zFile_t *zh;
-    FILE *fh;
-    int a, b;
-
-printf("Inflate %s -> %s\n", SrcFileName, NewFileName);
-    if(!(fh = fopen( SrcFileName, "rb" ))) return -1;
-    a = fgetc( fh );
-    b = fgetc( fh );
-    fclose( fh );
-    if( a == 31 && b == 139 ){
-        FileCopy( SrcFileName, NewFileName );
-    } else {        
-        if( !(zh = zOpenByFileName(SrcFileName, "rb")) ) return -1;
-        if( !(fh = fopen( NewFileName, "wb" ) ) ){ zclose( zh ); return -1; }
-        while ( (a = zgetc(zh)) != -1 ) fputc( a, fh );
-        zclose( zh );
-        fclose( fh );
-    }
-    return 0;
-}
 

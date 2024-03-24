@@ -2,7 +2,7 @@
 
 char gGSoundProtoFileName[13];
 int gGSoundDbgEn = 0;
-int gGSoundDbgLog = 1; // debug
+int gGSoundDbgLog = 0; // debug
 int gGSoundMusicOn = 0;
 int gGSound_Unk61 = 0;
 int gGSoundBgUnk01 = 0;

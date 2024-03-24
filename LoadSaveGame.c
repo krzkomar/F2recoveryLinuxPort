@@ -1200,7 +1200,6 @@ int LsgSlotMap2Game( xFile_t *fh )
 
     eprintf( "LOADSAVE: in SlotMap2Game\n" );
     if( dbgetBei( fh, &n ) == -1 ){ eprintf( "LOADSAVE: returning 1\n" ); return -1; }
-
     if( !n ){ eprintf( "LOADSAVE: returning 2\n" ); return -1; }
     sprintf( gLsgBakFileName, "%s/", "proto/critters" );
     if( LsgDeleteFiles( gLsgBakFileName, "pro" ) == -1 ){ eprintf( "LOADSAVE: returning 3\n" ); return -1; }

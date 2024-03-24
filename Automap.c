@@ -83,16 +83,19 @@ void AutomapClose()
 
 int AutomapFLoad( xFile_t *fh )
 {
+
     return (dbgetBei( fh, &gAutomapScannerStatus ) != -1) - 1;
 }
 
 int AutomapFSave( xFile_t *fh )
 {
+
     return (dbputBei( fh, gAutomapScannerStatus ) != -1) - 1;
 }
 
 int AutomapUnk04( int a1 )
 {
+
     return gAutomapUnk10[ a1 ];
 }
 
@@ -262,18 +265,20 @@ void AutomapRender( int win, int MapLvl, char *a3, char Flags )
 
 int AutomapRenderMinimap( int WinId, int MapId, int MapLvl )
 {
-    char *surf, *p, c, color1, color2;
+    char *surf, *p, c, color1, color2,*n;
     int nible, j, e, i;
 
-    surf = WinGetSurface( WinId ) + 640*105 + 238;
+    surf = WIN_XY( 238, 105 - 25 , 640, WinGetSurface( WinId ) );
     color1 = gPalColorCubeRGB[0][31][0];
     color2 = gPalColorCubeRGB[0][15][0];
     if( !( gAutomapData = Malloc( 11024 ) ) ){ eprintf( "\nAUTOMAP: Error allocating data buffer!\n" ); return -1; }
+    memset( gAutomapData, 0, 11024 );
     if( AutomapCreateMinimap( MapId, MapLvl ) == -1 ){ Free( gAutomapData ); return -1; }
     nible = 0;
     p = gAutomapData;
-    for( i = 0; i < 200; i++, surf += 2*440 ){
-        for( j = 0; j < 200; j++, surf += 2, c <<= 2 ){
+    for( i = 0; i < 200; i++, surf += 640*2 ){
+	n = surf;
+        for( j = 0; j < 200; j++, n += 2, c <<= 2 ){
             if( --nible <= 0 ){
                 nible = 4;
                 c = *p++;
@@ -281,13 +286,13 @@ int AutomapRenderMinimap( int WinId, int MapId, int MapLvl )
             e = (c >> 6 ) & 0x03;
             if( e == 0 ) continue;
             if( e == 1 ){
-                surf[ 0 ] = color1;
-                surf[ 1 ] = color1;
+                n[ 0 ] = color1;
+                n[ 1 ] = color1;
                 continue;
             } 
 	    if( e == 2 ){
-                surf[ 0 ] = color2;
-                surf[ 1 ] = color2;
+                n[ 0 ] = color2;
+                n[ 1 ] = color2;
             }
         }
     }
@@ -468,11 +473,9 @@ int AutomapCreateMinimap( int MapId, int MapLvl )
 int AutomapWriteHdr( xFile_t *fh )
 {
     dbrewind( fh );
-    if( dbputb( fh, gAutomap_05.c01 ) == -1 || dbputLei( fh, gAutomap_05.i01 ) == -1 || dbputLeiBlk( fh, gAutomap_05.tab, 480 ) == -1 ){
-	eprintf( "\nAUTOMAP: Error writing automap database header!\n" );
-	dbClose( fh );
-	return -1;
-    }
+    if( dbputb( fh, gAutomap_05.c01 ) == -1 ){ eprintf( "AUTOMAP: Error writing automap database header! 1" ); dbClose( fh ); return -1; }
+    if( dbputLei( fh, gAutomap_05.i01 ) == -1 ){ eprintf( "AUTOMAP: Error writing automap database header! 2" ); dbClose( fh ); return -1; }
+    if( dbputLeiBlk( fh, gAutomap_05.tab, 480 ) == -1 ){ eprintf( "AUTOMAP: Error writing automap database header! 3" ); dbClose( fh ); return -1; }
     return 0;
 }
 
@@ -529,6 +532,7 @@ int AutomapCreateDatabase()
 
 int AutomapUnk17( int a1, int a2 )
 {
+
     if( a2 < 0 || a2 > 2 ) return 0;
     if( a1 < 0 || a1 > 159 ) return 0;
     return gAutomap_03[ 3 * a1 + a2 ] >= 0;

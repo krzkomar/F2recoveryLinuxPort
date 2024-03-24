@@ -336,9 +336,9 @@ int zread( zFile_t *stream, char *buff, int nsize )
 
 int zgetc( zFile_t *stream )
 {
-    char tmp;
+    int tmp = 0;
     
-    return ( zread( stream, &tmp, 1 ) == 1 ) ? tmp : -1;
+    return ( zread( stream, (char *)&tmp, 1 ) == 1 ) ? tmp : -1;
 }
 
 char *zgets( char *str, int nsize, zFile_t *stream )
