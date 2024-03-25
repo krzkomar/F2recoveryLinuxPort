@@ -27,7 +27,7 @@ int GameSysInit( char *ProgName, int flag1, int Font, int Flags, int argc, char 
             KeySetLang( 4 );
         }
     }
-    if( !gMapperEnable ) SysMapperInit();
+    if( !gMapperEnable ) SysSplash();
     DbgInit();
     FontMgrInit();
     FontSetup( &gFontInit );

@@ -578,7 +578,7 @@ int AnimSetCallback11( Obj_t *a1, AnimU_t a2, int (*Cb)(void *, void *), int a4 
     return 0;
 }
 
-int AnimSetCallback12( Obj_t *Critter, Obj_t *Target, AnimU_t Ap, int (*Cb)(Obj_t *, Obj_t *, int), int a5 )
+int AnimSetCallback12( Obj_t *Critter, Obj_t *Target, AnimU_t Ap, int (*Cb)(Obj_t *, Obj_t *, Obj_t *), int a5 )
 {
     Anim01_t *anim;
 
@@ -835,7 +835,8 @@ int AnimStateMachine( int AnimIdx )
                 if( !(err = anim->Callback11( anim->GpPtr, anim->Target.Obj ) ) ) err = AnimUpdate( AnimIdx, 0 );
                 break;
             case 12:
-                if( !(err = anim->Callback12( anim->GpPtr, anim->Target.Obj, anim->Ap.Int )) ) err = AnimUpdate( AnimIdx, 0 ); 
+printf("SDF=>%p\n", anim->Ap.Obj);
+                if( !(err = anim->Callback12( anim->GpPtr, anim->Target.Obj, anim->Ap.Obj )) ) err = AnimUpdate( AnimIdx, 0 ); 
                 break;
             case 14:
                 if( anim->i10 == 0x20 ) {

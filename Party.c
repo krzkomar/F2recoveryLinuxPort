@@ -83,7 +83,7 @@ int PartyInit()
                     member->LevelPids[ member->LevelPidsNo++ ] = Value;
                 }
             } else {
-                eprintf( "\nERROR:partyMember_init: Failed to load level information properly!\n" );
+                eprintf( "\nERROR:partyMember_init: Failed to load level information properly!" );
                 member->LevelMinimum = 0;
                 member->LevelUpEvery = 0;
             }
@@ -165,7 +165,7 @@ int PartyAddMember( Obj_t *dude )
     for( i = 0; i < gPartyMembersCount; i++ ){
     	if( dude == gParty[ i ].dude || gParty[ i ].dude->Pid == dude->Pid ) return 0; // dude is already in a party
     }
-    if( gPartyLock ){ eprintf( "\npartyMemberAdd DENIED: %s\n", CritterGetName( dude ) ); return -1; }
+    if( gPartyLock ){ eprintf( "\npartyMemberAdd DENIED: %s", CritterGetName( dude ) ); return -1; }
     gParty[ gPartyMembersCount ].dude = dude;
     gParty[ gPartyMembersCount ].Script = NULL;
     gParty[ gPartyMembersCount ].LocalVars = NULL;
@@ -196,7 +196,7 @@ int PartyRemoveMember( Obj_t *dude )
     }
     if( i == gPartyMembersCount ) return -1; // not found
 
-    if( gPartyLock ){ eprintf( "\npartyMemberRemove DENIED: %s\n", CritterGetName( dude ) ); return -1; }
+    if( gPartyLock ){ eprintf( "\npartyMemberRemove DENIED: %s", CritterGetName( dude ) ); return -1; }
     if( i < gPartyMembersCount - 1 ) gParty[ i ].dude = gParty[ gPartyMembersCount - 1 ].dude;
     dude->Flags &= ~0x404;
     gPartyMembersCount--;
@@ -264,11 +264,10 @@ Obj_t *PartyUnk03( int Pid )
 int PartyLoad()
 {
     int i;
-DD
+
     if( gPartyLock ) return -1;
     gPartyLock = 1;
     for( i = 0; i < gPartyMembersCount; i++ ){
-printf(">>%i/%i\n", i, gPartyMembersCount);
 	if( PartyPrepLoadInstance( &gParty[ i ] ) ) return -1;
     }
     return 0;
@@ -331,7 +330,7 @@ int PartyRecoverLoad()
     eprintf( "\n" );
     for( i = 0; i < gPartyMembersCount; i++ ){
     	if( PartyRecoverLoadInstance( &gParty[ i ] ) ) return -1;
-        eprintf( "[Party Member %d]: %s\n", i, CritterGetName( gParty[ i ].dude ) );
+        eprintf( "[Party Member %d]: %s", i, CritterGetName( gParty[ i ].dude ) );
     }                    
     while( gPartyUnk06 ){
     	tmp = gPartyUnk06;
@@ -399,7 +398,7 @@ int PartyFLoad( xFile_t *fh )
             if( j ){
                 gParty[ i ].dude = j; // add member to party list
             } else {
-                eprintf( "Couldn't find party member on map...trying to load anyway.\n" );
+                eprintf( "Couldn't find party member on map...trying to load anyway." );
                 if( (i + 1) >= gPartyMembersCount )
                     p[ i ] = 0;
                 else
@@ -593,7 +592,7 @@ int PartyItemSave( Obj_t *item )
 DD
         if( ScptPtr( item->ScrId, &scr ) == -1 ){ 
 //    	    WinMsgError( "\n  Error!: partyMemberItemSave: Can't find script!" ); 
-    	    eprintf("\nMissing script Id: %i (0x%x)\n", item->ScrId, item->ScrId); 
+    	    eprintf("\nMissing script Id: %i (0x%x)", item->ScrId, item->ScrId); 
     	    exit( 1 ); 
     	}
 DD
@@ -782,7 +781,7 @@ int PartyFix()
         else
             scr->TimeEv = gParty[ i ].dude;
     }
-    eprintf( "\nTotal Critter Count: %d\n", TotCrittCnt );
+    eprintf( "\nTotal Critter Count: %d", TotCrittCnt );
     return 0;
 }
 

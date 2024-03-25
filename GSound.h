@@ -131,7 +131,7 @@ int GSoundFileFind( const char *fpath );
 int GSoundFileCheck( const char *fname );
 int GSoundSetupPaths();
 int GSoundMapInit();
-int GSoundMapAmbient( int nu, int *arg);
+int GSoundMapAmbient( Obj_t *, int *arg );
 
 
 

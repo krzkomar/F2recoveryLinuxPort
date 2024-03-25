@@ -1,5 +1,7 @@
 #pragma once
 
+#define EV_SCRIPT_TIMER	3
+
 typedef struct 
 {
     int 	i01;

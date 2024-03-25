@@ -135,7 +135,7 @@ int  CritterUsingSkill( char Effect );
 int  CritterUnk40();
 void CritterUnk41();
 int  CritterUnk42();
-int  CritterUnk43( Obj_t *dude );
+int  CritterUnk43( Obj_t *dude, void * );
 void CritterUnk44( Obj_t *dude );
 int  CritterUnk45( Obj_t *dude1, Obj_t *dude2 );
 int  CritterUnk46();

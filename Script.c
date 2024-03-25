@@ -190,7 +190,7 @@ int ScptClockInit()
     return 0;
 }
 
-int ScptUnk146()
+int ScptMidnight( Obj_t *obj, int *Ptr )
 {
     int v4;
 
@@ -246,7 +246,7 @@ int ScptPlayMovieEv( int *pMovieId, int WinId )
     return 0;
 }
 
-int ScptUnk144()
+int ScptMapUpdateEv()
 {
     ScptExecMapUpdateScripts( SCPT_AEV_MAP_UPDATE_P_PROC );
     EvQeRun( 12, 0 );
@@ -465,17 +465,17 @@ int ScptUnk130( int a1, Scpt_t *a2 )
     return a1 == gScptUnk113 && a2->i01 == gScptUnk112;
 }
 
-int ScptAddTimerEvent( int ScrId, int a1, int a2 )
+int ScptAddTimerEvent( int ScrId, int Time, int Info )
 {
     int *p;
     Scpt_t *scr;
 
-    p = Malloc( 8 );
+    p = Malloc( sizeof( int[ 2 ] ) );
     if( !p ) return -1;
-    p[0] = a1;
-    p[1] = a2;
-    if( ScptPtr( a1, &scr ) == -1 ){ Free( p ); return -1; }
-    if( EvQeSchedule( a1, scr->TimeEv, p, 3 ) == -1 ){ Free( p ); return -1; }
+    p[ 0 ] = ScrId;
+    p[ 1 ] = Info;
+    if( ScptPtr( ScrId, &scr ) == -1 ){ Free( p ); return -1; }
+    if( EvQeSchedule( Time, scr->TimeEv, p, EV_SCRIPT_TIMER ) == -1 ){ Free( p ); return -1; }
     return 0;    
 }
 
@@ -497,13 +497,13 @@ int ScptLoadUnk17( xFile_t *fh, int **ptr )
     return 0;
 }
 
-int ScptUnk126( int Unused, Obj_t *obj )
+int ScptRunTimedEvent( Obj_t *obj, int *Ptr )
 {
     Scpt_t *scr;
 
-    if( ScptPtr( obj->TimeEv, &scr ) != -1 ){
-        scr->ArgVal = obj->GridId;
-        ScptRun( obj->TimeEv, SCPT_AEV_TIMED_EVENT_P_PROC );
+    if( ScptPtr( Ptr[ 0 ], &scr ) != -1 ){
+        scr->ArgVal = Ptr[ 1 ];
+        ScptRun( Ptr[ 0 ], SCPT_AEV_TIMED_EVENT_P_PROC );
     }
     return 0;
 }

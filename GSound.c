@@ -1196,10 +1196,10 @@ int GSoundSetupPaths()
 
 int GSoundMapInit()
 {
-    return GSoundMapAmbient(0, 0);
+    return GSoundMapAmbient( NULL, NULL );
 }
 
-int GSoundMapAmbient( int nu, int *arg)
+int GSoundMapAmbient( Obj_t *nu, int *arg )
 {
     int k, *p, time;
     char *SfxFileName = NULL;

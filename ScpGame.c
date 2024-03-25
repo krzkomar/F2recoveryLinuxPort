@@ -1747,7 +1747,7 @@ void ScrGame_SetObjVisibility( Intp_t *scr )
         return;
     }
     if( LsgPending() ){
-        eprintf( "\nError: attempt to set_obj_visibility in load/save-game: %s!\n", scr->FileName );
+        eprintf( "\nError: attempt to set_obj_visibility in load/save-game: %s!", scr->FileName );
         return;
     }
     if( val ){ // set visibility
@@ -2131,16 +2131,16 @@ void ScrGame_CritterDamage( Intp_t *scr )
 void ScrGame_OpAddTimerEvent( Intp_t *scr )
 {
     SCP_DBG_VAR;
-    int val[ 2 ];
+    int Time, Info;
     Obj_t *obj;
     uint16_t type[3];
 
-    GETARGI( scr, type[ 0 ], val[ 0 ], 0, "add_timer_event" );
-    GETARGI( scr, type[ 1 ], val[ 1 ], 1, "add_timer_event" );
+    GETARGI( scr, type[ 0 ], Info, 0, "add_timer_event" );
+    GETARGI( scr, type[ 1 ], Time, 1, "add_timer_event" );
     GETARGP( scr, type[ 2 ], obj, 2, "add_timer_event" );
-    SCP_DBGA( "add_timer_event( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], val[1], type[0], val[0] );
+    SCP_DBGA( "add_timer_event( [%x]%p, [%x]%i, [%x]%i )", type[2], obj, type[1], Time, type[0], Info );
     if( obj )
-        ScptAddTimerEvent( obj->ScrId, val[ 1 ], val[ 0 ] );
+        ScptAddTimerEvent( obj->ScrId, Time, Info );
     else
         ScrGameEprintf( "\nScript Error: %s: op_add_timer_event: pobj is NULL!", scr->FileName );
 }

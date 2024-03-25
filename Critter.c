@@ -687,7 +687,7 @@ int CritterUnk42()
     return gCrUnk02;    
 }
 
-int CritterUnk43( Obj_t *Obj )
+int CritterUnk43( Obj_t *Obj, void *Ptr )
 {
     if( Obj->Critter.State.CombatResult & 0x80 ) return 0;
     Obj->Critter.State.CombatResult &= ~0x03;

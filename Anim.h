@@ -34,7 +34,7 @@ typedef struct
     int Silence;		// 1 - noisy, 19 - stealth
     int Delay;			// 
     int (*Callback11)(void *, void *);	// 
-    int (*Callback12)(Obj_t *, Obj_t *, int );	// 
+    int (*Callback12)(Obj_t *, Obj_t *, void * );	// 
     int i10;			// obj flags type 
     AnimU_t Ap; 		// action points/object/skill no
     CachePool_t *ImgObj;	// 
@@ -126,7 +126,7 @@ int AnimTurnCW( Obj_t *a1 );
 int AnimUnk54( Obj_t *a1 );
 int AnimUnk55( Obj_t *a1 );
 int AnimSetCallback11( Obj_t *a1, AnimU_t a2, int (*a3)(void *, void *), int a4 );
-int AnimSetCallback12( Obj_t *a1, Obj_t *a2, AnimU_t Ap, int (*Callback)(Obj_t *, Obj_t *, int), int a5 );
+int AnimSetCallback12( Obj_t *a1, Obj_t *a2, AnimU_t Ap, int (*Callback)(Obj_t *, Obj_t *, Obj_t *), int a5 );
 int AnimSetFinish( void *a1, Obj_t *a2, int (*a3)(Obj_t *,Obj_t *), int a4 );
 int AnimUnk59( Obj_t *a1, int a2, int a3 );
 int AnimUnk60( Obj_t *a1, int a2, int a3 );

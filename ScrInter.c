@@ -714,6 +714,7 @@ int SciUnk26()
 
 void SciUnk27( char *fpath, Intp_t *a2, int cnt )
 {
+DD
 /*
     FILE *fh;
     char *v8, *v6;

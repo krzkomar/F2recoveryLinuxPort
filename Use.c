@@ -385,12 +385,18 @@ int UseDropObj( Obj_t *crit, Obj_t *obj )
 int UseUnk06( Obj_t *obj )
 {
     VidRect_t rect;
-
+DD
+printf(">>%p\n", obj );
     if( !obj ) return -1;
+DD
     if( obj->Owner ) UseUnk04( obj->Owner, obj );
+DD
     EvQeDelA( (void *)obj );
+DD
     ObjDestroy( obj, &rect );
+DD
     if( !obj->Owner ) TileUpdateArea( &rect, obj->Elevation );
+DD
     return 0;
 }
 

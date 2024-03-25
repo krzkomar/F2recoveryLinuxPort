@@ -12,7 +12,6 @@ int SysOpenDataBase();
 int SysOpenDataFiles();
 void SysLoadConfiguration( int MapperFlag, int argc, char **argv );
 void SysUnloadConfiguration( int SaveFlag );
-xFile_t *SysMapperInit();
 int gSysMasterDataFile;
 int gSysCritterDataFile;
 int gCfgInit = 0;
@@ -153,60 +152,44 @@ int SysOpenDataBase()
     return 0;
 }
 
-xFile_t *SysMapperInit()
+void SysSplash()
 {
 /*
-    int v0;
-    xFile_t *result;
-    int v2;
-    void *p;
-    void *g;
-    int v5;
-    xFile_t *v6;
-    xFile_t *v7;
-    char stmp[64];
-    char v9[64];
-    char pValue[4];
-    int EntryValue;
-    void *stream;
+    Pal8_t *pal;    
+    xFile_t *fh;
+    char stmp[64], fname[64], *Language, *art;
+    int EntryValue, i;
 
-    EntryValue = 0;
-    *pValue = 0;
-    CfgGetInteger(&gConfiguration, "system", "splash", &EntryValue);
-    v0 = 0;
-    result = CfgGetString(&gConfiguration, "system", "language", pValue);
-    if ( result == 1 && (result = strcasecmp(*pValue, "english")) != 0 )
-        result = sprintf(stmp, "art/%s/splash/", *pValue );
-    else
+    Language = NULL;
+    EntryValue = 0;    
+    CfgGetInteger( &gConfiguration, "system", "splash", &EntryValue );
+    if( CfgGetString( &gConfiguration, "system", "language", &Language ) != 1 || !strcasecmp( Language, "english" ) )
         strcpy( stmp, "art/splash/" );
-    while( v0 < 10 ){
-        sprintf(v9, "%ssplash%d.rix", stmp, EntryValue);
-        result = dbOpen(v9, aRb_15);
-        stream = result;
-        if ( result )
-            break;
-        ++v0;
-        if ( ++EntryValue >= 10 )
-            EntryValue = v2;
+    else
+        sprintf( stmp, "art/%s/splash/", Language );
+
+    for( i = 0; i < 10; i++ ){
+        sprintf( fname, "%ssplash%d.rix", stmp, EntryValue );
+        if(( fh = dbOpen( fname, "rb" ) )) break;
+        if( ++EntryValue >= 10 ) EntryValue = 0;
     }
-    if( stream ) return result;        
-    if( (g = Malloc( 0x300 )) ){        
-        if( (p = Malloc( 0x4B000 )) ){
-            SetPalette( gPaletteRGB );
-            dbseek( v6, v5, 0);
-            dbread( g, 1, 0x300, v7 );
-            dbread( p, 1, 0x4B000, stream );
-            dbClose(stream);
-            gVidCopyA( p, 640, 480, 0, 0, 640, 480, 0, 0 );
-            FadeInOut( g );
-            Free( p );
+    if( !fh ) return;    
+    if( (pal = Malloc( 768 )) ){
+        art = Malloc( 307200 );
+        if( art ){
+            FadeSetPalette( gFadePaletteC );
+            dbseek( fh, 10, 0 );
+            dbread( pal, 1, 768, fh );
+            dbread( art, 1, 307200, fh );
+            dbClose( fh );
+            gVidCopyA( art, 640, 480, 0, 0, 640, 480, 0, 0 );
+            FadeStep( pal );
+            Free( art );
         }
-        Free(g);
+        Free( pal );
     }
-    return CfgSetInteger( &gConfiguration, "system", "splash", EntryValue + 1 );
+    CfgSetInteger( &gConfiguration, "system", "splash", EntryValue + 1 );
 */
-DD
-return NULL;
 }
 
 void SysLoadConfiguration( int MapperFlag, int argc, char **argv )
