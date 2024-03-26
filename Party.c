@@ -988,10 +988,10 @@ int PartyUnk33( Obj_t *a1 )
     return ( !( a1->Critter.State.CombatResult & 0x80 ) ) - 1;
 }
 
-int PartyUnk34( Obj_t *obj, ItemEv01_t *a2 )
+int PartyUnk34( Obj_t *obj, ItemEv01_t *ef )
 {
     if( obj != gPartyUnk101 ) return 0;
-    Item105( obj, a2 );
+    ItemChemUseEv( obj, ef );
     return 1;
 }
 

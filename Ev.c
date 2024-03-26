@@ -1,17 +1,17 @@
 #include "FrameWork.h"
 // Trigger(Obj_t*, void *) / Free( void *) / Load( fh, int *) / Save( fh, int *) / RunAuto / CbAuto(Obj_t *, int *)
 EvFunc_t gEvMethods[ 14 ] = {
-    { (void *)Item105, 			(void *)Free, (void *)ItemLoadEffects,   (void *)ItemSaveEffects, 	1, (void *)Item103 }, 	// 0 load/save
-    { (void *)CritterUnk43, 		NULL, NULL, 		 NULL, 			1, (void *)CritterUnk44 }, 			// 1
-    { (void *)ItemWithdrawal,  		(void *)Free, (void *)ItemWithdrawalLoad,(void *)ItemWithdrawalSave, 	1, (void *)Item109 }, 	// 2 withdrawal money
-    { (void *)ScptRunTimedEvent,	(void *)Free, (void *)ScptLoadUnk17,   	 (void *)ScptUnk128, 		1, NULL }, 		// 3 run timed_event script procedure
-    { (void *)ScptMidnight, 		NULL, NULL, 		 NULL, 			1, NULL }, 					// 4 run at midnight
-    { (void *)CritterPoison, 		NULL, NULL, 		 NULL, 			0, NULL }, 					// 5 Poison
-    { (void *)CritterRadUnk02,  	(void *)Free, (void *)CritterLoadUnk01,  (void *)CritterSaveUnk01, 	0, NULL }, 		// 6 Rad
+    { (void *)ItemChemUseEv,		(void *)Free, (void *)ItemLoadEffects,   (void *)ItemSaveEffects, 	1, (void *)ItemChemUsePMEv }, 	// 0 load/save chem state
+    { (void *)CritterKnockDownEv,	NULL, NULL, 		 NULL, 			1, (void *)CritterUnk44 }, 			// 1
+    { (void *)ItemWithdrawalEv,		(void *)Free, (void *)ItemWithdrawalLoad,(void *)ItemWithdrawalSave, 	1, (void *)Item109 }, 	// 2 withdrawal money
+    { (void *)ScptRunTimedEv,		(void *)Free, (void *)ScptLoadTimedEv,   	 (void *)ScptSaveTimedEv, 		1, NULL }, 		// 3 run timed_event script procedure
+    { (void *)ScptMidnightEv, 		NULL, NULL, 		 NULL, 			1, NULL }, 					// 4 run at midnight
+    { (void *)CritterPoisonEv, 		NULL, NULL, 		 NULL, 			0, NULL }, 					// 5 Poison
+    { (void *)CritterRadEv,	  	(void *)Free, (void *)CritterLoadUnk01,  (void *)CritterSaveUnk01, 	0, NULL }, 		// 6 Rad
     { (void *)EvQeUnk10, 		NULL, NULL, 		 NULL, 			1, (void *)EvQeUnk10 }, 			// 7 ?
     { (void *)EvQeExplosionFail, 	NULL, NULL, 		 NULL, 			1, (void *)EvQeExplosionSuccess }, 		// 8 Explosion
     { (void *)ItemDeviceUse, 		NULL, NULL, 		 NULL, 			1, (void *)ItemDeviceOffCb }, 			// 9 Device On/Off
-    { (void *)CritterUnk40, 		NULL, NULL, 		 NULL, 			1, (void *)CritterUnk41 }, 			// 10 ?
+    { (void *)CritterSneakEv, 		NULL, NULL, 		 NULL, 			1, (void *)CritterUnk41 }, 			// 10 ?
     { (void *)EvQeExplosionOnSelf, 	NULL, NULL, 		 NULL, 			1, (void *)EvQeExplosionSuccess },  		// 11 Inept handling explosives, self detonation
     { (void *)ScptMapUpdateEv, 		NULL, NULL, 		 NULL, 			1, NULL }, 					// 12
     { (void *)GSoundMapAmbient, 	(void *)Free, NULL, 		 NULL, 			1, NULL }				// 13 Sound ambient effect

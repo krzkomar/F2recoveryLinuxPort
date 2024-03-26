@@ -157,7 +157,7 @@ int CritterPoisonInc( Obj_t *dude, int val ) // poison
     return 0;
 }
 
-int CritterPoison( Obj_t *dude, MsgLine_t *MsgLine )
+int CritterPoisonEv( Obj_t *dude, MsgLine_t *MsgLine )
 {
     if( dude != gObjDude ) return 0;
     CritterPoisonInc( dude, -2 );
@@ -286,19 +286,19 @@ void CritterRadApply( Obj_t *dude, int a2, int a3)
     }    
 }
 
-void CritterRadUnk02( Obj_t *dude, int *a2 )
+void CritterRadEv( Obj_t *dude, int *a2 )
 {
     int *p;
 
     if( a2[1] == 0 ){
-    if( !(p = Malloc( 8 ) ) ) return;    
+	if( !(p = Malloc( sizeof( int[ 2 ] ) ) ) ) return;    
 	EvQeRun( 6, (void *)CritterUnk11 );
 	p[0] = a2[0];
 	p[1] = 1;
 DD
 //	EvQeSchedule( gCrUnk07, dude, p, 6 ); !!!!!!!!
     }
-    CritterRadApply( dude, *a2, a2[1] );    
+    CritterRadApply( dude, a2[0], a2[1] );
 }
 
 int CritterLoadUnk01( xFile_t *fh, int **dat )
@@ -621,7 +621,7 @@ void CritterUnk37( char a1 )
 
     ProtoGetObj( gObjDude->Pid, &proto );
     proto->Critt.Type |= 1 << a1;
-    if( !a1 ) CritterUnk40();
+    if( !a1 ) CritterSneakEv();
     IfaceIndicatorBoxUpdate();
 }
 
@@ -629,7 +629,7 @@ void CritterUnk38( char a1 )
 {
     Proto_t *proto;
 
-    ProtoGetObj(gObjDude->Pid, &proto);
+    ProtoGetObj( gObjDude->Pid, &proto );
     if( ( (1 << a1) & proto->Critt.Type) )
         CritterUnk36( a1 );
     else
@@ -644,32 +644,32 @@ int CritterUsingSkill( char Effect )
     return (1 << Effect) & proto->Critt.Type;
 }
 
-int CritterUnk40()
+int CritterSneakEv()
 {
-    int Total, v1;
+    int lvl, time;
 
-    Total = SkillGetTotal( gObjDude, 8u );
-    v1 = 600;
+    lvl = SkillGetTotal( gObjDude, SKILL_SNEAK );
+    time = 600;
     gCrUnk02 = 0;
-    if( SkillUse( gObjDude, 8, 0, 0 ) < 2 ){
-        if( Total > 250 ){
-            v1 = 100;
-        } else if( Total > 200 ){
-            v1 = 120;
-        } else if( Total > 170 ){
-            v1 = 150;
-        } else if( Total > 135 ){
-            v1 = 200;
-        } else if( Total > 100 ){
-            v1 = 300;
-        } else if( Total > 80 ){
-    	    v1 = 400;
+    if( SkillUse( gObjDude, SKILL_SNEAK, 0, 0 ) < 2 ){
+        if( lvl > 250 ){
+            time = 100;
+        } else if( lvl > 200 ){
+            time = 120;
+        } else if( lvl > 170 ){
+            time = 150;
+        } else if( lvl > 135 ){
+            time = 200;
+        } else if( lvl > 100 ){
+            time = 300;
+        } else if( lvl > 80 ){
+    	    time = 400;
         }
     } else {
-        v1 = 600;
+        time = 600;
         gCrUnk02 = 1;
     }
-    EvQeSchedule( v1, gObjDude, 0, 10 );
+    EvQeSchedule( time, gObjDude, 0, 10 );
     return 0;
 }
 
@@ -687,11 +687,11 @@ int CritterUnk42()
     return gCrUnk02;    
 }
 
-int CritterUnk43( Obj_t *Obj, void *Ptr )
+int CritterKnockDownEv( Obj_t *Obj, void *Ptr )
 {
-    if( Obj->Critter.State.CombatResult & 0x80 ) return 0;
-    Obj->Critter.State.CombatResult &= ~0x03;
-    Obj->Critter.State.CombatResult |= 0x02;
+    if( Obj->Critter.State.CombatResult & CMBT_DAM_DEAD ) return 0;
+    Obj->Critter.State.CombatResult &= ~( CMBT_DAM_KNOCKED_OUT | CMBT_DAM_KNOCKED_DOWN );
+    Obj->Critter.State.CombatResult |= CMBT_DAM_KNOCKED_DOWN;
     if( IN_COMBAT ){
         Obj->Critter.State.Reaction |= 0x01;
         return 0;
@@ -703,8 +703,8 @@ int CritterUnk43( Obj_t *Obj, void *Ptr )
 void CritterUnk44( Obj_t *dude )
 {
     if( OBJTYPE( dude->Pid ) != 1 ) return;
-    if( dude->Critter.State.CombatResult & 0x80  ) return;
-    dude->Critter.State.CombatResult &= ~0x03;
+    if( dude->Critter.State.CombatResult & CMBT_DAM_DEAD  ) return;
+    dude->Critter.State.CombatResult &= ~( CMBT_DAM_KNOCKED_OUT | CMBT_DAM_KNOCKED_DOWN );
     ObjSetShape( dude, ArtMakeId( OBJTYPE( dude->ImgId ), dude->ImgId & 0xFFF, 0, (dude->ImgId & 0xF000) >> 12, dude->Orientation + 1 ), 0 );
 }
 

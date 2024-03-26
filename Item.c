@@ -1880,14 +1880,14 @@ int ItemUnk07( Obj_t *Obj1, Obj_t *Obj2 )
     return 1;    
 }
 
-int Item103( Obj_t *obj, ItemEv01_t *eff )
+int ItemChemUsePMEv( Obj_t *obj, ItemEv01_t *eff )
 {
     if( PartyMembRdy( obj ) ) return 0;
-    Item105( obj, eff );
+    ItemChemUseEv( obj, eff );
     return 1;
 }
 
-int Item105( Obj_t *Obj, ItemEv01_t *eff )
+int ItemChemUseEv( Obj_t *Obj, ItemEv01_t *eff )
 {
     if( !Obj ) return 0;
     if( OBJTYPE(Obj->Pid) != 1 ) return 0;
@@ -1944,7 +1944,7 @@ int Item110( Obj_t *obj, EvEntry_t *Effect )
     return 1;
 }
 
-int ItemWithdrawal( Obj_t *obj, EvEntry_t *effect )
+int ItemWithdrawalEv( Obj_t *obj, EvEntry_t *effect )
 {
     int GVarId;
 

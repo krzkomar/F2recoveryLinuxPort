@@ -553,7 +553,7 @@ int CombatTaskCb()
     if( CritterUnk31( gObjDude ) ){
         if( !CritterIsDead( gObjDude ) && !gCombat10 ){
             EvQeDelB( gObjDude, 1 );
-            return CritterUnk43( gObjDude, NULL );
+            return CritterKnockDownEv( gObjDude, NULL );
         }
         return 0;
     }

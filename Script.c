@@ -190,7 +190,7 @@ int ScptClockInit()
     return 0;
 }
 
-int ScptMidnight( Obj_t *obj, int *Ptr )
+int ScptMidnightEv( Obj_t *obj, int *Ptr )
 {
     int v4;
 
@@ -479,14 +479,14 @@ int ScptAddTimerEvent( int ScrId, int Time, int Info )
     return 0;    
 }
 
-int ScptUnk128( xFile_t *a1, int *a2 )
+int ScptSaveTimedEv( xFile_t *fh, int *p )
 {
-    if( dbputBei( a1, a2[ 0 ] ) == -1 ) return -1;
-    if( dbputBei( a1, a2[ 1 ] ) == -1 ) return -1;
+    if( dbputBei( fh, p[ 0 ] ) == -1 ) return -1;
+    if( dbputBei( fh, p[ 1 ] ) == -1 ) return -1;
     return 0;
 }
 
-int ScptLoadUnk17( xFile_t *fh, int **ptr )
+int ScptLoadTimedEv( xFile_t *fh, int **ptr )
 {
     int *p;
 
@@ -497,7 +497,7 @@ int ScptLoadUnk17( xFile_t *fh, int **ptr )
     return 0;
 }
 
-int ScptRunTimedEvent( Obj_t *obj, int *Ptr )
+int ScptRunTimedEv( Obj_t *obj, int *Ptr )
 {
     Scpt_t *scr;
 
