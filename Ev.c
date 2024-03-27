@@ -141,7 +141,7 @@ void EvQeRmEvent( Obj_t *obj )
     Ev_t *qe;
     Ev_t **pp;
     Ev_t *p;
-DD
+
     qe = gEvQueue;
     pp = &gEvQueue;
     while( qe ){
@@ -149,7 +149,6 @@ DD
             p = qe;
             qe = qe->Next;
             *pp = qe;
-printf("-->%p %p %i\n", p, p->Ptr, p->Method );
             if( gEvMethods[ p->Method ].Free ) gEvMethods[ p->Method ].Free( p->Ptr );
             Free( p );
         } else {
@@ -298,7 +297,7 @@ int EvQeExplode( Obj_t *obj, int OnSelf )
         DmgMin += 10;
     }
     if( ActionExplode( GridId, Elevation, DmgMin, DmgMax, gObjDude, OnSelf ) == -2 )
-        EvQeSchedule( 50, obj, 0, 8 );
+        EvQeSchedule( 50, obj, NULL, EV_EXPLOSION_TIMER );
     else
         UseUnk06( obj );
     return 1;
@@ -358,15 +357,15 @@ int *EvQeFindNextPtr( Obj_t *obj, int MethodIdx )
     return NULL;
 }
 
-int EvQeUnk19( Obj_t *obj, int a2 )
+int EvQeUnk19( Obj_t *obj, int val )
 {
-    ScptSetLocVar(obj->ScrId, 0, a2);
+    ScptSetLocVar( obj->ScrId, 0, val );
     return 0;
 }
 
-int EvQeUnk20( int a1 )
+int EvQeUnk20( int a1, int a2, int a3 )
 {
-    if( a1 <= -75 ) return 0;//EvQeGetReactionInfluence( );
+    if( a1 <= -75 ) return EvQeGetReactionInfluence( a1, a2, a3 );
     if( a1 <= -50 ) return 0;
     if( a1 <= -25 ) return 0;
     if( a1 <= -10 ) return 0;
@@ -379,30 +378,30 @@ int EvQeGetReactionInfluence( int a, int b, int c )
     return 0;
 }
 
-int EvQeUnk22( int a1, int a2 )
+int EvQeUnk22( int sid, int a2 ) // not used
 {
-    int v2;
+    int val;
 
     if( a2 > -75 ){
-        if( a2 <= -50 ){ ScptSetLocVar( a1, 1, -3 ); return EvQeUnk20( a2 ); }
-        if( a2 <= -25 ){ ScptSetLocVar( a1, 1, -2 ); return EvQeUnk20( a2 ); }
-        if( a2 <= -10 ){ ScptSetLocVar( a1, 1, -1 ); return EvQeUnk20( a2 ); }
-        if( a2 <= 10  ){ ScptSetLocVar( a1, 1, 0  ); return EvQeUnk20( a2 ); }
-        if( a2 <= 25  ){ ScptSetLocVar( a1, 1, 1  ); return EvQeUnk20( a2 ); }
-        if( a2 <= 50  ){ ScptSetLocVar( a1, 1, 2  ); return EvQeUnk20( a2 ); }
-        if( a2 <= 75  ){ ScptSetLocVar( a1, 1, 3  ); return EvQeUnk20( a2 ); }
-        v2 = 4;
+        if( a2 <= -50 ){ ScptSetLocVar( sid, 1, -3 ); return EvQeUnk20( a2, sid, -3 ); }
+        if( a2 <= -25 ){ ScptSetLocVar( sid, 1, -2 ); return EvQeUnk20( a2, sid, -2 ); }
+        if( a2 <= -10 ){ ScptSetLocVar( sid, 1, -1 ); return EvQeUnk20( a2, sid, -1 ); }
+        if( a2 <= 10  ){ ScptSetLocVar( sid, 1, 0  ); return EvQeUnk20( a2, sid, 0 ); }
+        if( a2 <= 25  ){ ScptSetLocVar( sid, 1, 1  ); return EvQeUnk20( a2, sid, 1 ); }
+        if( a2 <= 50  ){ ScptSetLocVar( sid, 1, 2  ); return EvQeUnk20( a2, sid, 2 ); }
+        if( a2 <= 75  ){ ScptSetLocVar( sid, 1, 3  ); return EvQeUnk20( a2, sid, 3 ); }
+        val = 4;
     } else {
-        v2 = -4;
+        val = -4;
     }
-    ScptSetLocVar( a1, 1, v2 );
-    return EvQeUnk20( a2 );
+    ScptSetLocVar( sid, 1, val );
+    return EvQeUnk20( a2, sid, val );
 }
 
 int EvQeUnk23( Obj_t *obj )
 {
-    int tmp;
+    int val;
 
-    if( ScptGetLocVar( obj->ScrId, 0, &tmp ) != -1 ) return -1;
-    return tmp;    
+    if( ScptGetLocVar( obj->ScrId, 0, &val ) != -1 ) return -1;
+    return val;    
 }

@@ -53,7 +53,7 @@ void ActionUnk05( int a1, int edx0, int a3, int a4, int a5, int a6, int a7 );
 int ActionUnk100( Combat_t *cmbt );
 int ActionUnk04( int Min, int Max, Obj_t *obj, int *a4, int a5 );
 int ActionCritterTalkTo( Obj_t *a1, Obj_t *a2 );
-int ActionUnk02( Obj_t *a1, Obj_t *a2 );
+int ActionPushPM( Obj_t *a1, Obj_t *a2 );
 int ActionTargetAccessible( Obj_t *Crit, Obj_t *Target );
 
 

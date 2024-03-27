@@ -1281,42 +1281,40 @@ int ActionCritterTalkTo( Obj_t *Src, Obj_t *Trg )
     return WhoHitMe->Critter.State.GroupId != Src->Critter.State.GroupId;    
 }
 
-int ActionUnk02( Obj_t *a1, Obj_t *a2 )
+int ActionPushPM( Obj_t *a1, Obj_t *a2 )
 {
-    int v6;
-    int v8;
-    int i18;
-    int Id;
+    int dir, pos, i18, Id;
     Scpt_t *scr;
-DD
+
     if( !ActionCritterTalkTo( a1, a2 ) ) return -1;
     if( UseGetScriptId( a2, &Id ) != -1 ){
         ScptSetup( Id, a1, a2 );
         ScptRun( Id, SCPT_AEV_PUSH_P_PROC );
+        i18 = 0;
         if( ScptPtr( Id, &scr ) != -1 ) i18 = scr->OverrideFlag;
         if( i18 ) return -1;
     }
-    v6 = TileTurnAt( a1->GridId, a2->GridId );
-    v8 = TileGetTileNumInDir( i18, v6, 1 );
-    if( ObjReach(a2, v8, a2->Elevation ) ){
-        v8 = TileGetTileNumInDir( i18, (v6 + 1) % 6, 1 );
-        if( ObjReach( a2, v8, a2->Elevation ) ){
-            v8 = TileGetTileNumInDir(i18, (v6 + 5) % 6, 1);
-            if( ObjReach(a2, v8, a2->Elevation) ){
-                v8 = TileGetTileNumInDir(i18, (v6 + 2) % 6, 1);
-                if( ObjReach(a2, v8, a2->Elevation) ){
-                    v8 = TileGetTileNumInDir(i18, (v6 + 4) % 6, 1);
-                    if( ObjReach(a2, v8, a2->Elevation) ){
-                        v8 = TileGetTileNumInDir(i18, (v6 + 3) % 6, 1);
-                        if( ObjReach( a2, v8, a2->Elevation ) ) return -1;
+    dir = TileTurnAt( a1->GridId, a2->GridId );
+    pos = TileGetTileNumInDir( a2->GridId, dir, 1 );
+    if( ObjReach(a2, pos, a2->Elevation ) ){
+        pos = TileGetTileNumInDir( a2->GridId, (dir + 1) % 6, 1 );
+        if( ObjReach( a2, pos, a2->Elevation ) ){
+            pos = TileGetTileNumInDir(a2->GridId, (dir + 5) % 6, 1);
+            if( ObjReach(a2, pos, a2->Elevation) ){
+                pos = TileGetTileNumInDir(a2->GridId, (dir + 2) % 6, 1);
+                if( ObjReach(a2, pos, a2->Elevation) ){
+                    pos = TileGetTileNumInDir(a2->GridId, (dir + 4) % 6, 1);
+                    if( ObjReach(a2, pos, a2->Elevation) ){
+                        pos = TileGetTileNumInDir(a2->GridId, (dir + 3) % 6, 1);
+                        if( ObjReach( a2, pos, a2->Elevation ) ) return -1;
                     }
                 }
             }
         }
     }
-    AnimRegStart(2);
-    AnimUnk51(a2, v8);
-    AnimObjMoveToTile(a2, v8, a2->Elevation, i18, 0);
+    AnimRegStart( 2 );
+    AnimUnk51( a2, pos );
+    AnimObjMoveToTile( a2, pos, a2->Elevation, ( IN_COMBAT ) ? a2->Critter.State.CurrentAP : -1, 0 );
     return AnimRegEnd();
 }
 

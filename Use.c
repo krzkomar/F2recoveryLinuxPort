@@ -462,7 +462,7 @@ int UseLightFlare( Obj_t *crit, Obj_t *obj )
         }
         obj->Pid = PID_LIGHTEDFLARE;
         ObjSetLight( obj, 8, 0x10000, 0 );
-        EvQeSchedule( 72000, obj, 0, 7 );
+        EvQeSchedule( 72000, obj, NULL, EV_FLARE_TIMER );
     }
     return 0;
 }
@@ -518,7 +518,7 @@ int UseSetTimer( Obj_t *obj )
             } else {
                 skill = SKILL_TRAPS;
             }
-            EvQeSchedule( time, obj, 0, skill );
+            EvQeSchedule( time, obj, NULL, skill );
         }
     }
     return 2;

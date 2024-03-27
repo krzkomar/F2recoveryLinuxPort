@@ -1215,7 +1215,7 @@ int GSoundMapAmbient( Obj_t *nu, int *arg )
     if( !gMap.Name[ 0 ] ) return 0;
     if( WmUnk92() > 0 ){
 	*p = WmUnk93();
- 	if( EvQeSchedule( 10 * RandMinMax( 15, 20 ), 0, p, 13 ) == -1 ) return -1;
+ 	if( EvQeSchedule( 10 * RandMinMax( 15, 20 ), NULL, p, EV_SNDAMBIENT_TIMER ) == -1 ) return -1;
     }
     if( IN_COMBAT ) k = -1;
     if( k == -1 ) return 0;

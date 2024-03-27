@@ -1771,7 +1771,7 @@ void CombatUnk56( Obj_t *obj, int a2 )
     if( !obj || OBJTYPE( obj->ImgId ) != TYPE_CRIT || CritterGetInjure( obj->Pid, 1024 ) || OBJTYPE( obj->Pid ) != TYPE_CRIT ) return;    
     if( !(a2 & 0x80) ){
         if( a2 & 0x01 ){
-            EvQeSchedule( 10 * (35 - 3 * FeatGetVal( obj, FEAT_ENDURANCE ) ), obj, 0, 1 );
+            EvQeSchedule( 10 * (35 - 3 * FeatGetVal( obj, FEAT_ENDURANCE ) ), obj, NULL, EV_KNOCKDOWN_TIMER );
         }
     } else {
         EvQeRmEvent( obj );

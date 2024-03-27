@@ -2620,7 +2620,7 @@ int InvMenuBarter( int WinId, Obj_t *Merchant, Obj_t *MerchantStackObj, Obj_t *D
     WinUpdate( gInvUnk18 );
     InvBarterStack( WinId, DudeStackObj, MerchantStackObj, -1 );
     InvSetInfoMode( 0 );
-    switch( EvQeUnk20( EvQeUnk23( Merchant ) ) ){
+    switch( EvQeUnk20( EvQeUnk23( Merchant ), 0, 0 ) ){
 	case 0: v59 = 25; break;
 	case 1: v59 = 0; break;
 	case 2: v59 = -15; break;

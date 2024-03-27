@@ -144,7 +144,7 @@ int CritterPoisonInc( Obj_t *dude, int val ) // poison
     gObjDude->Critter.Poisoned += val;
     if( gObjDude->Critter.Poisoned > 0 ){
         EvQeRun( 5, 0 );
-        EvQeSchedule( 10 * (505 - 5 * gObjDude->Critter.Poisoned), gObjDude, 0, 5 );
+        EvQeSchedule( 10 * (505 - 5 * gObjDude->Critter.Poisoned), gObjDude, 0, EV_POISON_TIMER );
         MsgLine.Id = 3000; // 'you have been poisoned'
         if( val < 0 ) MsgLine.Id = 3002; // 'you fill a little better'
         if( MessageGetMsg( &gMessage, &MsgLine ) == 1 ) IfcMsgOut( MsgLine.Text );
@@ -242,7 +242,7 @@ void CritterRadSetDose( Obj_t *dude )
         if( !(p = Malloc( 8 )) ) return;
         p[1] = 0;
         p[0] = RadCat;
-        EvQeSchedule( 36000 * RandMinMax( 4, 18 ), dude, p, 6 );
+        EvQeSchedule( 36000 * RandMinMax( 4, 18 ), dude, p, EV_RAD_TIMER );
     }
     cr->Type &= ~0x02;        
 }
@@ -296,7 +296,7 @@ void CritterRadEv( Obj_t *dude, int *a2 )
 	p[0] = a2[0];
 	p[1] = 1;
 DD
-//	EvQeSchedule( gCrUnk07, dude, p, 6 ); !!!!!!!!
+//	EvQeSchedule( gCrUnk07, dude, p, EV_RAD_TIMER );
     }
     CritterRadApply( dude, a2[0], a2[1] );
 }
@@ -669,7 +669,7 @@ int CritterSneakEv()
         time = 600;
         gCrUnk02 = 1;
     }
-    EvQeSchedule( time, gObjDude, 0, 10 );
+    EvQeSchedule( time, gObjDude, NULL, EV_SNEAK_TIMER );
     return 0;
 }
 

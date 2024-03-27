@@ -1529,7 +1529,7 @@ void ScrGame_StartGdialog( Intp_t *scr )
     GdialogSetBg( BackGroundIdx );
     gScrGameMood = Mood;
     if( gDlgHeadId != -1 ){
-        if( (n = EvQeUnk20( EvQeUnk23( gDlgPartyMemberObj ) )) ){
+        if( (n = EvQeUnk20( EvQeUnk23( gDlgPartyMemberObj ), 0, 0 )) ){
             if( n <= 1 ){
                 gScrGameMood = 4;
             } else if( n == 2 ){

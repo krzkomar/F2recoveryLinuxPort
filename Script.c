@@ -184,9 +184,12 @@ void ScptTimeCap2( int dsec )
 
 int ScptClockInit()
 {
-    if( EvQeSchedule( 10 * (60 * (60 - (gScptInGameDekaSeconds / 600) % 60 - 1) + 3600 * (24 - (gScptInGameDekaSeconds / 600) / 60 % 24 - 1) + 60), 0, 0, 4 ) == -1 ) return -1;
+    if( EvQeSchedule( 
+	    10 * (60 * (60 - (gScptInGameDekaSeconds / 600) % 60 - 1) + 3600 * (24 - (gScptInGameDekaSeconds / 600) / 60 % 24 - 1) + 60), 
+	    NULL, NULL, EV_MIDNIGHT_TIMER 
+      ) == -1 ) return -1;
     if( !gMap.Name[ 0 ] ) return 0;
-    if( EvQeSchedule( 600, 0, 0, 12 ) == -1 ) return -1;
+    if( EvQeSchedule( 600, NULL, NULL, EV_MAPUPDATE_TIMER ) == -1 ) return -1;
     return 0;
 }
 
@@ -251,7 +254,7 @@ int ScptMapUpdateEv()
     ScptExecMapUpdateScripts( SCPT_AEV_MAP_UPDATE_P_PROC );
     EvQeRun( 12, 0 );
     if( !gMap.Name[0] ) return 0;
-    if( EvQeSchedule( 600, 0, 0, 12 ) == -1 ) return -1;
+    if( EvQeSchedule( 600, 0, 0, EV_MAPUPDATE_TIMER ) == -1 ) return -1;
     return 0;    
 }
 

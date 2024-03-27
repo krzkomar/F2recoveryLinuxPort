@@ -11,7 +11,7 @@
 #define INV_ACT_USE		6
 #define INV_ACT_UNLOAD		7
 #define INV_ACT_SKILL		8
-#define INV_ACT_9		9
+#define INV_ACT_PUSH		9
 
 typedef struct 
 {

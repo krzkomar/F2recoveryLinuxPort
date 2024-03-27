@@ -487,7 +487,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
             	    MenuPositions = 1; 
             	    IconMenu[ 0 ] = INV_ACT_USE; 
             	} 
-            	if( ActionCritterTalkTo( gObjDude, obj ) ) IconMenu[ MenuPositions++ ] = INV_ACT_9; 
+            	if( ActionCritterTalkTo( gObjDude, obj ) ) IconMenu[ MenuPositions++ ] = INV_ACT_PUSH; 
             }
             IconMenu[ MenuPositions++ ] = INV_ACT_INSPECT; 
             IconMenu[ MenuPositions++ ] = INV_ACT_TAKE; 
@@ -563,7 +563,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                 case 8: ActionSkillUse( gObjDude, obj, SKILL_REPAIR ); break;
             }
             break;
-        case INV_ACT_9: ActionUnk02( gObjDude, obj ); break;
+        case INV_ACT_PUSH: ActionPushPM( gObjDude, obj ); break;
     }
 }
 

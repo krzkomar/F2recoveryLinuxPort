@@ -1,16 +1,21 @@
 #pragma once
 
-#define EV_CHEMUSE_TIMER	0
-#define EV_KNOCKDOWN_TIMER	1
-#define EV_WITHDRAW_TIMER	2
-#define EV_SCRIPT_TIMER		3
-#define EV_MIDNIGHT_TIMER	4
-#define EV_POISON_TIMER		5
-#define EV_RAD_TIMER		6
-
-#define EV_EXPLOSION_TIMER	8
-#define EV_DEVICE_TIMER		9
-#define EV_SNEAK_TIMER		10
+enum{
+    EV_CHEMUSE_TIMER = 0,
+    EV_KNOCKDOWN_TIMER,
+    EV_WITHDRAW_TIMER,
+    EV_SCRIPT_TIMER,
+    EV_MIDNIGHT_TIMER,
+    EV_POISON_TIMER,
+    EV_RAD_TIMER,
+    EV_FLARE_TIMER,
+    EV_EXPLOSION_TIMER,
+    EV_DEVICE_TIMER,
+    EV_SNEAK_TIMER,
+    EV_EXPLOSIONONSELF_TIOMER,
+    EV_MAPUPDATE_TIMER,
+    EV_SNDAMBIENT_TIMER,
+};
 
 typedef struct 
 {
@@ -61,7 +66,7 @@ int  EvQeIsEmpty();
 int  *EvQeFindPtr( Obj_t *obj, int MethodIdx );
 int  *EvQeFindNextPtr( Obj_t *obj, int MethodIdx );
 int  EvQeUnk19( Obj_t *obj, int a2 );
-int  EvQeUnk20( int a1 );
+int  EvQeUnk20( int a1, int a2, int a3 );
 int  EvQeGetReactionInfluence( int, int, int );
 int  EvQeUnk22( int a1, int a2 );
 int  EvQeUnk23( Obj_t *obj );
