@@ -100,35 +100,35 @@ extern int gGValCount;
 
 typedef struct 
 {
-  int Id;
-  int i01;
-  int HexOrTimer; // spatial Hex or timer
-  int Radius;	  // spatial radius
-  int Flags;
-  int LocVarId;
-    Intp_t *Intp;
-    int i08;
-  int LocalVarBase;	// base position for local variables in gMapLocalVars
-  int LocVarsCnt;
-  int i11; 	// ret value
-  int ActionEventId;	// proc id
-  int ArgVal;
-  Obj_t *TimeEv; // ptr ?
-    Obj_t *SourceObj; // source obj
-    Obj_t *TargetObj; // target obj
-  int i17;	// action being used flag
-  int OverrideFlag;	// override
-  int i19;
-  int i20;
-  int i21;
-  int ActionEventsIdx[ SCPT_AEV_ALL ];	// prototype procedures 'Action Events'
-  int i23;
-  int i24;
-  int i25;
-  int i26;
-  int i27;
-  int i28;
-  int i29;
+    int 	Id;
+    int 	i01;
+    int 	HexOrTimer; // spatial Hex or timer
+    int 	Radius;	  // spatial radius
+    int 	Flags;
+    int 	LocVarId;
+    Intp_t 	*Intp;
+    int 	i08;
+    int 	LocalVarBase;	// base position for local variables in gMapLocalVars
+    int 	LocVarsCnt;
+    int 	i11; 	// ret value
+    int 	ActionEventId;	// proc id
+    int 	ArgVal;	// fixed_param
+    Obj_t 	*TimeEv; // ptr ?
+    Obj_t 	*SourceObj; // source obj
+    Obj_t 	*TargetObj; // target obj
+    int 	i17;	// action being used flag
+    int 	OverrideFlag;	// override
+    int 	i19;
+    int 	i20;
+    int 	i21;
+    int 	ActionEventsIdx[ SCPT_AEV_ALL ];	// prototype procedures 'Action Events'
+    int 	i23;
+    int 	i24;
+    int 	i25;
+    int 	i26;
+    int 	i27;
+    int 	i28;
+    int 	i29;
 } Scpt_t;
 
 
@@ -165,119 +165,6 @@ typedef struct
 } ScptVars_t;
 
 extern const char *gScptP_proc[ 28 ];
-/*
-int gScptUnk02;
-int gScptUnk15[ 10 ];
-int gScptUnk18;
-
-Msg_t gScptMsgBook[ 1450 ];
-Msg_t gScptMsg;
-char gScptTimeStr[ 7 ];
-
-char gScptFileName[ 20 ];
-
-int gScptUnk01 = 1;
-int gScptUnk13 = 0;
-int gScptUnk17 = 0;
-char gScptUnk22[6] = {0};
-int gScptUnk24 = 0;
-int gScptUnk23 = 0;
-
-
-char *gScptTypeName[ SCR_TYPES ] = { "s_system", "s_spatial", "s_time", "s_item", "s_critter" };
-
-int gScptCount = 0;
-
-int gScptUnk10 = 0;
-ScptCache_t *gScptUnk50 = NULL;
-int gScptUnk51 = 0;
-int gScptUnk52 = 1;
-
-ScptBook_t gScrScripts[ SCR_TYPES ] = { NULL };
-char *gScptPath = "scripts/";
-
-int gScptEnable = 0;
-int gScptUnk07 = 0;
-int gScptUnk03 = 0;
-unsigned int gScptInGameDekaSeconds = 302400;
-
-
-ScptVars_t *gScptLocVarTable = NULL;
-int gScptFiles = 0;
-int gScptObjIds = 4;
-
-int gScptUnk14 = -1;
-int *gScptLocalVars = NULL;
-
-int gScptLocalVarsCnt = 0;
-
-Scpt_t *ScptUnk21();
-
-//char *ScptGetDialog( int MsgPage, int MsgId, int a3 );
-
-int gScptUnk109 = 0;
-int gScptUnk110 = 0;
-int gScptUnk111 = 0;
-int gScptUnk113 = 0;
-int gScptUnk112 = 0;
-int gScptCalendarDays[ 13 ] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0 };
-
-int gScptUnk02;
-int gScptUnk15[10];
-int gScptUnk114[10];
-int gScptUnk115;
-int gScptUnk118;
-int gScptUnk121;
-int *gScptUnk122;
-int gScptUnk116;
-int gScptUnk117;
-int gScptUnk117;
-Obj_t *gScptUnk102;
-Obj_t *gScptUnk100;
-Obj_t *gScptUnk101;
-Obj_t *gScptUnk119;
-Obj_t *gScptUnk120;
-Msg_t gScptMsgBook[1450];
-Msg_t gScptMsg;
-char gScptTimeStr[7];
-char gScptUnk104[21];
-int gScptUnk107;
-int gScptUnk108;
-char gScptFileName[20];
-
-
-#define P_PROC_COUNT	28
-const char *gScptP_proc[ P_PROC_COUNT ] = {
-    "no_p_proc",
-    "start",
-    "spatial_p_proc",
-    "description_p_proc",
-    "pickup_p_proc",
-    "drop_p_proc",
-    "use_p_proc",
-    "use_obj_on_p_proc",
-    "use_skill_on_p_proc",
-    "none_x_bad",
-    "none_x_bad",
-    "talk_p_proc",
-    "critter_p_proc",
-    "combat_p_proc",
-    "damage_p_proc",
-    "map_enter_p_proc",
-    "map_exit_p_proc",
-    "create_p_proc",
-    "destroy_p_proc",
-    "none_x_bad",
-    "none_x_bad",
-    "look_at_p_proc",
-    "timed_event_p_proc",
-    "map_update_p_proc",
-    "push_p_proc",
-    "is_dropping_p_proc",
-    "combat_is_starting_p_proc",
-    "combat_is_over_p_proc"
-};
-*/
 
 int ScptGetGameDekaSeconds();
 void ScptGetGameDate( int *pMonth, int *pDay, int *pGYear);

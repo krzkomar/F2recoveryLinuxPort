@@ -1486,7 +1486,7 @@ int ScptRemove( int Pid )
     if( qq->Script[ i ].Flags & SCR_NOTREMOVE ) return 0;
     if( (gScptActionFlags & SCP_ACT_01 ) && (gScptUnk15.obj == qq->Script[ i ].TimeEv) ) gScptActionFlags &= ~( SCP_ACT_400 | SCP_ACT_01 );
     if( ScptRemoveLocalVars( &qq->Script[ i ] ) == -1 ) eprintf( "\nERROR Removing local vars on scr_remove!!\n" );
-    if( EvQeDelB( qq->Script[ i ].TimeEv, 3 ) == -1 ) eprintf( "\nERROR Removing Timed Events on scr_remove!!\n" );
+    if( EvQeRmEventType( qq->Script[ i ].TimeEv, EV_SCRIPT_TIMER ) == -1 ) eprintf( "\nERROR Removing Timed Events on scr_remove!!\n" );
     Current = bk->Current;
     if(( qq != bk->Current ) || ( i + 1 != Current->ScptUsed )){
         memcpy( &qq->Script[ i ], &bk->Current->Script[ bk->Current->ScptUsed - 1 ], sizeof( Scpt_t ) );

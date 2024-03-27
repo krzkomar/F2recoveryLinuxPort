@@ -611,7 +611,7 @@ void CritterUnk36( char a1 )
 
     ProtoGetObj( gObjDude->Pid, &proto );
     proto->Critt.Type &= ~(1 << a1);
-    if( !a1 ) EvQeDelB( gObjDude, 10 );
+    if( !a1 ) EvQeRmEventType( gObjDude, EV_SNEAK_TIMER );
     IfaceIndicatorBoxUpdate();
 }
 

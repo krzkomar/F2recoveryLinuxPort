@@ -1535,7 +1535,7 @@ int ItemDeviceUse( Obj_t *obj )
         }
         ItemDeviceOff( obj );
     } else {
-        EvQeSchedule( ( obj->Pid == 54 || obj->Pid == 210 ) ? 600 : 3000, obj, 0, 9 );
+        EvQeSchedule( ( obj->Pid == 54 || obj->Pid == 210 ) ? 600 : 3000, obj, NULL, EV_DEVICE_TIMER );
     }
     return 0;
 }
@@ -1575,7 +1575,7 @@ int ItemDeviceOn( Obj_t *obj )
         return -1;
     } 
     if( obj->Pid == 54 || obj->Pid == 210 ){ // geigercounter or stealthboy
-        EvQeSchedule( 600, obj, 0, 9 );
+        EvQeSchedule( 600, obj, NULL, EV_DEVICE_TIMER );
         obj->Pid = PID_STEALTHBOY; // stealth boy
         if( !(crit->Flags & 0x020000) ){
             crit->Flags |= 0x020000;
@@ -1583,7 +1583,7 @@ int ItemDeviceOn( Obj_t *obj )
             TileUpdateArea( &Rect, crit->Elevation );
         }
     } else {
-        EvQeSchedule( 3000, obj, 0, 9 );
+        EvQeSchedule( 3000, obj, NULL, EV_DEVICE_TIMER );
         obj->Pid = PID_GEIGERCOUNTER;
     }
     if( crit == gObjDude ){
@@ -1610,7 +1610,7 @@ int ItemDeviceOff( Obj_t *obj )
     MsgLine_t msg;
 
     Critt = ObjGetOwner( obj );
-    EvQeDelB( obj, 9 );
+    EvQeRmEventType( obj, EV_DEVICE_TIMER );
     if( Critt && obj->Pid == PID_STEALTHBOY ) ItemStealthBoyOff( Critt, obj );
     obj->Pid = ( obj->Pid == PID_STEALTHBOY || obj->Pid == PID_STEALTHBOY1 ) ? PID_STEALTHBOY1 : PID_GEIGER; // StealthBoy / GeigerCounter
     if( Critt == gObjDude ) IfaceHandSlotUpdate( 0, -1, -1 );
@@ -1733,15 +1733,13 @@ int Item100( Obj_t *Obj )
 int Item101( Obj_t *Critter, Obj_t *Obj2, int duration, int *a4, int *a5 )
 {
     int i;
-    ItemEv01_t *Effect;
-
+    ItemEv01_t *Effect = NULL;
 
     for( i = 0; i < 3; i++ ){
         if( a5[ i ] ) break;
     }
     if( i == 3 ) return -1;    
     if( !(Effect = Malloc( sizeof( ItemEv01_t ) )) ) return -1;
-
     Effect->Pid = Obj2->Pid;
     for( i = 0; i < 3; i++ ){
         Effect->i02[ i ] = a4[ i ];
@@ -1749,7 +1747,7 @@ int Item101( Obj_t *Critter, Obj_t *Obj2, int duration, int *a4, int *a5 )
     }
     duration *= 600;
     if( ( Critter == gObjDude ) && TraitSpecActive( TRAIT_CHEM_RESISTANT ) ) duration /= 2;
-    if( EvQeSchedule( duration, Critter, Effect, 0 ) != -1 ){ Free( Effect ); return -1; }
+    if( EvQeSchedule( duration, Critter, Effect, EV_CHEMUSE_TIMER ) == -1 ){ Free( Effect ); return -1; }
     return 0;    
 }
 
@@ -1923,7 +1921,7 @@ int ItemSchedEffect( Obj_t *obj, int a2, int RecoveryTime, int EffectId, int a5 
     ef->i01 = a2;
     ef->i02 = a5;
     ef->i03 = EffectId;
-    if( EvQeSchedule(600 * RecoveryTime, obj, ef, 2) != -1 ){ Free( ef ); return -1; }
+    if( EvQeSchedule( 600 * RecoveryTime, obj, ef, EV_WITHDRAW_TIMER ) == -1 ){ Free( ef ); return -1; }
     return 0;    
 }
 

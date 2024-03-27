@@ -178,7 +178,7 @@ int PartyAddMember( Obj_t *dude )
         scr->Id = dude->ScrId = ((dude->Pid & 0xFFFFFF) + 18000) | ((dude->ScrId >> 24) << 24);
     }
     AiUnk53( dude, 0 );
-    EvQeDelB( dude, 3 );
+    EvQeRmEventType( dude, EV_SCRIPT_TIMER );
     if( IN_DIALOG ){
         if( dude == gDlgPartyMemberObj ) GdialogJoinLeavePM();
     }
@@ -201,7 +201,7 @@ int PartyRemoveMember( Obj_t *dude )
     dude->Flags &= ~0x404;
     gPartyMembersCount--;
     if( ScptPtr( dude->ScrId, &scr ) != -1 ) scr->Flags &= 0x18;
-    EvQeDelB( dude, 3 );
+    EvQeRmEventType( dude, EV_SCRIPT_TIMER  );
     if( IN_DIALOG ){
         if( dude == gDlgPartyMemberObj ) GdialogJoinLeavePM();
     }
@@ -767,7 +767,7 @@ int PartyFix()
     	}
     	eprintf( "\nDestroying evil obj doppleganger!" );
     	if( obj->ScrId == -1 ){
-    	    if( EvQeDelB( obj, 3 ) == -1 ) eprintf( "\nERROR Removing Timed Events on FIX remove!!" );
+    	    if( EvQeRmEventType( obj, EV_SCRIPT_TIMER  ) == -1 ) eprintf( "\nERROR Removing Timed Events on FIX remove!!" );
     	} else {
     	    ScptRemove( obj->ScrId );
     	    obj->ScrId = -1;

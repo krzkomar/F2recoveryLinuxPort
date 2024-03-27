@@ -552,7 +552,7 @@ int CombatTaskCb()
     IfaceResetAC( 1 );
     if( CritterUnk31( gObjDude ) ){
         if( !CritterIsDead( gObjDude ) && !gCombat10 ){
-            EvQeDelB( gObjDude, 1 );
+            EvQeRmEventType( gObjDude, EV_KNOCKDOWN_TIMER );
             return CritterKnockDownEv( gObjDude, NULL );
         }
         return 0;
@@ -1774,7 +1774,7 @@ void CombatUnk56( Obj_t *obj, int a2 )
             EvQeSchedule( 10 * (35 - 3 * FeatGetVal( obj, FEAT_ENDURANCE ) ), obj, 0, 1 );
         }
     } else {
-        EvQeDelA( obj );
+        EvQeRmEvent( obj );
     }
     if( obj == gObjDude && ( a2 & 0x30 ) ){
         obj->Critter.State.CombatResult |= a2 & 0x80FF;

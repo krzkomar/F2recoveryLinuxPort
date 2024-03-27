@@ -391,7 +391,7 @@ printf(">>%p\n", obj );
 DD
     if( obj->Owner ) UseUnk04( obj->Owner, obj );
 DD
-    EvQeDelA( (void *)obj );
+    EvQeRmEvent( obj );
 DD
     ObjDestroy( obj, &rect );
 DD

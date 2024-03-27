@@ -2157,9 +2157,9 @@ void ScrGame_RmTimeEvent( Intp_t *scr )
     GETARGP( scr, type, obj, 0, "rm_timer_event" );
     SCP_DBGA( "rm_timer_event( [%x]%p )", type, obj );
     if( obj )
-        EvQeDelA( obj );
+        EvQeRmEvent( obj );
     else
-        ScrGameEprintf( "\nScript Error: %s: op_add_timer_event: pobj is NULL!", scr->FileName );
+        ScrGameEprintf( "\nScript Error: %s: op_rm_timer_event: pobj is NULL!", scr->FileName );
 }
 
 /*

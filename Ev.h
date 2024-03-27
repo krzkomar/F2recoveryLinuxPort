@@ -1,6 +1,16 @@
 #pragma once
 
-#define EV_SCRIPT_TIMER	3
+#define EV_CHEMUSE_TIMER	0
+#define EV_KNOCKDOWN_TIMER	1
+#define EV_WITHDRAW_TIMER	2
+#define EV_SCRIPT_TIMER		3
+#define EV_MIDNIGHT_TIMER	4
+#define EV_POISON_TIMER		5
+#define EV_RAD_TIMER		6
+
+#define EV_EXPLOSION_TIMER	8
+#define EV_DEVICE_TIMER		9
+#define EV_SNEAK_TIMER		10
 
 typedef struct 
 {
@@ -34,8 +44,8 @@ int  EvQeClose();
 int  EvQeLoad( xFile_t *fh );
 int  EvQeSave( xFile_t *fh );
 int  EvQeSchedule( int GameTime, Obj_t *obj, void *Event, int GridId );
-void EvQeDelA( Obj_t *obj );
-int  EvQeDelB( Obj_t *obj, int B );
+void EvQeRmEvent( Obj_t *obj );
+int  EvQeRmEventType( Obj_t *obj, int type );
 int  EvQeEnqueued( Obj_t *obj, int Method );
 int  EvQeTrig();
 void EvQeFlush();

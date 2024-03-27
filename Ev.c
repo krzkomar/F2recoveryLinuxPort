@@ -136,28 +136,30 @@ int EvQeSchedule( int GameTime, Obj_t *object, void *Ptr, int Method )
     return 0;
 }
 
-void EvQeDelA( Obj_t *obj )
+void EvQeRmEvent( Obj_t *obj )
 {
     Ev_t *qe;
-    Ev_t **p_Next;
+    Ev_t **pp;
     Ev_t *p;
-
+DD
     qe = gEvQueue;
-    p_Next = &gEvQueue;
+    pp = &gEvQueue;
     while( qe ){
         if( obj == qe->Obj ){
             p = qe;
-            *p_Next = qe->Next;
-            if( gEvMethods[ qe->Method ].Free ) gEvMethods[ qe->Method ].Free( qe->Ptr );
+            qe = qe->Next;
+            *pp = qe;
+printf("-->%p %p %i\n", p, p->Ptr, p->Method );
+            if( gEvMethods[ p->Method ].Free ) gEvMethods[ p->Method ].Free( p->Ptr );
             Free( p );
         } else {
-            p_Next = &qe->Next;
+            pp = &qe->Next;
             qe = qe->Next;
         }
     }
 }
 
-int EvQeDelB( Obj_t *A, int B )
+int EvQeRmEventType( Obj_t *A, int B )
 {
     Ev_t *qe;
     Ev_t **p_Next;
@@ -168,6 +170,7 @@ int EvQeDelB( Obj_t *A, int B )
     while( qe ){
         if( A == qe->Obj && B == qe->Method ){
             v6 = qe;
+            qe = qe->Next;
             *p_Next = qe->Next;
             if( gEvMethods[qe->Method].Free ) gEvMethods[ qe->Method ].Free( qe->Ptr );
             Free( v6 );
