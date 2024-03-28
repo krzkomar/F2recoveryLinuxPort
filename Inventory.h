@@ -145,7 +145,7 @@ int InvStackPrice( Obj_t *dude, Obj_t *a2 );
 int InvBarterDo( Obj_t *dude, Obj_t *Item, Obj_t *a3, Obj_t *a4 );
 void InvUnk41( Obj_t *dude, int quantity, int a3, int a4, Obj_t *a1, Obj_t *a2, int a7 );
 void InvUnk42( Obj_t *Item, int quantity, int a3, Obj_t *a4, Obj_t *a1, int a6 );
-void InvUnk43( int win, Obj_t *box, Obj_t *obj, int a4 );
+void InvBarterStack( int win, Obj_t *box, Obj_t *obj, int a4 );
 int InvMenuBarter(int eax0, Obj_t *a2, Obj_t *a3, Obj_t *a4, int a5 );
 void InvUnk45( int a1, int a2 );
 void InvUnk46( int sel, int mode );

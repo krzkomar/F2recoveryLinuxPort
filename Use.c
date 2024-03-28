@@ -1096,12 +1096,13 @@ int UseUseSkill( Obj_t *crit, Obj_t *obj, unsigned int SkillIdx )
     }
     if( ProtoGetObj( obj->Pid, &proto ) == -1 ) return -1;
     if( obj->ScrId != -1 ){
-            ScptSetup( obj->ScrId, crit, obj );
-            ScptUnk136( obj->ScrId, SkillIdx );
-            ScptRun( obj->ScrId, SCPT_AEV_USE_SKILL_ON_P_PROC );
-            if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
-            i18 = scr->OverrideFlag;
+        ScptSetup( obj->ScrId, crit, obj );
+        ScptUnk136( obj->ScrId, SkillIdx );
+        ScptRun( obj->ScrId, SCPT_AEV_USE_SKILL_ON_P_PROC );
+        if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
+        i18 = scr->OverrideFlag;
     }
+DD
     if( !i18 ) SkillAttempt( crit, obj, SkillIdx, 0 );
     return 0;    
 }

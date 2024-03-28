@@ -320,40 +320,41 @@ void SkillHoningAward( Obj_t *dude,int SkillIdx, int a3, int a4 )
 
 int SkillAttempt( Obj_t *dude1, Obj_t *dude2, unsigned int SkillIdx, int a4 )
 {
-    int v7; // eax
-    int Hp; // ebx
-    int v11; // eax
-    int v17; // ebx
-    int v19; // edi
-    int v21; // ebx
-    char v22; // dl
-    int v23; // eax
-    int v24; // eax
-    Obj_t *db; // ecx
-    char v26; // dh
-    int v29; // ebx
-    int v31; // edi
-    int v33; // ebx
-    int v34; // eax
-    int Total; // eax
-    Obj_t *dd; // ecx
-    char stmp[60]; // [esp+0h] [ebp-C8h] BYREF
-    int InjuresMask[5]; // [esp+3Ch] [ebp-8Ch] MAPDST
-    MsgLine_t MsgLineA; // [esp+64h] [ebp-64h] BYREF
-    MsgLine_t MsgLineB; // [esp+74h] [ebp-54h] BYREF
-    int v47; // [esp+84h] [ebp-44h] BYREF
-    int v48; // [esp+88h] [ebp-40h]
-    int Val; // [esp+8Ch] [ebp-3Ch]
-    int Max; // [esp+90h] [ebp-38h]
-    int Min; // [esp+94h] [ebp-34h]
-    int v52; // [esp+98h] [ebp-30h]
-    int v53; // [esp+9Ch] [ebp-2Ch]
-    int v55; // [esp+A4h] [ebp-24h]
-    int v56; // [esp+A8h] [ebp-20h]
-    int v57; // [esp+ACh] [ebp-1Ch]
-    Obj_t *crit; // [esp+B4h] [ebp-14h]
-    ObjCritterCond_t *p_State; // [esp+B8h] [ebp-10h]
+    ObjCritterCond_t *p_State;
+    MsgLine_t MsgLineA;
+    MsgLine_t MsgLineB;
+    Obj_t *db;
+    Obj_t *dd;
+    Obj_t *crit;
+    char v22;
+    char stmp[60];
+    char v26;
+    int v7;
+    int Hp;
+    int v11;
+    int v17;
+    int v19;
+    int v21;
+    int v23;
+    int v24;
+    int v29;
+    int v31;
+    int v33;
+    int v34;
+    int Total;
+    int InjuresMask[5];
+    int v47;
+    int v48;
+    int Val;
+    int Max;
+    int Min;
+    int v52;
+    int v53;
+    int v55;
+    int v56;
+    int v57;
 
+DD
     crit = dude1;
     v57 = 0;
     v47 = 0;
@@ -526,7 +527,7 @@ int SkillAttempt( Obj_t *dude1, Obj_t *dude2, unsigned int SkillIdx, int a4 )
         case SKILL_LOCKPICK:
             goto LABEL_43;
         case SKILL_STEAL:
-            ScptUnk112(crit, dude2);
+            ScptStealAttempt( crit, dude2 );
             goto LABEL_43;
         case SKILL_TRAPS:
             MsgLineA.Id = 551; // 'You fail to find any traps'
@@ -647,7 +648,7 @@ int SkillUseSteal( Obj_t *dude1, Obj_t *dude2, Obj_t *Company, int a3 )
     int CatchChance;
     char stmp[60];
     MsgLine_t MsgLine;
-
+DD
     tmp = 0;
     Awareness = 1 - gSkillUnk60;
     if( dude1 != gObjDude || !PerkLvl( dude1, PERK_PICKPOCKET ) ){

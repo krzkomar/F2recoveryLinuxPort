@@ -795,7 +795,7 @@ int ActionSkillUse( Obj_t *dude, Obj_t *target, int SkillNo )
     VidRect_t Area;
     CachePool_t *ImgObj;
     int v11;
-printf("=Target=>0x%x %i\n", target->Pid, target->Pid );
+
     v4 = gObjDude;
     switch( SkillNo ){
         case SKILL_FIRSTAID:

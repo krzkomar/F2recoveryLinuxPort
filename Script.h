@@ -212,7 +212,7 @@ void ScptExplosion( unsigned int tilenum, int a2, int a3, int a4 );
 void ScptTalkTo( Obj_t *a1 );
 void ScptSlideShow();
 int ScptUnk113( void *a1, void *a2 );
-void ScptUnk112( Obj_t *a1, Obj_t *a2 );
+void ScptStealAttempt( Obj_t *a1, Obj_t *a2 );
 void ScptUnk111( char *a1 );
 int ScptRun( int ScriptId, int ProcId );
 void ScptIndexPproc( Scpt_t *scr );

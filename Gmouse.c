@@ -55,9 +55,7 @@ char gGmouseUnk30 = 0;
 short gGmouseUnk29[ 11 ] = { 253, 255, 257, 259, 261, 263, 265, 302, 304, 435, 0 };
 int gGmouseUnk23 = 1;
 int gGmouseShape = 0;
-int gGmouseShapeIds[2] = { 249, 250 };
-int gGmouseUnk26[ 5 ]= { 251, 293, 293, 293, 293 };
-int gGmouseUnk25[11] = { 293, 293, 293, 293, 6, 7, 9, 10, 11, 12, 13 };
+int gGmouseShapeIds[ 18 ] = { 249, 250, 251, 293, 293, 293, 293, 293, 293, 293, 293, 6, 7, 9, 10, 11, 12, 13 };
 int gGmouseUnk06 = 0;
 int gGmouseTime = 0;
 int gGmouseRestoreCursor = -1;
@@ -449,7 +447,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                 return;
             case 4 ... 10:
                 obj = GmouseGetObject( -1, 1, gMapCurrentLvl );
-                if( !obj || ActionSkillUse( gObjDude, obj, gGmouseUnk25[ gGmouseShape ] ) != -1 ){
+                if( !obj || ActionSkillUse( gObjDude, obj, gGmouseShapeIds[ gGmouseShape + 7 ] ) != -1 ){
                     GmouseLoadCursor( 0 );
                     GmouseSetMode( 0 );
                 }
@@ -978,7 +976,7 @@ int GmousePrint( char *str, int Color )
     ArtFrmHdr_t *art;
     int w, SaveFont;
 
-    if( !( art = ArtLoadImg( ArtMakeId( 6, gGmouseUnk26[ 0 ], 0, 0, 0 ), &ImgObj ) ) ) return -1;
+    if( !( art = ArtLoadImg( ArtMakeId( 6, gGmouseShapeIds[ 2 ], 0, 0, 0 ), &ImgObj ) ) ) return -1;
     memset( gGmouseDataImgC, 0, gGmouseSizeImgC );
     w = ArtGetObjWidth( art, 0, 0 );
     ScrCopy( ArtGetObjData( art, 0, 0 ), w, ArtGetObjHeight( art, 0, 0 ), w, gGmouseDataImgC, gGmouseWidthImgC );

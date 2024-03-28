@@ -744,7 +744,7 @@ int ScptUnk113( void *a1, void *a2 )
     return 0;
 }
 
-void ScptUnk112( Obj_t *a1, Obj_t *a2 )
+void ScptStealAttempt( Obj_t *a1, Obj_t *a2 )
 {
     gScptUnk119 = a1;
     gScptUnk120 = a2;

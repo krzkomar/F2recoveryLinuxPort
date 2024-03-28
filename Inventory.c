@@ -1979,20 +1979,22 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
         return 0;
     }
 
-    if( (OBJTYPE( Obj2->ImgId ) == TYPE_ITEM) || ItemGetObjType( Obj2 ) == PR_ITEM_CONTAINER || (Obj2->FrameNo == 0) ){
-	if( (img = ArtLoadImg( Obj2->ImgId, &ImgObj1 ) ) ){
-	    v5 = ArtGetFpd( img );
-	    ArtClose( ImgObj1 );
-	    if( v5 > 1 )  return 0;
+    if( OBJTYPE( Obj2->ImgId ) == 0 ){
+	if( ItemGetObjType( Obj2 ) == 1 ){
+	    if( Obj2->FrameNo == 0 ){
+		if( (img = ArtLoadImg( Obj2->ImgId, &ImgObj1 )) ){
+		    v5 = ArtGetFpd( img );
+	    	    ArtClose( ImgObj1 );
+		    if( v5 > 1 ) return 0; 
+		}
+	    }   
 	}
     }
-
     if( gSkillUnk80 && UseGetScriptId( Obj2, &Id ) != -1 ){
 	ScptSetup( Id, Critter, 0 );
 	ScptRun( Id, SCPT_AEV_PICKUP_P_PROC );
 	if( ScptPtr(Id, (Scpt_t **)&pScript) == -1 || pScript->Script[0].OverrideFlag ) return 0;
     }
-
     if( InvInit() == -1 ) return 0;
     gInvUnk62 = &Obj2->Container;
     gInvUnk40 = 0;
@@ -2000,7 +2002,6 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     gInvUnk39[ 0 ] = Obj2;
     if( ObjCreate( &NewItem, 0, 467) == -1 ) return 0;
     Item16( Obj2, NewItem );
-
     if( gSkillUnk80 ){
         LHandObj = InvGetLHandObj( Obj2 );
         item = LHandObj;
@@ -2012,7 +2013,6 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
         dude2 = ArmorObj;
         if( ArmorObj ) ItemUseItem( Obj2, ArmorObj, 1 );
     }
-
     v64 = InvMenuCreate( 2 );
     if( !gSkillUnk80 && OBJTYPE( Obj2->ImgId ) == TYPE_CRIT ){
 	num = ObjGetObjList( Obj2->GridId, Obj2->Elevation, 1, &ObjTable );
