@@ -38,12 +38,15 @@ int gInvUnk18;
 int gInvUnk08 = 6;
 Obj_t *gInvSelectedDude = NULL;
 int gInvSelectedPid = -1;
-Inv01_t gInvArt[ 5 ] = {
-    { 0x00, 0x001, 0x030, 0x1F3, 0x179 },
-    { 0x50, 0x000, 0x071, 0x124, 0x178 },
-    { 0x50, 0x000, 0x072, 0x219, 0x178 },
-    { 0x50, 0x000, 0x06F, 0x1E0, 0x0B4 },
-    { 0x50, 0x122, 0x131, 0x103, 0x0A2 },
+int gInvUnk1 = 0;
+int gInvUnk2 = 1; 
+Inv01_t gInvArt[ 6 ] = {
+    { 0x30,  0x1F3, 0x179, 0x50, 0x00  }, 
+    { 0x71,  0x124, 0x178, 0x50, 0x00  },
+    { 0x72,  0x219, 0x178, 0x50, 0x00  },
+    { 0x6F,  0x1E0, 0xB4,  0x50, 0x122 },
+    { 0x131, 0x103, 0xA2,  0x8c, 0x50  },
+    { 0x131, 0x103, 0xA2,  0x8c, 0x50  }
 };
 int gInvUnk83 = 0;
 int gInvUpArrow = -1;
@@ -161,7 +164,7 @@ void InvMenu()
             for( i = 0; i < 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
             if( gInvUnk02 ) GameIfaceDisable( 0 );
             InvMsgClose();
-            gInvArt[0].Xpos = 0;
+            gInvUnk1 = 0;
             return;
         }
         if( tmp > 0 ){
@@ -255,7 +258,7 @@ void InvMenu()
     for( i = 0; i != 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
     if( gInvUnk02 ) GameIfaceDisable( 0 );
     InvMsgClose();
-    gInvArt[ 0 ].Xpos = 0;
+    gInvUnk1 = 0;
     if( gInvSelectedDude == gObjDude ) IfaceHandSlotUpdate( 0, -1, -1 );
 }
 
@@ -787,7 +790,7 @@ int InvInit()
         MessageClose( &gInvMsg );
         return -1;
     }
-    gInvArt[0].Xpos = 1;
+    gInvUnk1 = 1;
     gInvFocusRegionId = -1;
     return 0;
 }
@@ -1224,7 +1227,7 @@ int InvMenuBackPack( Obj_t *a1 )
     InvMenuClose( WinId );
     for( i = 0; i < 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
     if( gInvUnk02 ) GameIfaceDisable( 0 );
-    gInvArt[0].Xpos = 0;
+    gInvUnk1 = 0;
     return InvMsgClose();
 }
 
@@ -1670,14 +1673,14 @@ void InvDisplMsg( char *strmsg )
     surf = WinGetSurface( gInvWin ) + 22253;
     if( strmsg ){
         while( *strmsg ){
-            if( ++gInvArt[0].Ypos > 17 ){ eprintf( "\nError: inven_display_msg: out of bound!" ); return; }
+            if( ++gInvUnk2 > 17 ){ eprintf( "\nError: inven_display_msg: out of bound!" ); return; }
             if( gFont.LineWidth(strmsg) > 152 ){
                 s = strmsg + 1;
                 if( strmsg[1] ){
                     do{ if( *s == ' ' ) break; } while ( *++s );
                 }
                 if( !*s ){
-                    gFont.Print( &surf[gInvArt[0].Ypos * 499 * gFont.ChrHeight() ], strmsg, 152, 499, gPalColorCubeRGB[0][31][0] );
+                    gFont.Print( &surf[gInvUnk2 * 499 * gFont.ChrHeight() ], strmsg, 152, 499, gPalColorCubeRGB[0][31][0] );
                     return;
                 }
                 tmp = s + 1;
@@ -1701,7 +1704,7 @@ void InvDisplMsg( char *strmsg )
                 if( *s == ' ' ) *s = '\0';
             }
             if( gFont.LineWidth( strmsg ) > 152 ){ eprintf( "\nError: inven_display_msg: word too long!" ); return; }
-            gFont.Print( &surf[ gInvArt[0].Ypos * 499 * gFont.ChrHeight() ], strmsg, 152, 499, gPalColorCubeRGB[0][31][0] );
+            gFont.Print( &surf[ gInvUnk2 * 499 * gFont.ChrHeight() ], strmsg, 152, 499, gPalColorCubeRGB[0][31][0] );
             if( s ){
                 strmsg = s + 1;
                 if( !*s ) *s = ' ';
@@ -1729,9 +1732,9 @@ void InvInfo( Obj_t *Critter, Obj_t *Item )
     surf = WinGetSurface(gInvWin);
     if( (img = ArtGetBitmap( ArtMakeId( 6, 48, 0, 0, 0 ), 0, 0, &ImgObj ) ) ) ScrCopy( img + 22253, 152, 188, 499, surf + 22253, 499 );
     ArtClose( ImgObj );
-    gInvArt[ 0 ].Ypos = 0;
+    gInvUnk2 = 0;
     InvDisplMsg( ObjGetName( Item ) );
-    gInvArt[ 0 ].Ypos++;
+    gInvUnk2++;
     gFont.ChrHeight();
     h = gFont.ChrHeight();
     ScrLine( surf, 499, 297, 3 * h / 2 + 49, 440, 3 * h / 2 + 49, gPalColorCubeRGB[0][31][0] );
@@ -2219,7 +2222,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     	for( j = 0; j != 5; j++ ) ArtClose( gInvMseCursor[ j ].Obj );        
     	if( gInvUnk02 ) GameIfaceDisable( 0 );
     	InvMsgClose();
-    	gInvArt[0].Xpos = 0;
+    	gInvUnk1 = 0;
         if( gSkillUnk80 && v76 && gSkillUnk60 > 0 && UseGetScriptId( Obj2, &Id ) != -1 ){
     	    ScptSetup( Id, Critter, 0 );
     	    ScptRun( Id, SCPT_AEV_PICKUP_P_PROC );
@@ -2765,7 +2768,7 @@ int InvMenuBarter( int WinId, Obj_t *Merchant, Obj_t *MerchantStackObj, Obj_t *D
     for( i = 0; i != 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
     if( gInvUnk02 ) GameIfaceDisable( 0 );
     n = InvMsgClose();
-    gInvArt[ 0 ].Xpos = 0;
+    gInvUnk1 = 0;
     return n;
 }
 
@@ -2932,7 +2935,7 @@ int InvPopUpDlg( int mode, Obj_t *Obj, int quantity )
     InvDrawCnt( Result, mode );
     while( 1 ){
         sel = InpUpdate();
-        if( sel == KEY_ESC ){ InvPopUpClose( mode ); DD return -1; }
+        if( sel == KEY_ESC ){ InvPopUpClose( mode ); return -1; }
         if( sel == KEY_ENTER ){
     	    if( (Result >= min) && (Result <= quantity) && ( mode != 5 || !( Result % 10 ) ) ) break;
     	    GSoundPlay( "iisxxxx1" );
@@ -3024,7 +3027,7 @@ int InvPopUpDlgCreate( int mode, Obj_t *Item )
     FontSet( 103 );
     memset( gInvQaDlgImgObj, 0, 8 * sizeof( void * ) );
     Width = gInvArt[ mode ].Width;
-    gInvQdlgWin = WinCreateWindow( gInvArt[ mode + 1 ].Xpos, gInvArt[mode + 1].Ypos, Width, gInvArt[ mode ].Height, 257, 20 );
+    gInvQdlgWin = WinCreateWindow( gInvArt[ mode ].Xpos, gInvArt[ mode ].Ypos, Width, gInvArt[ mode ].Height, 257, 20 );
     surf = WinGetSurface( gInvQdlgWin );    
     if( ( Img1 = ArtGetBitmap( ArtMakeId( 6, gInvArt[ mode ].ArtId, 0, 0, 0 ), 0, 0, &ImgObj ) ) ){
         ScrCopy( Img1, Width, gInvArt[ mode ].Height, Width, surf, Width );
@@ -3106,8 +3109,7 @@ void InvPopUpClose( int Mode )
 int InvSetTimer( Obj_t *a1 )
 {
     int err, i, n;
-
-    if( !( n = gInvArt[ 0 ].Xpos ) ){
+    if( !( n = gInvUnk1 ) ){
 	if( InvInit() == -1 ) return -1;
     }
     err = InvPopUpDlg( 5, a1, 180 );
@@ -3115,7 +3117,9 @@ int InvSetTimer( Obj_t *a1 )
     for( i = 0; i != 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
     if( gInvUnk02 ) GameIfaceDisable( 0 );
     InvMsgClose();
-    gInvArt[ 0 ].Xpos = 0;    
+    gInvUnk1 = 0;    
+DD
+exit(1);
     return err;
 }
 
