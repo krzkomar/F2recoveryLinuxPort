@@ -489,38 +489,39 @@ int UseSetTimer( Obj_t *obj )
 	obj->Pid != PID_DYNAMITE && 
 	obj->Pid != PID_PLASTICEXPLOSIVES
       ) return -1;
-    if( obj->Flags & 0x2000 ){
+    if( obj->Flags & OBJ_FLG_TIMERTICKS ){
         msg.Id = 590; // 'The timer is already ticking!'
         if( MessageGetMsg( &gProtoMessages, &msg ) == 1 ) IfcMsgOut( msg.Text );
-    } else {
-        TimeSet = InvSetTimer( obj );
-        if( TimeSet != -1 ){
-            msg.Id = 589; // 'You set the timer.'
-            if( MessageGetMsg( &gProtoMessages, &msg ) == 1 ) IfcMsgOut( msg.Text );
-            if( obj->Pid == PID_DYNAMITE1 ){
-                obj->Pid = PID_DYNAMITE;
-            } else if( obj->Pid == PID_EXPL_PLASTIC ){
-                obj->Pid = PID_PLASTICEXPLOSIVES;
-            }
-            TimeSet = 10 * TimeSet;
-            if( PerkLvl( gObjDude, PERK_DEMOLITION_EXPERT ) )
-                time = 2;
-            else
-                time = SkillUse( gObjDude, SKILL_TRAPS, 0, 0 );
-            if( time ){
-                if( time == 1 ){
-                    skill = SKILL_TRAPS;
-                    time = TimeSet / 2;
-                } else {
-                    skill = SKILL_SNEAK;
-                    time = TimeSet;
-                }
-            } else {
-                skill = SKILL_TRAPS;
-            }
-            EvQeSchedule( time, obj, NULL, skill );
-        }
+        return 2;
+    } 
+    // set up timer
+    TimeSet = InvSetTimer( obj );
+    if( TimeSet == -1 ) return 2;    
+    // schedule event
+    msg.Id = 589; // 'You set the timer.'
+    if( MessageGetMsg( &gProtoMessages, &msg ) == 1 ) IfcMsgOut( msg.Text );
+    if( obj->Pid == PID_DYNAMITE1 ){
+        obj->Pid = PID_DYNAMITE;
+    } else if( obj->Pid == PID_EXPL_PLASTIC ){
+        obj->Pid = PID_PLASTICEXPLOSIVES;
     }
+    TimeSet = 10 * TimeSet;
+    if( PerkLvl( gObjDude, PERK_DEMOLITION_EXPERT ) )
+        time = 2;
+    else
+        time = SkillUse( gObjDude, SKILL_TRAPS, 0, 0 );
+    if( time ){
+        if( time == 1 ){
+            skill = 11;
+            time = TimeSet / 2;
+        } else {
+            skill = 8;
+            time = TimeSet;
+        }
+    } else {
+        skill = 11;
+    }
+    EvQeSchedule( time, obj, NULL, skill );        
     return 2;
 }
 
@@ -568,23 +569,29 @@ int UseUseMisc( Obj_t *crit )
 
 int UseUnk13( Obj_t *crit, Obj_t *obj )
 {
-    int tmp;
     MsgLine_t msg;
+    int result;
 
     switch( ItemGetObjType( obj ) ){
         case 2: return -1;
         case 3: case 5:
-            if( (tmp = UseReadBook( obj )) != -1 ) return tmp;
-            if( !UseLightFlare( crit, obj ) ) return 0;                
-            if( (tmp = UseUseMisc( obj )) != -1 ) return tmp;                    
-            if( !(tmp = UseRunScript( obj )) ) return 0;            
-            if( !(tmp = UseSetTimer( obj )) ) return 0;
-            if( tmp == 2 ) return 2;                                
-            if( !Item87( obj ) ) break;
-            if( !ItemRecharge( crit, obj ) ) return 0;
-            break;            
+            if( (result = UseReadBook( obj )) == -1 ){                
+                if( (result = UseLightFlare( crit, obj )) ){                    
+                    if( (result = UseUseMisc( obj )) == -1 ){                        
+                        if( (result = UseRunScript( obj )) ){                            
+                            if( (result = UseSetTimer( obj )) ){
+                                if( result != 2 ){
+                                    if ( !Item87( obj ) ) break;
+                                    if( (result = ItemRecharge( crit, obj )) ) break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
     }
-    msg.Id = 582; // 'That does nothing.'
+    msg.Id = 582;
     if( MessageGetMsg( &gProtoMessages, &msg ) == 1 ) IfcMsgOut( msg.Text );
     return -1;
 }
@@ -596,7 +603,7 @@ void UseUseExplosives( Obj_t *obj )
     Combat_t cmbt;
     Scpt01_t scr;
 
-    if( obj->Pid == 206 || obj->Pid == 209 ) return;
+    if( obj->Pid == PID_DYNAMITE || obj->Pid == PID_PLASTICEXPLOSIVES ) return;
     CombatSetUp( &cmbt, gObjDude, 0, 4, 3 );
     cmbt.DudeInjuries = 256;
     cmbt.TileNo = gObjDude->GridId;
@@ -623,7 +630,7 @@ int UseUnk15( Obj_t *crit, Obj_t *obj )
 {
     Obj_t *Owner, *v8;
     VidRect_t Rect;
-    int v12, v13, v14, v3;
+    int lh, rh, v14, v3;
 
     v3 = UseUnk13( crit, obj );
     if( v3 == 1 || v3 == 2 ){        
@@ -631,17 +638,17 @@ int UseUnk15( Obj_t *crit, Obj_t *obj )
             ItemUseItem( Owner, obj, 1 );
             v14 = obj->Flags & 0x3000000;
             v8 = Item35( Owner, obj, v14 );
-            if( Owner == gObjDude ){
-                IfaceUnk16( &v12, &v13 );
+            if( Owner == gObjDude ){ // drop down item
+                IfaceUnk16( &lh, &rh );
                 if( !v8 ){
                     if( v14 & 0x1000000 ){
-                        v12 = -1;
+                        lh = -1;
                     } else {
-                        if( !(v14 & 0x2000000) ) v12 = -1;
-                        v13 = -1;
+                        if( !(v14 & 0x2000000) ) lh = -1;
+                        rh = -1;
                     }
                 }
-                IfaceHandSlotUpdate( 0, v12, v13 );
+                IfaceHandSlotUpdate( 0, lh, rh );
             }
         }
         if( v3 == 1 ){
@@ -1102,7 +1109,6 @@ int UseUseSkill( Obj_t *crit, Obj_t *obj, unsigned int SkillIdx )
         if( ScptPtr( obj->ScrId, &scr ) == -1 ) return -1;
         i18 = scr->OverrideFlag;
     }
-DD
     if( !i18 ) SkillAttempt( crit, obj, SkillIdx, 0 );
     return 0;    
 }

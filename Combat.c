@@ -1264,83 +1264,94 @@ int CombatUnk42( Combat_t *cmbt )
     return 0;        
 }
 
-void CombatExplosion( Combat_t *cmbt, int a2, int ecx0, int a4 )
+void CombatExplosion( Combat_t *cmbt, int a2, int flg1, int a4 )
 {
-    Obj_t *obj, *Dude;
-    int v5,GridId,i,a3,a1,v22,v23,v24,v25;
+    Obj_t *p, *v13, *obj, *a3;
+    Combat_t *v16;
+    int TileNumInDir,GridId,v7,v9,DudeInjuries,i,MapLvl,GridPos2,VAR_AA,VAR_BB,direction,VAR_DD;
 
-    v5 = -1;
+    TileNumInDir = -1;
     if( a2 ){
-        Dude = cmbt->Dude;
-	GridId = ( cmbt->Dude ) ? cmbt->Dude->GridId : cmbt->TileNo;
+        obj = cmbt->Dude;
     } else {
         if( (cmbt->DudeInjuries & 0x100) != 0 ){
-            Dude = cmbt->Comp;
-            GridId = ( cmbt->Comp ) ? cmbt->Comp->GridId : cmbt->TileNo;
-        } else {
-    	    Dude = NULL;
-	    GridId = cmbt->TileNo;
-	}
-    }    
-    a1 = GridId;
-    a3 = cmbt->Dude->Elevation;
-    v25 = 0;
-    v22 = GridId;
+            obj = cmbt->Comp;
+            if( obj ){
+                GridId = obj->GridId;
+                goto LABEL_10;
+            }
+            goto LABEL_9;
+        }
+        obj = 0;
+    }
+    if( obj ){
+        GridId = obj->GridId;
+        goto LABEL_10;
+    }
+LABEL_9:
+    GridId = cmbt->TileNo;
+LABEL_10:
+    GridPos2 = GridId;
+    MapLvl = cmbt->Dude->Elevation;
+    VAR_DD = 0;
+    VAR_AA = GridId;
     if( GridId == -1 ){
         eprintf("\nError: compute_explosion_on_extras: Called with bad target/tileNum");
     } else {
-        while( 1 ){
-    	    if( cmbt->Count >= 6 ) break;
-            if( !v25 ) goto LABEL_45;
-            if( v5 == -1 ){
-        	if( !(++v23 % v25) && ++v24 == 6 ) v24 = 0;
+        while( cmbt->Count < 6 ){
+            if( !VAR_DD ) goto LABEL_45;
+            if( TileNumInDir == -1 ) goto LABEL_24;
+            TileNumInDir = TileGetTileNumInDir(TileNumInDir, direction, 1);
+            if( TileNumInDir != VAR_AA ){
+LABEL_24:
+                if( !(++VAR_BB % VAR_DD) && ++direction == 6 ) direction = 0;
             } else {
-        	v5 = TileGetTileNumInDir( v5, v24, 1 );
-        	if( v5 != v22 ){
-            	    if( !(++v23 % v25) && ++v24 == 6 ) v24 = 0;
-        	} else {
-            	    v25++;
-            	    if( !ecx0 ) goto LABEL_19;
+                v7 = ++VAR_DD;
+                if( !flg1 ) goto LABEL_19;
 LABEL_45:
-            	    if( Item70() < v25 ){
-                	v5 = -1; v22 = -1; v24 = 2; v23 = 0;
-            	    } else {
-LABEL_19:	
-                	if( ecx0 ){
-                	    v5 = TileGetTileNumInDir( v22, 0, 1 );
-                	} else {
-                	    if( ItemExplosionRange() >= v25 )
-                    		v5 = TileGetTileNumInDir( v22, 0, 1 );
-                	    else
-                    		v5 = -1;
-            		}
-            		v22 = v5; v24 = 2; v23 = 0;
-            	    }
-        	}
+                if( Item70(cmbt->HandEq) < v7 ){
+                    TileNumInDir = -1;
+                } else {
+LABEL_19:
+                    if( flg1 ) goto LABEL_22;
+                    v9 = ItemExplosionRange();
+                    if( v9 >= VAR_DD )
+LABEL_22:
+                        TileNumInDir = TileGetTileNumInDir(VAR_AA, 0, 1);
+                    else
+                        TileNumInDir = -1;
+                }
+                VAR_AA = TileNumInDir;
+                direction = 2;
+                VAR_BB = 0;
             }
-            if( v5 == -1 ) break;
-            obj = ObjReach( Dude, v5, a3 );
-            if( obj && OBJTYPE( obj->ImgId ) == TYPE_CRIT && !(obj->Critter.State.CombatResult & 0x80) && obj->Flags >= 0 && !CombatBlockedAim(obj, obj->GridId, a1, 0, 0) ){
-                if( obj == cmbt->Dude ){
+            if( TileNumInDir == -1 ) break;
+            p = ObjReach(obj, TileNumInDir, MapLvl);
+            v13 = p;
+            a3 = p;
+            if( p && (p->ImgId & 0xF000000) >> 24 == 1 && !(p->Critter.State.CombatResult & 0x80 ) && p->Flags >= 0 && !CombatBlockedAim(p, p->GridId, GridPos2, 0, 0) ){
+                if( v13 == cmbt->Dude ){
+                    DudeInjuries = cmbt->DudeInjuries;
                     cmbt->DudeInjuries &= ~0x100;
-                    CombatSetDmgChance( cmbt, 1, 2 );
-                    cmbt->DudeInjuries |= cmbt->DudeInjuries & 0x100;
+                    CombatSetDmgChance(cmbt, 1, 2);
+                    cmbt->DudeInjuries |= DudeInjuries & 0x100;
                     cmbt->DudeInjuries |= 0x400000;
                 } else {
-                        for( i = 0; i < cmbt->Count; i++ ){
-                            if( obj == cmbt->obj[ i ] ) break;
-                        }
+                    v16 = cmbt;
+                    for(i = 0; i < cmbt->Count; i++ ){
+                        if( a3 == v16->obj[ i ] ) break;
+                    }
                     if( i == cmbt->Count ){
-                        cmbt->unk1[ i ] = 3;
-                        cmbt->obj[ i ] = obj;
-                        CombatSetUp( &gCombatExplosion, cmbt->Dude, obj, cmbt->Hand, 3 );
+                        cmbt->unk1[i] = 3;
+                        cmbt->obj[i] = a3;
+                        CombatSetUp(&gCombatExplosion, cmbt->Dude, a3, cmbt->Hand, 3);
                         if( !a4 ){
                             gCombatExplosion.DudeInjuries |= 0x100;
-                            CombatSetDmgChance( &gCombatExplosion, 1, 2 );
+                            CombatSetDmgChance(&gCombatExplosion, 1, 2);
                         }
-                        cmbt->Damage[ i ] = gCombatExplosion.CompDmg;
-                        cmbt->Injuries[ i ] = gCombatExplosion.CompInjuries;
-                        cmbt->KnockDown[ i ] = gCombatExplosion.CompKnockDown;
+                        cmbt->Damage[i] = gCombatExplosion.CompDmg;
+                        cmbt->Injuries[i] = gCombatExplosion.CompInjuries;
+                        cmbt->KnockDown[i] = gCombatExplosion.CompKnockDown;
                         cmbt->Count++;
                     }
                 }

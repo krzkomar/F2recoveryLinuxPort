@@ -422,7 +422,7 @@ void ObjRenderObjects( VidRect_t *Area, int MapLvl )
             if( list->object->Flags & PRFLG_INVISIBLE ) continue;
             ObjRender( list->object, &Region, light );
             if( !(list->object->OutlineColor & 0xFFFFFF) ) continue;
-            if( list->object->OutlineColor < 0 ) continue;
+            if( list->object->OutlineColor & 0x80000000 ) continue;
             if( gObjUnk28 < 100 ) gObjUnk27[ gObjUnk28++ ] = list->object;
         }
         if( list ) gObjRenderList[ n++ ] = list;
@@ -438,7 +438,7 @@ void ObjRenderObjects( VidRect_t *Area, int MapLvl )
             if( list->object->Flags & PRFLG_INVISIBLE ) continue;
             ObjRender( list->object, &Region, light );
             if( !( list->object->OutlineColor & 0xFFFFFF) ) continue;
-            if( list->object->OutlineColor < 0 ) continue;
+            if( list->object->OutlineColor & 0x80000000 ) continue;
             if( gObjUnk28 < 100 ) gObjUnk27[ gObjUnk28++ ] = list->object;
         }
     }
@@ -776,7 +776,7 @@ int ObjMoveToTile( Obj_t *obj, unsigned int GridPos, int MapLvl, VidRect_t *pLig
     lvl = obj->Elevation;
     OBJ_UNLINK( ListPrev, ListCur );
     if( ObjAddObjToList( ListCur, GridPos, MapLvl, pLightArea ) == -1 ) return -1;
-    if( IN_COMBAT && OBJTYPE( obj->ImgId ) == TYPE_CRIT ) CombatUnk01( obj, obj->OutlineColor && obj->OutlineColor >= 0 );
+    if( IN_COMBAT && OBJTYPE( obj->ImgId ) == TYPE_CRIT ) CombatUnk01( obj, obj->OutlineColor && !(obj->OutlineColor & 0x80000000 ));
     if( pLightArea ) RegionExpand( pLightArea, &Area2, pLightArea );
     if( obj == gObjDude ){
         for( p = gObjGridObjects[ GridPos ]; p; p = p->Next ){
@@ -1041,7 +1041,7 @@ int ObjUnk32( Obj_t *obj, VidRect_t *Area ) // cursor refresh
     if( !obj ) return -1;
     if( !( obj->Flags & 0x01 ) ) return -1;
     obj->Flags &= ~0x01;
-    obj->OutlineColor &= ~0x8000;
+    obj->OutlineColor &= ~0x80000000;
     if( ( ObjLight( obj, 0, Area ) == -1 ) && Area ) ObjGetRefreshArea( obj, Area );
     if( obj != gObjDude ) return 0;
     if( !Area ) return 0;
@@ -1058,7 +1058,7 @@ int ObjUnk33( Obj_t *obj, VidRect_t *Area )
     if( obj->Flags & 0x01 ) return -1;
     if( ObjLight( obj, 1, Area ) == -1 && Area ) ObjGetRefreshArea( obj, Area );
     obj->Flags |= 0x01;
-    if( obj->OutlineColor & 0xFFFFFF ) obj->OutlineColor |= 0x800000;
+    if( obj->OutlineColor & 0xFFFFFF ) obj->OutlineColor |= 0x80000000;
     if( obj != gObjDude ) return 0;
     if( !Area ) return 0;
     ObjGetRefreshArea( gObjRadius, &rect );
@@ -1069,7 +1069,7 @@ int ObjUnk33( Obj_t *obj, VidRect_t *Area )
 int ObjUnk34( Obj_t *obj, VidRect_t *Area )
 {
     if( !obj ) return -1;
-    obj->OutlineColor &= ~0x800000;
+    obj->OutlineColor &= ~0x80000000;
     if( Area ) ObjGetRefreshArea( obj, Area );
     return 0;
 }
@@ -1077,7 +1077,7 @@ int ObjUnk34( Obj_t *obj, VidRect_t *Area )
 int ObjUnk35( Obj_t *obj, VidRect_t *area )
 {
     if( !obj ) return -1;
-    if( obj->OutlineColor & 0xFFFFFF ) obj->OutlineColor |= 0x800000;
+    if( obj->OutlineColor & 0xFFFFFF ) obj->OutlineColor |= 0x80000000;
     if( area ) ObjGetRefreshArea( obj, area );
     return 0;
 }
@@ -2717,7 +2717,7 @@ void ObjRenderHexCursor( Obj_t *obj, VidRect_t *area )
     surface = (unsigned char *)&gObjIsoSurface[ gObjIsoPitch * obj->Sy + obj->Sx ];
     pitch = gObjIsoPitch - Width;
     v52 = obj->OutlineColor & 0x40000000;
-    v15 = obj->OutlineColor & 0xFFFFFF;
+    v15 = obj->OutlineColor & 0x00FFFFFF;
     switch( v15 ){
         case 1: Color = -13; v42 = 5; v52 = 0; v43 = Height / 5; break;
         case 2: Color = gPalColorCubeRGB[31][0][0]; v43 = 0; if( v52 ){ Shade = (unsigned char *)gObjPalBY; Palette = (unsigned char *)gObjShadeRed; } break;

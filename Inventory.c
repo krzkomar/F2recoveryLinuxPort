@@ -3118,8 +3118,6 @@ int InvSetTimer( Obj_t *a1 )
     if( gInvUnk02 ) GameIfaceDisable( 0 );
     InvMsgClose();
     gInvUnk1 = 0;    
-DD
-exit(1);
     return err;
 }
 
