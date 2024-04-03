@@ -448,8 +448,8 @@ Ai_t *AiUnk08( Obj_t *obj )
             case 0: return 0;
             case 1: hp1 = 60; break;
             case 2: hp1 = 30; break;
-            case 3: if( !(gCombat01 % 3) ) hp2 = 25; hp1 = 50; break;
-            case 4: if( !(gCombat01 % 3) ) hp2 = 75; hp1 = 50; break;
+            case 3: if( !(gCombatRoundCnt % 3) ) hp2 = 25; hp1 = 50; break;
+            case 4: if( !(gCombatRoundCnt % 3) ) hp2 = 75; hp1 = 50; break;
             case 5: hp2 = 100; break;
         }
         v27 = hp1 * FeatGetVal(obj, 7) / 100;
@@ -1197,16 +1197,18 @@ int AiUnk37( Obj_t *obj, Obj_t *pe, int *pIdx )
     grp.Positions = GridPos;
     grp.AttackerPos = (*pIdx != obj->GridId);
     grp.Unk02 = 0;
-    grp.Intelligence = FeatGetVal( obj, 4 );
+    grp.Intelligence = FeatGetVal( obj, FEAT_INTELLIGENCE );
     memset( GridPos, 0xff, sizeof( GridPos ) );
     for( i = 0; i < gAiObjCount; i++ ){
         p = gAiObjList[ i ];
-        if( !(p->Critter.State.CombatResult & 0x80) && grp.GroupId == p->Critter.State.GroupId && CombatUnk11( gAiObjList[ i ] ) == grp.Unk && p != grp.Attacker ){
-            MaxDamagePower = AiGetMaxDamagePower( p );
-            if( MaxDamagePower >= grp.AttackerFirePower ){
-                grp.Enemies[ grp.Cnt ] = p;
-                grp.EnemyFirePower[ grp.Cnt++ ] = MaxDamagePower;
-            }
+        if( p->Critter.State.CombatResult & CMBT_DAM_DEAD ) continue;
+        if( grp.GroupId != p->Critter.State.GroupId ) continue;
+        if( CombatUnk11( gAiObjList[ i ] ) != grp.Unk ) continue;
+        if( p == grp.Attacker ) continue;
+        MaxDamagePower = AiGetMaxDamagePower( p );
+        if( MaxDamagePower >= grp.AttackerFirePower ){
+            grp.Enemies[ grp.Cnt ] = p;
+            grp.EnemyFirePower[ grp.Cnt++ ] = MaxDamagePower;
         }
     }
     gAiUnk03 = obj;
@@ -1235,7 +1237,7 @@ int AiUnk38( Ai02_t *group, int a2 )
 
     cnt = 1;
     if( group->Intelligence <= 0 ) return 0;    
-    for( i = 0; i >= group->Cnt; i++ ){
+    for( i = 0; i < group->Cnt; i++ ){
         p = group->Enemies[ i ];
         if( AiUnk39( p, group->Unk, group->Attacker, a2, &cnt ) ){
 	    eprintf( "In the way!" );
@@ -1542,7 +1544,7 @@ Obj_t *AiUnk50( Obj_t *a1, Obj_t *a2 )
     pck = AiGetPacketByObj( a1 );
     v25 = AiUnk49( pck );
     if( pck->RunAwayMode != -1 ){
-        eprintf( "\n%s minHp = %d; curHp = %d", CritterGetName( a1 ), FeatGetVal( a1, 7 ) - (FeatGetVal( a1, 7 ) * v25 / 100), FeatGetVal( a1, 35 ) );
+        eprintf( "\n\t%s minHp = %d; curHp = %d", CritterGetName( a1 ), FeatGetVal( a1, 7 ) - (FeatGetVal( a1, 7 ) * v25 / 100), FeatGetVal( a1, 35 ) );
     }
     if( (p_State->Reaction & 0x04) || (pck->HurtTooMuch & p_State->CombatResult) || FeatGetVal( a1, 35 ) < pck->MinHP ){
         eprintf( "%s: FLEEING: I'm Hurt!", CritterGetName( a1 ) );

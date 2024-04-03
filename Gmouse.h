@@ -1,5 +1,8 @@
 #pragma once
 
+// cursor shapes
+#define CURSOR_CLOCK	26
+
 #define CURSOR_BLANK ArtMakeId( 6, 0, 0, 0, 0 )
 #define ACTION_INFO	3
 #define ACTION_USE	6

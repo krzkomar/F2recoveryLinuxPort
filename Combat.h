@@ -2,6 +2,10 @@
 
 #define COMBAT_RECOVERY_AP_COST 3
 #define CBT_IN_COMBAT	0x01
+#define CBT_IN_TURN	0x02
+
+#define CBT_UNLEVEL	0x08
+
 #define IN_COMBAT	(gCombatStatus  & CBT_IN_COMBAT)
 
 // combat flags:
@@ -42,9 +46,18 @@ typedef struct
 
 typedef struct
 {
+    int  Ap;
+    int  Hit;
+    int  Unk01;
+    int  Unk02;
+} CombatBonus_t;
+
+typedef struct
+{
     Obj_t *Critter;
     Obj_t *Target;
-    int   unk01[ 4 ]; // 1 - hit bonus
+//    int   unk01[ 4 ]; // 0 - ap bonus, 1 - hit bonus
+    CombatBonus_t Bonus;
     int  unk02;
     int  unk03;
 } Combat02_t; // Scpt01_t
@@ -89,37 +102,7 @@ typedef struct // size of b8
 
 extern int gCombatStatus;
 extern int gCombatMovePts;
-extern int gCombat01;
-
-/*
-int gCombat00;
-int gCombat01;
-int gCombatStatus;
-Combat01_t *gCombat03;
-Obj_t **gCombat07;
-int gCombat08;
-int gCombatTacticMode;
-int gCombat12;
-int gCombatUnk12[ 4 ];
-int gCombatBodyParts[ 8 ];
-Combat_t gCombat20;
-Msg_t gCombatMsg;
-Obj_t *gCombatTarget;
-int gCombatFocusWin;
-int gCombatMapLvl;
-int gCombatCritCnt;
-Obj_t *gCombat10;
-int gCombat05;
-int gCombat06;
-Obj_t *gCombat19;
-int gTargetHighlightLvl;
-Obj_t **gCombatCritters;
-int gCombat04;
-int gCombat21;
-int gCombatMovePts;
-*/
-
-
+extern int gCombatRoundCnt;
 
 /************************************/
 int CombatInit();
@@ -136,50 +119,50 @@ void CombatUnk06( Obj_t *obj );
 void CombatUnk07();
 void CombatUnk08( int a1, int a2 );
 Obj_t *CombatUnk09( Obj_t *obj );
-int CombatUnk10( Obj_t *obj1, Obj_t *obj2 );
+int  CombatUnk10( Obj_t *obj1, Obj_t *obj2 );
 Obj_t *CombatUnk11( Obj_t *obj );
-int CombatStopAttack( Obj_t *obj1, Obj_t *obj2 );
+int  CombatStopAttack( Obj_t *obj1, Obj_t *obj2 );
 Obj_t *CombatUnk13( Obj_t *obj );
-int CombatUnk14( Obj_t *obj );
-int CombatUnk15( Obj_t *obj );
-int CombatUnk16( Obj_t *obj, int arg );
+int  CombatUnk14( Obj_t *obj );
+int  CombatUnk15( Obj_t *obj );
+int  CombatUnk16( Obj_t *obj, int arg );
 void CombatUnk17( Obj_t *a1 );
-int CombatTarget( Obj_t *obj );
+int  CombatTarget( Obj_t *obj );
 void CombatUnk19( int Flg );
 void CombatUnk01( Obj_t *obj, int Flg );
-int CombatTaskCb();
+int  CombatTaskCb();
 void CombatUnk21();
 void CombatEarnExpPts( int Exp );
 void CombatUnk23();
-int CombatUnk24( Obj_t *obj );
-int CombatUnk25( Obj_t **a1, Obj_t **a2 );
-int CombatUnk26( Obj_t *a1, Obj_t *a2 );
-void CombatUnk27();
+int  CombatUnk24( Obj_t *obj );
+int  CombatUnk25( Obj_t **a1, Obj_t **a2 );
+int  CombatUnk26( Obj_t *a1, Obj_t *a2 );
+void CombatQueueArrange();
 void CombatProcess();
 void CombatUpdate();
-int CombatUnk30();
-void CombatUnk31();
-void CombatUnk32();
-int CombatUnk33( Obj_t *obj, int edx0 );
-int CombatUnk34();
+int  CombatTurnLoop();
+void CombatUnTurn();
+void CombatResetAP();
+int  CombatTurn( Obj_t *obj, int edx0 );
+int  CombatUnk34();
 void CombatStart( Combat02_t *pObj );
 void CombatSetUp( Combat_t *cmbt, Obj_t *Critt, Obj_t *a3, int Hand, int a5 );
-int CombatAttack( Obj_t *a1, Obj_t *a2, int a3, int a4 );
-int CombatUnk37( Obj_t *a1, Obj_t *a2 );
-int CombatUnk38( Combat_t *a1 );
-int CombatUnk39( Combat_t *a1, int a2, int ebx0, int a4 );
-int CombatUnk40( Combat_t *a1, int a2, int *a3, int *a4, int a5 );
+int  CombatAttack( Obj_t *a1, Obj_t *a2, int a3, int a4 );
+int  CombatUnk37( Obj_t *a1, Obj_t *a2 );
+int  CombatUnk38( Combat_t *a1 );
+int  CombatUnk39( Combat_t *a1, int a2, int ebx0, int a4 );
+int  CombatUnk40( Combat_t *a1, int a2, int *a3, int *a4, int a5 );
 void CombatUnk41( Combat_t *a1 );
-int CombatUnk42( Combat_t *eax0 );
+int  CombatUnk42( Combat_t *eax0 );
 void CombatExplosion( Combat_t *eax0, int a2, int ecx0, int a4 );
-int CombatUnk44( Combat_t *a1 );
-int CombatUnk45( Obj_t *obj, Obj_t *a2 );
+int  CombatUnk44( Combat_t *a1 );
+int  CombatUnk45( Obj_t *obj, Obj_t *a2 );
 void CombatInjure( Combat_t *a1 );
 void CombatDrawInjure( int *a1 );
-int CombatDetermineHitObstacled( Obj_t *a1, Obj_t *a2, int a3, int a4 );
-int CombatDetermineHit( Obj_t *a1, Obj_t *a2, int a3, int a4 );
-int CombatDetermineHitDist( Obj_t *a1, int a2, Obj_t *a3, int a4, int a5 );
-int CombatGetHitChance( Obj_t *eax0, int edx0, Obj_t *a3, int a4, int a5, int a6 );
+int  CombatDetermineHitObstacled( Obj_t *a1, Obj_t *a2, int a3, int a4 );
+int  CombatDetermineHit( Obj_t *a1, Obj_t *a2, int a3, int a4 );
+int  CombatDetermineHitDist( Obj_t *a1, int a2, Obj_t *a3, int a4, int a5 );
+int  CombatGetHitChance( Obj_t *eax0, int edx0, Obj_t *a3, int a4, int a5, int a6 );
 void CombatSetDmgChance( Combat_t *cmbt, int, int );
 void CombatKillUpdate( Combat_t *cmbt );
 void CombatUnk54( Combat_t *a1, int a2 );
@@ -197,16 +180,16 @@ char *CombatGetBodyPartName( Obj_t *Critter, int BodyPartId );
 void CombatUnk66( int a1, int a2 );
 void CombatUnk67( int a1, int a2 );
 void CombatFocusPrintLabel( int BodyPart, int Color );
-int CombatFocusMenu( Obj_t *TargetObj, int *BodyPart, int Slot );
-int CombatAttackTest( Obj_t *attacker, Obj_t *target, int Slot, int ShotValue );
-int CombatUnk71( Obj_t *obj, int *a2 );
+int  CombatFocusMenu( Obj_t *TargetObj, int *BodyPart, int Slot );
+int  CombatAttackTest( Obj_t *attacker, Obj_t *target, int Slot, int ShotValue );
+int  CombatUnk71( Obj_t *obj, int *a2 );
 void CombatStartAttack( Obj_t *Target );
 void CombatTargetHighlight();
 void CombatUnk74( );
 void CombatUnk75();
-int CombatBlockedAim( Obj_t *obj1, int GridPos1, int GridPos2, Obj_t *obj2, int *arg0 );
-int CombatGetGroupId();
-int CombatUnk77( Obj_t *obj );
+int  CombatBlockedAim( Obj_t *obj1, int GridPos1, int GridPos2, Obj_t *obj2, int *arg0 );
+int  CombatGetGroupId();
+int  CombatUnk77( Obj_t *obj );
 void CombatUnk79( Obj_t *obj );
 void CombatKillPoison( Obj_t *obj, char *text );
 void CombatDealDamage( Obj_t *Attacker, int dmg, int, int, Obj_t *);

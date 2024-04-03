@@ -118,12 +118,13 @@ int ActionUnk36( int a1, Obj_t *a2 )
     return UseUnk06( a2 );
 }
 
+//actionattack ?
 int ActionUnk35( Obj_t *obj1, int dmg, int obj3, Obj_t *a4, int a5, int a6, int a7, int a8, Obj_t *obj4, int a10 )
 {
     Obj_t *v34;
     int result;
     int v18, v19, v21, a2, v39;
-
+DD
     if( CritterGetInjure( obj1->Pid, 0x4000 ) ) a6 = 0;
     a2 = (obj1->ImgId & 0xFF0000) >> 16;
     result = CritterUnk31( obj1 );

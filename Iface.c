@@ -629,44 +629,44 @@ void IfaceHandSlotSelect()
 
     if( gIfcWin == -1 ) return;
     if( gIfcHandSlot[ gIfcHandSlotState ].Usable ){
-            if( gIfcHandSlot[ gIfcHandSlotState ].i05 == 5 ){
-                if( !IN_COMBAT){ IfaceUnk36(); return; }
-                nn = ItemGetSlotApCost( gObjDude, ( gIfcHandSlotState != 0 ) + 6, 0 );
-                if( nn <= gObjDude->Critter.State.CurrentAP && !IfaceUnk36() ){
-                    CurrentAP = gObjDude->Critter.State.CurrentAP;
-                    if( nn > CurrentAP )
-                        gObjDude->Critter.State.CurrentAP = 0;
-                    else
-                        gObjDude->Critter.State.CurrentAP = CurrentAP - nn;
-                    IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
-                }
-            } else {
-                GmouseLoadCursor( 20 );
-                GmouseSetMode( 2 );
-                if( !IN_COMBAT ) CombatStart( 0 );
+        if( gIfcHandSlot[ gIfcHandSlotState ].i05 == 5 ){
+            if( !IN_COMBAT){ IfaceUnk36(); return; }
+            nn = ItemGetSlotApCost( gObjDude, ( gIfcHandSlotState != 0 ) + 6, 0 );
+            if( nn <= gObjDude->Critter.State.CurrentAP && !IfaceUnk36() ){
+                CurrentAP = gObjDude->Critter.State.CurrentAP;
+                if( nn > CurrentAP )
+                    gObjDude->Critter.State.CurrentAP = 0;
+                else
+                    gObjDude->Critter.State.CurrentAP = CurrentAP - nn;
+                IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
             }
-            return;
+        } else { // click on weapon
+            GmouseLoadCursor( 20 );
+            GmouseSetMode( 2 );
+            if( !IN_COMBAT ) CombatStart( 0 );
         }
-        if( ProtoDrugUsable( gIfcHandSlot[ gIfcHandSlotState ].obj->Pid ) ){
-            GmouseLoadCursor( 23 );
-            GmouseSetMode( 3 );
-            return;
-        }
-        if( !ObjOpenable( gIfcHandSlot[ gIfcHandSlotState ].obj ) ) return;            
-        if( (gCombatStatus & 1) != 0 ){
-            nn = ItemGetSlotApCost( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].i03, 0 );
-            if( nn > gObjDude->Critter.State.CurrentAP ) return;
-            UseUnk15( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].obj );
-            IfaceHandSlotUpdate( 0, -1, -1 );
-            if( nn > gObjDude->Critter.State.CurrentAP )
-                gObjDude->Critter.State.CurrentAP = 0;
-            else
-                gObjDude->Critter.State.CurrentAP -= nn;
-            IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
-            return;
-        }
+        return;
+    }
+    if( ProtoDrugUsable( gIfcHandSlot[ gIfcHandSlotState ].obj->Pid ) ){
+        GmouseLoadCursor( 23 );
+        GmouseSetMode( 3 );
+        return;
+    }
+    if( !ObjOpenable( gIfcHandSlot[ gIfcHandSlotState ].obj ) ) return;            
+    if( IN_COMBAT ){
+        nn = ItemGetSlotApCost( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].i03, 0 );
+        if( nn > gObjDude->Critter.State.CurrentAP ) return;
         UseUnk15( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].obj );
-        IfaceHandSlotUpdate( 0, -1, -1 );            
+        IfaceHandSlotUpdate( 0, -1, -1 );
+        if( nn > gObjDude->Critter.State.CurrentAP )
+            gObjDude->Critter.State.CurrentAP = 0;
+        else
+            gObjDude->Critter.State.CurrentAP -= nn;
+        IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
+        return;
+    }
+    UseUnk15( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].obj );
+    IfaceHandSlotUpdate( 0, -1, -1 );            
 }
 
 int IfaceGetSelectedHand()

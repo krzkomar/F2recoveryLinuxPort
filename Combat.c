@@ -1,8 +1,8 @@
 #include "FrameWork.h"
 
 int gCombat00 = 0;
-int gCombat01 = 0;
-int gCombatStatus = 2;
+int gCombatRoundCnt = 0;
+int gCombatStatus = CBT_IN_TURN;
 Combat01_t *gCombat03 = NULL;
 Combat02_t *gCombat07 = NULL;
 int gCombat08 = 0;
@@ -35,7 +35,7 @@ Obj_t *gCombat06;
 Obj_t *gCombat19;
 int gTargetHighlightLvl;
 Obj_t **gCombatCritters;
-int gCombat04;
+int gCombatTurns;
 int gCombat21;
 int gCombatMovePts;
 Combat_t gCombatUnk09;
@@ -47,15 +47,15 @@ int CombatInit()
     char path[ 260 ];
 
     gCombat00 = 0;
-    gCombat01 = 0;
+    gCombatRoundCnt = 0;
     gCombatCritters = NULL;
     gCombat03 = 0;
-    gCombat04 = 0;
+    gCombatTurns = 0;
     gCombat05 = 0;
     gCombatCritCnt = 0;
     gCombat07 = NULL;
     gCombat08 = 0;
-    gCombatStatus = 2;
+    gCombatStatus = CBT_IN_TURN;
     gCombatMovePts = 0;
     gCombat10 = 0;
     gCombatTacticMode = 0;
@@ -69,16 +69,17 @@ int CombatInit()
 
 int CombatReset()
 {
+DD
     gCombat00 = 0;
-    gCombat01 = 0;
+    gCombatRoundCnt = 0;
     gCombatCritters = NULL;
     gCombat03 = 0;
-    gCombat04 = 0;
+    gCombatTurns = 0;
     gCombat05 = 0;
     gCombatCritCnt = 0;
     gCombat07 = NULL;
     gCombat08 = 0;
-    gCombatStatus = 2;
+    gCombatStatus = CBT_IN_TURN;
     gCombatMovePts = 0;
     gCombat10 = 0;
     gObjDude->Critter.State.CurrentAP = FeatGetVal( gObjDude, FEAT_AP );
@@ -119,7 +120,7 @@ int CombatLoad( xFile_t *fh )
     if( dbgetBei( fh, &gCombat00 ) == -1 ) return -1; // ?
     if( dbgetBei( fh, &gCombatMovePts ) == -1 ) return -1; // ?
     if( dbgetBei( fh, &gCombat21 ) == -1 ) return -1; // ?
-    if( dbgetBei( fh, &gCombat04 ) == -1 ) return -1; // ?
+    if( dbgetBei( fh, &gCombatTurns ) == -1 ) return -1; // ?
     if( dbgetBei( fh, &gCombat05 ) == -1 ) return -1; // ?
     if( dbgetBei( fh, &gCombatCritCnt ) == -1 ) return -1; // number of NPC at the current map level + player + party at the beginning of the battle ( and corpses ?)
     if( ObjGetObjList( -1, gMapCurrentLvl, 1, &gCombatCritters ) != gCombatCritCnt ){ // get all critters list
@@ -189,7 +190,7 @@ int CombatFSave( xFile_t *fh )
     if( dbputBei( fh, gCombat00 ) == -1 ) return -1;
     if( dbputBei( fh, gCombatMovePts ) == -1 ) return -1;
     if( dbputBei( fh, gCombat21 ) == -1 ) return -1;
-    if( dbputBei( fh, gCombat04 ) == -1 ) return -1;
+    if( dbputBei( fh, gCombatTurns ) == -1 ) return -1;
     if( dbputBei( fh, gCombat05 ) == -1 ) return -1;
     if( dbputBei( fh, gCombatCritCnt ) == -1 ) return -1;
     if( dbputBei( fh, gObjDude->CritterIdx ) == -1 ) return -1;    
@@ -381,52 +382,50 @@ void CombatUnk17( Obj_t *a1 )
     InpTaskStop( AnimAmbient );
     gCombatMapLvl = gMapCurrentLvl;
     if( IN_COMBAT ) return;
-
-    gCombat01 = 0;
+    gCombatRoundCnt = 0;
     gCombat21 = 0;
     gCombatCritters = NULL;
     gCombatCritCnt = ObjGetObjList( -1, gCombatMapLvl, 1, &gCombatCritters );
     gCombat05 = gCombatCritCnt;
-    gCombat04 = 0;
+    gCombatTurns = 0;
     gCombat03 = (Combat01_t *)Malloc( gCombatCritCnt * sizeof( Combat01_t ) );
-    if( gCombat03 ){
-        for( i = 0; i < gCombatCritCnt; i++ ){
-            gCombat03[ i ].i01 = NULL;
-            gCombat03[ i ].i02 = NULL;
-            gCombat03[ i ].i03 = NULL;
-            gCombat03[ i ].i04 = 0;
-        }
-        for( i = 0; i < gCombatCritCnt; i++ ){
-            obj = gCombatCritters[ i ];
-            obj->Critter.State.DmgLastTurn = 0;
-            obj->Critter.State.WhoHitMe = 0;
-            obj->Critter.State.Reaction &= 0x01;
-            obj->Critter.State.CurrentAP = 0;
-            obj->CritterIdx = i;
-            if( (gCombatStatus & 0x100) != 0 && obj && i != -1 ) gCombat03[ i ].i04 = 0;
-            ScptSetup( obj->ScrId, 0, 0 );
-            ScptSetArg( obj->ScrId, 0 );
-            if( obj->Pid == 0x1000098 && !CritterIsDead( obj ) ) v1 = obj;
-        }
-        gCombatStatus |= 0x01;
-        TileUpdate();
-        GameIfaceDisable( 0 );
-        GmouseLoadCursor( 26 );
-        gCombat10 = 0;
-        CombatTarget( a1 );
-        AiUnk23( gCombatCritters, gCombatCritCnt );
-        IfaceCombatOpen( 1 );
-        GmouseScrollEnable();
-        if( v1 && !LsgPending() ){
-            id = ArtMakeId( (v1->ImgId & 0xF000000) >> 24, 100, (v1->ImgId & 0xFF0000u) >> 16, (v1->ImgId & 0xF000) >> 12, (v1->ImgId & 0x70000000) >> 28);
-            AnimRegClear( v1 );
-            AnimRegStart( 2 );
-            AnimRegAnimation( v1, 6, -1 );
-            AnimUnk62( v1, id, -1 );
-            AnimRegEnd();
-            while( AnimUnk39( v1 ) ) InpWinUpdate();
-        }
-    }    
+    if( !gCombat03 ) return;    
+    for( i = 0; i < gCombatCritCnt; i++ ){
+        gCombat03[ i ].i01 = NULL;
+        gCombat03[ i ].i02 = NULL;
+        gCombat03[ i ].i03 = NULL;
+        gCombat03[ i ].i04 = 0;
+    }
+    for( i = 0; i < gCombatCritCnt; i++ ){
+        obj = gCombatCritters[ i ];
+        obj->Critter.State.DmgLastTurn = 0;
+        obj->Critter.State.WhoHitMe = 0;
+        obj->Critter.State.Reaction &= 0x01;
+        obj->Critter.State.CurrentAP = 0;
+        obj->CritterIdx = i;
+        if( (gCombatStatus & 0x100) != 0 && obj && i != -1 ) gCombat03[ i ].i04 = 0;
+        ScptSetup( obj->ScrId, 0, 0 );
+        ScptSetArg( obj->ScrId, 0 );
+        if( obj->Pid == 0x1000098 && !CritterIsDead( obj ) ) v1 = obj;
+    }
+    gCombatStatus |= CBT_IN_COMBAT;
+    TileUpdate();
+    GameIfaceDisable( 0 );
+    GmouseLoadCursor( CURSOR_CLOCK );
+    gCombat10 = 0;
+    CombatTarget( a1 );
+    AiUnk23( gCombatCritters, gCombatCritCnt );
+    IfaceCombatOpen( 1 );
+    GmouseScrollEnable();
+    if( v1 && !LsgPending() ){
+        id = ArtMakeId( (v1->ImgId & 0xF000000) >> 24, 100, (v1->ImgId & 0xFF0000u) >> 16, (v1->ImgId & 0xF000) >> 12, (v1->ImgId & 0x70000000) >> 28);
+        AnimRegClear( v1 );
+        AnimRegStart( 2 );
+        AnimRegAnimation( v1, 6, -1 );
+        AnimUnk62( v1, id, -1 );
+        AnimRegEnd();
+        while( AnimUnk39( v1 ) ) InpWinUpdate();
+    }        
 }
 
 int CombatTarget( Obj_t *obj )
@@ -470,7 +469,7 @@ void CombatUnk01( Obj_t *obj, int Flg )
     		ObjUnk35( obj, 0 );    	    
             return;
         }
-        if( obj->OutlineColor && obj->OutlineColor >= 0 ){
+        if( obj->OutlineColor && !(obj->OutlineColor & 0x80000000 ) ){
             if( !Flg ) ObjUnk35( obj, 0 );
             return;
         }
@@ -481,7 +480,7 @@ void CombatUnk01( Obj_t *obj, int Flg )
         if( (obj->Flags & 0x20000) != 0 ) b /= 2;
         k = ( a <= b ) ? 1:0;
         if( ( obj->OutlineColor & 0xFFFFFF ) == 0x20 ){
-            if( obj->OutlineColor && ( obj->OutlineColor >= 0 ) ){
+            if( obj->OutlineColor && !( obj->OutlineColor & 0x80000000 ) ){
                 if( !Flg ) ObjUnk35( obj, 0 );
                 return;
             }
@@ -503,15 +502,15 @@ int CombatTaskCb()
 {
     Obj_t *obj;
     int i, Id, v14, v15;
-
+DD
     if( !gMenuEscape ){
-        for( i = 0; i < gCombat04; i++ ){
+        for( i = 0; i < gCombatTurns; i++ ){
             obj = gCombatCritters[ i ];
             if( obj != gObjDude ) AiUnk45( obj, 0 );
         }
     }
     InpTaskStart( AnimAmbient );    
-    for( i = 0; i < (gCombat05 + gCombat04); i++ ){
+    for( i = 0; i < (gCombat05 + gCombatTurns); i++ ){
         gCombatCritters[ i ]->Critter.State.DmgLastTurn = 0;
         gCombatCritters[ i ]->Critter.State.Reaction = 0;        
     }
@@ -539,7 +538,7 @@ int CombatTaskCb()
     IfaceRenderAP( 0, 0 );
     if( !gMenuEscape ) CombatEarnExpPts( gCombat21 );
     gCombat21 = 0;
-    gCombatStatus = (gCombatStatus & 0xFC) | 2;
+    gCombatStatus = (gCombatStatus & ~0x03) | CBT_IN_TURN;
     if( gCombatCritCnt ){
         ObjCritterListDestroy( gCombatCritters );
         if( gCombat03 ) Free( gCombat03 );
@@ -562,6 +561,7 @@ int CombatTaskCb()
 
 void CombatUnk21()
 {
+DD
     CombatTaskCb();
     gCombatStatus = 0;
     gCombatTacticMode = 1;
@@ -589,20 +589,20 @@ void CombatUnk23()
     int ap, i;
 
     AiUnk64( gObjDude );
-    for( i = gCombat04; i < (gCombat04 + gCombat05); i++ ){
+    for( i = gCombatTurns; i < (gCombatTurns + gCombat05); i++ ){
         obj = gCombatCritters[ i ];
         if( AiUnk51( obj ) ){
             obj->Critter.State.Reaction = 0;
             tmp = gCombatCritters[ i ];
-            gCombatCritters[ i ] = gCombatCritters[ gCombat04 ];
-            gCombatCritters[ gCombat04 ] = tmp;
-            gCombat04++;
+            gCombatCritters[ i ] = gCombatCritters[ gCombatTurns ];
+            gCombatCritters[ gCombatTurns ] = tmp;
+            gCombatTurns++;
             gCombat05--;
             ap = 0; // added -> bug, uninitialized ap value in esi !!!
             if( obj != gObjDude ) ap = FeatGetVal( obj, FEAT_AP );
-            if( gCombat07 ) ap += gCombat07->unk01[ 0 ];
+            if( gCombat07 ) ap += gCombat07->Bonus.Ap;
             obj->Critter.State.CurrentAP = ap;
-            CombatUnk33( obj, 0 );
+            CombatTurn( obj, 0 );
         }            
     }        
 }
@@ -612,7 +612,7 @@ int CombatUnk24( Obj_t *obj )
     int pe, i;
 
     pe = FeatGetVal( obj, FEAT_PERCEPTION );
-    for( i = 0; i < gCombat04; i++ ){
+    for( i = 0; i < gCombatTurns; i++ ){
 	if( ObjGetDistance( gCombatCritters[ i ], obj ) <= pe ) return 1;
     }
     return 0;        
@@ -636,15 +636,16 @@ int CombatUnk26( Obj_t *a1, Obj_t *a2 )
 {
     int i, err;
     Obj_t *e;
-
-    gCombat04 = 0;
+DD
+printf( "->%p %p\n", a1, a2);
+    gCombatTurns = 0;
     if( a1 ){
 	for( i = 0; i < gCombatCritCnt; i++ ){
     	    if( a1 == gCombatCritters[ i ] ){
     		e = gCombatCritters[ i ];
     		gCombatCritters[ i ] = gCombatCritters[ 0 ];
     		gCombatCritters[ 0 ] = e;
-    		gCombat04 = 1;
+    		gCombatTurns = 1;
     	        break;
     	    }            
 	}
@@ -654,9 +655,9 @@ int CombatUnk26( Obj_t *a1, Obj_t *a2 )
 	for( i = 0; i < gCombatCritCnt; i++ ){
     	    if( a2 == gCombatCritters[ i ] ){
     		e = gCombatCritters[ i ];
-    		gCombatCritters[ i ] = gCombatCritters[ gCombat04 ];
-    		gCombatCritters[ gCombat04 ] = e;
-    		gCombat04++;
+    		gCombatCritters[ i ] = gCombatCritters[ gCombatTurns ];
+    		gCombatCritters[ gCombatTurns ] = e;
+    		gCombatTurns++;
         	break;
 	    }
 	}
@@ -666,31 +667,31 @@ int CombatUnk26( Obj_t *a1, Obj_t *a2 )
         for( i = 0; i < gCombatCritCnt; i++ ){            
             if( gCombatCritters[ i ] == gObjDude ){
         	e = gCombatCritters[ i ];
-    		gCombatCritters[ i ] = gCombatCritters[ gCombat04 ];
-    		gCombatCritters[ gCombat04 ] = e;
-    		gCombat04++;
+    		gCombatCritters[ i ] = gCombatCritters[ gCombatTurns ];
+    		gCombatCritters[ gCombatTurns ] = e;
+    		gCombatTurns++;
         	break;
             }
         }
     }
 
     gCombatCritters = gCombatCritters;
-    gCombat05 -= gCombat04;
+    gCombat05 -= gCombatTurns;
     if( a1 ) err = CritterUnk45( a1, a2 );
     if( a2 ) return CritterUnk45( a2, a1 );
     return err;
 }
 
-void CombatUnk27()
+void CombatQueueArrange()
 {
     int k, i;
     Obj_t *obj, *tmp;
 
     CombatUnk23();
-    k = gCombat04;
-    for( i = 0; i < gCombat04; i++ ){
+    k = gCombatTurns;
+    for( i = 0; i < gCombatTurns; i++ ){
         obj = gCombatCritters[ i ];
-        if( obj->Critter.State.CombatResult & 0x80 ){
+        if( obj->Critter.State.CombatResult & CMBT_DAM_DEAD ){
             gCombatCritters[ i ] = gCombatCritters[ k - 1 ];
             gCombatCritters[ k - 1 ] = obj;            
             gCombatCritters[ k - 1 ] = gCombatCritters[ k + gCombat05 - 1 ];
@@ -702,8 +703,8 @@ void CombatUnk27()
     for( i = 0; i < k; i++ ){
         obj = gCombatCritters[ i ];
         if( obj == gObjDude ) continue;
-        if( (obj->Critter.State.CombatResult & 0x01) || obj->Critter.State.Reaction == 2 ){
-            obj->Critter.State.Reaction &= ~0x01;
+        if( (obj->Critter.State.CombatResult & CMBT_DAM_KNOCKED_OUT ) || obj->Critter.State.Reaction == CMBT_DAM_KNOCKED_DOWN ){
+            obj->Critter.State.Reaction &= ~CMBT_DAM_KNOCKED_OUT;
             tmp = gCombatCritters[ i ];
             gCombatCritters[ i ] = gCombatCritters[ k - 1 ];
             gCombatCritters[ k - 1 ] = tmp;
@@ -713,11 +714,11 @@ void CombatUnk27()
         }
     }
     if( k ){
-	gCombat04 = k;
-        qsort( gCombatCritters, gCombat04, sizeof( Obj_t *), (void *)CombatUnk25 );
-	k = gCombat04;
+	gCombatTurns = k;
+        qsort( gCombatCritters, gCombatTurns, sizeof( Obj_t *), (void *)CombatUnk25 );
+	k = gCombatTurns;
     }
-    gCombat04 = k;
+    gCombatTurns = k;
     ScptTimeCap2( 5 );
 }
 
@@ -726,13 +727,13 @@ void CombatProcess()
     int i;
     Obj_t *obj;
     MsgLine_t msg;
-
+DD
     if( gCombatMapLvl != gObjDude->Elevation ){
-        gCombatStatus |= 0x08;
+        gCombatStatus |= CBT_UNLEVEL;
         AiUnk24();
         return;
     }    
-    for( i = 0; i < gCombat04; i++ ){
+    for( i = 0; i < gCombatTurns; i++ ){
         obj = gCombatCritters[ i ];
         if( obj == gObjDude ) continue;
         if( gObjDude->Critter.State.GroupId == obj->Critter.State.GroupId ){
@@ -745,7 +746,7 @@ DD
 	    return;
         }
     }    
-    for( i = gCombat04; i < (gCombat05 + gCombat04); i++ ){
+    for( i = gCombatTurns; i < (gCombat05 + gCombatTurns); i++ ){
         obj = gCombatCritters[ i ];
         if( obj == gObjDude ) continue;
         if( gObjDude->Critter.State.GroupId == obj->Critter.State.GroupId ){        
@@ -758,7 +759,7 @@ DD
             return;
         }                                    
     }
-    gCombatStatus |= 0x08;
+    gCombatStatus |= CBT_UNLEVEL;
     AiUnk24();
     return;
 }
@@ -768,13 +769,13 @@ void CombatUpdate()
     while( gCombat00 > 0 ) InpWinUpdate();
 }
 
-int CombatUnk30()
+int CombatTurnLoop()
 {
     int tmp, sel;
 
     tmp = 0;
-    while( gCombatStatus & 0x02 ){
-        if( (gCombatStatus & 8) != 0 || (gObjDude->Critter.State.CombatResult & 0x8081) != 0 || gMenuEscape || gCombatTacticMode ) break;
+    while( gCombatStatus & CBT_IN_TURN ){
+        if( (gCombatStatus & CBT_UNLEVEL ) || (gObjDude->Critter.State.CombatResult & 0x8081) || gMenuEscape || gCombatTacticMode ) break;
         sel = InpUpdate();
         if( ActionUnk13() ){
             while( gCombat00 > 0 ) InpWinUpdate();
@@ -784,29 +785,29 @@ int CombatUnk30()
         if( sel == 13 ){
             CombatProcess();
         } else {
-            ScptUnk122();
+            ScptTurn();
             GameProcess( sel, 1 );
         }
     }
     if( gMenuEscape == 1 ){ tmp = gMenuEscape; gMenuEscape = 0; }
-    if( gCombatStatus & 0x08 ){ gCombatStatus &= ~0x08; return -1; }
+    if( gCombatStatus & CBT_UNLEVEL ){ gCombatStatus &= ~CBT_UNLEVEL; return -1; }
     if( gMenuEscape || tmp || gCombatTacticMode ) return -1;    
-    ScptUnk122();
+    ScptTurn();
     return 0;    
 }
 
-void CombatUnk31()
+void CombatUnTurn() // no xref
 {
-    gCombatStatus &= ~0x02;
+    gCombatStatus &= ~CBT_IN_TURN;
 }
 
-void CombatUnk32()
+void CombatResetAP()
 {
     int ap, i;
-        
-    for( i = 0; i < gCombat04; i++ ){
+
+    for( i = 0; i < gCombatTurns; i++ ){
         ap = FeatGetVal( gCombatCritters[ i ], FEAT_AP );
-        if( gCombat07 ) ap += gCombat07->unk01[ 0 ];
+        if( gCombat07 ) ap += gCombat07->Bonus.Ap;
         gCombatCritters[ i ]->Critter.State.CurrentAP = ap;
         if( IN_COMBAT && gCombatCritters[ i ] ){
             if( gCombatCritters[ i ]->CritterIdx != -1 ) gCombat03[ gCombatCritters[ i ]->CritterIdx ].i04 = 0;
@@ -814,7 +815,7 @@ void CombatUnk32()
     }
 }
 
-int CombatUnk33( Obj_t *obj, int edx0 )
+int CombatTurn( Obj_t *obj, int edx0 )
 {
     int i, flg;
     VidRect_t Area;
@@ -823,8 +824,8 @@ int CombatUnk33( Obj_t *obj, int edx0 )
     gCombat19 = obj;
     flg = 0;
     CombatSetUp( &gCombat20, obj, 0, 4, 3 );
-    if( obj->Critter.State.CombatResult & 0x8081 ){
-        obj->Critter.State.CombatResult &= ~0x8000;
+    if( obj->Critter.State.CombatResult & ( CMBT_DAM_LOSE_TURN | CMBT_DAM_DEAD | CMBT_DAM_KNOCKED_OUT ) ){
+        obj->Critter.State.CombatResult &= ~CMBT_DAM_LOSE_TURN;
     } else {
         if( obj == gObjDude ){
             KeyFlush();
@@ -847,13 +848,13 @@ int CombatUnk33( Obj_t *obj, int edx0 )
                 GameIfaceEnable();
                 GmouseUnk55();
                 if( gCombat07 ) CombatStartAttack( gCombat07->Target );
-                if( !edx0 ) gCombatStatus |= 0x02;
+                if( !edx0 ) gCombatStatus |= CBT_IN_TURN;
                 IfaceUnk24();                
                 for( i = 0; i < gCombatCritCnt; i++){
                     CombatUnk01( gCombatCritters[ i ], 0 );
                 }
                 if( gTargetHighlightLvl ) CombatTargetHighlight();
-                if( CombatUnk30() == -1 ){
+                if( CombatTurnLoop() == -1 ){
                     GameIfaceDisable( 1 );
                     GmouseLoadCursor( 26 );
                     obj->Critter.State.DmgLastTurn = 0;
@@ -894,38 +895,39 @@ int CombatUnk34()
 {
     int i;
 
-    if( gCombat04 <= 1 ) return 1;        
-    for( i = 0; i < gCombat04; i++ ){
+    if( gCombatTurns <= 1 ) return 1; // no one left in queue to fight
+    for( i = 0; i < gCombatTurns; i++ ){
         if( gObjDude == gCombatCritters[ i ] ) break;
     }
-    if( i == gCombat04 ) return 1;
-    for( i = 0; i < gCombat04; i++ ){
-        if( gObjDude->Critter.State.GroupId != gCombatCritters[ i ]->Critter.State.GroupId ) break;
+    if( i == gCombatTurns ) return 1; // no player in queue
+    for( i = 0; i < gCombatTurns; i++ ){
+        if( gCombatCritters[ i ]->Critter.State.GroupId != gObjDude->Critter.State.GroupId ) break;
         if( gCombatCritters[ i ]->Critter.State.WhoHitMe ){
-DD
-//            if( gObjDude->Critter.State.GroupId == gCombatCritters[ i ]->Critter.State.WhoHitMe->Critter.State.GroupId ) break;
+            if( gObjDude->Critter.State.GroupId == gCombatCritters[ i ]->Critter.State.WhoHitMeObj->Critter.State.GroupId ) break;
         }
     }
-    return i == gCombat04;
+    return i == gCombatTurns; // no enemies left
 }
 
 void CombatStart( Combat02_t *pObj )
 {
-    int j, i;
-DD
+    int turn, i, combat_at_start;
+
     if( pObj ){
 	if( pObj->Critter && gMapCurrentLvl != pObj->Critter->Elevation ) return;
 	if( pObj->Target && gMapCurrentLvl != pObj->Target->Elevation ) return;
     }
-//    CombatUnk17( 0 );
-    if( IN_COMBAT ){
-        if( CombatUnk33( gObjDude, 1 ) == -1 ){
-            j = -1;
+    combat_at_start = IN_COMBAT;
+    CombatUnk17( 0 );
+    // combat init
+    if( combat_at_start ){
+        if( CombatTurn( gObjDude, 1 ) == -1 ){
+            turn = -1;
         } else {
-            for( i = 0; i < gCombat04; i++){
+            for( i = 0; i < gCombatTurns; i++){
                 if( gCombatCritters[ i ] == gObjDude ) break;
             }                        
-            j = i + 1;
+            turn = i + 1;
         }
         gCombat07 = NULL;
     } else {
@@ -935,21 +937,24 @@ DD
     	    CombatUnk26( NULL, NULL );
         }
         gCombat07 = pObj;
-        j = 0;
+        turn = 0;
     }
+    // combat loop
     do{
-        if( j == -1 ) break;
-        CombatUnk32();                
-        for( ;j < gCombat04; j++ ){
-            if( CombatUnk33( gCombatCritters[ j ], 0 ) == -1 ) break;
+        if( turn == -1 ) break;
+        CombatResetAP(); // reset all criters AP at round begin
+        for( ;turn < gCombatTurns; turn++ ){
+            if( CombatTurn( gCombatCritters[ turn ], 0 ) == -1 ) break;
             if( gCombat10 ) break;
             gCombat07 = NULL;
         }                
-        if( j < gCombat04 ) break;
-        CombatUnk27();
-        j = 0;
-        gCombat01++;
+        if( turn < gCombatTurns ) break;
+        CombatQueueArrange(); // arrange sequece in combat queue
+        turn = 0;
+        gCombatRoundCnt++;
     } while( !CombatUnk34() );
+
+    // combat finish
     if( gCombatTacticMode ){
         GameIfaceEnable();
         GmouseSetMode( 0 );
@@ -995,8 +1000,8 @@ int CombatAttack( Obj_t *Critter, Obj_t *a2, int a3, int a4 )
     eprintf( "computing attack...\n" );
     if( CombatUnk42( &gCombat20 ) == -1 ) return -1;
     if( gCombat07 ){
-        gCombat20.CompDmg += gCombat07->unk01[ 2 ];
-        if( gCombat20.CompDmg < gCombat07->unk01[ 3 ] ) gCombat20.CompDmg = gCombat07->unk01[ 3 ];
+        gCombat20.CompDmg += gCombat07->Bonus.Unk01;
+        if( gCombat20.CompDmg < gCombat07->Bonus.Unk02 ) gCombat20.CompDmg = gCombat07->Bonus.Unk02;
         if( gCombat20.CompDmg > gCombat07->unk02 ) gCombat20.CompDmg = gCombat07->unk02;
 DD
 //        if( gCombat07->unk03 ) gCombat20.CompInjuries = gCombat07[1].Target; // ??????
@@ -1596,7 +1601,7 @@ int CombatGetHitChance( Obj_t *Attacker, int arg2, Obj_t *Target, int Penalty, i
             HitChance -= 40;
         }
     }
-    if( gCombat07 ) HitChance += gCombat07->unk01[ 1 ];
+    if( gCombat07 ) HitChance += gCombat07->Bonus.Hit;
     if( Attacker->Critter.State.CombatResult & 0x40 ) HitChance -= 25;
     if( LivingTarget && Target && ( Target->Grid.DestMapElev & 0x03 ) ) HitChance += 40;
     if( Attacker->Critter.State.GroupId != gObjDude->Critter.State.GroupId ){ // enemy
@@ -2279,8 +2284,8 @@ void CombatStartAttack( Obj_t *Target )
     char stmp[80];
     Combat02_t v6;
     MsgLine_t msg;
-
-    if( !Target || !(gCombatStatus & 0x02) || IfaceGetWeaponDsc( &HandSlot, &ShotValue ) == -1 ) return;    
+DD
+    if( !Target || !(gCombatStatus & CBT_IN_TURN) || IfaceGetWeaponDsc( &HandSlot, &ShotValue ) == -1 ) return;    
     switch( CombatAttackTest( gObjDude, Target, HandSlot, ShotValue ) ){
         case 1:
             msg.Id = 101; // 'Out of Ammo'
@@ -2316,7 +2321,7 @@ void CombatStartAttack( Obj_t *Target )
             if( !IN_COMBAT ){
                 v6.Critter = gObjDude;
                 v6.Target = Target;
-                memset( v6.unk01, 0, sizeof( v6.unk01 ) );
+                memset( &v6.Bonus, 0, sizeof( CombatBonus_t ) );
                 v6.unk02 = 0x7FFFFFFF;
                 v6.unk03 = 0;
                 CombatStart( &v6 );
@@ -2339,11 +2344,11 @@ void CombatTargetHighlight()
 {
     int i, cnt, hl;
     Obj_t **ObjList, *obj;
-
+DD
     hl = 2;
     CfgGetInteger( &gConfiguration, "preferences", "target_highlight", &hl );
     if( !hl || GmouseGetMode() != 2 ) return;    
-    if( (gCombatStatus & 1) != 0 ){
+    if( IN_COMBAT ){
         for( i = 0; i < gCombatCritCnt; i++ ){
             CombatUnk01( gCombatCritters[ i ], 1 );
         }
@@ -2449,10 +2454,10 @@ void CombatUnk79( Obj_t *obj )
 	}
 	gCombatCritCnt--;
 	gCombatCritters[ gCombatCritCnt ] = obj;
-	if( i >= gCombat04 ){
-    	    if( i < gCombat05 + gCombat04 ) gCombat05--;
+	if( i >= gCombatTurns ){
+    	    if( i < gCombat05 + gCombatTurns ) gCombat05--;
 	} else {
-    	    gCombat04--;
+    	    gCombatTurns--;
 	}
 	obj->Critter.State.CurrentAP = 0;
 	ObjClrOutline( obj, NULL );

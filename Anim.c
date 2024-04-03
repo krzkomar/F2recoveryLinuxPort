@@ -665,7 +665,7 @@ int AnimUnk62( Obj_t *a1, int a2, int a3 )
     anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 17;
     anim->Target.Obj = a1;
-    anim->TargetPos = a2; // ???
+    anim->TargetPos = a2; // ??? art
     anim->Delay = a3;
     anim->ImgObj = NULL;
     if( !ArtLoadImg( a2, &anim->ImgObj ) ){ AnimStop(); return -1; }
@@ -835,7 +835,6 @@ int AnimStateMachine( int AnimIdx )
                 if( !(err = anim->Callback11( anim->GpPtr, anim->Target.Obj ) ) ) err = AnimUpdate( AnimIdx, 0 );
                 break;
             case 12:
-printf("SDF=>%p\n", anim->Ap.Obj);
                 if( !(err = anim->Callback12( anim->GpPtr, anim->Target.Obj, anim->Ap.Obj )) ) err = AnimUpdate( AnimIdx, 0 ); 
                 break;
             case 14:

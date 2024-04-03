@@ -601,7 +601,7 @@ void ScptActionExec()
     if( gScptActionFlags & SCP_ACT_STEAL_ATTEMPT ){ gScptActionFlags &= ~SCP_ACT_STEAL_ATTEMPT; InvStealAttempt( gScptUnk119, gScptUnk120 ); }    
 }
 
-void ScptUnk122()
+void ScptTurn()
 {
     Obj_t *i;
     MapPosition_t v9;

@@ -202,7 +202,7 @@ int ScptRunTimedEv( Obj_t *obj, int *Ptr );
 void ScptUnk125();
 void ScptUnk124( Scpt_t *a1 );
 void ScptActionExec();
-void ScptUnk122();
+void ScptTurn();
 int ScptUnk121( Scpt01_t *a1 );
 int ScptUnk120( Scpt01_t *scr );
 int ScptUnk119();
