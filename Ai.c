@@ -1722,14 +1722,15 @@ int AiCombatTaunts( Obj_t *Critter, Combat_t *Combat, int ReactionType, int a4 )
     return AnimSetCallback11( Critter, (AnimU_t)ReactionType, (void *)AiMumble, a4 ); // !!! scalar to pointer !!!
 }
 
-int AiMumble( Obj_t *obj, char *Text )
+int AiMumble( Obj_t *obj, char *s )
 {
     Ai_t *p;
     VidRect_t Area;
-
-    if( TextCount() > 0 ) return 0;    
+    int v3 = (int )s;
+    
+    if( TextCount() > 0 ) return 0; 
     p = AiGetPacketByObj( obj );
-    if( !TextFloatMessage( obj, Text, p->Font, p->Color, p->OutlineColor, &Area ) ) TileUpdateArea( &Area, obj->Elevation );
+    if( !TextFloatMessage( obj, ((v3 == 4) || (v3 == 3)) ? gAiUnk06 : gAiUnk05, p->Font, p->Color, p->OutlineColor, &Area ) ) TileUpdateArea( &Area, obj->Elevation );
     return 0;
 }
 

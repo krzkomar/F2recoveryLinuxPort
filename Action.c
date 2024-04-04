@@ -316,10 +316,10 @@ int ActionUnk31( Combat_t *cmbt, int a2, int a3 )
     return a3;
 }
 
-int ActionUnk30( Combat_t *cmbt )
+int ActionAttack( Combat_t *cmbt )
 {
     int i, n;
-
+DD
     if( AnimRegClear( cmbt->Dude ) == -2 ) return -1;
     if( AnimRegClear( cmbt->Comp ) == -2 ) return -1;
     for( i = 0; i < cmbt->Count; i++  ){
@@ -327,18 +327,18 @@ int ActionUnk30( Combat_t *cmbt )
     }    
     n = Item44( cmbt->Dude, cmbt->Hand );
     if( n >= 45 || n == 18 )
-        return ActionUnk27( cmbt, n );
+        return ActionUseRngWpn( cmbt, n );
     else
-        return ActionUnk29( cmbt, n );
+        return ActionUseMeleeWpn( cmbt, n );
 }
 
-int ActionUnk29( Combat_t *cmbt, int a2 )
+int ActionUseMeleeWpn( Combat_t *cmbt, int a2 )
 {
     CachePool_t *ImgObj;
     ArtFrmHdr_t *Img;
     int ActionFrame, Frame;
     char stmp[16];
-
+DD
     AnimRegStart( 2 );
     AnimUnk33( 1 );
     Img = ArtLoadImg( ArtMakeId(1, cmbt->Dude->ImgId & 0xFFF, a2, (cmbt->Dude->ImgId & 0xF000) >> 12, cmbt->Dude->Orientation + 1), &ImgObj );
@@ -394,7 +394,7 @@ int ActionUnk29( Combat_t *cmbt, int a2 )
     return 0;    
 }
 
-void ActionUnk28( Obj_t *obj, int ImgId )
+void ActionChangeThrowFidget( Obj_t *obj, int ImgId ) // not used
 {
     VidRect_t area;
 
@@ -403,14 +403,14 @@ void ActionUnk28( Obj_t *obj, int ImgId )
     TileUpdateArea( &area, gMapCurrentLvl );
 }
 
-int ActionUnk27( Combat_t *cmbt, int a2 )
+int ActionUseRngWpn( Combat_t *cmbt, int a2 )
 {
     ArtFrmHdr_t *v5;
     CachePool_t *Obj;
     Proto_t *proto;
     Obj_t *a1[ 6 ], *obj, *v48;
-    int GridId, WeaponBase, ActionFrame, Flags, i, v36, v43, ImgId, v50, tmp;
-
+    int GridId, WeaponBase, ActionFrame, Flags, i, v36, v43, ImgId, v50, tmp,rr;
+DD
     obj = NULL;
     v48 = 0;
     v50 = 0;
@@ -442,7 +442,9 @@ int ActionUnk27( Combat_t *cmbt, int a2 )
     AnimRegAnimation( cmbt->Dude, a2, 0 );
     if( a2 != 47 ){
         if( ( cmbt->DudeInjuries & 0x100 ) || !( cmbt->DudeInjuries & 0x200 ) ){
-            if( ProtoGetObj( Item59( cmbt->HandEq ), &proto ) == -1 || proto->ImgId == -1 ){
+DD
+    	    rr = ProtoGetObj( Item59( cmbt->HandEq ), &proto );
+            if(  rr == -1 || proto->ImgId == -1 ){
                 if( !( cmbt->DudeInjuries & 0x100 ) ){
                     if( !( cmbt->Comp->Critter.State.CombatResult & 0x03 ) ){
                         AnimRegAnimation( cmbt->Comp, 13, ActionFrame );
@@ -541,6 +543,7 @@ LABEL_58:
             if( !v48 ){
                 AnimUnk62( cmbt->Dude, ArtMakeId( 1, cmbt->Dude->ImgId & 0xFFF, 0, 0, cmbt->Dude->Orientation + 1 ), -1 );
             } else {
+DD
         	if( (v36 = Item58( v48 )) ){
             	    AnimUnk63( cmbt->Dude, v36, -1 );
         	} else {

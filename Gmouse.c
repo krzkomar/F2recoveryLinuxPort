@@ -416,11 +416,12 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                         break;
                 }                    
                 return;
-            case 2:
+            case 2: // combat mode pointer
                 obj = GmouseGetObject( 1, 0, gMapCurrentLvl );
-                if( obj ) return;                    
-                obj = GmouseGetObject( -1, 0, gMapCurrentLvl );
-                if( !GmouseUnk43( obj ) ) return;                        
+                if( !obj ){
+            	    obj = GmouseGetObject( -1, 0, gMapCurrentLvl );
+            	    if( !GmouseUnk43( obj ) ) return;
+                }
                 CombatStartAttack( obj );
                 gGmouseStay = 1;
                 gGmouseOldY = MseY;
@@ -428,6 +429,7 @@ void GmouseAction( int MseX, int MseY, int MseButt )
                 gGmouseRstTime = TimerGetSysTime() - 250;                    
                 return;
             case 3:
+DD
                 obj = GmouseGetObject( -1, 1, gMapCurrentLvl );
                 if( obj && IfaceGetHandObject( &p ) != -1 ){
                     if( IN_COMBAT ){

@@ -238,37 +238,14 @@ typedef union
   ProtoItem6_t Type6;
 } ProtoItemsData_t;
 
-/****/
-
 typedef struct 
 {
   unsigned int i01;
   unsigned int i02;
 } ProtoSceneryData_t;
 
-
-//ProtoLib_t gProtoObjLib[ 11 ];
-//int gProtoAllocSize[ 11 ];
-//int gProtoUnk02;
-//Proto_t gProtoDude;
-//int gProtoImgId;
-//Obj_t *gObjDude;
-//Proto_t gProtos;
-//char *gProtoFilePath;
-//int gProtoVirgin1;
-//int gProtoError;
-//char *gProtoPerkNames[120];
-//char *gProtoStatNames[40];
-//Msg_t gProtoMsg[ 6 ];
-//char *gProtoUnk105[2];
-//char *gProtoUnk102[6];
 extern Msg_t gProtoMessages;
-//char *gProtoUnk106[8];
 extern char *gProtoUnk100[4];
-//char *gProtoUnk101[7];
-//char *gProtoUnk103[7];
-//char *gProtoUnk104[19];
-
 void ProtoUnk10( char *path, unsigned int Pid );
 //int ProtoUnk09( unsigned int Pid, char *a2 );
 //int ProtoUnk08( unsigned int Pid, char *a2, int *a3 );

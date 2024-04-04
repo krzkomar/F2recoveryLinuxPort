@@ -154,7 +154,7 @@ void InvMenu()
     MsgLine_t MsgLine;
     VidRect_t Area;
 
-    if( IN_COMBAT && CombatUnk05() != gInvSelectedDude ) return;
+    if( IN_COMBAT && (CombatUnk05() != gInvSelectedDude) ) return;
     if( InvInit() == -1 ) return;
     if( (gCombatStatus & 1) && gInvSelectedDude == gObjDude ){ // access inventory in combat
         tmp = INV_AP_ACCESS_COST - 2 * PerkLvl( gInvSelectedDude, 48 ); // AP cost for acccess to inventory
@@ -1210,6 +1210,7 @@ int InvMenuBackPack( Obj_t *a1 )
                     sel = -1;
             	} else {
                     if( IN_COMBAT ){
+DD
 //                	if( gObjDude->Critter.State.CurrentAP >= 2 && ActionUnk23(gObjDude, a1, (int)gInvBackPack->Box.Box[v13].obj) != -1 ){
 //                            if( gObjDude->Critter.State.CurrentAP < 2 )
 //                            	gObjDude->Critter.State.CurrentAP = 0;
@@ -1218,6 +1219,7 @@ int InvMenuBackPack( Obj_t *a1 )
 //                            IfaceUnk12( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
 //                    	}
             	    } else {
+DD
 //                    	ActionUnk23( gObjDude, a1, gInvBackPack->Box.Box[ v13 ].obj );
                     }
                     sel = KEY_ESC;

@@ -1544,7 +1544,7 @@ int ProtoGetObj( int Pid, Proto_t **pObj )
     int id;
 
     *pObj = NULL;
-    if( Pid == -1 ) return 0;
+    if( Pid == -1 ) return -1;
     if( Pid == PROTO_1 ) {
         *pObj = &gProtoDude;
         return 0;

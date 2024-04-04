@@ -20,10 +20,10 @@ int ActionUnk34( Obj_t *obj, int a2 );
 void ActionUnk33( Combat_t *pObj );
 void ActionUnk32( Combat_t *cmbt );
 int ActionUnk31( Combat_t *cmbt, int a2, int a3 );
-int ActionUnk30( Combat_t *cmbt );
-int ActionUnk29( Combat_t *cmbt, int a2 );
-void ActionUnk28( Obj_t *obj, int ImgId );
-int ActionUnk27( Combat_t *cmbt, int a2 );
+int ActionAttack( Combat_t *cmbt );
+int ActionUseMeleeWpn( Combat_t *cmbt, int a2 );
+void ActionChangeThrowFidget( Obj_t *obj, int ImgId ); // not used
+int ActionUseRngWpn( Combat_t *cmbt, int a2 );
 int ActionUnk26( Obj_t *a1 );
 int ActionReachable( Obj_t *obj1, Obj_t *obj2 );
 int ActionLadderClimb( Obj_t *obj1, Obj_t *obj2 );

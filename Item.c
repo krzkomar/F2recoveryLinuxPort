@@ -791,13 +791,13 @@ int ItemWeaponTwoHanded( Obj_t *obj )
     return proto->FlgExt & 0x200;
 }
 
-int Item44( Obj_t *obj, int a2 )
+int Item44( Obj_t *obj, int hand )
 {
     Obj_t *v2;
 
     v2 = NULL;
     if( obj ){
-        switch( a2 ){
+        switch( hand ){
             case 0: case 1: case 6:
                 v2 = InvGetLHandObj( obj );
                 break;
@@ -809,7 +809,7 @@ int Item44( Obj_t *obj, int a2 )
         }
         obj = v2;
     }
-    return Item45( obj, a2 );
+    return Item45( obj, hand );
 }
 
 int Item45( Obj_t *obj, int a2 )
@@ -1121,6 +1121,8 @@ int Item58( Obj_t *obj )
 
     if( !obj ) return -1;
     ProtoGetObj( obj->Pid, &proto );
+DD
+printf("=>%p %i\n", proto,  obj->Pid);
     return proto->Critt.BaseStat[ 0 ];
 }
 

@@ -30,8 +30,6 @@ int gCombatMapLvl;
 int gCombatCritCnt;
 Obj_t *gCombat10;
 int gCombat05;
-Obj_t *gCombat06;
-/**/
 Obj_t *gCombat19;
 int gTargetHighlightLvl;
 Obj_t **gCombatCritters;
@@ -273,8 +271,8 @@ int CombatUnk04( Obj_t *a1, Obj_t *a2, Obj_t *a3, Obj_t *a4 )
 
 Obj_t *CombatUnk05()
 {
-    if( IN_COMBAT ) return gCombat06;
-    return 0;
+    if( IN_COMBAT ) return gCombat19;
+    return NULL;
 }
 
 void CombatUnk06( Obj_t *obj )
@@ -783,6 +781,7 @@ int CombatTurnLoop()
         if( gObjDude->Critter.State.CurrentAP <= 0 && gCombatMovePts <= 0 ) break;
         if( sel == 32 ) break;
         if( sel == 13 ){
+DD
             CombatProcess();
         } else {
             ScptTurn();
@@ -1003,8 +1002,7 @@ int CombatAttack( Obj_t *Critter, Obj_t *a2, int a3, int a4 )
         gCombat20.CompDmg += gCombat07->Bonus.Unk01;
         if( gCombat20.CompDmg < gCombat07->Bonus.Unk02 ) gCombat20.CompDmg = gCombat07->Bonus.Unk02;
         if( gCombat20.CompDmg > gCombat07->unk02 ) gCombat20.CompDmg = gCombat07->unk02;
-DD
-//        if( gCombat07->unk03 ) gCombat20.CompInjuries = gCombat07[1].Target; // ??????
+        if( gCombat07->unk03 ) gCombat20.CompInjuries = gCombatHitPenalty[ 7 ];
     }
     if( gCombat20.i11 == 3 || gCombat20.i11 == 8 ){
         if( Critter == gObjDude )
@@ -1016,7 +1014,7 @@ DD
     }
     ApCost = ItemGetAPCost( Critter, gCombat20.Hand, ranged );
     eprintf( "sequencing attack...\n" );
-    if( ActionUnk30( &gCombat20 ) == -1 ) return -1;
+    if( ActionAttack( &gCombat20 ) == -1 ) return -1;
     Critter->Critter.State.CurrentAP = ( ApCost > Critter->Critter.State.CurrentAP ) ? 0 : ( Critter->Critter.State.CurrentAP - ApCost );
     if( Critter == gObjDude ){
         IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
@@ -1121,7 +1119,7 @@ int CombatUnk39( Combat_t *cmbt, int a2, int a3, int a4 )
 int CombatUnk40( Combat_t *cmbt, int a2, int *a3, int *pAmmoCharges, int a5 )
 {
     int AmmoCharges,v10,v14,v15,Range,v18,GridId,v22,v27,v28,ebx0,v30,v31;
-
+DD
     *a3 = 0;
     AmmoCharges = ItemGetAmmo( cmbt->HandEq );
     v10 = Item57( cmbt->HandEq );
@@ -1274,7 +1272,8 @@ void CombatExplosion( Combat_t *cmbt, int a2, int flg1, int a4 )
     Obj_t *p, *v13, *obj, *a3;
     Combat_t *v16;
     int TileNumInDir,GridId,v7,v9,DudeInjuries,i,MapLvl,GridPos2,VAR_AA,VAR_BB,direction,VAR_DD;
-
+DD
+return;
     TileNumInDir = -1;
     if( a2 ){
         obj = cmbt->Dude;
@@ -2186,7 +2185,7 @@ int CombatFocusMenu( Obj_t *TargetObj, int *BodyPart, int Slot )
     char *Surface, *Img1, *Img2;
     int bt, i, IfaceStat, sel, FontId;
     CachePool_t *ImgObj1, *ImgObj2;
-
+DD
     *BodyPart = 3;
     if( !TargetObj || OBJTYPE( TargetObj->Pid ) != TYPE_CRIT ) return 0;
     gCombatTarget = TargetObj;    
@@ -2220,14 +2219,17 @@ int CombatFocusMenu( Obj_t *TargetObj, int *BodyPart, int Slot )
         CombatFocusPrintLabel( 4 + i, gPalColorCubeRGB[0][31][0] );
     }
     WinUpdate( gCombatFocusWin );
-
+DD
     // event loop    
     if( (IfaceStat = GameIfaceStat()) ) GameIfaceEnable();
     GmouseSetIfaceMode( 0 );
     GmouseLoadCursor( 1 );
-    do
+    do{
         sel = InpUpdate();
-    while( sel != KEY_ESC && sel >= 8 && !gMenuEscape ); // 0 .. 7 
+        if( sel == KEY_ESC || ( sel >= 0 && sel < 8 ) ) break;
+    }while( !gMenuEscape );
+DD
+printf( "-->%i\n", sel);
     GmouseSetIsoMode();
     if( IfaceStat ) GameIfaceDisable( 0 );
 
