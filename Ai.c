@@ -1706,8 +1706,8 @@ int AiCombatTaunts( Obj_t *Critter, Combat_t *Combat, int ReactionType, int a4 )
         case 2: RunStart = pck->AttackStart; RunEnd = pck->AttackEnd; s = gAiUnk05; break;
         case 3: RunStart = pck->MissStart; RunEnd = pck->MissEnd; s = gAiUnk06; break;
         default:
-            RunStart = pck->HitTable[ Combat->i11 ].Start;
-            RunEnd = pck->HitTable[ Combat->i11 ].End;
+            RunStart = pck->HitTable[ Combat->BodyPart ].Start;
+            RunEnd = pck->HitTable[ Combat->BodyPart ].End;
             s = gAiUnk06;
             break;
     }
@@ -1743,7 +1743,7 @@ Obj_t *AiDrawOponent( Combat_t *cmd )
     cnt = RandMinMax( 0, gAiObjCount - 1 );
     i = cnt;
     do{
-        if( gAiObjList[ i ] != cmd->Dude && gAiObjList[ i ] != cmd->Comp ){
+        if( gAiObjList[ i ] != cmd->Dude && gAiObjList[ i ] != cmd->Target ){
 	    if( ActionTurnAt( cmd->Dude, gAiObjList[ i ] ) && !CombatAttackTest( cmd->Dude, gAiObjList[ i ], cmd->Hand, 0 ) ) return gAiObjList[ i ];    
         }
         if( ++i == gAiObjCount ) i = 0;

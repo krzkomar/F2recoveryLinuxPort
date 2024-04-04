@@ -6,17 +6,19 @@ int gCombatStatus = CBT_IN_TURN;
 Combat01_t *gCombat03 = NULL;
 Combat02_t *gCombat07 = NULL;
 int gCombat08 = 0;
+// idx - body part
 int gCombatHitPenalty[ 9 ] = { -0x28, -0x1E, -0x1E, 0x00, -0x14, -0x14, -0x3C, -0x1E, 0x00 };
 #include "CombatTable.c"
 int gCombatTacticMode = 0;
 int gCombat12 = 0;
-int gCombatUnk100[ 30 ] = {
+int gCombatUnk100[ 35 ] = {
     0x000000, 0x008000, 0x008000, 0x080002, 0x200000, 
     0x000000, 0x008000, 0x004000, 0x100000, 0x010000, 
     0x000000, 0x020000, 0x004000, 0x100000, 0x002000, 
     0x008000, 0x028000, 0x00C000, 0x100000, 0x009000, 
     0x040000, 0x004000, 0x084000, 0x100000, 0x001000, 
-    0x008000, 0x040000, 0x002000, 0x100000, 0x009002
+    0x008000, 0x040000, 0x002000, 0x100000, 0x009002,
+    0x000000, 0x008000, 0x100000, 0x002000, 0x009400
 };
 
 int gCombatUnk12[ 4 ] = { 122, 188, 251, 316 };
@@ -968,34 +970,34 @@ void CombatStart( Combat02_t *pObj )
     if( gMenuEscape == 1 ) gMenuEscape = 0;        
 }
 
-void CombatSetUp( Combat_t *cmbt, Obj_t *Critt, Obj_t *a3, int Hand, int a5 )
+void CombatSetUp( Combat_t *cmbt, Obj_t *Critt, Obj_t *Target, int HandSlot, int BodyPart )
 {
     cmbt->Dude = Critt;
-    cmbt->Hand = Hand;
+    cmbt->Hand = HandSlot;
     cmbt->i04 = 3;
     cmbt->DudeDmg = 0;
     cmbt->DudeInjuries = 0;
     cmbt->AmmoCap = 0;
     cmbt->i08 = -1;
-    cmbt->HandEq = ItemGetSlotItem( Critt, Hand );
-    cmbt->Comp = a3;
-    cmbt->TileNo = ( a3 ) ? a3->GridId : -1;
+    cmbt->HandEq = ItemGetSlotItem( Critt, HandSlot );
+    cmbt->Target = Target;
+    cmbt->TileNo = ( Target ) ? Target->GridId : -1;
     cmbt->CompDmg = 0;
     cmbt->CompInjuries = 0;
     cmbt->CompKnockDown = 0;
     cmbt->Count = 0;
-    cmbt->i15 = a3;
-    cmbt->i11 = a5;
+    cmbt->i15 = Target;
+    cmbt->BodyPart = BodyPart;
 }
 
-int CombatAttack( Obj_t *Critter, Obj_t *a2, int a3, int a4 )
+int CombatAttack( Obj_t *Critter, Obj_t *Target, int HandSlot, int BodyPart )
 {
     int ApCost, ranged;
 
-    if( Critter != gObjDude && a3 == 4 && RandMinMax( 1, 4 ) == 1 ){
-        if( ArtFileExist( ArtMakeId( 1, ART_IDX( Critter ), 17, ART_TYP( Critter ), ART_GRP( Critter ) ) ) ) a3 = 5;
+    if( Critter != gObjDude && HandSlot == 4 && RandMinMax( 1, 4 ) == 1 ){
+        if( ArtFileExist( ArtMakeId( 1, ART_IDX( Critter ), 17, ART_TYP( Critter ), ART_GRP( Critter ) ) ) ) HandSlot = 5;
     }
-    CombatSetUp( &gCombat20, Critter, a2, a3, a4 );
+    CombatSetUp( &gCombat20, Critter, Target, HandSlot, BodyPart );
     eprintf( "computing attack...\n" );
     if( CombatUnk42( &gCombat20 ) == -1 ) return -1;
     if( gCombat07 ){
@@ -1004,9 +1006,9 @@ int CombatAttack( Obj_t *Critter, Obj_t *a2, int a3, int a4 )
         if( gCombat20.CompDmg > gCombat07->unk02 ) gCombat20.CompDmg = gCombat07->unk02;
         if( gCombat07->unk03 ) gCombat20.CompInjuries = gCombatHitPenalty[ 7 ];
     }
-    if( gCombat20.i11 == 3 || gCombat20.i11 == 8 ){
+    if( gCombat20.BodyPart == 3 || gCombat20.BodyPart == 8 ){
         if( Critter == gObjDude )
-            IfaceGetWeaponDsc( &a3, &ranged );
+            IfaceGetWeaponDsc( &HandSlot, &ranged );
         else
             ranged = 0;
     } else {
@@ -1018,11 +1020,11 @@ int CombatAttack( Obj_t *Critter, Obj_t *a2, int a3, int a4 )
     Critter->Critter.State.CurrentAP = ( ApCost > Critter->Critter.State.CurrentAP ) ? 0 : ( Critter->Critter.State.CurrentAP - ApCost );
     if( Critter == gObjDude ){
         IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
-        CritterUnk45( gObjDude, a2 );
+        CritterUnk45( gObjDude, Target );
     }
     gCombat08 = 1;
     gCombat12 = 1;
-    CombatStopAttack( Critter, a2 );
+    CombatStopAttack( Critter, Target );
     eprintf( "running attack...\n" );
     return 0;            
 }
@@ -1039,27 +1041,27 @@ int CombatUnk38( Combat_t *cmbt )
 
     v12 = 1;
     GridId = cmbt->Dude->GridId;
-    v5 = TileUnk18( cmbt->Dude->GridId, cmbt->Comp->GridId, ItemGetRange( cmbt->Dude, cmbt->Hand ) );
+    v5 = TileUnk18( cmbt->Dude->GridId, cmbt->Target->GridId, ItemGetRange( cmbt->Dude, cmbt->Hand ) );
     a5 = cmbt->Dude;
     while( a5 && GridId != v5 ){
         AnimUnk07( cmbt->Dude, GridId, v5, 0, &a5, 32, (void *)ObjUnk55 );            
         if( a5 && a5->Flags >= 0 ){
             if( (a5->ImgId & 0xF000000) >> 24 != 1 ){ v12 = 2; break; }
-            if( a5 != cmbt->Comp ){
-                v6 = CombatGetHitChance( cmbt->Dude, cmbt->Dude->GridId, a5, cmbt->i11, cmbt->Hand, 1 ) / 3;
+            if( a5 != cmbt->Target ){
+                v6 = CombatGetHitChance( cmbt->Dude, cmbt->Dude->GridId, a5, cmbt->BodyPart, cmbt->Hand, 1 ) / 3;
                 if( CritterIsDead( a5 ) ) v6 = 5;
                 if( RandMinMax( 1, 100 ) <= v6 ){ v12 = 2; break; }
             }
             GridId = a5->GridId;
         }
     }    
-    cmbt->i11 = 3;
+    cmbt->BodyPart = 3;
     if( v12 < 2 ) return 0;
     if( !a5 || a5->Flags < 0 ) return 0;
-    cmbt->Comp = a5;
+    cmbt->Target = a5;
     cmbt->TileNo = a5->GridId;
     cmbt->DudeInjuries |= 0x100;
-    cmbt->i11 = 3;
+    cmbt->BodyPart = 3;
     CombatSetDmgChance( cmbt, 1, 2 );
     return 1;
 }
@@ -1086,7 +1088,7 @@ int CombatUnk39( Combat_t *cmbt, int a2, int a3, int a4 )
                 a2a++;
             }
             if( a2a ){
-                if( obj == cmbt->Comp ){
+                if( obj == cmbt->Target ){
                     v17 += a2a;
                 } else {
                     for( i = 0; i < cmbt->Count; i++ ){
@@ -1146,12 +1148,12 @@ DD
     }
     if( !*a3 && CombatUnk38( cmbt ) ) *a3 = 1;
     Range = ItemGetRange( cmbt->Dude, cmbt->Hand );
-    v18 = TileUnk18( cmbt->Dude->GridId, cmbt->Comp->GridId, Range );
+    v18 = TileUnk18( cmbt->Dude->GridId, cmbt->Target->GridId, Range );
     *a3 += CombatUnk39( cmbt, v18, v31 - *a3, a5 );
-    if( ObjGetDistance( cmbt->Dude, cmbt->Comp ) <= 3 )
-        GridId = TileUnk18( cmbt->Dude->GridId, cmbt->Comp->GridId, 3 );
+    if( ObjGetDistance( cmbt->Dude, cmbt->Target ) <= 3 )
+        GridId = TileUnk18( cmbt->Dude->GridId, cmbt->Target->GridId, 3 );
     else
-        GridId = cmbt->Comp->GridId;
+        GridId = cmbt->Target->GridId;
     v27 = TileTurnAt( GridId, cmbt->Dude->GridId );
     v22 = TileUnk18( cmbt->Dude->GridId, TileGetTileNumInDir( GridId, (v27 + 1) % 6, 1 ), Range );
     *a3 += CombatUnk39( cmbt, v22, ebx0, a5 );
@@ -1171,8 +1173,8 @@ void CombatUnk41( Combat_t *cmbt )
     if( Item56( cmbt->HandEq ) != PID_FLOWER ) return;
     if( RandMinMax( 1, 100 ) > (FeatGetVal( cmbt->Dude, FEAT_STAMINA ) - 8) ) return;
     aux = NULL;
-    if( cmbt->Comp != gObjDude ) aux = ItemGetSlotItem( cmbt->Comp, 2 );
-    if( !( CombatUnk45( cmbt->Comp, aux ) & 0x01 ) ) cmbt->CompInjuries |= 0x01;
+    if( cmbt->Target != gObjDude ) aux = ItemGetSlotItem( cmbt->Target, 2 );
+    if( !( CombatUnk45( cmbt->Target, aux ) & 0x01 ) ) cmbt->CompInjuries |= 0x01;
 }
 
 int CombatUnk42( Combat_t *cmbt )
@@ -1184,23 +1186,23 @@ int CombatUnk42( Combat_t *cmbt )
     v31 = 2;
     v2 = 0;
     Range = ItemGetRange( cmbt->Dude, cmbt->Hand );
-    Distance = ObjGetDistance( cmbt->Dude, cmbt->Comp );
+    Distance = ObjGetDistance( cmbt->Dude, cmbt->Target );
     if( Range < Distance ) return -1;
     a5 = Item44( cmbt->Dude, cmbt->Hand );
-    a2 = CombatGetHitChance( cmbt->Dude, cmbt->Dude->GridId, cmbt->Comp, cmbt->i11, cmbt->Hand, 1 );
+    a2 = CombatGetHitChance( cmbt->Dude, cmbt->Dude->GridId, cmbt->Target, cmbt->BodyPart, cmbt->Hand, 1 );
     WeaponBase = ItemGetWeaponBase( cmbt->Dude, cmbt->HandEq );
     if( a5 == 18 && (WeaponBase == 6 || WeaponBase == 3 || WeaponBase == 5) ) v2 = 1;
-    if( cmbt->i11 == 8 ) cmbt->i11 = 3;
+    if( cmbt->BodyPart == 8 ) cmbt->BodyPart = 3;
     Class = ItemGetClass( cmbt->HandEq, cmbt->Hand );
     if( a5 == 46 || a5 == 47 ){
         v9 = CombatUnk40( cmbt, a2, &a3, &a4, a5 );
     } else {
-        v9 = RandUnk05( a2, FeatGetVal( cmbt->Dude, FEAT_CRIT ) - gCombatHitPenalty[ cmbt->i11 ], 0 );
+        v9 = RandUnk05( a2, FeatGetVal( cmbt->Dude, FEAT_CRIT ) - gCombatHitPenalty[ cmbt->BodyPart ], 0 );
     }
     if( v9 == 1 && (TraitSpecActive( TRAIT_JINXED ) || PerkLvl( gObjDude, PERK_JINXED )) && RandMinMax( 0, 1 ) ) v9 = 0;
     if( (Class == 2 || Class == 1) && v9 == 2 && cmbt->Dude == gObjDude ){
         if( PerkLvl( cmbt->Dude, PERK_SLAYER ) ) v9 = 3;
-        if( PerkLvl( gObjDude, PERK_SILENT_DEATH ) && !ActionUnk16( gObjDude, cmbt->Comp ) && CritterUsingSkill( 0 ) && gObjDude != cmbt->Comp->Critter.State.WhoHitMeObj ) v31 = 4;
+        if( PerkLvl( gObjDude, PERK_SILENT_DEATH ) && !ActionUnk16( gObjDude, cmbt->Target ) && CritterUsingSkill( 0 ) && gObjDude != cmbt->Target->Critter.State.WhoHitMeObj ) v31 = 4;
         Hand = cmbt->Hand;
         if( Hand == 16 || Hand == 9 ){
             if( RandMinMax( 1, 100 ) <= 5 ){
@@ -1239,19 +1241,19 @@ int CombatUnk42( Combat_t *cmbt )
         if( v2 ){
             v15 = RandMinMax( 1, Distance / 2 );
             if( !v15 ) v15 = 1;
-            cmbt->TileNo = TileGetTileNumInDir( cmbt->Comp->GridId, RandMinMax( 0, 5 ), v15 );
+            cmbt->TileNo = TileGetTileNumInDir( cmbt->Target->GridId, RandMinMax( 0, 5 ), v15 );
         } else {
-            cmbt->TileNo = TileUnk18( cmbt->Dude->GridId, cmbt->Comp->GridId, Range );
+            cmbt->TileNo = TileUnk18( cmbt->Dude->GridId, cmbt->Target->GridId, Range );
         }
-        a1 = cmbt->Comp;
-        AnimUnk07( a1, cmbt->Comp->GridId, cmbt->TileNo, 0, &a1, 32, (void *)ObjUnk55 );
-        if( !a1 || a1 == cmbt->Comp )
-            a1 = ObjReach( 0, cmbt->TileNo, cmbt->Comp->Elevation );
+        a1 = cmbt->Target;
+        AnimUnk07( a1, cmbt->Target->GridId, cmbt->TileNo, 0, &a1, 32, (void *)ObjUnk55 );
+        if( !a1 || a1 == cmbt->Target )
+            a1 = ObjReach( 0, cmbt->TileNo, cmbt->Target->Elevation );
         else
             cmbt->TileNo = a1->GridId;
         if( a1 && a1->Flags >= 0 ) {
             cmbt->DudeInjuries |= 0x100;
-            cmbt->Comp = a1;
+            cmbt->Target = a1;
             CombatSetDmgChance( cmbt, 1, 2 );
         }
     }
@@ -1279,7 +1281,7 @@ return;
         obj = cmbt->Dude;
     } else {
         if( (cmbt->DudeInjuries & 0x100) != 0 ){
-            obj = cmbt->Comp;
+            obj = cmbt->Target;
             if( obj ){
                 GridId = obj->GridId;
                 goto LABEL_10;
@@ -1370,10 +1372,10 @@ int CombatUnk44( Combat_t *cmbt )
     const Combat03_t *v11, *v14;
     int rand, sel;
 
-    Comp = cmbt->Comp;
+    Comp = cmbt->Target;
     SlotItem = 0;
     if( Comp && CritterGetInjure( Comp->Pid, 0x400 ) ) return 2;
-    if( cmbt->Comp && OBJTYPE( cmbt->Comp->Pid ) != TYPE_CRIT ) return 2;
+    if( cmbt->Target && OBJTYPE( cmbt->Target->Pid ) != TYPE_CRIT ) return 2;
     cmbt->DudeInjuries |= CMBT_DAM_CRITICAL;
     rand = RandMinMax( 1, 100 ) + FeatGetVal( cmbt->Dude, FEAT_16 ); // critical hit table roll modifier
     sel = 0;
@@ -1383,14 +1385,14 @@ int CombatUnk44( Combat_t *cmbt )
     if( rand > 90 ) sel = 4;
     if( rand > 100 ) sel = 5;
 
-    if( cmbt->Comp == gObjDude ){
-        v11 = &gCombatUnk102[ 6 * cmbt->i11 ];
+    if( cmbt->Target == gObjDude ){
+        v11 = &gCombatUnk102[ 6 * cmbt->BodyPart ];
     } else {
-        v11 = &gCombatUnk101[ 6 * ( 9 * CritterGetGender( cmbt->Comp ) + cmbt->i11 ) ];
+        v11 = &gCombatUnk101[ 6 * ( 9 * CritterGetGender( cmbt->Target ) + cmbt->BodyPart ) ];
      }
     v14 = &v11[ sel ];
     cmbt->CompInjuries |= v14->i02;
-    if( v14->i03 == -1 || FeatDice( cmbt->Comp, v14->i03, v14->i04, 0 ) > 1 ){
+    if( v14->i03 == -1 || FeatDice( cmbt->Target, v14->i03, v14->i04, 0 ) > 1 ){
         cmbt->i08 = v14->i06;
     } else {
         cmbt->CompInjuries |= v14->i05;
@@ -1406,8 +1408,8 @@ int CombatUnk44( Combat_t *cmbt )
         }
     }
     if( Item56( cmbt->HandEq ) == 117 ) cmbt->CompInjuries |= 0x01;
-    if( cmbt->Comp != gObjDude ) SlotItem = ItemGetSlotItem( cmbt->Comp, 2 );
-    cmbt->CompInjuries = ~CombatUnk45( cmbt->Comp, SlotItem ) & cmbt->CompInjuries;
+    if( cmbt->Target != gObjDude ) SlotItem = ItemGetSlotItem( cmbt->Target, 2 );
+    cmbt->CompInjuries = ~CombatUnk45( cmbt->Target, SlotItem ) & cmbt->CompInjuries;
     return v14->i01;
 }
 
@@ -1479,9 +1481,9 @@ void CombatInjure( Combat_t *cmbt )
         }
     }
     if( !(cmbt->DudeInjuries & 0x100000) ) return;    
-    if( ( cmbt->Comp = AiDrawOponent( cmbt ) ) ){
+    if( ( cmbt->Target = AiDrawOponent( cmbt ) ) ){
         cmbt->DudeInjuries |= CMBT_DAM_HIT;
-        cmbt->i11 = 3;
+        cmbt->BodyPart = 3;
         cmbt->DudeInjuries &= ~CMBT_DAM_CRITICAL;
         if( WpnClass == 4 ){
             CombatSetDmgChance( cmbt, cmbt->AmmoCap, 2 );
@@ -1489,9 +1491,9 @@ void CombatInjure( Combat_t *cmbt )
             CombatSetDmgChance( cmbt, 1, 2 );
         }        
     } else {
-        cmbt->Comp = cmbt->i15;
+        cmbt->Target = cmbt->i15;
     }
-    if( cmbt->Comp ) cmbt->TileNo = cmbt->Comp->GridId;
+    if( cmbt->Target ) cmbt->TileNo = cmbt->Target->GridId;
 }
 
 void CombatDrawInjure( int *Injure )
@@ -1622,7 +1624,7 @@ void CombatSetDmgChance( Combat_t *cmbt, int a2, int a3 )
 
     if( cmbt->DudeInjuries & 0x100 ){
         pDamage = &cmbt->CompDmg;
-        obj = cmbt->Comp;
+        obj = cmbt->Target;
         pInjure = &cmbt->CompInjuries;
         pKnock = &cmbt->CompKnockDown;
     } else {
@@ -1674,7 +1676,7 @@ void CombatSetDmgChance( Combat_t *cmbt, int a2, int a3 )
 
     if( cmbt->Dude == gObjDude ){
         if( PerkLvl( cmbt->Dude, PERK_LIVING_ANATOMY ) ){
-            tmp = CritterGetGender( cmbt->Comp );
+            tmp = CritterGetGender( cmbt->Target );
             if( tmp != 10 && tmp != 16 ) *pDamage += 5; // +5 pts of damage to every living creatures
         }
         if( PerkLvl( gObjDude, PERK_PYROMANIAC ) && ItemGetWeaponBase( cmbt->Dude, cmbt->HandEq ) == ITEM_WPN_FIRE ) *pDamage += 5; // +5 dmg with fire-based weapons
@@ -1704,7 +1706,7 @@ void CombatKillUpdate( Combat_t *cmbt )
     int i;
 
     CombatKillCheck( cmbt->Dude, cmbt->DudeDmg, &cmbt->DudeInjuries );
-    CombatKillCheck( cmbt->Comp, cmbt->CompDmg, &cmbt->CompInjuries );
+    CombatKillCheck( cmbt->Target, cmbt->CompDmg, &cmbt->CompInjuries );
     for( i = 0; i < cmbt->Count; i++ ){
         CombatKillCheck( cmbt->obj[ i ], cmbt->Damage[ i ], &cmbt->Injuries[ i ] );
     }
@@ -1717,34 +1719,34 @@ void CombatUnk54( Combat_t *cmbt, int a2 )
 
     v20 = 0;
     if( cmbt->Dude && OBJTYPE( cmbt->Dude->ImgId ) == TYPE_CRIT ) v20 = 1;
-    v5 = (cmbt->Comp != cmbt->i15);
+    v5 = (cmbt->Target != cmbt->i15);
     if( v20 && !(cmbt->Dude->Critter.State.CombatResult & CMBT_DAM_DEAD ) ){
         CombatUnk56( cmbt->Dude, cmbt->DudeInjuries );
-        CombatDealDamage( cmbt->Dude, cmbt->DudeDmg, a2, cmbt->Comp != cmbt->i15, cmbt->Dude );
+        CombatDealDamage( cmbt->Dude, cmbt->DudeDmg, a2, cmbt->Target != cmbt->i15, cmbt->Dude );
     }
-    if( cmbt->i15 && cmbt->i15 != cmbt->Comp ) AiUnk63( cmbt->i15 );
-    v20 = cmbt->Comp && OBJTYPE( cmbt->Comp->ImgId ) == TYPE_CRIT;
-    if( !v20 && !v5 && (!PartyMembRdy( cmbt->Comp ) || !PartyMembRdy( cmbt->Dude ) ) ){
-        if( cmbt->Comp && cmbt->Comp->ScrId != -1 ){
-            ScptSetArg( cmbt->Comp->ScrId, cmbt->DudeDmg );
-            ScptSetup( cmbt->Comp->ScrId, cmbt->Dude, cmbt->HandEq );
-            ScptRun( cmbt->Comp->ScrId, SCPT_AEV_DAMAGE_P_PROC );
+    if( cmbt->i15 && cmbt->i15 != cmbt->Target ) AiUnk63( cmbt->i15 );
+    v20 = cmbt->Target && OBJTYPE( cmbt->Target->ImgId ) == TYPE_CRIT;
+    if( !v20 && !v5 && (!PartyMembRdy( cmbt->Target ) || !PartyMembRdy( cmbt->Dude ) ) ){
+        if( cmbt->Target && cmbt->Target->ScrId != -1 ){
+            ScptSetArg( cmbt->Target->ScrId, cmbt->DudeDmg );
+            ScptSetup( cmbt->Target->ScrId, cmbt->Dude, cmbt->HandEq );
+            ScptRun( cmbt->Target->ScrId, SCPT_AEV_DAMAGE_P_PROC );
         }
     }
-    if( cmbt->Comp && OBJTYPE( cmbt->Comp->ImgId ) == TYPE_CRIT && !( cmbt->Comp->Grid.DestMapElev & 0x80 ) ){
-        CombatUnk56( cmbt->Comp, cmbt->CompInjuries );
+    if( cmbt->Target && OBJTYPE( cmbt->Target->ImgId ) == TYPE_CRIT && !( cmbt->Target->Grid.DestMapElev & 0x80 ) ){
+        CombatUnk56( cmbt->Target, cmbt->CompInjuries );
         if( v20 ){
-            if( cmbt->Comp->Grid.DestMapElev & 0x81 ){
-                if( !v5 || cmbt->Comp != gObjDude ) CritterUnk45( cmbt->Comp, cmbt->Dude );
-            } else if( cmbt->Comp == cmbt->i15 || cmbt->Comp->Critter.State.GroupId != cmbt->Dude->Critter.State.GroupId ){
-                AiUnk59( cmbt->Comp, cmbt->Dude );
+            if( cmbt->Target->Grid.DestMapElev & 0x81 ){
+                if( !v5 || cmbt->Target != gObjDude ) CritterUnk45( cmbt->Target, cmbt->Dude );
+            } else if( cmbt->Target == cmbt->i15 || cmbt->Target->Critter.State.GroupId != cmbt->Dude->Critter.State.GroupId ){
+                AiUnk59( cmbt->Target, cmbt->Dude );
             }
         }
-        ScptSetup( cmbt->Comp->ScrId, cmbt->Dude, cmbt->HandEq );
-        CombatDealDamage( cmbt->Comp, cmbt->CompDmg, a2, cmbt->Comp != cmbt->i15, cmbt->Dude );
-        if( v20 ) AiUnk63( cmbt->Comp );
+        ScptSetup( cmbt->Target->ScrId, cmbt->Dude, cmbt->HandEq );
+        CombatDealDamage( cmbt->Target, cmbt->CompDmg, a2, cmbt->Target != cmbt->i15, cmbt->Dude );
+        if( v20 ) AiUnk63( cmbt->Target );
         if( cmbt->CompDmg >= 0 && ( cmbt->DudeInjuries & CMBT_DAM_HIT) ){
-            ScptSetup( cmbt->Dude->ScrId, 0, cmbt->Comp );
+            ScptSetup( cmbt->Dude->ScrId, 0, cmbt->Target );
             ScptSetArg( cmbt->Dude->ScrId, 2 );
             ScptRun( cmbt->Dude->ScrId, SCPT_AEV_COMBAT_P_PROC );
         }
@@ -1761,7 +1763,7 @@ void CombatUnk54( Combat_t *cmbt, int a2 )
             }
         }
         ScptSetup( cmbt->obj[ i ]->ScrId, cmbt->Dude, cmbt->HandEq );
-        CombatDealDamage( cmbt->obj[ i ], cmbt->Damage[ i ], a2, cmbt->Comp != cmbt->i15, cmbt->Dude );
+        CombatDealDamage( cmbt->obj[ i ], cmbt->Damage[ i ], a2, cmbt->Target != cmbt->i15, cmbt->Dude );
         AiUnk63( cmbt->obj[ i ] );
         if( cmbt->Damage[ i ] >= 0 && ( cmbt->DudeInjuries & CMBT_DAM_HIT ) ){
             ScptSetup( cmbt->Dude->ScrId, 0, cmbt->obj[ i ] );
@@ -1860,7 +1862,7 @@ void CombatHitInfo( Combat_t *cmbt )
             }
         }
     }
-    obj = ( cmbt->DudeInjuries & CMBT_DAM_HIT ) ? cmbt->Comp : cmbt->Dude;
+    obj = ( cmbt->DudeInjuries & CMBT_DAM_HIT ) ? cmbt->Target : cmbt->Dude;
     Name = DotStr;
     stmp2[ 0 ] = '\0';
     TextBase = 600;
@@ -1873,11 +1875,11 @@ void CombatHitInfo( Combat_t *cmbt )
         Name = ObjGetName( obj );
         TextBase = ( FeatGetVal( obj, FEAT_GENDER ) == 1 ) ? 700 : 600; // ''
     }
-    if( cmbt->Comp ){
+    if( cmbt->Target ){
         if( cmbt->i15 ){
-            if( cmbt->Comp != cmbt->i15 && (cmbt->DudeInjuries & CMBT_DAM_HIT) ){
+            if( cmbt->Target != cmbt->i15 && (cmbt->DudeInjuries & CMBT_DAM_HIT) ){
                 stmp1[ 0 ] = '\0';
-                if( OBJTYPE( cmbt->Comp->ImgId ) == TYPE_CRIT ){
+                if( OBJTYPE( cmbt->Target->ImgId ) == TYPE_CRIT ){
                     if( cmbt->i15 == gObjDude ){
                         msg.Id = TextBase + 8;
                         if( MessageGetMsg( &gCombatMsg, &msg ) == 1 ) sprintf( stmp1, msg.Text, Name );
@@ -1900,11 +1902,11 @@ void CombatHitInfo( Combat_t *cmbt )
         }
     }
     if( cmbt->DudeInjuries & CMBT_DAM_HIT ){
-        if( cmbt->Comp ){
-            if( !(cmbt->Comp->Critter.State.CombatResult & CMBT_DAM_DEAD ) ){
+        if( cmbt->Target ){
+            if( !(cmbt->Target->Critter.State.CombatResult & CMBT_DAM_DEAD ) ){
                 stmp1[ 0 ] = '\0';
-                if( OBJTYPE( cmbt->Comp->ImgId ) == TYPE_CRIT ){
-                    if( cmbt->i11 == 3 ){ // not focused hit
+                if( OBJTYPE( cmbt->Target->ImgId ) == TYPE_CRIT ){
+                    if( cmbt->BodyPart == 3 ){ // not focused hit
                         if( cmbt->DudeInjuries & CMBT_DAM_CRITICAL ){
                             if( cmbt->CompDmg ){
                                 msg.Id = TextBase + ( ( cmbt->CompDmg == 1 ) ? 24 : 20 ); // "%s were crittically hit for %d hit points"
@@ -1918,10 +1920,10 @@ void CombatHitInfo( Combat_t *cmbt )
                                     sprintf( stmp1, msg.Text, Name, cmbt->CompDmg );
                             }
                         } else {
-                            CombatGetHitInfoText( stmp1, cmbt->Comp, cmbt->CompDmg );
+                            CombatGetHitInfoText( stmp1, cmbt->Target, cmbt->CompDmg );
                         }
                     } else { // focused hit
-                        if( (BodyPartName = CombatGetBodyPartName( cmbt->Comp, cmbt->i11 ) ) ){
+                        if( (BodyPartName = CombatGetBodyPartName( cmbt->Target, cmbt->BodyPart ) ) ){
                             if( cmbt->DudeInjuries & CMBT_DAM_CRITICAL ){ // "%s was critically in %s for %d hit points"
                                 if( cmbt->CompDmg )
                                     msg.Id = (cmbt->CompDmg == 1) ? TextBase + 21 : TextBase + 11;
@@ -1950,11 +1952,11 @@ void CombatHitInfo( Combat_t *cmbt )
                             strcpy( &stmp1[ strlen( stmp1 ) ], DotStr );
                             IfcMsgOut( stmp1 );
                             stmp1[ 0 ] = '\0'; // 'were killed' -- 'was killed'
-                            msg.Id = ( cmbt->Comp == gObjDude ) ? ( FeatGetVal( obj, FEAT_GENDER ) ? 257 : 207) : ( FeatGetVal( cmbt->Comp, FEAT_GENDER ) ? 407 : 307 );
+                            msg.Id = ( cmbt->Target == gObjDude ) ? ( FeatGetVal( obj, FEAT_GENDER ) ? 257 : 207) : ( FeatGetVal( cmbt->Target, FEAT_GENDER ) ? 407 : 307 );
                             if( MessageGetMsg( &gCombatMsg, &msg ) == 1 ) sprintf( stmp1, "%s %s", Name, msg.Text );
                         }
                     } else {
-                        CombatGetFlagsName( stmp1, cmbt->CompInjuries, cmbt->Comp );
+                        CombatGetFlagsName( stmp1, cmbt->CompInjuries, cmbt->Target );
                     }
                     strcpy( &stmp1[ strlen( stmp1 ) ], DotStr );
                     IfcMsgOut( stmp1 );
@@ -2130,18 +2132,19 @@ void CombatRecovery( Obj_t *dude )
     while( gCombat00 > 0 ) InpWinUpdate();
 }
 
-void CombatUnk64( char *a1, int a2, int a3 )
+void CombatFocusPrintChance( char *pdst, int dpitch, int a3 )
 {
     char *bmp;
     CachePool_t *ImgObj;
+DD
 
     if( !(bmp = ArtGetBitmap( ArtMakeId( 6, 82, 0, 0, 0 ), 0, 0, &ImgObj ) ) ) return;    
     if( a3 >= 0 ) {
-        ScrCopy( &bmp[ 9 * ( a3 % 10 ) ], 9, 17, 360, a1 + 9, a2 );
-        ScrCopy( &bmp[ 9 * ( a3 / 10 ) ], 9, 17, 360, a1, a2 );
+        ScrCopy( &bmp[ 9 * ( a3 % 10 ) ], 9, 17, 360, pdst + 9, dpitch );
+        ScrCopy( &bmp[ 9 * ( a3 / 10 ) ], 9, 17, 360, pdst, dpitch );
     } else {
-        ScrCopy( bmp + 108, 6, 17, 360, a1, a2 );
-        ScrCopy( bmp + 108, 6, 17, 360, a1 + 9, a2 );
+        ScrCopy( bmp + 108, 6, 17, 360, pdst, dpitch );
+        ScrCopy( bmp + 108, 6, 17, 360, pdst + 9, dpitch );
     }
     ArtClose( ImgObj );
 }
@@ -2167,16 +2170,15 @@ void CombatUnk67( int a1, int a2 )
 
 void CombatFocusPrintLabel( int BodyPart, int Color )
 {
-    static int gCombatUnk13[ 4 ] = { 0x8000, 0x100000, 0x2000, 0x9400 };
     char *txt;
 
+    Color |= 0x3000000;
     if( BodyPart >= 4 ){        
-        if( (txt = CombatGetBodyPartName( gCombatTarget, gCombatBodyParts[ BodyPart ] )) ){
-            WinDrawText( gCombatFocusWin, txt, 0, 431 - gFont.LineWidth( txt ), gCombatUnk13[ BodyPart ] - 86, Color | 0x3000000 );
-        }
+	txt = CombatGetBodyPartName( gCombatTarget, gCombatBodyParts[ BodyPart ] );
+        if( txt ) WinDrawText( gCombatFocusWin, txt, 0, 431 - gFont.LineWidth( txt ), gCombatUnk12[ BodyPart - 4] - 86, Color );
     } else {
         txt = CombatGetBodyPartName( gCombatTarget, gCombatBodyParts[ BodyPart ] );
-        if( txt ) WinDrawText( gCombatFocusWin, txt, 0, 74, gCombatUnk12[ BodyPart ] - 86, Color | 0x3000000 );
+        if( txt ) WinDrawText( gCombatFocusWin, txt, 0, 74, gCombatUnk12[ BodyPart ] - 86, Color );
     }
 }
 
@@ -2185,7 +2187,7 @@ int CombatFocusMenu( Obj_t *TargetObj, int *BodyPart, int Slot )
     char *Surface, *Img1, *Img2;
     int bt, i, IfaceStat, sel, FontId;
     CachePool_t *ImgObj1, *ImgObj2;
-DD
+
     *BodyPart = 3;
     if( !TargetObj || OBJTYPE( TargetObj->Pid ) != TYPE_CRIT ) return 0;
     gCombatTarget = TargetObj;    
@@ -2210,16 +2212,17 @@ DD
     FontId = FontGetCurrent();    
     FontSet( 101 );
     for( i = 0; i < 4; i++ ){
-        CombatUnk64( &Surface[ 504 * gCombatUnk12[ i ] - 43311 ], 504, CombatDetermineHitObstacled( gObjDude, TargetObj, gCombatBodyParts[ i ], Slot ) );
+	// left side
+        CombatFocusPrintChance( &Surface[ 504 * gCombatUnk12[ i ] - 43311 ], 504, CombatDetermineHitObstacled( gObjDude, TargetObj, gCombatBodyParts[ i ], Slot ) );
         WinSetButtonHandler( WinCreateButton( gCombatFocusWin, 33, gCombatUnk12[ i ] - 90, 128, 20, i, i, -1, i, 0, 0, 0, 0 ), CombatUnk67, CombatUnk66, 0, 0 );
         CombatFocusPrintLabel( i, gPalColorCubeRGB[0][31][0] );
-
-        CombatUnk64( &Surface[ 504 * gCombatUnk12[ i ] - 42891 ], 504, CombatDetermineHitObstacled( gObjDude, TargetObj, gCombatBodyParts[ 4 + i ], Slot ) );
+	// right side
+        CombatFocusPrintChance( &Surface[ 504 * gCombatUnk12[ i ] - 42891 ], 504, CombatDetermineHitObstacled( gObjDude, TargetObj, gCombatBodyParts[ 4 + i ], Slot ) );
         WinSetButtonHandler( WinCreateButton( gCombatFocusWin, 341, gCombatUnk12[ i ] - 90, 128, 20, 4 + i, 4 + i, -1, 4 + i, 0, 0, 0, 0 ), CombatUnk67, CombatUnk66, 0, 0 );        
         CombatFocusPrintLabel( 4 + i, gPalColorCubeRGB[0][31][0] );
     }
     WinUpdate( gCombatFocusWin );
-DD
+
     // event loop    
     if( (IfaceStat = GameIfaceStat()) ) GameIfaceEnable();
     GmouseSetIfaceMode( 0 );
@@ -2228,8 +2231,7 @@ DD
         sel = InpUpdate();
         if( sel == KEY_ESC || ( sel >= 0 && sel < 8 ) ) break;
     }while( !gMenuEscape );
-DD
-printf( "-->%i\n", sel);
+
     GmouseSetIsoMode();
     if( IfaceStat ) GameIfaceDisable( 0 );
 
@@ -2286,7 +2288,7 @@ void CombatStartAttack( Obj_t *Target )
     char stmp[80];
     Combat02_t v6;
     MsgLine_t msg;
-DD
+
     if( !Target || !(gCombatStatus & CBT_IN_TURN) || IfaceGetWeaponDsc( &HandSlot, &ShotValue ) == -1 ) return;    
     switch( CombatAttackTest( gObjDude, Target, HandSlot, ShotValue ) ){
         case 1:
@@ -2330,7 +2332,7 @@ DD
                 return;
             }
             if( !ShotValue ){
-                CombatAttack( gObjDude, Target, HandSlot, 8 );
+                CombatAttack( gObjDude, Target, HandSlot, BP_ALL );
                 return;
             }
             if( ShotValue != 1 ) eprintf( "Bad called shot value %d\n", ShotValue );

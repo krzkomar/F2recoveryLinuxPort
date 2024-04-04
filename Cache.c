@@ -424,8 +424,9 @@ int CacheUnk07( Cache_t *cache, unsigned int Size )
 	if( PoolSize ){
 	    Count = cache->Count;
     	    if( i == Count ) i--;
+	    d = p + i;
     	    for( ;i >= 0; i--, d-- ){
-        	if( !d[i]->Locked ) d[i]->Flags |= 0x01;            
+        	if( !d[ i ]->Locked ) d[ i ]->Flags |= 0x01;
 	    }
 	}
 	Free( p );

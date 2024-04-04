@@ -34,6 +34,19 @@
 #define CMBT_DAM_BACKWASH	0x400000
 #define CMBT_DAM_PERFORM_REVERSE	0x800000
 
+// precision shot Body Parts
+enum{
+    BP_HEAD = 0,	// 0 head
+    BP_EYES,		// 1 eyes
+    BP_RARM,		// 2 right arm
+    BP_RLEG,		// 3 right leg
+    BP_TORSO,		// 4 torso
+    BP_GRAIN,		// 5 grain
+    BP_LARM,		// 6 left arm
+    BP_LLEG,		// 7 left leg
+    BP_ALL		// 8 overall body
+};
+
 
 
 typedef struct 
@@ -84,9 +97,9 @@ typedef struct // size of b8
     int AmmoCap;
     int i08;
 
-    Obj_t *Comp;	// company ?
+    Obj_t *Target;	// company ?
     int TileNo;
-    int i11;
+    int BodyPart;
     int CompDmg;
     int CompInjuries;
     int CompKnockDown;	// chance to be knocked down
@@ -175,7 +188,7 @@ void CombatGetFlagsName( char *str, int CombatFlags, Obj_t *Critter );
 void CombatUnk61();
 void CombatUnk62();
 void CombatRecovery( Obj_t *dude );
-void CombatUnk64( char *a1, int a2, int a3 );
+void CombatFocusPrintChance( char *a1, int a2, int a3 );
 char *CombatGetBodyPartName( Obj_t *Critter, int BodyPartId );
 void CombatUnk66( int a1, int a2 );
 void CombatUnk67( int a1, int a2 );

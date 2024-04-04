@@ -97,11 +97,12 @@ void IfcMsgOut( char *str )
     IndexStr[ 0 ] = MSG_INDEX_CHAR;
     IndexStr[ 1 ] = '\0';
     IdxWidth = gFont.LineWidth( IndexStr );
-    if( IN_COMBAT ) return;
-    time = TimerGetTime();
-    if( TimerDiff( time, gIfcMsgTime ) >= MSG_CLICK_TIME ){
-	gIfcMsgTime = time;
-	GSoundPlay( MSG_CLICK_SND );
+    if( !IN_COMBAT ){
+	time = TimerGetTime();
+	if( TimerDiff( time, gIfcMsgTime ) >= MSG_CLICK_TIME ){
+	    gIfcMsgTime = time;
+	    GSoundPlay( MSG_CLICK_SND );
+	}
     }
     while( 1 ){
 	if( gFont.LineWidth( str ) > (167 - gIfcMsgDisplLines - IdxWidth) ){

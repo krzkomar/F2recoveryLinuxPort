@@ -261,13 +261,13 @@ void ActionUnk33( Combat_t *pObj )
 {
     int v3, v4;
 
-    if( OBJTYPE( pObj->Comp->ImgId ) != TYPE_CRIT ) return;
-    v3 = pObj->Dude->Orientation - pObj->Comp->Orientation;
+    if( OBJTYPE( pObj->Target->ImgId ) != TYPE_CRIT ) return;
+    v3 = pObj->Dude->Orientation - pObj->Target->Orientation;
     if( v3 < 0 ) v3 = -v3;
     v4 = v3 >= 2 && v3 != 5;
     AnimRegStart( 2 );
     AnimUnk33( 1 );
-    ActionUnk35( pObj->Comp, pObj->CompDmg, pObj->CompInjuries, pObj->HandEq, v4, pObj->CompKnockDown, TileTurnAt(pObj->Dude->GridId, pObj->Comp->GridId), Item44(pObj->Dude, pObj->Hand), pObj->Dude, 0 );
+    ActionUnk35( pObj->Target, pObj->CompDmg, pObj->CompInjuries, pObj->HandEq, v4, pObj->CompKnockDown, TileTurnAt(pObj->Dude->GridId, pObj->Target->GridId), Item44(pObj->Dude, pObj->Hand), pObj->Dude, 0 );
     AnimRegEnd();
 }
 
@@ -297,15 +297,15 @@ int ActionUnk31( Combat_t *cmbt, int a2, int a3 )
         a3 = 0;
     }
     if( cmbt->DudeInjuries & 0x100 ){
-        if( cmbt->Comp ){
-            if( OBJTYPE( cmbt->Comp->ImgId ) == TYPE_CRIT ){
+        if( cmbt->Target ){
+            if( OBJTYPE( cmbt->Target->ImgId ) == TYPE_CRIT ){
                 if( cmbt->Dude->ImgId == 0x20001F5 ){
-                    a3 = ActionUnk35( cmbt->Comp, cmbt->CompDmg, cmbt->CompInjuries, cmbt->HandEq, 1, cmbt->CompKnockDown, TileTurnAt( cmbt->Dude->GridId, cmbt->Comp->GridId), a2, cmbt->Dude, a3 );
+                    a3 = ActionUnk35( cmbt->Target, cmbt->CompDmg, cmbt->CompInjuries, cmbt->HandEq, 1, cmbt->CompKnockDown, TileTurnAt( cmbt->Dude->GridId, cmbt->Target->GridId), a2, cmbt->Dude, a3 );
                 } else {
-                    a3 = ActionUnk35( cmbt->Comp, cmbt->CompDmg, cmbt->CompInjuries, cmbt->HandEq, 1, cmbt->CompKnockDown, TileTurnAt( cmbt->Dude->GridId, cmbt->Comp->GridId ), Item44( cmbt->Dude, cmbt->Hand ), cmbt->Dude, a3 );
+                    a3 = ActionUnk35( cmbt->Target, cmbt->CompDmg, cmbt->CompInjuries, cmbt->HandEq, 1, cmbt->CompKnockDown, TileTurnAt( cmbt->Dude->GridId, cmbt->Target->GridId ), Item44( cmbt->Dude, cmbt->Hand ), cmbt->Dude, a3 );
                 }
             } else {
-                TileTurnAt( cmbt->Dude->GridId, cmbt->Comp->GridId );
+                TileTurnAt( cmbt->Dude->GridId, cmbt->Target->GridId );
                 a3 = Item44( cmbt->Dude, cmbt->Hand );
             }
         }
@@ -321,7 +321,7 @@ int ActionAttack( Combat_t *cmbt )
     int i, n;
 DD
     if( AnimRegClear( cmbt->Dude ) == -2 ) return -1;
-    if( AnimRegClear( cmbt->Comp ) == -2 ) return -1;
+    if( AnimRegClear( cmbt->Target ) == -2 ) return -1;
     for( i = 0; i < cmbt->Count; i++  ){
 	if( AnimRegClear( cmbt->obj[ i ] ) == -2 ) return -1;
     }    
@@ -345,11 +345,11 @@ DD
     if( Img ) ActionFrame = ArtGetActionFrame( Img );
     ArtClose( ImgObj );
     TileGetTileNumInDir( cmbt->Dude->GridId, cmbt->Dude->Orientation, 1 );
-    AnimUnk51( cmbt->Dude, cmbt->Comp->GridId );
+    AnimUnk51( cmbt->Dude, cmbt->Target->GridId );
     if( a2 == 16 || a2 == 17 ){
         strcpy( stmp, GSoundCharacterFileName( cmbt->Dude, a2, 0 ) );
     } else {
-        strcpy( stmp, GSoundWeaponFileName( 1, cmbt->HandEq, cmbt->Hand, cmbt->Comp ) );
+        strcpy( stmp, GSoundWeaponFileName( 1, cmbt->HandEq, cmbt->Hand, cmbt->Target ) );
     }    
     AiCombatTaunts( cmbt->Dude, cmbt, 2, 0 );
     if( cmbt->DudeInjuries & 0x300 ){
@@ -357,27 +357,27 @@ DD
         if( a2 == 16 || a2 == 17 ){
     	    strcpy( stmp, GSoundCharacterFileName( cmbt->Dude, a2, 4 ) );
         } else {
-    	    strcpy( stmp, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ) );
+    	    strcpy( stmp, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Target ) );
         }
         AnimRegAnimation( cmbt->Dude, a2, 0 );
         AnimRegPlaySfx( cmbt->Dude, stmp, ActionFrame );
         ActionUnk31( cmbt, a2, 0 );
     } else {
-        if( cmbt->Comp->Critter.State.CombatResult & 0x03 ){
+        if( cmbt->Target->Critter.State.CombatResult & 0x03 ){
             AnimRegPlaySfx( cmbt->Dude, stmp, -1 );
             AnimRegAnimation( cmbt->Dude, a2, 0 );
         } else {
-            if( (Img = ArtLoadImg( ArtMakeId( 1, cmbt->Comp->ImgId & 0xFFF, 13, (cmbt->Comp->ImgId & 0xF000) >> 12, cmbt->Comp->Orientation + 1 ), &ImgObj ) ) ){
+            if( (Img = ArtLoadImg( ArtMakeId( 1, cmbt->Target->ImgId & 0xFFF, 13, (cmbt->Target->ImgId & 0xF000) >> 12, cmbt->Target->Orientation + 1 ), &ImgObj ) ) ){
                 Frame = ArtGetActionFrame( Img );
                 ArtClose( ImgObj );
                 if( Frame <= ActionFrame ){
                     AnimRegPlaySfx( cmbt->Dude, stmp, -1 );
                     AnimRegAnimation( cmbt->Dude, a2, 0 );
-                    AnimRegPlaySfx( cmbt->Comp, GSoundCharacterFileName( cmbt->Comp, 13, 0 ), ActionFrame - Frame );
-                    AnimRegAnimation( cmbt->Comp, 13, 0 );
+                    AnimRegPlaySfx( cmbt->Target, GSoundCharacterFileName( cmbt->Target, 13, 0 ), ActionFrame - Frame );
+                    AnimRegAnimation( cmbt->Target, 13, 0 );
                 } else {
-                    AnimRegPlaySfx( cmbt->Comp, GSoundCharacterFileName( cmbt->Comp, 13, 0 ), -1 );
-                    AnimRegAnimation( cmbt->Comp, 13, 0 );
+                    AnimRegPlaySfx( cmbt->Target, GSoundCharacterFileName( cmbt->Target, 13, 0 ), -1 );
+                    AnimRegAnimation( cmbt->Target, 13, 0 );
                     AnimRegPlaySfx( cmbt->Dude, stmp, Frame - ActionFrame );
                     AnimRegAnimation( cmbt->Dude, a2, 0 );
                 }
@@ -385,9 +385,9 @@ DD
         }
     }
     if( cmbt->DudeInjuries & 0x100 ){
-        if( !(cmbt->CompInjuries & 0x80) ) AiCombatTaunts( cmbt->Comp, cmbt, 4, -1 );
+        if( !(cmbt->CompInjuries & 0x80) ) AiCombatTaunts( cmbt->Target, cmbt, 4, -1 );
     } else {
-        AiCombatTaunts( cmbt->Comp, cmbt, 3, -1 );
+        AiCombatTaunts( cmbt->Target, cmbt, 3, -1 );
     }    
     if( AnimRegEnd() == -1 ) return -1;
     ActionUnk32( cmbt );
@@ -427,7 +427,7 @@ DD
     ItemGetRange( cmbt->Dude, cmbt->Hand );
     WeaponBase = ItemGetWeaponBase( cmbt->Dude, cmbt->HandEq );
     TileGetTileNumInDir( cmbt->Dude->GridId, cmbt->Dude->Orientation, 1 );
-    AnimUnk51( cmbt->Dude, cmbt->Comp->GridId );
+    AnimUnk51( cmbt->Dude, cmbt->Target->GridId );
     if( a2 == 18 ){
         if( WeaponBase == 6 || WeaponBase == 3 || WeaponBase == 5 ) v50 = 1;
     } else {
@@ -435,7 +435,7 @@ DD
     }
     AiCombatTaunts( cmbt->Dude, cmbt, 2, 0 );
     if( (cmbt->Dude->ImgId & 0xF000) >> 12 ){
-	AnimRegPlaySfx( cmbt->Dude, GSoundWeaponFileName( 1, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), -1 );
+	AnimRegPlaySfx( cmbt->Dude, GSoundWeaponFileName( 1, cmbt->HandEq, cmbt->Hand, cmbt->Target ), -1 );
     } else {
 	AnimRegPlaySfx( cmbt->Dude, GSoundCharacterFileName( cmbt->Dude, a2, 0 ), -1 );
     }
@@ -446,8 +446,8 @@ DD
     	    rr = ProtoGetObj( Item59( cmbt->HandEq ), &proto );
             if(  rr == -1 || proto->ImgId == -1 ){
                 if( !( cmbt->DudeInjuries & 0x100 ) ){
-                    if( !( cmbt->Comp->Critter.State.CombatResult & 0x03 ) ){
-                        AnimRegAnimation( cmbt->Comp, 13, ActionFrame );
+                    if( !( cmbt->Target->Critter.State.CombatResult & 0x03 ) ){
+                        AnimRegAnimation( cmbt->Target, 13, ActionFrame );
                         goto LABEL_57;
                     }
                 }
@@ -477,17 +477,17 @@ DD
                 }
                 ObjUnk33( obj, 0 );
                 ObjSetLight( obj, 9, obj->LightIntensity, 0 );
-                tmp = CombatUnk37( cmbt->Dude, cmbt->Comp );
+                tmp = CombatUnk37( cmbt->Dude, cmbt->Target );
                 ObjMoveToTile( obj, tmp, cmbt->Dude->Elevation, NULL );
-                ObjSetRotation( obj, TileTurnAt( cmbt->Dude->GridId, cmbt->Comp->GridId ), 0 );
+                ObjSetRotation( obj, TileTurnAt( cmbt->Dude->GridId, cmbt->Target->GridId ), 0 );
                 AnimUnk60( obj, 1, ActionFrame );
-                AnimRegPlaySfx( obj, GSoundWeaponFileName( 3, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), 0 );
+                AnimRegPlaySfx( obj, GSoundWeaponFileName( 3, cmbt->HandEq, cmbt->Hand, cmbt->Target ), 0 );
                 if( (cmbt->DudeInjuries & 0x100) != 0 ){
-                    AnimUnk44( obj, cmbt->Comp->GridId, cmbt->Comp->Elevation, 1, 0 );
-                    ActionFrame = AnimUnk06( obj, tmp, cmbt->Comp->GridId, 0, 0, 32 ) - 1;
-                    GridId = cmbt->Comp->GridId;
+                    AnimUnk44( obj, cmbt->Target->GridId, cmbt->Target->Elevation, 1, 0 );
+                    ActionFrame = AnimUnk06( obj, tmp, cmbt->Target->GridId, 0, 0, 32 ) - 1;
+                    GridId = cmbt->Target->GridId;
                 } else {
-                    AnimUnk44( obj, cmbt->TileNo, cmbt->Comp->Elevation, 1, 0 );
+                    AnimUnk44( obj, cmbt->TileNo, cmbt->Target->Elevation, 1, 0 );
                     GridId = cmbt->TileNo;
                     ActionFrame = 0;
                 }
@@ -505,7 +505,7 @@ DD
                     if( v50 ) AnimUnk62( obj, ImgId, -1 );
                     tmp = ArtMakeId( 5, tmp, 0, 0, 0 );
                     AnimUnk62( obj, tmp, -1 );
-                    AnimRegPlaySfx( obj, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), 0 );
+                    AnimRegPlaySfx( obj, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Target ), 0 );
                     AnimUnk50( obj, 0, 0 );
                     for( i = 0; i < 6; ++i ){
                         if( ObjCreate( a1 + i, tmp, -1 ) == -1 ) continue;
@@ -518,7 +518,7 @@ DD
                 }
                 if( a2 != 18 ) AnimUnk55( obj );
             }
-            AnimRegPlaySfx( cmbt->HandEq, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Comp ), ActionFrame );
+            AnimRegPlaySfx( cmbt->HandEq, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Target ), ActionFrame );
 LABEL_57:
             ActionFrame = 0;
         }
@@ -526,9 +526,9 @@ LABEL_57:
 LABEL_58:
     ActionUnk31( cmbt, a2, ActionFrame );
     if( (cmbt->DudeInjuries & 0x100) == 0 ){
-        AiCombatTaunts( cmbt->Comp, cmbt, 3, -1 );
+        AiCombatTaunts( cmbt->Target, cmbt, 3, -1 );
     } else {
-	if( !(cmbt->CompInjuries & 0x80 ) ) AiCombatTaunts( cmbt->Comp, cmbt, 4, -1 );	
+	if( !(cmbt->CompInjuries & 0x80 ) ) AiCombatTaunts( cmbt->Target, cmbt, 4, -1 );	
     }
     if( obj && (v50 || WeaponBase == 6) ){
         AnimUnk55( obj );
@@ -1108,7 +1108,7 @@ void ActionUnk11( Combat_t *cmbt, Obj_t *obj )
     Scpt01_t v17;
 
     p = NULL;
-    dead = ( cmbt->Comp ) ? ( cmbt->Comp->Critter.State.CombatResult & 0x80 ) : 0;    
+    dead = ( cmbt->Target ) ? ( cmbt->Target->Critter.State.CombatResult & 0x80 ) : 0;    
     for( i = 0; i < cmbt->Count; i++ ){
         DeadPool[ i ] = cmbt->obj[ i ]->Critter.State.CombatResult & 0x80;
     }
@@ -1117,12 +1117,12 @@ void ActionUnk11( Combat_t *cmbt, Obj_t *obj )
     Exp = 0;
     CombatUnk54( cmbt, 0 );
     if( obj ){
-        if( cmbt->Comp && obj != cmbt->Comp ){
-            if( !( cmbt->Comp->Critter.State.CombatResult & 0x80 ) ){
-                CritterUnk45( cmbt->Comp, obj );
-		p = cmbt->Comp;
+        if( cmbt->Target && obj != cmbt->Target ){
+            if( !( cmbt->Target->Critter.State.CombatResult & 0x80 ) ){
+                CritterUnk45( cmbt->Target, obj );
+		p = cmbt->Target;
             } else if( obj == gObjDude && !dead ){
-                Exp = CritterUnk27( cmbt->Comp );
+                Exp = CritterUnk27( cmbt->Target );
             }
         }        
         for( i = 0; i < cmbt->Count; i++ ){
