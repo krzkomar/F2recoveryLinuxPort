@@ -120,23 +120,26 @@ int AnimRegEnd()
 {
     int tmp;
 
-    if( gAnimIdx == -1 ) return -1;
+    if( gAnimIdx == -1 ) return gAnimIdx;
     gAnimations[ gAnimIdx ].CurrIdx = 0;
     gAnimations[ gAnimIdx ].Steps = gAnimSubIdx;
+
+    tmp = gAnimations[ gAnimIdx ].Flags;
     gAnimations[ gAnimIdx ].Step = -1;
-    tmp = (gAnimSubIdx & ~0xff) | (gAnimations[ gAnimIdx ].Flags & 0xff);
-    gAnimations[ gAnimIdx ].Flags = (gAnimations[ gAnimIdx ].Flags & ~0x000ff ) | ( tmp & 0xF7 );
-    gAnimations[ gAnimIdx ].Flags = (gAnimations[ gAnimIdx ].Flags & ~0x0ff00) | (gCombatStatus << 8);
-    gAnimations[ gAnimIdx ].AnimList[0].Delay = 0;
+    gAnimations[ gAnimIdx ].Flags = tmp & 0xFFFF00F7;
+    tmp |= gCombatStatus << 8;
+
+    gAnimations[ gAnimIdx ].AnimList[ 0 ].Delay = 0;
     if( tmp & 0x100 ){
         CombatUnk61();
-        gAnimations[ gAnimIdx ].Flags |= 0x02;
+        gAnimations[ gAnimIdx ].Flags |= 0x02; // combat action
     }
     tmp = gAnimIdx;
     gAnimIdx = -1;
     if( ( gAnimations[ tmp ].Flags & 0x10 ) == 0 ) AnimUpdate( tmp, 1 );
     return 0;
 }
+
 
 int AnimTestExist( int Id, CachePool_t **Img )
 {
@@ -589,7 +592,7 @@ int AnimSetCallback12( Obj_t *Critter, Obj_t *Target, AnimU_t Ap, int (*Cb)(Obj_
     anim[ gAnimSubIdx ].ImgObj = NULL;
     anim[ gAnimSubIdx ].Target.Obj = Target;
     anim[ gAnimSubIdx ].GpPtr = Critter;
-    anim[ gAnimSubIdx ].Callback12 = Cb;
+    anim[ gAnimSubIdx ].Callback12 = (void *)Cb;
     anim[ gAnimSubIdx ].Ap = Ap;
     anim[ gAnimSubIdx ].Delay = a5;
     gAnimSubIdx++;
@@ -950,7 +953,7 @@ int AnimEnd( int idx )
     }
     gAnimations[ idx ].Step = -1;
     gAnimations[ idx ].CurrIdx = -1000;
-    if( gAnimations[ idx ].Flags & 2 ) CombatUnk62();
+    if( gAnimations[ idx ].Flags & 2 ) CombatEndAction();
     gAnimations[ idx ].Flags = ( gAnimUnk40 ) ? 0x20 : 0;
     return 0;
 }

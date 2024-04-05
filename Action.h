@@ -1,14 +1,5 @@
 #pragma once 
 
-/*
-int gActionUnk06;
-int gActionUnk05;
-int gActionUnk01;
-int gActionUnk02;
-int gActionUnk04[ 7 ];
-int gActionUnk03[ 7 ];
-*/
-
 void ActionCopyPlayer();
 int ActionUnk40( Obj_t *obj, int *a2, int a3, int a4, int a5 );
 int ActionAnimGore( Obj_t *obj, int a2, int a3 );

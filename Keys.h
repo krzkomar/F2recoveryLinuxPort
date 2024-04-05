@@ -1,5 +1,6 @@
 #include "FrameWork.h"
 
+#define KEY_SPACE		32
 #define KEY_ENTER		13
 #define KEY_ESC			27
 #define KEY_BS			8

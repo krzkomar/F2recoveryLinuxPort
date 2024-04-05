@@ -583,7 +583,7 @@ void CombatEarnExpPts( int Exp )
     IfcMsgOut( stmp );
 }
 
-void CombatUnk23()
+void CombatUpdateAP()
 {
     Obj_t *obj, *tmp;
     int ap, i;
@@ -618,16 +618,16 @@ int CombatUnk24( Obj_t *obj )
     return 0;        
 }
 
-int CombatUnk25( Obj_t **a1, Obj_t **a2 )
+int CombatSortAttackers( Obj_t **crit1, Obj_t **crit2 )
 {
     int a, b;
 
-    a = FeatGetVal( *a1, FEAT_SEQ );
-    b = FeatGetVal( *a2, FEAT_SEQ );
+    a = FeatGetVal( *crit1, FEAT_SEQ );
+    b = FeatGetVal( *crit2, FEAT_SEQ );
     if( a > b ) return -1;
     if( a < b ) return 1;
-    a = FeatGetVal( *a1, FEAT_LUCK );
-    b = FeatGetVal( *a2, FEAT_LUCK );
+    a = FeatGetVal( *crit1, FEAT_LUCK );
+    b = FeatGetVal( *crit2, FEAT_LUCK );
     if( a > b ) return -1;
     return a < b;
 }
@@ -687,7 +687,7 @@ void CombatQueueArrange()
     int k, i;
     Obj_t *obj, *tmp;
 
-    CombatUnk23();
+    CombatUpdateAP();
     k = gCombatTurns;
     for( i = 0; i < gCombatTurns; i++ ){
         obj = gCombatCritters[ i ];
@@ -715,7 +715,7 @@ void CombatQueueArrange()
     }
     if( k ){
 	gCombatTurns = k;
-        qsort( gCombatCritters, gCombatTurns, sizeof( Obj_t *), (void *)CombatUnk25 );
+        qsort( gCombatCritters, gCombatTurns, sizeof( Obj_t *), (void *)CombatSortAttackers );
 	k = gCombatTurns;
     }
     gCombatTurns = k;
@@ -781,8 +781,8 @@ int CombatTurnLoop()
             while( gCombat00 > 0 ) InpWinUpdate();
         }
         if( gObjDude->Critter.State.CurrentAP <= 0 && gCombatMovePts <= 0 ) break;
-        if( sel == 32 ) break;
-        if( sel == 13 ){
+        if( sel == KEY_SPACE ) break; // end turn
+        if( sel == KEY_ENTER ){ // exit combat
 DD
             CombatProcess();
         } else {
@@ -1006,7 +1006,7 @@ int CombatAttack( Obj_t *Critter, Obj_t *Target, int HandSlot, int BodyPart )
         if( gCombat20.CompDmg > gCombat07->unk02 ) gCombat20.CompDmg = gCombat07->unk02;
         if( gCombat07->unk03 ) gCombat20.CompInjuries = gCombatHitPenalty[ 7 ];
     }
-    if( gCombat20.BodyPart == 3 || gCombat20.BodyPart == 8 ){
+    if( gCombat20.BodyPart == BP_RLEG || gCombat20.BodyPart == BP_ALL ){
         if( Critter == gObjDude )
             IfaceGetWeaponDsc( &HandSlot, &ranged );
         else
@@ -1848,7 +1848,7 @@ void CombatHitInfo( Combat_t *cmbt )
     const char *DotStr, *Name;
     char *BodyPartName, stmp1[ 280 ], stmp2[ 20 ];
     int tmp, TextBase, EntryValue, i;
-
+DD
     Dude = cmbt->Dude;
     DotStr = ".";
     if( Dude == gObjDude ){
@@ -2084,17 +2084,17 @@ void CombatUnk61()
     if( gTargetHighlightLvl == 2 ) CombatUnk74();    
 }
 
-void CombatUnk62()
+void CombatEndAction()
 {
     Obj_t *SlotItem, *Dude;
     int Ammo;
-
+DD
     gCombat00--;
     if( gCombat00 != 0 ) return;
     if( gObjDude == gCombat20.Dude ) GameIfaceEnable();
     if( !gCombat12 ) return;    
     gCombat12 = 0;
-    SlotItem = ItemGetSlotItem(gCombat20.Dude, gCombat20.Hand);
+    SlotItem = ItemGetSlotItem( gCombat20.Dude, gCombat20.Hand );
     if( SlotItem ){
         if( ItemGetPackQuantity( SlotItem ) > 0 ){
             Ammo = ItemGetAmmo( SlotItem );
@@ -2107,7 +2107,7 @@ void CombatUnk62()
         CombatHitInfo( &gCombat20 );
         gCombat08 = 0;
     }
-    CombatUnk54(&gCombat20, 1);
+    CombatUnk54( &gCombat20, 1 );
     Dude = gCombat20.Dude;
     if( gCombat20.Dude == gObjDude && gTargetHighlightLvl == 2 ) CombatTargetHighlight();
     if( ScptCombat() && (gObjDude->Grid.DestMapElev & 1) != 0 ){
@@ -2137,7 +2137,6 @@ void CombatFocusPrintChance( char *pdst, int dpitch, int a3 )
     char *bmp;
     CachePool_t *ImgObj;
 DD
-
     if( !(bmp = ArtGetBitmap( ArtMakeId( 6, 82, 0, 0, 0 ), 0, 0, &ImgObj ) ) ) return;    
     if( a3 >= 0 ) {
         ScrCopy( &bmp[ 9 * ( a3 % 10 ) ], 9, 17, 360, pdst + 9, dpitch );
@@ -2158,14 +2157,14 @@ char *CombatGetBodyPartName( Obj_t *Critter, int BodyPartId )
     return 0;
 }
 
-void CombatUnk66( int a1, int a2 )
+void CombatFocusPrintNormal( int a1, int BodyPart )
 {
-    CombatFocusPrintLabel( a2, gPalColorCubeRGB[0][31][0] );
+    CombatFocusPrintLabel( BodyPart, COLOR_GREEN );
 }
 
-void CombatUnk67( int a1, int a2 )
+void CombatFocusPrintSelected( int a1, int BodyPart )
 {
-    CombatFocusPrintLabel( a2, gPalColorCubeRGB[31][0][0] );
+    CombatFocusPrintLabel( BodyPart, COLOR_RED );
 }
 
 void CombatFocusPrintLabel( int BodyPart, int Color )
@@ -2191,7 +2190,7 @@ int CombatFocusMenu( Obj_t *TargetObj, int *BodyPart, int Slot )
     *BodyPart = 3;
     if( !TargetObj || OBJTYPE( TargetObj->Pid ) != TYPE_CRIT ) return 0;
     gCombatTarget = TargetObj;    
-    if( (gCombatFocusWin = WinCreateWindow( 68, 20, 504, 309, gPalColorCubeRGB[0][0][0], 16 ) ) == -1 ) return -1;
+    if( (gCombatFocusWin = WinCreateWindow( 68, 20, 504, 309, COLOR_BLACK, 16 ) ) == -1 ) return -1;
     Surface = WinGetSurface( gCombatFocusWin );
 
     Img1 = ArtGetBitmap( ArtMakeId( 6, 118, 0, 0, 0 ), 0, 0, &ImgObj1 );
@@ -2214,12 +2213,12 @@ int CombatFocusMenu( Obj_t *TargetObj, int *BodyPart, int Slot )
     for( i = 0; i < 4; i++ ){
 	// left side
         CombatFocusPrintChance( &Surface[ 504 * gCombatUnk12[ i ] - 43311 ], 504, CombatDetermineHitObstacled( gObjDude, TargetObj, gCombatBodyParts[ i ], Slot ) );
-        WinSetButtonHandler( WinCreateButton( gCombatFocusWin, 33, gCombatUnk12[ i ] - 90, 128, 20, i, i, -1, i, 0, 0, 0, 0 ), CombatUnk67, CombatUnk66, 0, 0 );
-        CombatFocusPrintLabel( i, gPalColorCubeRGB[0][31][0] );
+        WinSetButtonHandler( WinCreateButton( gCombatFocusWin, 33, gCombatUnk12[ i ] - 90, 128, 20, i, i, -1, i, 0, 0, 0, 0 ), CombatFocusPrintSelected, CombatFocusPrintNormal, 0, 0 );
+        CombatFocusPrintLabel( i, COLOR_GREEN );
 	// right side
         CombatFocusPrintChance( &Surface[ 504 * gCombatUnk12[ i ] - 42891 ], 504, CombatDetermineHitObstacled( gObjDude, TargetObj, gCombatBodyParts[ 4 + i ], Slot ) );
-        WinSetButtonHandler( WinCreateButton( gCombatFocusWin, 341, gCombatUnk12[ i ] - 90, 128, 20, 4 + i, 4 + i, -1, 4 + i, 0, 0, 0, 0 ), CombatUnk67, CombatUnk66, 0, 0 );        
-        CombatFocusPrintLabel( 4 + i, gPalColorCubeRGB[0][31][0] );
+        WinSetButtonHandler( WinCreateButton( gCombatFocusWin, 341, gCombatUnk12[ i ] - 90, 128, 20, 4 + i, 4 + i, -1, 4 + i, 0, 0, 0, 0 ), CombatFocusPrintSelected, CombatFocusPrintNormal, 0, 0 );        
+        CombatFocusPrintLabel( 4 + i, COLOR_GREEN );
     }
     WinUpdate( gCombatFocusWin );
 
@@ -2348,7 +2347,7 @@ void CombatTargetHighlight()
 {
     int i, cnt, hl;
     Obj_t **ObjList, *obj;
-DD
+
     hl = 2;
     CfgGetInteger( &gConfiguration, "preferences", "target_highlight", &hl );
     if( !hl || GmouseGetMode() != 2 ) return;    
