@@ -7,6 +7,9 @@
 #define DD	{ static int cnt=0; printf("<!debug %i!> file %s -> function %s() -> line %i\n", cnt++, __FILE_NAME__,__func__, __LINE__ ); }
 
 #define DBG_CRASH	*(char *)0 = 1;
+#define DBG_OBJ		((Obj_t *)dbg_ptr)
+
+extern void *dbg_ptr;
 
 int  ErrorCloseLogTaskAtExit();
 void ErrorSetOutMGA();

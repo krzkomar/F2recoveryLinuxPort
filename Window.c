@@ -530,10 +530,9 @@ void WinUpdateDirty( int WinId )
 
     win = WinGetWindow( WinId );
     if( !gWinSys.Init || !win ) return;        
-    if( !(win->Flags & WIN_FLG_CLEAN ) ){
-        win->Flags |= WIN_FLG_CLEAN;
-        if( gWinSys.Init ) WinRedrawArea( &win->Geometry, 0 );
-    }
+    if( win->Flags & WIN_FLG_CLEAN ) return;    
+    win->Flags |= WIN_FLG_CLEAN;
+    if( gWinSys.Init ) WinRedrawArea( &win->Geometry, 0 );
 }
 
 void WinSetPosition( int WinId, int Xpos, int Ypos )

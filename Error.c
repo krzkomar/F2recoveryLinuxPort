@@ -3,6 +3,8 @@
 #define TEXT_MODE_BASE_MONO_ADDR	0xB0000;
 #define TEXT_MODE_BASE_VGA_ADDR		0xB8000
 
+void *dbg_ptr = 0;
+
 static FILE *gErrorLogFileHandler = NULL;
 //static int gErrorCursorXpos = 0;
 //static int gErrorCursorYpos = 0;

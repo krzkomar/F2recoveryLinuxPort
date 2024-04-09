@@ -132,9 +132,9 @@ int HeapDeallocate( Heap_t *BlockPool, int *BlkNum )
         Idx = *BlkNum;
         State = BlockPool->Hdr[ Idx ].State;
         Blk = BlockPool->Hdr[ Idx ].Blk;
-        if( Blk->Guard != HEAP_FOREHEAD_GUARD ) eprintf( "Heap Error: Bad guard begin detected during deallocate.\n" );
-        if( HEAP_MEM_GUARD( &Blk->Data[ Blk->Size ] ) != HEAP_BACKEND_GUARD ) eprintf( "Heap Error: Bad guard end detected during deallocate.\n" );
-        if( State != Blk->State ) eprintf( "Heap Error: Mismatched block states detected during deallocate.\n" );
+        if( Blk->Guard != HEAP_FOREHEAD_GUARD ) eprintf( "Heap Error: Bad guard begin detected during deallocate." );
+        if( HEAP_MEM_GUARD( &Blk->Data[ Blk->Size ] ) != HEAP_BACKEND_GUARD ) eprintf( "Heap Error: Bad guard end detected during deallocate." );
+        if( State != Blk->State ) eprintf( "Heap Error: Mismatched block states detected during deallocate." );
         if( !(State & HEAP_LOCKED) ){
             if( State == HEAP_MOVABLE ){
                 Blk->Id = -1;

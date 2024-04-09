@@ -91,7 +91,7 @@ typedef struct // size of 0xa60 2656
   int CurrIdx;	// sublist index
   int Step;
   int Steps;	// count of used Anim01_t 'Steps'
-  int Flags;
+  int Flags;	// 0x02 - combat action
   Anim01_t AnimList[ 55 ]; // sub animation list
 } Anim_t;
 

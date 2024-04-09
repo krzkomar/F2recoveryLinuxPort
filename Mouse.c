@@ -227,9 +227,9 @@ void MseCursorShow()
         }
         gMseCursorPic = MouseBmp;
         
-        if( gMseBlitAlpha && gMseCursorHide )
+        if( gMseBlitAlpha && gMseCursorHide ){ // draw animated cursor
             gMseBlitAlpha( gMseAnimCursorFrame, gMsePitch, gMseHeight, SrcX, SrcY, Width, Height, SrcX + gMseX, SrcY + gMseY, gMseAlpha );
-        else
+        } else
             gMseBlit( gMseCursorPic, gMseWidth, gMseHeight, SrcX, SrcY, Width, Height, SrcX + gMseX, SrcY + gMseY );
         MouseBmp = gMseCursorPic;
         gMseCursorHide = 0;

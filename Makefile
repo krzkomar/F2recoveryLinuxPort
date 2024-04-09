@@ -1,4 +1,4 @@
-APP_NAME = test
+APP_NAME = f2
 
 all:$(APP_NAME)
 

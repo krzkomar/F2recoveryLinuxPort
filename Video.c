@@ -338,7 +338,7 @@ void VidUpdate( int x, int y, int Width, int Height )
     SDL_RenderPresent( gSDLRenderer );
 }
 
-
+/*
 void VidCopy( void *buff, Pal8_t *pal, int pitch, int x, int y, int w, int h, int bpp )
 {
     int i, j;
@@ -385,7 +385,7 @@ void VidCopy( void *buff, Pal8_t *pal, int pitch, int x, int y, int w, int h, in
     SDL_RenderCopy( gSDLRenderer, gSDLTexture, NULL, NULL );
     SDL_RenderPresent( gSDLRenderer );    
 }
-
+*/
 int VidUpdateAll()
 {
     VidUpdate( 0, 0, gSDLSurfaceCur->w, gSDLSurfaceCur->h );
@@ -398,22 +398,63 @@ void VidCopy8( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Wid
     VidCopy16( pSrc, SrcPitch, Height, SrcX, SrcY, Width, Height, DstX, DstY );
 }
 
+
+#define SW_COPY
+
 void VidCopy16( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Width, short Height, int posX, int posY )
 {
+#ifdef SW_COPY
+#define VTYPE	uint64_t
     char *Screen;
     char *psrc;
-    int h;
+    int h, k, l, i, ds, dd;
+    register VTYPE *s64, *d64;
+    register uint8_t *s8, *d8;
 
     if( Width == 0 || Height == 0 ) return;
     if( !gSDLReady ) return;
     Screen = gSDLSurfaceCur->pixels + gSDLSurfaceCur->pitch * posY + posX;
     psrc = pSrc + SrcPitch * SrcY + SrcX;
-    h = Height;
-    for( ;h; psrc += SrcPitch, h--, Screen += gSDLSurfaceCur->pitch ){
-        memcpy( Screen, psrc, Width );
+    k = Width / sizeof( VTYPE );
+    l = Width % sizeof( VTYPE );
+    s64 = (uint64_t *)psrc;
+    d64 = (uint64_t *)Screen;
+    ds = SrcPitch - Width;
+    dd = gSDLSurfaceCur->pitch - Width;
+    for( h = 0; h < Height; h++ ){
+	for( i = 0; i < k; i++ ) *d64++ = *s64++;
+	d8 = (uint8_t *)d64; 
+	s8 = (uint8_t *)s64;
+	for( i = 0; i < l; i++ ) *d8++ = *s8++;
+	s64 = (uint64_t *)( s8 + ds );
+	d64 = (uint64_t *)( d8 + dd );
     }
+#else
+    SDL_Surface ss;
+    SDL_Rect r1, r2;
+    
+    memcpy( &ss, gSDLSurfaceCur, sizeof( SDL_Surface ) );
+    ss.w = SrcPitch;
+    ss.h = Height;
+    ss.pitch = SrcPitch;    
+    ss.pixels = pSrc;
 
-    VidUpdate( posX, posY, Width, Height );
+    r1.x = SrcX;
+    r1.y = SrcY;
+    r1.w = SrcPitch - SrcX;
+    r1.h = Height - SrcY;
+
+    r2.x = posX;
+    r2.y = posY;
+    r2.w = Width - posX;
+    r2.h = Height - posY;
+    SDL_BlitSurface( &ss, &r1, gSDLSurfaceCur, &r2 );
+#endif    
+    if( gVidUpdateForbid ) return;
+    SDL_BlitSurface( gSDLSurfaceCur, NULL, gSDLSurfaceMain, NULL );
+    SDL_UpdateTexture( gSDLTexture, NULL, gSDLSurfaceMain->pixels, gSDLSurfaceMain->pitch );
+    SDL_RenderCopy( gSDLRenderer, gSDLTexture, NULL, NULL );
+    SDL_RenderPresent( gSDLRenderer );
 }
 
 void VidCopy16A( char *pSrc, int SrcW, int SrcH, int SrcX, int SrcY, int Width, short Height, int posX, int posY )
@@ -423,19 +464,19 @@ void VidCopy16A( char *pSrc, int SrcW, int SrcH, int SrcX, int SrcY, int Width, 
 
 void VidCopyAlpha16( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Width, short Height, int posX, int posY, short Alpha )
 {
-    char *s;
     char *Screen;
-    char *psrc, *ps;
-    int i;
+    char *psrc, pixel;
+    int h, i;
 
+    if( Width == 0 || Height == 0 ) return;
     if( !gSDLReady ) return;
     Screen = gSDLSurfaceCur->pixels + gSDLSurfaceCur->pitch * posY + posX;
-    psrc = pSrc + SrcX + SrcPitch * SrcY;
-    for( ;Height; psrc += SrcPitch, Height--, Screen += gSDLSurfaceCur->pitch ){
-	ps = psrc;
-	s = Screen;
-	for( i = 0; i < Width; i++, s++, ps++ ){
-	    if( *ps ) *s = *ps;
+    psrc = pSrc + SrcPitch * SrcY + SrcX;
+    h = Height;
+    for( ;h; psrc += SrcPitch, h--, Screen += gSDLSurfaceCur->pitch ){
+	for( i = 0; i < Width; i++ ){
+	    pixel = psrc[ i ];
+	    if( pixel ) Screen[ i ] = pixel;
 	}
     }
     VidUpdate( posX, posY, Width, Height );

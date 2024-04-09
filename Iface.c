@@ -702,7 +702,7 @@ void IfaceCombatOpen( int a1 )
 {
     ArtFrmHdr_t *Img;
     CachePool_t *ImgObj;
-    char *ObjData;
+    char *bmp;
     unsigned int speed, time, i, Fpd;
 
     if( gIfcWin == -1 || gIfcCombatState ) return;        
@@ -714,8 +714,8 @@ void IfaceCombatOpen( int a1 )
         time = 0;        
         for( i = 0; i < Fpd; ){
             if( TimerCurrDiff( time ) >= speed ){
-        	if( (ObjData = ArtGetObjData( Img, i, 0 )) ){
-            	    ScrCopy( ObjData, 57, 58, 57, gIfcSurf + 24900, 640 );
+        	if( (bmp = ArtGetObjData( Img, i, 0 ) ) ){
+            	    ScrCopy( bmp, 57, 58, 57, WIN_XY( 580, 38, 640, gIfcSurf ), 640 ); // animate open/close "door" 
             	    WinAreaUpdate( gIfcWin, &gIfcUnk10 );
         	}
         	time = TimerGetSysTime();
@@ -724,7 +724,7 @@ void IfaceCombatOpen( int a1 )
             GmouseProcess();
         }                    
     } else {
-        ScrCopy( ArtGetObjData( Img, Fpd - 1, 0 ), 57, 58, 57, gIfcSurf + 24900, 640 );
+        ScrCopy( ArtGetObjData( Img, Fpd - 1, 0 ), 57, 58, 57, WIN_XY( 580, 38, 640, gIfcSurf ), 640 );
         WinAreaUpdate( gIfcWin, &gIfcUnk10 );
     }
     ArtClose( ImgObj );

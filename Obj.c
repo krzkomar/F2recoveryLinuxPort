@@ -530,16 +530,15 @@ int ObjCreate( Obj_t **obj, int ArtId, int Pid )
     if( !p ) return -1;
     p->Next = NULL;
     p->object = NULL;
-
     if( ObjNewObj( &p->object ) == -1 ){
         if( p ){ Free( p ); p = NULL; }
         return -1;
     }
-    
     p->object->ImgId = ArtId;
     ObjAddObject( p );
     if( obj ) *obj = p->object;
     p->object->Pid = Pid;
+
     p->object->TimeEv = ScptNewObjId();
     if( Pid == -1 || OBJTYPE( Pid ) == TYPE_TILE ){
         p->object->Container.Box.Box = NULL;        
@@ -2297,7 +2296,6 @@ int ObjNewObj( Obj_t **stack )
 {
     if( !stack ) return -1;    
     if( !( *stack = Malloc( sizeof( Obj_t ) ) ) ) return -1;
-
     memset( *stack, 0, sizeof( Obj_t ) );
     (*stack)->TimeEv = -1;
     (*stack)->GridId = -1;

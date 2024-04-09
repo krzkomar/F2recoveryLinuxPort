@@ -9,29 +9,29 @@
 #define IN_COMBAT	(gCombatStatus  & CBT_IN_COMBAT)
 
 // combat flags:
-#define CMBT_DAM_KNOCKED_OUT	0x01
-#define CMBT_DAM_KNOCKED_DOWN	0x02
-#define CMBT_DAM_CRIP_LEG_LT	0x04
-#define CMBT_DAM_CRIP_LEG_RT	0x08
-#define CMBT_DAM_CRIP_ARM_LT	0x10
-#define CMBT_DAM_CRIP_ARM_RT	0x20
-#define CMBT_DAM_BLIND		0x40
-#define CMBT_DAM_DEAD		0x80
-#define CMBT_DAM_HIT		0x100
-#define CMBT_DAM_CRITICAL	0x200
-#define CMBT_DAM_ON_FIRE	0x400
-#define CMBT_DAM_BYPASS		0x800
-#define CMBT_DAM_EXPLODE	0x1000
-#define CMBT_DAM_DESTROY	0x2000
-#define CMBT_DAM_DROP		0x4000
-#define CMBT_DAM_LOSE_TURN	0x8000
-#define CMBT_DAM_HIT_SELF	0x10000
-#define CMBT_DAM_LOSE_AMMO	0x20000
-#define CMBT_DAM_DUD		0x40000
-#define CMBT_DAM_HURT_SELF	0x80000
-#define CMBT_DAM_RANDOM_HIT	0x100000
-#define CMBT_DAM_CRIP_RANDOM	0x200000
-#define CMBT_DAM_BACKWASH	0x400000
+#define CMBT_DAM_KNOCKED_OUT		0x01
+#define CMBT_DAM_KNOCKED_DOWN		0x02
+#define CMBT_DAM_CRIP_LEG_LT		0x04
+#define CMBT_DAM_CRIP_LEG_RT		0x08
+#define CMBT_DAM_CRIP_ARM_LT		0x10
+#define CMBT_DAM_CRIP_ARM_RT		0x20
+#define CMBT_DAM_BLIND			0x40
+#define CMBT_DAM_DEAD			0x80
+#define CMBT_DAM_HIT			0x100
+#define CMBT_DAM_CRITICAL		0x200
+#define CMBT_DAM_ON_FIRE		0x400
+#define CMBT_DAM_BYPASS			0x800
+#define CMBT_DAM_EXPLODE		0x1000
+#define CMBT_DAM_DESTROY		0x2000
+#define CMBT_DAM_DROP			0x4000
+#define CMBT_DAM_LOSE_TURN		0x8000
+#define CMBT_DAM_HIT_SELF		0x10000
+#define CMBT_DAM_LOSE_AMMO		0x20000
+#define CMBT_DAM_DUD			0x40000
+#define CMBT_DAM_HURT_SELF		0x80000
+#define CMBT_DAM_RANDOM_HIT		0x100000
+#define CMBT_DAM_CRIP_RANDOM		0x200000
+#define CMBT_DAM_BACKWASH		0x400000
 #define CMBT_DAM_PERFORM_REVERSE	0x800000
 
 // precision shot Body Parts
@@ -46,8 +46,6 @@ enum{
     BP_LLEG,		// 7 left leg
     BP_ALL		// 8 overall body
 };
-
-
 
 typedef struct 
 {
@@ -69,11 +67,10 @@ typedef struct
 {
     Obj_t *Critter;
     Obj_t *Target;
-//    int   unk01[ 4 ]; // 0 - ap bonus, 1 - hit bonus
     CombatBonus_t Bonus;
     int  unk02;
     int  unk03;
-} Combat02_t; // Scpt01_t
+} Combat02_t; // Scpt01_t ?
 
 typedef struct
 {
@@ -106,7 +103,7 @@ typedef struct // size of b8
     Obj_t *i15;
 
     int Count;    
-    Obj_t *obj[ 6 ];
+    Obj_t *obj[ 6 ];	// oponents ?
     int unk1[ 6 ];
     int Damage[ 6 ];
     int Injuries[ 6 ];
@@ -151,7 +148,7 @@ int  CombatUnk24( Obj_t *obj );
 int  CombatSortAttackers( Obj_t **a1, Obj_t **a2 );
 int  CombatUnk26( Obj_t *a1, Obj_t *a2 );
 void CombatQueueArrange();
-void CombatProcess();
+void CombatFinish();
 void CombatUpdate();
 int  CombatTurnLoop();
 void CombatUnTurn();

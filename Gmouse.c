@@ -211,12 +211,11 @@ void GmouseProcess()
 
     if( !gGmouseInited ) return;
 
-    if( gGmouseCursorId >= 25 ){
+    if( gGmouseCursorId >= 25 ){ //
         MseUpdate();
         if( !gGmouseMoveAllow ){ GmouseLoadCursor( gGmouseCursorId ); return; }
 	GMOUSE_SCROLL_VIEWPORT();
         return;
-
     }
     if( !gGmouseHexCursor ){
         if( !gGmouseMoveAllow ) return;
@@ -322,21 +321,21 @@ void GmouseProcess()
         if( (v6 = AnimFindTrace( gObjDude, gObjDude->GridId, gGmouseObjB->GridId, NULL, 1 ) ) ){
             if( (gCombatStatus & 1) == 0 ){
                 stmp1[0] = '\0';
-                color = gPalColorCubeRGB[31][0][0];
+                color = COLOR_RED;
             } else {
         	v7 = CritterUnk47( gObjDude, v6 );
         	v8 = ( v7 - gCombatMovePts >= 0 ) ? ( v7 - gCombatMovePts ) : 0;
         	if( v8 <= gObjDude->Critter.State.CurrentAP ){
             	    sprintf( stmp1, "%d", v8 );
-            	    color = gPalColorCubeRGB[31][31][31];
+            	    color = COLOR_WHITE;
         	} else {
     		    sprintf( stmp1, "%c", 'X' );
-    		    color = gPalColorCubeRGB[31][0][0];
+    		    color = COLOR_RED;
     		}
     	    }
         } else { // '< X >'
     	    sprintf( stmp1, "%c", 'X' );
-    	    color = gPalColorCubeRGB[31][0][0];
+    	    color = COLOR_RED;
         }        
         if( !GmouseText( stmp1, color ) ){ ObjGetRefreshArea( gGmouseObjB, &Rect ); TileUpdateArea( &Rect, 0 ); }
         gGmouseRstTime = Time;

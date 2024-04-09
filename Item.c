@@ -1121,8 +1121,6 @@ int Item58( Obj_t *obj )
 
     if( !obj ) return -1;
     ProtoGetObj( obj->Pid, &proto );
-DD
-printf("=>%p %i\n", proto,  obj->Pid);
     return proto->Critt.BaseStat[ 0 ];
 }
 
