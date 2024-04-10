@@ -548,7 +548,7 @@ int CombatTaskCb()
     AiUnk47();
     GameIfaceEnable();
     GmouseSetMode( 0 );
-    IfaceResetAC( 1 );
+    IfaceRenderAC( 1 );
     if( CritterUnk31( gObjDude ) ){
         if( !CritterIsDead( gObjDude ) && !gCombat10 ){
             EvQeRmEventType( gObjDude, EV_KNOCKDOWN_TIMER );
@@ -828,7 +828,7 @@ int CombatTurn( Obj_t *obj, int edx0 )
     } else {
         if( obj == gObjDude ){
             KeyFlush();
-            IfaceResetAC( 1 );
+            IfaceRenderAC( 1 );
             gCombatMovePts = 2 * PerkLvl( gObjDude, PERK_BONUS_MOVE );
             IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
         } else {
@@ -860,7 +860,7 @@ int CombatTurn( Obj_t *obj, int edx0 )
                     IfaceUnk25();
                     CombatUnk74();
                     IfaceRenderAP( -1, -1 );
-                    IfaceResetAC( 1 );
+                    IfaceRenderAC( 1 );
                     gCombatMovePts = 0;
                     return -1;
                 }
@@ -876,7 +876,7 @@ int CombatTurn( Obj_t *obj, int edx0 )
                 CombatUnk74();
                 IfaceRenderAP( -1, -1 );
                 gCombat19 = 0;
-                IfaceResetAC( 1 );
+                IfaceRenderAC( 1 );
                 gCombat19 = gObjDude;
             } else if( !ObjUnk35( obj, &Area ) ){
                 TileUpdateArea( &Area, obj->Elevation );

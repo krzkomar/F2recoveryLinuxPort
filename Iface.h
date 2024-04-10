@@ -41,7 +41,7 @@ void IfaceUiDisable();
 int  IfaceGetUiState();
 void IfaceUnk09();
 void IfaceRenderHP( int mode );
-void IfaceResetAC( int Animate );
+void IfaceRenderAC( int Animate );
 void IfaceRenderAP( int ap, int extra );
 int  IfaceGetWeaponDsc( int *Slot, int *Ranged );
 int  IfaceHandSlotUpdate( int a1, int LhandArg, int RhandArg );

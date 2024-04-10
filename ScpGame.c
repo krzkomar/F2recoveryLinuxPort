@@ -2827,7 +2827,7 @@ void ScrGame_MetaRule( Intp_t *scr )
             v14 = Item18( obj, obj->GridId );
             if( gObjDude == obj ){
                 IfaceHandSlotUpdate( 0, -1, -1 );
-                IfaceResetAC( 0 );
+                IfaceRenderAC( 0 );
             }
 	    RETINT( scr, v14 );
 	    break;

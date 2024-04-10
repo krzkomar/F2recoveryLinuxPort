@@ -258,7 +258,7 @@ int IfacePanelLoad( xFile_t *fh )
         IfacePanelDisable();
     }
     IfaceRenderHP( 0 );
-    IfaceResetAC( 0 );
+    IfaceRenderAC( 0 );
     gIfcHandSlotState = HandSlot;
     IfaceHandSlotUpdate( 0, -1, -1 );
     if( CombatState != gIfcCombatState ){
@@ -297,7 +297,7 @@ void IfacePanelDisable()
     if( gIfcWin != -1 && gIfcPanelState ){
         IfaceHandSlotUpdate( 0, -1, -1 );
         IfaceRenderHP( 0 );
-        IfaceResetAC( 0 );
+        IfaceRenderAC( 0 );
         WinMoveTop( gIfcWin );
         gIfcPanelState = 0;
     }
@@ -351,7 +351,7 @@ void IfaceUnk09()
     if( gIfcWin != -1 ){
         IfaceHandSlotUpdate( 0, -1, -1 );
         IfaceRenderHP( 0 );
-        IfaceResetAC( 0 );
+        IfaceRenderAC( 0 );
         IfaceIndicatorBoxUpdate();
         WinUpdate( gIfcWin );
     }
@@ -397,7 +397,7 @@ void IfaceRenderHP( int mode )
     }
 }
 
-void IfaceResetAC( int Animate )
+void IfaceRenderAC( int Animate )
 {
     int ac, time_ms;
 
@@ -1123,6 +1123,14 @@ int IfaceUnk36()
 }
 
 #define COUNTER_UPDATE( area, time )   MseUpdate(); GmouseProcess(); TimerWait( time ); WinAreaUpdate( gIfcWin, area )
+void IfaceRenderDigit( int Sign, int dig0, int dig1, int dig2, char *pDigImg, char *surf )
+{
+    ScrCopy( pDigImg + 9 * dig2, 9, 17, 360, surf + 6, 640  ); 	// 100' digit
+    ScrCopy( pDigImg + 9 * dig1, 9, 17, 360, surf + 15, 640 );	// 10' digit
+    ScrCopy( pDigImg + 9 * dig0, 9, 17, 360, surf + 24, 640 ); 	// 1' digit
+    ScrCopy( pDigImg + (( Sign >= 0 ) ? 114 : 108), 6, 17, 360, surf, 640 ); // sign
+}
+
 void IfaceRenderCounter( int Xpos, int Ypos, int CurrVal, int NewVal, int ColorSel, unsigned int Fps )
 {
     VidRect_t Area;
@@ -1148,10 +1156,7 @@ void IfaceRenderCounter( int Xpos, int Ypos, int CurrVal, int NewVal, int ColorS
         if( val > 99 ) dig2 = val / 100;
     }
     // render current counter value ( or new one if fps=0 )
-    ScrCopy( pDigImg + 9 * dig2, 9, 17, 360, surf + 6, 640  ); 	// 100' digit
-    ScrCopy( pDigImg + 9 * dig1, 9, 17, 360, surf + 15, 640 );	// 10' digit
-    ScrCopy( pDigImg + 9 * dig0, 9, 17, 360, surf + 24, 640 ); 	// 1' digit
-    ScrCopy( pDigImg + (( Sign >= 0 ) ? 114 : 108), 6, 17, 360, surf, 640 ); // sign
+    IfaceRenderDigit( Sign, dig0, dig1, dig2, pDigImg, surf );
     if( gIfcUnk01 ) return; // no update
     Area.lt = Xpos;
     Area.tp = Ypos;
@@ -1167,8 +1172,8 @@ void IfaceRenderCounter( int Xpos, int Ypos, int CurrVal, int NewVal, int ColorS
         ScrCopy( pDigImg + 90, 9, 17, 360, surf + 24, 640 );
         COUNTER_UPDATE( &Area, Fps );
         dig0 += dir;
-        if( dig0 >= 10 ){
-            ScrCopy(pDigImg + 90, 9, 17, 360, surf + 15, 640);
+        if( dig0 > 9 || dig0 < 0 ){
+            ScrCopy( pDigImg + 90, 9, 17, 360, surf + 15, 640 );
     	    COUNTER_UPDATE( &Area, Fps );
             dig1 += dir;
             dig0 -= 10 * dir;
@@ -1188,10 +1193,7 @@ void IfaceRenderCounter( int Xpos, int Ypos, int CurrVal, int NewVal, int ColorS
         ScrCopy( pDigImg + 99, 9, 17, 360, surf + 24, 640 );
     	COUNTER_UPDATE( &Area, Fps );
         CurrVal += dir;
-        ScrCopy( (pDigImg + 9 * dig2), 9, 17, 360, surf + 6, 640 );
-        ScrCopy( (pDigImg + 9 * dig1), 9, 17, 360, surf + 15, 640 );
-        ScrCopy( (pDigImg + 9 * dig0), 9, 17, 360, surf + 24, 640 );
-        ScrCopy( ( CurrVal >= 0 ) ? pDigImg + 114 : pDigImg + 108, 6, 17, 360, surf, 640 );
+	IfaceRenderDigit( Sign, dig0, dig1, dig2, pDigImg, surf );
     	COUNTER_UPDATE( &Area, Fps );
     }
 }

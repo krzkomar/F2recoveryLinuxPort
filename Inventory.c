@@ -253,7 +253,7 @@ void InvMenu()
         TileUpdateArea( &Area, gInvSelectedDude->Elevation );
     }
     // armor changed ?
-    if( (gInvSelectedDude == gObjDude) && (armor != InvGetArmorObj( gInvSelectedDude )) ) IfaceResetAC( 1 );
+    if( (gInvSelectedDude == gObjDude) && (armor != InvGetArmorObj( gInvSelectedDude )) ) IfaceRenderAC( 1 );
     InvMenuClose( menu ) ;
     for( i = 0; i != 5; i++ ) ArtClose( gInvMseCursor[ i ].Obj );
     if( gInvUnk02 ) GameIfaceDisable( 0 );
