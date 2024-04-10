@@ -2784,24 +2784,23 @@ void CharEditStartChar()
 
 int CharEditLvlUp()
 {
-    int CurLvl, ex, SkillLvl, i, perks;
+    int points, ex, SkillLvl, i, perks, j;
 
-    CurLvl = FeatGetPoints( FEAT_PT_LV );
-
-    if( (CurLvl != gChrEditCurLvl) && (CurLvl <= FEAT_PTS_LEVELCAP) ){
-	for( i = gChrEditCurLvl + 1; i <= CurLvl; i++ ){
-    	    SkillLvl = 5 * TraitSpecActive( 14 ) + 2 * PerkLvl( gObjDude, 18 ) + 2 * FeatGetTotal( gObjDude, FEAT_INTELLIGENCE ) + FeatGetPoints( FEAT_PT_SP ) + 5;
-    	    if( TraitSpecActive( 15 ) ){
+    points = FeatGetPoints( FEAT_PT_LV );
+    if( (points != gChrEditCurLvl) && (points <= FEAT_PTS_LEVELCAP) ){
+	for( i = gChrEditCurLvl + 1; i <= points; i++ ){
+    	    SkillLvl = 5 * TraitSpecActive( TRAIT_SKILLED ) + 2 * PerkLvl( gObjDude, PERK_EDUCATED ) + 2 * FeatGetTotal( gObjDude, FEAT_INTELLIGENCE ) + FeatGetPoints( FEAT_PT_SP ) + 5;
+    	    if( TraitSpecActive( TRAIT_GIFTED ) ){
         	SkillLvl -= 5;
     	        if( SkillLvl < 0 ) SkillLvl = 0;
     	    }        
     	    if( SkillLvl > 99 ) SkillLvl = 99;
     	    FeatSetPoints( 0, SkillLvl );
-    	    for( i = 0, perks = 0; i < 119; i++ ){
-        	if( PerkLvl(gObjDude, i) <= 0) continue;
+    	    for( j = 0, perks = 0; j < 119; j++ ){
+        	if( PerkLvl(gObjDude, j) <= 0) continue;
         	if( ++perks >= 37 ) break;
     	    }
-    	    if( (perks < 37) && !(i % (( TraitSpecActive(14) != 0) + 3)) ) gChrEditNewPerkFlag = 1;
+    	    if( (perks < 37) && !(i % (( TraitSpecActive( TRAIT_SKILLED ) != 0) + 3)) ) gChrEditNewPerkFlag = 1;
 	}
     }
 
@@ -2818,7 +2817,7 @@ int CharEditLvlUp()
             gChrEditNewPerkFlag = 0;
         }
     }    
-    gChrEditCurLvl = CurLvl;
+    gChrEditCurLvl = points;
     return 1;
 }
 
