@@ -207,8 +207,8 @@ int  ObjSetLight( Obj_t *obj, int LightRadius, int LightIntensity, VidRect_t *Ar
 int  ObjGetLightIntensity( Obj_t *obj );
 int  ObjLightedOn( Obj_t *obj, VidRect_t *Area );
 int  ObjLightedOff( Obj_t *obj, VidRect_t *rect );
-int  ObjUnk32( Obj_t *obj, VidRect_t *Area );
-int  ObjUnk33( Obj_t *obj, VidRect_t *Area );
+int  ObjVisibilityDisable( Obj_t *obj, VidRect_t *Area );
+int  ObjVisibilityEnable( Obj_t *obj, VidRect_t *Area );
 int  ObjUnk34( Obj_t *obj, VidRect_t *Area );
 int  ObjUnk35( Obj_t *obj, VidRect_t *area );
 int  ObjSetPlayer( Obj_t *obj, VidRect_t *RadArea ); // zla nazwa ?

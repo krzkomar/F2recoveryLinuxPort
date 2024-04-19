@@ -198,7 +198,7 @@ int AiUnk40( Obj_t *a1, int *a2, Obj_t **a3, Obj_t *a4 );
 int AiUnk41( Obj_t *a1, Obj_t *a2, int a3 );
 int AiUnk42( Obj_t *a1, Obj_t *a2, int a3 );
 int AiUnk43( Obj_t *a1, Obj_t *edx0 );
-int AiUnk44( Obj_t *a1, Obj_t *a2 );
+int AiLightFlare( Obj_t *a1, Obj_t *a2 );
 void AiUnk45( Obj_t *a1, int a2 );
 void AiUnk46( int Count, Obj_t **p );
 void AiUnk47();

@@ -1756,7 +1756,7 @@ void ScrGame_SetObjVisibility( Intp_t *scr )
                 ObjUnk35( obj, 0 );
                 ObjClrOutline( obj, NULL );
             }
-            if( ObjUnk33( obj, &Area ) != -1 ){
+            if( ObjVisibilityEnable( obj, &Area ) != -1 ){
                 if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) obj->Flags |= OBJ_FLG_VISIBLE;
                 TileUpdateArea( &Area, obj->Elevation );
             }
@@ -1764,7 +1764,7 @@ void ScrGame_SetObjVisibility( Intp_t *scr )
     } else { // unset visibility
         if( obj->Flags & OBJ_FLG_UNK01 ){
             if( OBJTYPE( obj->Pid ) == TYPE_CRIT ) obj->Flags &= ~OBJ_FLG_VISIBLE;
-            if( ObjUnk32( obj, &Area ) != -1 ) TileUpdateArea( &Area, obj->Elevation );            
+            if( ObjVisibilityDisable( obj, &Area ) != -1 ) TileUpdateArea( &Area, obj->Elevation );            
         }
     }
 }

@@ -1922,7 +1922,7 @@ void InvActionMenu( int sel, int mode )
                 case PR_ITEM_WEAPON: case PR_ITEM_MISC:
                     if( !HandObj ) ItemUseItem( BoxObj, Item, 1 );
                     if( ObjOpenable( Item ) )
-                        tmp = UseUnk13( gInvParty[0], Item );
+                        tmp = UseItem( gInvParty[0], Item );
                     else
                         tmp = UseUseHealSkill( gInvParty[0], gInvParty[0], Item );
                     if( tmp == 1 ){

@@ -110,7 +110,7 @@ int ItemGetCharges( Obj_t *obj );
 int ItemUseCharges( Obj_t *obj, int Charges );
 int Item85( Obj_t *obj );
 int Item86( Obj_t *obj );
-int Item87( Obj_t *obj );
+int ItemRechargable( Obj_t *obj );
 int ItemRecharge( Obj_t *Obj1, Obj_t *Obj2 );
 int ItemMotSensCharge( Obj_t *obj );
 int ItemDeviceUse( Obj_t *obj );

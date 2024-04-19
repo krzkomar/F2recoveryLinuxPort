@@ -126,7 +126,8 @@ void LsgPurgeFiles()
 
 int LsgSaveGameMenu( int Mode )
 {
-    int ExtCode, tb,SysTime,sel,aa,v39,stime,v44,v45,tt,v47,v48,cc,v42,bottom,right,ee,dd,bb,ff;
+    int ExtCode, tb,sel,aa,v39,stime,v44,v45,tt,tmp,v48,cc,v42,bottom,right,ee,dd,bb,ff;
+    uint32_t SysTime;
     char stmp[260], a1[260], *Str2[3];
 
     ExtCode = -1;
@@ -158,189 +159,185 @@ int LsgSaveGameMenu( int Mode )
     	    GSoundPlay( "iisxxxx1" );
     	    strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 132 ) );
     	    strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 133 ) );
-    	    DlgBox( gLsgBakFileName, Str2, 1, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
+    	    DlgBox( gLsgBakFileName, Str2, 1, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
     	    MessageClose( &gLsgMsg );
     	    return -1;     
         }           
         return 1;
+    }
+    gLsgUnk01 = 0;
+    if( LsgMenuCreate( Mode == 2 ) == -1 ){ eprintf( "\nLOADSAVE: ** Error loading save game screen data! **" ); return -1; } 
+    if( LsgLoadSlots() == -1 ){
+        WinUpdate( gLsgWin );
+        GSoundPlay( "iisxxxx1" );
+        strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
+        strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
+        sprintf( gLsgUnk38, "\"%s/\"", "savegame" );
+        strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
+        DlgBox( gLsgBakFileName, Str2, 2, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
+        LsgClose( 0 );
+        return -1;
+    }
+    tmp = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
+    if( tmp == 0 || tmp == 2 || tmp == 3 ){
+        ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
     } else {
-        gLsgUnk01 = 0;
-        if( LsgMenuCreate( Mode == 2 ) == -1 ){
-            eprintf( "\nLOADSAVE: ** Error loading save game screen data! **" );
-            return -1;
-        } else if( LsgLoadSlots() == -1 ){
-            WinUpdate( gLsgWin );
-            GSoundPlay( "iisxxxx1" );
-            strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
-            strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
-            sprintf( gLsgUnk38, "\"%s/\"", "savegame" );
-            strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
-            DlgBox( gLsgBakFileName, Str2, 2, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
-            LsgClose( 0 );
-            return -1;
-        } else {
-            cc = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
-            if( !cc || cc == 2 || cc == 3 ){
-                ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, gLsgSurf + 37486, 640 );
+        LsgReadThumbnail( gLsgSelectedSlotIdx );
+        ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
+    }
+    LsgDrawSlotList( 0 );
+    LsgDescription( gLsgSelectedSlotIdx );
+    WinUpdate( gLsgWin );
+    gLsgUnk09 = 24;
+    while( ExtCode == -1 ){
+        SysTime = TimerGetSysTime();
+        sel = InpUpdate();
+        aa = 0; dd = 0; ee = 0; ff = 0;
+        if( gMenuEscape ) ExtCode = 0;
+        switch( sel ){
+            	case KEY_ESC:
+            	case 501: ExtCode = 0; break;
+                case 328: if( --gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0; aa = 1; bb = -1; break;
+                case 336: if( ++gLsgSelectedSlotIdx > 9 ) gLsgSelectedSlotIdx = 9; aa = 1; bb = -1; break;
+                case 327: aa = 1; bb = -1; gLsgSelectedSlotIdx = gMenuEscape; break;
+                case 335: bb = -1; gLsgSelectedSlotIdx = 9; aa = 1; break;
+                case 506: dd = 1; break;
+                case 504: dd = 2; break;
+                case 502:
+                    MseGetCursorPosition( &right, &bottom );
+                    gLsgSelectedSlotIdx = (bottom - 79) / (3 * gFont.ChrHeight() + 4);
+                    if( gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0;
+                    if( gLsgSelectedSlotIdx > 9 ) gLsgSelectedSlotIdx = 9;
+                    aa = 1;
+                    if( gLsgSelectedSlotIdx == bb ){ sel = 500; GSoundPlay( "ib1p1xx1" ); }
+                    bb = gLsgSelectedSlotIdx;
+                    dd = 0;
+                    break;
+                case 17: case 24: case 324: SysQuitDlg(); if( gMenuEscape ) ExtCode = 0; break;
+                case 61: case 43: OptBrightInc(); break;
+                case 45: case 95: OptBrightDec(); break;
+                case KEY_ENTER: sel = 500; break;
+        }            
+	if( sel == 500 ){
+            ExtCode = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
+            if( ExtCode == 1 ){
+            	if( !DlgBox( MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 131 ), 0, 0, 169, 116, COLOR_A0, 0, COLOR_A0, 16) ) ExtCode = -1;
+            } else {
+            	ExtCode = 1;
+            }
+            aa = 1;
+            dd = 0;
+	}
+        if( dd ){
+/*
+                v42 = 4;
+                bb = -1;
+                do{
+                    stime = TimerGetSysTime();
+                    v44 = ++ff;
+                    if( !ee && (v44 == 1 || ee == 1) && (double)ff > 14.4 ){
+                        ee = 1;
+                        if( (double)ff > 14.4 && ++v42 > 0x18 ) v42 = 24;
+                        if( dd == 1 ){
+                            if( --gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0;
+                        } else if( ++gLsgSelectedSlotIdx > 9 ){
+                            gLsgSelectedSlotIdx = 9;
+                        }
+                        tmp = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
+                        if( tmp && tmp != 2 ){
+                            LsgReadThumbnail( gLsgSelectedSlotIdx );
+                            ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
+                        } else {
+                            ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
+                        }
+                        LsgDrawSlotList( 0 );
+                        LsgDescription( gLsgSelectedSlotIdx );
+                        WinUpdate( gLsgWin );
+                    }
+                    if( (double)ff > 14.4 ){
+//                        while ( TimerCurrDiff(stime) < 0x3E8 / v42 );
+                    } else {
+//                        while( TimerCurrDiff(stime) < 0x29 );
+                    }
+                    tt = InpUpdate();
+                } while( tt != 505 && tt != 503 );
+*/
+            continue;
+        }
+        if( aa ){
+            tmp = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
+            if( tmp == 0 || tmp == 2 || tmp == 3 ){
+                ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
             } else {
                 LsgReadThumbnail( gLsgSelectedSlotIdx );
-                ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, gLsgSurf + 37486, 640 );
+                ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
+            }
+            LsgDescription( gLsgSelectedSlotIdx );
+            LsgDrawSlotList( 0 );
+        }
+        WinUpdate( gLsgWin );
+        if( !--gLsgUnk09 ){
+            gLsgUnk09 = 24;
+            bb = -1;
+        }
+//        while( TimerCurrDiff( SysTime ) < 41 );
+    }
+DD
+return 0;
+/*
+    if( ExtCode == 1 ){
+        v48 = LsgEditLine( gLsgSelectedSlotIdx );
+        if( v48 < 0 ){
+            if( v48 == -1 ){
+                GmouseLoadCursor( 1 );
+                GSoundPlay( "iisxxxx1" );
+                eprintf( "\nLOADSAVE: ** Error getting save file comment **" );
+                strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 132 ) );
+                strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 133 ) );
+                ExtCode = -1;
+                DlgBox( gLsgBakFileName, Str2, 1, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
+            }
+        } else if( v48 <= 0 ){
+            GmouseLoadCursor( 1 );
+            ExtCode = -1;
+        } else if( v48 == 1 && LsgSaveGame() == -1 ){
+            GmouseLoadCursor( 1 );
+            GSoundPlay( "iisxxxx1" );
+            strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 132 ) );
+            strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 133 ) );
+            ExtCode = -1;
+            DlgBox( gLsgBakFileName, Str2, 1, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
+            if( LsgLoadSlots() == -1 ){
+                WinUpdate( gLsgWin );
+                GSoundPlay( "iisxxxx1" );
+                strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
+                strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
+                sprintf(gLsgUnk38, "\"%s/\"", "savegame");
+                strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
+                DlgBox( gLsgBakFileName, Str2, 2, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
+                LsgClose( 0 );
+                return -1;
+            }
+            tmp = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
+            if( tmp == 0 || tmp == 2 || tmp == 3 ){
+                ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
+            } else {
+                LsgReadThumbnail( gLsgSelectedSlotIdx );
+                ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
             }
             LsgDrawSlotList( 0 );
             LsgDescription( gLsgSelectedSlotIdx );
             WinUpdate( gLsgWin );
             gLsgUnk09 = 24;
-            do{
-                while( ExtCode == -1 ){
-                    SysTime = TimerGetSysTime();
-                    sel = InpUpdate();
-                    aa = 0;
-                    dd = 0;
-                    ee = 0;
-                    ff = 0;
-                    if( sel == 27 || sel == 501 || gMenuEscape ){
-                        ExtCode = 0;
-                    } else {
-                        switch( sel ){
-                            case 328: if( --gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0; aa = 1; bb = -1; break;
-                            case 336: if( ++gLsgSelectedSlotIdx > 9 ) gLsgSelectedSlotIdx = 9; aa = 1; bb = -1; break;
-                            case 327: aa = 1; bb = -1; gLsgSelectedSlotIdx = gMenuEscape; break;
-                            case 335: bb = -1; gLsgSelectedSlotIdx = 9; aa = 1; break;
-                            case 506: dd = 1; break;
-                            case 504: dd = 2; break;
-                            case 502:
-                                MseGetCursorPosition( &right, &bottom );
-                                v39 = (bottom - 79) / (3 * gFont.ChrHeight() + 4);
-                                if( v39 < 0 ) v39 = 0;
-                                if( v39 > 9 ) v39 = 9;
-                                aa = 1;
-                                gLsgSelectedSlotIdx = v39;
-                                if( v39 == bb ){ sel = 500; GSoundPlay( "ib1p1xx1" ); }
-                                bb = gLsgSelectedSlotIdx;
-                                dd = 0;
-                                break;
-                            case 17: case 24: case 324: SysQuitDlg(); if( gMenuEscape ) ExtCode = 0; break;
-                            case 61: case 43: OptBrightInc(); break;
-                            case 45: case 95: OptBrightDec(); break;
-                            case 13: sel = 500; break;
-                        }
-                    }
-                    if ( sel == 500 ){
-                        ExtCode = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
-                        if( ExtCode == 1 ){
-                            if( !DlgBox( MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 131 ), 0, 0, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 16) ) ExtCode = -1;
-                        } else {
-                            ExtCode = 1;
-                        }
-                        aa = 1;
-                        dd = 0;
-                    }
-                    if( dd ){
-                        v42 = 4;
-                        bb = -1;
-                        do{
-                            stime = TimerGetSysTime();
-                            v44 = ++ff;
-                            if( !ee && (v44 == 1 || ee == 1) && (double)ff > 14.4 ){
-                                ee = 1;
-                                if( (double)ff > 14.4 && ++v42 > 0x18 ) v42 = 24;
-                                if( dd == 1 ){
-                                    if( --gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0;
-                                } else if( ++gLsgSelectedSlotIdx > 9 ){
-                                    gLsgSelectedSlotIdx = 9;
-                                }
-                                v45 = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
-                                if( v45 && v45 != 2 ){
-                                    LsgReadThumbnail( gLsgSelectedSlotIdx );
-                                    ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, gLsgSurf + 37486, 640 );
-                                } else {
-                                    ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, gLsgSurf + 37486, 640 );
-                                }
-                                LsgDrawSlotList( 0 );
-                                LsgDescription( gLsgSelectedSlotIdx );
-                                WinUpdate( gLsgWin );
-                            }
-                            if( (double)ff > 14.4 ){
-                                while ( TimerCurrDiff(stime) < 0x3E8 / v42 );
-                            } else {
-                                while( TimerCurrDiff(stime) < 0x29 );
-                            }
-                            tt = InpUpdate();
-                        } while( tt != 505 && tt != 503 );
-                    } else {
-                        if( aa ){
-                            v47 = gLsgSaveFilesCondition[gLsgSelectedSlotIdx];
-                            if( !v47 || v47 == 2 || v47 == 3 ){
-                                ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, gLsgSurf + 37486, 640 );
-                            } else {
-                                LsgReadThumbnail( gLsgSelectedSlotIdx );
-                                ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, gLsgSurf + 37486, 640 );
-                            }
-                            LsgDescription( gLsgSelectedSlotIdx );
-                            LsgDrawSlotList( 0 );
-                        }
-                        WinUpdate( gLsgWin );
-                        if( !--gLsgUnk09 ){
-                            gLsgUnk09 = 24;
-                            bb = -1;
-                        }
-                        while ( TimerCurrDiff(SysTime) < 41 );
-                    }
-                }
-                if( ExtCode == 1 ){
-                    v48 = LsgEditLine( gLsgSelectedSlotIdx );
-                    if( v48 < 0 ){
-                        if( v48 == -1 ){
-                            GmouseLoadCursor( 1 );
-                            GSoundPlay( "iisxxxx1" );
-                            eprintf( "\nLOADSAVE: ** Error getting save file comment **" );
-                            strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 132 ) );
-                            strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 133 ) );
-                            ExtCode = -1;
-                            DlgBox( gLsgBakFileName, Str2, 1, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
-                        }
-                    } else if( v48 <= 0 ){
-                        GmouseLoadCursor( 1 );
-                        ExtCode = -1;
-                    }else if( v48 == 1 && LsgSaveGame() == -1 ){
-                        GmouseLoadCursor( 1 );
-                        GSoundPlay( "iisxxxx1" );
-                        strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 132 ) );
-                        strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 133 ) );
-                        ExtCode = -1;
-                        DlgBox( gLsgBakFileName, Str2, 1, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
-                        if( LsgLoadSlots() == -1 ){
-                            WinUpdate( gLsgWin );
-                            GSoundPlay( "iisxxxx1" );
-                            strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
-                            strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
-                            sprintf(gLsgUnk38, "\"%s/\"", "savegame");
-                            strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
-                            DlgBox( gLsgBakFileName, Str2, 2, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
-                            LsgClose(0);
-                            return -1;
-                        }
-                        cc = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
-                        if( !cc || cc == 2 || cc == 3 ){
-                            ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, gLsgSurf + 37486, 640 );
-                        } else {
-                            LsgReadThumbnail( gLsgSelectedSlotIdx );
-                            ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, gLsgSurf + 37486, 640 );
-                        }
-                        LsgDrawSlotList( 0 );
-                        LsgDescription( gLsgSelectedSlotIdx );
-                        WinUpdate( gLsgWin );
-                        gLsgUnk09 = 24;
-                    }
-                }
-            } while( ExtCode == -1 );
-            GmouseLoadCursor( 1 );
-            LsgClose( 0 );
-            TileUpdate();
-            if( Mode == 2 && ExtCode == 1 ) gLsgUnk01 = 1;
-            return ExtCode;
         }
     }
+    GmouseLoadCursor( 1 );
+    LsgClose( 0 );
+    TileUpdate();
+    if( Mode == 2 && ExtCode == 1 ) gLsgUnk01 = 1;
+*/
+DD
+    return ExtCode;    
 }
 
 int LsgMakeThumbnail()
@@ -653,7 +650,8 @@ void LsgClose( int Mode )
 int LsgSaveGame()
 {
     int i, PrevPos;
-
+DD
+return 0;
     gLsgError = 0;
     gLsgUnk55 = -1;
     GmouseLoadCursor( 25 );

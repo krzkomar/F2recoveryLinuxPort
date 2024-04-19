@@ -1455,9 +1455,9 @@ LABEL_9:
     return -1;
 }
 
-int AiUnk44( Obj_t *a1, Obj_t *a2 )
+int AiLightFlare( Obj_t *Critter, Obj_t *Item )
 {
-    if( a2 && FeatGetVal( a1, 4 ) >= 3 && a2->Pid == 79 && LightMapGetLt() < 55705 ) UseUnk13( a1, a2 );
+    if( Item && FeatGetVal( Critter, FEAT_INTELLIGENCE ) >= 3 && Item->Pid == PID_FLARE && LightMapGetLt() < 55705 ) UseItem( Critter, Item );
     return 0;
 }
 

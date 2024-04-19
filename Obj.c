@@ -1033,7 +1033,7 @@ int ObjLightedOff( Obj_t *obj, VidRect_t *rect )
     return 0;
 }
 
-int ObjUnk32( Obj_t *obj, VidRect_t *Area ) // cursor refresh
+int ObjVisibilityDisable( Obj_t *obj, VidRect_t *Area )
 {
     VidRect_t tmp;
 
@@ -1049,7 +1049,7 @@ int ObjUnk32( Obj_t *obj, VidRect_t *Area ) // cursor refresh
     return 0;
 }
 
-int ObjUnk33( Obj_t *obj, VidRect_t *Area )
+int ObjVisibilityEnable( Obj_t *obj, VidRect_t *Area )
 {
     VidRect_t rect;
 

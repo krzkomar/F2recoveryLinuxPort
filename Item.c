@@ -611,25 +611,26 @@ int Item34( Obj_t *obj )
     return 0;
 }
 
-Obj_t *Item35( Obj_t *obj, Obj_t *a2, int a3 )
+Obj_t *Item35( Obj_t *Critter, Obj_t *Item, int Flags )
 {
     int i;
-    Obj_t *p;
+    Obj_t *p, *q;
 
-    if( !obj || !a2 ) return 0;        
-    for( i = 0; i < obj->Container.Box.Cnt; i++ ){
-        if( ItemStack( obj->Container.Box.Box[ i ].obj, a2 ) && !ItemUseItem( obj, obj->Container.Box.Box[ i ].obj, 1 ) ){
-            a2->Flags |= a3;
-            if( !ItemAdd( obj, a2, 1 ) ) return a2;
-            a2->Flags &= ~a3;
-            if( ItemAdd( obj, a2, 1 ) ) UseUnk06( a2 );
+    if( !Critter || !Item ) return NULL;        
+    for( i = 0; i < Critter->Container.Box.Cnt; i++ ){
+	q = Critter->Container.Box.Box[ i ].obj;
+        if( ItemStack( q, Item ) && !ItemUseItem( Critter, q, 1 ) ){
+            q->Flags |= Flags;
+            if( !ItemAdd( Critter, q, 1 ) ) return q;
+            q->Flags &= ~Flags;
+            if( ItemAdd( Critter, q, 1 ) ) UseUnk06( q );
         }
-        if( ItemGetObjType( obj->Container.Box.Box[ i ].obj ) == 1 ){
-            p = Item35( obj->Container.Box.Box[ i ].obj, a2, a3 );
+        if( ItemGetObjType( Critter->Container.Box.Box[ i ].obj ) == 1 ){
+            p = Item35( Critter->Container.Box.Box[ i ].obj, Item, Flags );
             if( p ) return p;
         }
     }        
-    return 0;
+    return NULL;
 }
 
 int Item36( Obj_t *obj )
@@ -1453,7 +1454,7 @@ int Item86( Obj_t *obj )
     return proto->Critt.BaseStat[ 0 ];
 }
 
-int Item87( Obj_t *obj )
+int ItemRechargable( Obj_t *obj )
 {
     Proto_t *proto;
 
@@ -1487,7 +1488,7 @@ int ItemRecharge( Obj_t *Obj1, Obj_t *Obj2 )
 	return 0;
     }
     if( Obj2->Pid != PID_GEIGERCOUNTER && Obj2->Pid != PID_STEALTHBOY ) return -1;	
-    if( Item87( Obj2 ) )
+    if( ItemRechargable( Obj2 ) )
         v8 = EvQeEnqueued( Obj2, 9 );
     else
         v8 = 0;
@@ -1542,7 +1543,7 @@ int ItemDeviceUse( Obj_t *obj )
 
 int Item90( Obj_t *obj )
 {
-    if( obj && Item87( obj ) ) return EvQeEnqueued( obj, 9 );
+    if( obj && ItemRechargable( obj ) ) return EvQeEnqueued( obj, 9 );
     return 0;
 }
 

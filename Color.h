@@ -16,6 +16,8 @@
 #define COLOR_GREEN	gPalColorCubeRGB[0][31][0]
 #define COLOR_BLUE	gPalColorCubeRGB[0][0][31]
 #define COLOR_WHITE	gPalColorCubeRGB[31][31][31]
+#define COLOR_A0	gPalColorCubeRGB[31][18][8]
+
 
 #define COLOR( r, g, b ) gPalColorCubeRGB[ r ][ g ][ b ]
 

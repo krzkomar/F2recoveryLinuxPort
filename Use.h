@@ -18,10 +18,10 @@ int UseLightFlare( Obj_t *crit, Obj_t *obj );
 int UseRunScript( Obj_t *obj );
 int UseSetTimer( Obj_t *obj );
 int UseCarRefuel( Obj_t *obj );
-int UseUseMisc( Obj_t *crit );
-int UseUnk13( Obj_t *crit, Obj_t *obj );
+int UseFabularItem( Obj_t *crit ); // use item related to fabule "Hardcoded fabular objects!!!"
+int UseItem( Obj_t *crit, Obj_t *obj ); // read book, reload, recharge, light flare, run item procedure, set timer in explosives
 void UseUseExplosives( Obj_t *a1 );
-int UseUnk15( Obj_t *crit, Obj_t *obj );
+int UseSlotItem( Obj_t *crit, Obj_t *obj );
 int UseUnk16( Obj_t *crit, Obj_t *obj1, Obj_t *obj2 );
 unsigned int UseUseHealSkill( Obj_t *crit, Obj_t *obj1, Obj_t *obj2 );
 int UseObjOnObj( Obj_t *obj, Obj_t *a2, Obj_t *a3 );

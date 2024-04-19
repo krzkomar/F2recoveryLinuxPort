@@ -319,7 +319,7 @@ Obj_t *ScptGetSelfObj( Intp_t *a1 )
     if( a2->TimeEv ) return a2->TimeEv;
     if( OBJTYPE( v3 ) != TYPE_CRIT ) return NULL;
     ObjCreate( &obj, ArtMakeId( 6, 3, 0, 0, 0 ), -1 );
-    ObjUnk33( obj, 0 );
+    ObjVisibilityEnable( obj, 0 );
     ObjSetPlayer( obj, 0 );
     obj->ScrId = v3;
     if( ScptPtr( v3, &scr ) == -1 ) return ART_NULL;

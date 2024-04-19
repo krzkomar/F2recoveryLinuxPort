@@ -656,7 +656,7 @@ void IfaceHandSlotSelect()
     if( IN_COMBAT ){
         nn = ItemGetSlotApCost( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].i03, 0 );
         if( nn > gObjDude->Critter.State.CurrentAP ) return;
-        UseUnk15( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].obj );
+        UseSlotItem( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].obj );
         IfaceHandSlotUpdate( 0, -1, -1 );
         if( nn > gObjDude->Critter.State.CurrentAP )
             gObjDude->Critter.State.CurrentAP = 0;
@@ -665,7 +665,7 @@ void IfaceHandSlotSelect()
         IfaceRenderAP( gObjDude->Critter.State.CurrentAP, gCombatMovePts );
         return;
     }
-    UseUnk15( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].obj );
+    UseSlotItem( gObjDude, gIfcHandSlot[ gIfcHandSlotState ].obj );
     IfaceHandSlotUpdate( 0, -1, -1 );            
 }
 

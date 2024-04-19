@@ -735,8 +735,8 @@ void GmouseIsoEnter()
 
     if( !gGmouseInited ) return;    
     flg = 0;
-    if( ObjUnk32( gGmouseObjA, &Area2 ) == 0 ) flg = 0x01;
-    if( ObjUnk32( gGmouseObjB, &Area3 ) == 0 ) flg |= 0x02;
+    if( ObjVisibilityDisable( gGmouseObjA, &Area2 ) == 0 ) flg = 0x01;
+    if( ObjVisibilityDisable( gGmouseObjB, &Area3 ) == 0 ) flg |= 0x02;
     if( gGmouseShape && !ObjUnk35( gGmouseObjB, &Area1 ) ){
         if( flg & 0x02 )
             RegionExpand( &Area3, &Area1, &Area3 );
@@ -774,8 +774,8 @@ void GmouseUnk03()
 
     if( !gGmouseInited ) return;    
     flg = 0;
-    if( !ObjUnk33( gGmouseObjA, &Area2 ) ) flg = 0x01;
-    if( !ObjUnk33( gGmouseObjB, &Area1 ) ) flg |= 0x02;
+    if( !ObjVisibilityEnable( gGmouseObjA, &Area2 ) ) flg = 0x01;
+    if( !ObjVisibilityEnable( gGmouseObjB, &Area1 ) ) flg |= 0x02;
     switch( flg ){    
         case 2: TileUpdateArea( & Area1, gMapCurrentLvl ); break;
         case 3: RegionExpand( &Area2, &Area1, &Area2 ); TileUpdateArea( &Area2, gMapCurrentLvl ); break;

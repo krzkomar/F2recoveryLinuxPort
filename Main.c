@@ -60,7 +60,7 @@ void MainGame( int argc, char **argv )
                         MainGameCreate( stmp );
                         MainGameLoop();
                         FadeStep( gFadePaletteB );
-                        ObjUnk33( gObjDude, 0 );
+                        ObjVisibilityEnable( gObjDude, 0 );
                         MapExitMsg();
                         GameReset();
                         if( gMainUnk08 ){
@@ -78,7 +78,7 @@ void MainGame( int argc, char **argv )
                     gMenuEscape = 0;
                     gObjDude->Flags &= ~0x08;
                     gMainUnk08 = 0;
-                    ObjUnk32( gObjDude, 0 );
+                    ObjVisibilityDisable( gObjDude, 0 );
                     MseCursorHide();
                     MapMsgInit();
                     GmouseLoadCursor( 0 );
@@ -96,7 +96,7 @@ void MainGame( int argc, char **argv )
 		    }		    
                     FadeStep( gFadePaletteB );
                     if( Window != -1 ) WinClose( Window );
-                    ObjUnk33( gObjDude, 0 );
+                    ObjVisibilityEnable( gObjDude, 0 );
                     MapExitMsg();
                     GameReset();
                     if( gMainUnk08 ){
@@ -172,7 +172,7 @@ int MainGameCreate( char *MapName )
     gMenuEscape = 0;
     gMainUnk08 = 0;
     gObjDude->Flags &= ~0x08;
-    ObjUnk32( gObjDude, NULL );
+    ObjVisibilityDisable( gObjDude, NULL );
     MseCursorHide();
     win = WinCreateWindow( 0, 0, 640, 480, gPalColorCubeRGB[0][0][0], 20 );
     WinUpdate( win );
@@ -195,7 +195,7 @@ int MainUnk01()
     gMenuEscape = 0;
     gMainUnk08 = 0;
     gObjDude->Flags &= ~0x08;
-    ObjUnk32( gObjDude, 0 );
+    ObjVisibilityDisable( gObjDude, 0 );
     MseCursorHide();
     MapMsgInit();
     GmouseLoadCursor( 0 );
@@ -205,7 +205,7 @@ int MainUnk01()
 
 int MainUnk02()
 {
-    ObjUnk33( gObjDude, 0 );
+    ObjVisibilityEnable( gObjDude, 0 );
     return MapExitMsg();
 }
 
@@ -286,7 +286,7 @@ void MainSelectRecordMap()
     MainGameCreate( sdf.sdfname );
     SdfUnk04( &sdf );
     FadeStep( gFadePaletteB );
-    ObjUnk33( gObjDude, &Area );
+    ObjVisibilityEnable( gObjDude, &Area );
     MapExitMsg();
     GameReset();
     MainMenuCreate();
@@ -313,7 +313,7 @@ void MainUnk04()
             MainGameCreate( sdf.sdfname );
             SdfUnk02( &sdf );
             FadeStep( gFadePaletteB );
-            ObjUnk33( gObjDude, &Area );
+            ObjVisibilityEnable( gObjDude, &Area );
             MapExitMsg();
             GameReset();
             MainMenuCreate();

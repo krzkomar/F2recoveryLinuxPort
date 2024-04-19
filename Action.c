@@ -405,21 +405,26 @@ void ActionChangeThrowFidget( Obj_t *obj, int ImgId ) // not used
 
 int ActionUseRngWpn( Combat_t *cmbt, int WpnArtId )
 {
+    Obj_t *HandEq,*Target,*obj,*grenade,*v50,*TmpObj[6];
+    Combat_t *v18;
     ArtFrmHdr_t *v5;
+    short v25;
+    int ActionFrame,v8,Flags,GridId,v16,v19,v21,v32,v38,TileNumInDir,i,j,v45,ImgId,v52,num,ArtId,v55, WeaponBase, v46;
     CachePool_t *Obj;
     Proto_t *proto;
-    Obj_t *obj, *v48, *a1[ 6 ];
-    int GridId, WeaponBase, ActionFrame, Flags, i, v36, v43, ImgId, v50, tmp,rr;
-DD
-    obj = NULL;
-    v48 = NULL;
+
+    num = WpnArtId;
+    obj = 0;
     v50 = 0;
+    v52 = 0;
+    memset( TmpObj, 0, sizeof( TmpObj ) );
     ImgId = -1;
-    memset( a1, 0, sizeof( a1 ) );
-    AnimRegStart( 2 );
-    AnimUnk33( 1 );
-    ProtoGetObj( cmbt->HandEq->Pid, &proto );
-    if( (v5 = ArtLoadImg( ArtMakeId(1, cmbt->Dude->ImgId & 0xFFF, WpnArtId, (cmbt->Dude->ImgId & 0xF000) >> 12, cmbt->Dude->Orientation + 1), &Obj )) )
+    AnimRegStart(2);
+    AnimUnk33(1);
+    HandEq = cmbt->HandEq;
+    ProtoGetObj( HandEq->Pid, &proto );
+    v5 = ArtLoadImg( ArtMakeId( 1, cmbt->Dude->ImgId & 0xFFF, num, (cmbt->Dude->ImgId & 0xF000) >> 12, cmbt->Dude->Orientation + 1 ), &Obj );
+    if( v5 )
         ActionFrame = ArtGetActionFrame( v5 );
     else
         ActionFrame = 0;
@@ -427,129 +432,143 @@ DD
     ItemGetRange( cmbt->Dude, cmbt->Hand );
     WeaponBase = ItemGetWeaponBase( cmbt->Dude, cmbt->HandEq );
     TileGetTileNumInDir( cmbt->Dude->GridId, cmbt->Dude->Orientation, 1 );
+    v8 = num;
     AnimUnk51( cmbt->Dude, cmbt->Target->GridId );
-    if( WpnArtId == 18 ){
-        if( WeaponBase == 6 || WeaponBase == 3 || WeaponBase == 5 ) v50 = 1;
+    if( v8 == 18 ){
+        if( WeaponBase == 6 || WeaponBase == 3 || WeaponBase == 5 ) v52 = 1;
     } else {
         AnimRegAnimation( cmbt->Dude, 43, -1 );
     }
     AiCombatTaunts( cmbt->Dude, cmbt, 2, 0 );
     if( (cmbt->Dude->ImgId & 0xF000) >> 12 ){
-	AnimRegPlaySfx( cmbt->Dude, GSoundWeaponFileName( 1, cmbt->HandEq, cmbt->Hand, cmbt->Target ), -1 );
+	AnimRegPlaySfx( cmbt->Dude, GSoundWeaponFileName( 1, HandEq, cmbt->Hand, cmbt->Target ), -1 );
     } else {
-	AnimRegPlaySfx( cmbt->Dude, GSoundCharacterFileName( cmbt->Dude, WpnArtId, 0 ), -1 );
+	AnimRegPlaySfx( cmbt->Dude, GSoundCharacterFileName( cmbt->Dude, num, 0 ), -1 );
     }
-    AnimRegAnimation( cmbt->Dude, WpnArtId, 0 );
-    if( WpnArtId != 47 ){
-        if( ( cmbt->DudeInjuries & 0x100 ) || !( cmbt->DudeInjuries & 0x200 ) ){
-    	    rr = ProtoGetObj( Item59( cmbt->HandEq ), &proto );
-            if(  rr == -1 || proto->ImgId == -1 ){
-                if( !( cmbt->DudeInjuries & 0x100 ) ){
-                    if( !( cmbt->Target->Critter.State.CombatResult & 0x03 ) ){
-                        AnimRegAnimation( cmbt->Target, 13, ActionFrame );
-                        goto LABEL_57;
+    AnimRegAnimation( cmbt->Dude, num, 0 );
+    if( num != 47 ){
+        if( (cmbt->DudeInjuries & 0x100) != 0 || (cmbt->DudeInjuries & 0x200) == 0 ){
+            if( ProtoGetObj( Item59( HandEq ), &proto ) == -1 || proto->ImgId == -1 ){
+                if( ( cmbt->DudeInjuries & 0x100 ) == 0 ){
+                    Target = cmbt->Target;
+                    if( ( Target->Critter.State.CombatResult & 3 ) == 0 ){
+                        AnimRegAnimation( Target, 13, ActionFrame );
+        		ActionFrame = 0;
+                	goto LABEL_58;
                     }
                 }
             } else {
-                if( WpnArtId == 18 ){
-                    obj = cmbt->HandEq;
-                    ImgId = cmbt->HandEq->ImgId;
-                    Flags = cmbt->HandEq->Flags;
-                    IfaceUnk16( &tmp, &v43 );
-                    ItemUseItem( cmbt->Dude, cmbt->HandEq, 1 );
-                    v48 = Item35( cmbt->Dude, cmbt->HandEq, Flags & 0x3000000 ); // create throwing item
-                    ObjSetShape( obj, proto->ImgId, 0 );
-                    AiUnk44( cmbt->Dude, cmbt->HandEq );
+                if( num == 18 ){
+                    obj = HandEq;
+                    ImgId = HandEq->ImgId;
+                    Flags = HandEq->Flags;
+                    IfaceUnk16( &v46, &v45 );
+                    v16 = Flags & 0x3000000;
+                    ItemUseItem( cmbt->Dude, HandEq, 1 );
+                    grenade = Item35( cmbt->Dude, HandEq, v16 );
+                    v50 = grenade;
+                    ObjSetShape( obj, ImgId, NULL );
+                    AiLightFlare( cmbt->Dude, HandEq );
                     if( gObjDude == cmbt->Dude ){
-                        if( !v48 ){
-                            if( (Flags & 0x3000000 & 0x1000000) != 0 ){
-                                tmp = -1;
-                            } else if ( (Flags & 0x3000000 & 0x2000000) != 0 ){
-                                v43 = -1;
+                        if( !grenade ){
+                            if( (v16 & 0x1000000) != 0 ){
+                                v46 = -1;
+                            } else if( (v16 & 0x2000000) != 0 ){
+                                v45 = -1;
                             }
                         }
-                        IfaceHandSlotUpdate( 0, tmp, v43 );
+                        IfaceHandSlotUpdate( 0, v46, v45 );
                     }
-                    ObjUnk14( cmbt->HandEq, cmbt->Dude->GridId, cmbt->Dude->Elevation, 0 );
+                    ObjUnk14( HandEq, cmbt->Dude->GridId, cmbt->Dude->Elevation, 0 );
                 } else {
                     ObjCreate( &obj, proto->ImgId, -1 );
                 }
-                ObjUnk33( obj, 0 );
+                ObjVisibilityEnable( obj, 0 );
                 ObjSetLight( obj, 9, obj->LightIntensity, 0 );
-                tmp = CombatUnk37( cmbt->Dude, cmbt->Target );
-                ObjMoveToTile( obj, tmp, cmbt->Dude->Elevation, NULL );
-                ObjSetRotation( obj, TileTurnAt( cmbt->Dude->GridId, cmbt->Target->GridId ), 0 );
+                v18 = cmbt;
+                v19 = CombatUnk37( cmbt->Dude, cmbt->Target );
+                ObjMoveToTile( obj, v19, v18->Dude->Elevation, NULL );
+                v21 = TileTurnAt( cmbt->Dude->GridId, cmbt->Target->GridId );
+                ObjSetRotation( obj, v21, 0 );
                 AnimUnk60( obj, 1, ActionFrame );
-                AnimRegPlaySfx( obj, GSoundWeaponFileName( 3, cmbt->HandEq, cmbt->Hand, cmbt->Target ), 0 );
+                AnimRegPlaySfx( obj, GSoundWeaponFileName( 3, HandEq, cmbt->Hand, cmbt->Target ), 0 );
                 if( (cmbt->DudeInjuries & 0x100) != 0 ){
                     AnimUnk44( obj, cmbt->Target->GridId, cmbt->Target->Elevation, 1, 0 );
-                    ActionFrame = AnimUnk06( obj, tmp, cmbt->Target->GridId, 0, 0, 32 ) - 1;
+                    ActionFrame = AnimUnk06( obj, v19, cmbt->Target->GridId, 0, 0, 32 ) - 1;
                     GridId = cmbt->Target->GridId;
                 } else {
                     AnimUnk44( obj, cmbt->TileNo, cmbt->Target->Elevation, 1, 0 );
                     GridId = cmbt->TileNo;
                     ActionFrame = 0;
                 }
-                if( v50 || WeaponBase == 6 ){
-                    if( (cmbt->DudeInjuries & 0x40000) != 0 ) goto LABEL_58;
-                    if( v50 ){
-                        if( WeaponBase == 5 ){
-                            tmp = 2;
-                        } else {
-                    	    tmp = ( WeaponBase == 3 ) ? 31 : 29;
-                        }
-                    } else {
-                        tmp = 10;
-                    }
-                    if( v50 ) AnimUnk62( obj, ImgId, -1 );
-                    tmp = ArtMakeId( 5, tmp, 0, 0, 0 );
-                    AnimUnk62( obj, tmp, -1 );
-                    AnimRegPlaySfx( obj, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Target ), 0 );
-                    AnimUnk50( obj, 0, 0 );
-                    for( i = 0; i < 6; i++ ){
-printf("aXX[%i]->%i %p\n", i, v48->Pid, v48);
-dbg_ptr = v48;
-                        if( ObjCreate( &a1[ 0 ], tmp, -1 ) == -1 ) continue;
-printf("bXX[%i]->%i %p %p %i\n", i, v48->Pid, &v48, &a1, (char *)&a1[ i ] - (char *)&v48 );
-dbg_ptr = 0;
-//                        ObjUnk33( a1[ i ], 0 );
-//                        ObjMoveToTile( a1[ i ], TileGetTileNumInDir( GridId, i, 1 ), obj->Elevation, 0 );
-//                    	AnimUnk60( a1[ i ], 1, i ? 0 : ( ( WeaponBase == 3 ) ? 4 : 2 ) );
-//                        AnimUnk50( a1[ i ], 0, 0 );
-                    }
-                    goto LABEL_57;
+                v55 = GridId;
+                if( v52 || WeaponBase == 6 ){
+                    if( (cmbt->DudeInjuries & 0x40000) == 0 ){
+                	if( v52 ){
+                    	    if( WeaponBase == 5 ){
+                    	    	v25 = 2;
+                    	    } else if( WeaponBase == 3 ){
+                        	v25 = 31;
+                    	    } else {
+                        	v25 = 29;
+                    	    }
+                	} else {
+                    	    v25 = 10;
+                	}
+                	if( v52 ) AnimUnk62( obj, ImgId, -1 );
+                	ArtId = ArtMakeId( 5, v25, 0, 0, 0 );
+                	AnimUnk62( obj, ArtId, -1 );
+                	AnimRegPlaySfx( obj, GSoundWeaponFileName( 4, HandEq, cmbt->Hand, cmbt->Target ), 0 );
+            		AnimUnk50( obj, 0, 0 );
+                	for( i = 0; i < 6; i++ ){
+                    	    if( ObjCreate( &TmpObj[ i ], ArtId, -1 ) != -1 ){
+                        	ObjVisibilityEnable( TmpObj[ i ], 0 );
+                        	TileNumInDir = TileGetTileNumInDir( v55, i, 1 );
+                        	ObjMoveToTile( TmpObj[ i ], TileNumInDir, obj->Elevation, 0 );
+                        	if( i ){
+                            	    v32 = 0;
+                        	} else {
+                            	    v32 = ( WeaponBase == 3 ) ? 4:2;
+                        	}
+                        	AnimUnk60( TmpObj[ i ], 1, v32 );
+                        	AnimUnk50( TmpObj[ i ], 0, 0 );
+                    	    }
+                	}
+        		ActionFrame = 0;
+        	    }
+                    goto LABEL_58;
                 }
-                if( WpnArtId != 18 ) AnimUnk55( obj );
+            	if( num != 18 ) AnimUnk55( obj );
             }
-            AnimRegPlaySfx( cmbt->HandEq, GSoundWeaponFileName( 4, cmbt->HandEq, cmbt->Hand, cmbt->Target ), ActionFrame );
-LABEL_57:
+            AnimRegPlaySfx( HandEq, GSoundWeaponFileName( 4, HandEq, cmbt->Hand, cmbt->Target ), ActionFrame );
             ActionFrame = 0;
         }
     }
 LABEL_58:
-    ActionUnk31( cmbt, WpnArtId, ActionFrame );
+    ActionUnk31( cmbt, num, ActionFrame );
     if( (cmbt->DudeInjuries & 0x100) == 0 ){
         AiCombatTaunts( cmbt->Target, cmbt, 3, -1 );
     } else {
-	if( !(cmbt->CompInjuries & 0x80 ) ) AiCombatTaunts( cmbt->Target, cmbt, 4, -1 );	
+	if( !( cmbt->CompInjuries & 0x80) ) AiCombatTaunts( cmbt->Target, cmbt, 4, -1 );
     }
-    if( obj && (v50 || WeaponBase == 6) ){
+    if( obj && (v52 || WeaponBase == 6 ) ){
         AnimUnk55( obj );
-    } else if( WpnArtId == 18 && obj ){
+    } else if( num == 18 && obj ){
         AnimUnk62( obj, ImgId, -1 );
     }
     for( i = 0; i != 6; i++ ){
-        if( a1[ i ] ) AnimUnk55( a1[ i ] );
+        if( TmpObj[ i ] ) AnimUnk55( TmpObj[ i ] );
     }
     if( (cmbt->DudeInjuries & 0x83) == 0 ){
-        if( WpnArtId == 18 ){
-            if( !v48 ){
+        if( num == 18 ){
+            if( !v50 ){
                 AnimUnk62( cmbt->Dude, ArtMakeId( 1, cmbt->Dude->ImgId & 0xFFF, 0, 0, cmbt->Dude->Orientation + 1 ), -1 );
             } else {
-        	if( (v36 = Item58( v48 )) ){
-            	    AnimUnk63( cmbt->Dude, v36, -1 );
+        	v38 = Item58( v50 );
+        	if( v38 ){
+            	    AnimUnk63( cmbt->Dude, v38, -1 );
         	} else {
-        	    AnimUnk62( cmbt->Dude, ArtMakeId( 1, cmbt->Dude->ImgId & 0xFFF, 0, 0, cmbt->Dude->Orientation + 1 ), -1 );
+            	    AnimUnk62( cmbt->Dude, ArtMakeId( 1, cmbt->Dude->ImgId & 0xFFF, 0, 0, cmbt->Dude->Orientation + 1 ), -1 );
         	}
             }
         } else {
@@ -557,10 +576,10 @@ LABEL_58:
         }
     }
     if( AnimRegEnd() == -1 ){
-	eprintf( "Something went wrong with a ranged attack sequence!\n" );
-        if( obj && (v50 || WeaponBase == 6 || WpnArtId != 18) ) ObjDestroy( obj, 0 );
-        for( i = 0; i != 6; i++ ){
-            if( a1[ i ] ) ObjDestroy( a1[ i ], 0 );
+        eprintf( "Something went wrong with a ranged attack sequence!\n" );
+        if( obj && (v52 || WeaponBase == 6 || num != 18) ) ObjDestroy( obj, 0 );
+        for( j = 0; j != 6; j++ ){
+            if( TmpObj[j] ) ObjDestroy(TmpObj[j], 0);
         }
         return -1;
     } else {
@@ -1029,12 +1048,12 @@ int ActionExplode( int GridPos, int MapLvl, int DmgMin, int DmgMax, Obj_t *Targe
     if( SelfHurt && gActionUnk06 ) return -2;
     if( !(cmbt = Malloc( sizeof( Combat_t ) )) ) return -1;
     if( ObjCreate( &TmpObj, ArtMakeId( 5, 10, 0, 0, 0 ), -1 ) == -1 ){ Free( cmbt ); return -1; }
-    ObjUnk33( TmpObj, 0 );
+    ObjVisibilityEnable( TmpObj, 0 );
     TmpObj->Flags |= 0x04;
     ObjMoveToTile( TmpObj, GridPos, MapLvl, 0 );
     for( i = 0; i < 6; i++ ){
         if( ObjCreate( &obj[ i ], ArtMakeId( 5, 10, 0, 0, 0 ), -1 ) == -1 ) break;
-        ObjUnk33( obj[ i ], 0 );
+        ObjVisibilityEnable( obj[ i ], 0 );
         obj[ i ]->Flags |= 0x04;
         ObjMoveToTile( obj[ i ], TileGetTileNumInDir( GridPos, i, 1 ), MapLvl, 0 );
     }
@@ -1210,7 +1229,7 @@ void ActionUnk05( int a1, int edx0, int a3, int a4, int a5, int a6, int a7 )
     cmbt = Malloc( sizeof( Combat_t ) );
     if( !cmbt ) return;
     if( ObjCreate( &TmpObj, 0x20001F5, -1 ) == -1 ){ Free( cmbt ); return; }
-    ObjUnk33( TmpObj, 0 );
+    ObjVisibilityEnable( TmpObj, 0 );
     TmpObj->Flags |= 0x04;
     ObjMoveToTile( TmpObj, a1, edx0, 0 );
     TragetObj = ObjReach( 0, a1, edx0 );

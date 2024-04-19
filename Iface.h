@@ -15,7 +15,7 @@ typedef struct
     char Usable;	// item is consumable or a device to use
     int i03;
     int i04;
-    int i05;
+    int i05;		//
     int ArtId;
 } Iface_t;
 

@@ -547,7 +547,7 @@ int UseCarRefuel( Obj_t *obj )
     return 1;
 }
 
-int UseUseMisc( Obj_t *crit )
+int UseFabularItem( Obj_t *crit )
 {
     int ScrId;
     Scpt_t *scr;
@@ -567,29 +567,23 @@ int UseUseMisc( Obj_t *crit )
     return 1;    
 }
 
-int UseUnk13( Obj_t *crit, Obj_t *obj )
+int UseItem( Obj_t *crit, Obj_t *obj )
 {
     MsgLine_t msg;
-    int result;
+    int err;
 
     switch( ItemGetObjType( obj ) ){
         case 2: return -1;
         case 3: case 5:
-            if( (result = UseReadBook( obj )) == -1 ){                
-                if( (result = UseLightFlare( crit, obj )) ){                    
-                    if( (result = UseUseMisc( obj )) == -1 ){                        
-                        if( (result = UseRunScript( obj )) ){                            
-                            if( (result = UseSetTimer( obj )) ){
-                                if( result != 2 ){
-                                    if ( !Item87( obj ) ) break;
-                                    if( (result = ItemRecharge( crit, obj )) ) break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return result;
+            if( (err = UseReadBook( obj )) != -1 ) return err; // success, 0 - you cannot do that in combat, 1- success
+            if( !(err = UseLightFlare( crit, obj )) ) return 0; // success
+            if( (err = UseFabularItem( obj )) != -1 ) return 1; // success
+            if( !(err = UseRunScript( obj )) ) return 0; // success
+            if( !(err = UseSetTimer( obj )) ) return 0; // success            
+            if( err == 2 ) return 2; // timer already ticking
+            if( !ItemRechargable( obj ) ) break;
+            if( !(err = ItemRecharge( crit, obj )) ) return 0; // success
+            break;            
     }
     msg.Id = 582;
     if( MessageGetMsg( &gProtoMessages, &msg ) == 1 ) IfcMsgOut( msg.Text );
@@ -626,14 +620,14 @@ void UseUseExplosives( Obj_t *obj )
     ScptUnk121( &scr );
 }
 
-int UseUnk15( Obj_t *crit, Obj_t *obj )
+int UseSlotItem( Obj_t *crit, Obj_t *obj )
 {
     Obj_t *Owner, *v8;
     VidRect_t Rect;
     int lh, rh, v14, v3;
 
-    v3 = UseUnk13( crit, obj );
-    if( v3 == 1 || v3 == 2 ){        
+    v3 = UseItem( crit, obj );
+    if( v3 == 1 || v3 == 2 ){ // fabular item or ticking explosives, or book
         if( (Owner = ObjGetOwner( obj )) ){
             ItemUseItem( Owner, obj, 1 );
             v14 = obj->Flags & 0x3000000;
@@ -1285,7 +1279,7 @@ int UseUnk46( Obj_t *obj, int GridIdx, int lvl, int a4 )
             if( j < 6 ) GridIdx = v10;
         }
     }
-    ObjUnk32( obj, &Area2 );
+    ObjVisibilityDisable( obj, &Area2 );
     if( ObjMoveToTile( obj, GridIdx, lvl, &Area1 ) != -1 ){
         RegionExpand( &Area1, &Area2, &Area1 );
         if( lvl == gMapCurrentLvl ) TileUpdateArea( &Area1, lvl );
@@ -1308,7 +1302,7 @@ int UseUnk47( Obj_t *obj, int MapPos, int MapLvl )
             if( TileGetDistance( gObjDude->GridId, GridPos ) > 8 ){ GridPos = MapPos; break; }
         }
     }
-    ObjUnk32( obj, 0 );
+    ObjVisibilityDisable( obj, 0 );
     ObjMoveToTile( obj, GridPos, MapLvl, NULL );
     return 0;
 }

@@ -458,7 +458,7 @@ int AnimRegAnimation( Obj_t *obj, int a2, int a3 )
 int AnimRegAnimReverse( Obj_t *a1, int a2, int a3 )
 {
     Anim01_t *anim;
-DD
+
     if( AnimCancel( a1 ) == -1 ){ AnimStop(); return -1; }
     anim = &gAnimations[ gAnimIdx ].AnimList[ gAnimSubIdx ];
     anim->State = 5;
@@ -631,7 +631,7 @@ int AnimUnk59( Obj_t *a1, int a2, int a3 ) // no xref
     return 0;
 }
 
-int AnimUnk60( Obj_t *a1, int a2, int a3 )
+int AnimUnk60( Obj_t *a1, int a2, int delay )
 {
     Anim01_t *i05;
 
@@ -641,7 +641,7 @@ int AnimUnk60( Obj_t *a1, int a2, int a3 )
     i05[ gAnimSubIdx ].ImgObj = 0;
     i05[ gAnimSubIdx ].Target.Obj = a1;
     i05[ gAnimSubIdx ].i10 = a2;
-    i05[ gAnimSubIdx ].Delay = a3;
+    i05[ gAnimSubIdx ].Delay = delay;
     gAnimSubIdx++;
     return 0;
 }
@@ -817,7 +817,7 @@ int AnimStateMachine( int AnimIdx )
             case 6: 
         	err = AnimAddAnimation( anim->Target.Obj, anim->Silence, AnimIdx, ANIM_FLG_40 ); 
         	if( err == -1 ){
-                    if( !ObjUnk33( anim->Target.Obj, &Area1 ) ) TileUpdateArea( &Area1, anim->Target.Obj->Elevation );
+                    if( !ObjVisibilityEnable( anim->Target.Obj, &Area1 ) ) TileUpdateArea( &Area1, anim->Target.Obj->Elevation );
                     if( AnimIdx != -1 ) AnimUpdate( AnimIdx, 0 );
                     err = 0;
                 }
@@ -830,7 +830,7 @@ int AnimStateMachine( int AnimIdx )
             case 8: err = AnimUnk27( anim->Target.Obj, 1, AnimIdx ); break; // ?
             case 9: err = AnimUnk27( anim->Target.Obj, -1, AnimIdx ); break; // ?
             case 10:
-                if( !ObjUnk33( anim->Target.Obj, &v18 ) ) TileUpdateArea( &v18, anim->Target.Obj->Elevation );
+                if( !ObjVisibilityEnable( anim->Target.Obj, &v18 ) ) TileUpdateArea( &v18, anim->Target.Obj->Elevation );
                 if( AnimIdx != -1 ) AnimUpdate( AnimIdx, 0 );
                 err = 0;
                 break;
@@ -847,7 +847,7 @@ int AnimStateMachine( int AnimIdx )
                     if( anim->i10 != 1 ){
                         anim->Target.Obj->Flags |= anim->i10;
                     } else {
-                	if( !ObjUnk33( anim->Target.Obj, &Area ) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
+                	if( !ObjVisibilityEnable( anim->Target.Obj, &Area ) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
                     }
                 }                
                 err = AnimUpdate( AnimIdx, 0 ); 
@@ -859,7 +859,7 @@ int AnimStateMachine( int AnimIdx )
                     if( anim->i10 != 1 ) {
                         anim->Target.Obj->Flags &= ~anim->i10;
                     } else {
-                	if( !ObjUnk32( anim->Target.Obj, &Area ) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
+                	if( !ObjVisibilityDisable( anim->Target.Obj, &Area ) ) TileUpdateArea( &Area, anim->Target.Obj->Elevation );
                     }
                 }                
                 err = AnimUpdate( AnimIdx, 0 ); 
@@ -1741,7 +1741,7 @@ void AnimProcess()
             	TileUpdateArea( &Area1, gMapCurrentLvl );
             } else { // animation finish
                 gAnimUnk23[ i ].ActionMove = -1000;
-                if( (gAnimUnk23[ i ].Flags & ANIM_FLG_40 ) && !ObjUnk33( obj, &AreaOut ) ) TileUpdateArea( &AreaOut, obj->Elevation );
+                if( (gAnimUnk23[ i ].Flags & ANIM_FLG_40 ) && !ObjVisibilityEnable( obj, &AreaOut ) ) TileUpdateArea( &AreaOut, obj->Elevation );
                 AnimUpdate( gAnimUnk23[ i ].AnimIdx, 1 );                    
             }
             ArtClose( ImgObj );
@@ -1952,7 +1952,7 @@ int AnimUnk28( Obj_t *obj, int AnimIdx )
 {
     VidRect_t Area;
 
-    if( !ObjUnk33( obj, &Area ) ) TileUpdateArea( &Area, obj->Elevation );
+    if( !ObjVisibilityEnable( obj, &Area ) ) TileUpdateArea( &Area, obj->Elevation );
     if( AnimIdx != -1 ) AnimUpdate( AnimIdx, 0 );
     return 0;
 }
