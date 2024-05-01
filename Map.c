@@ -561,7 +561,6 @@ int MapLoadMapFile( xFile_t *fh )
         gMapGlobVarsCnt = gMap.GlobVarsCnt;
     }
     if( dbreadBeiBlk( fh, gMapGlobVars, gMapGlobVarsCnt ) != 0 ) goto Error;
-
     // load local variables
     MapFreeLocalVars();
     if( gMap.LocVarsCnt == 0 ){
@@ -570,10 +569,11 @@ int MapLoadMapFile( xFile_t *fh )
         if( !(gMapLocalVars = Malloc( gMap.LocVarsCnt * sizeof( int ) )) ) goto Error;
         gMapLocalVarsCnt = gMap.LocVarsCnt;
     }
+
     if( dbreadBeiBlk( fh, gMapLocalVars, gMapLocalVarsCnt ) != 0 ) goto Error;
 
 // load tiles into grid
-    if( MapLoadGrid( fh, gMap.MapFlags ) ) goto Error;
+    if( MapLoadGrid( fh, gMap.MapFlags ) ){ errmsg = "Load tile error."; goto Error; }
 // load script for map
     if( ScptLoadScript( fh ) ) goto Error;
     if( ObjLoadMapObjs( fh ) ) goto Error;
@@ -598,7 +598,6 @@ int MapLoadMapFile( xFile_t *fh )
     ScptEnable();
     errmsg = NULL;
     if( gMap.ScriptId > 0 && ScptNewScript( &gMapScriptId, 0 ) == -1 ) goto Error;
-
     p = NULL;
     ObjCreate( &p, ArtMakeId( 5, 12, 0, 0, 0 ), -1 ); // scrblk.frm
     p->Flags |= 0x20000005; // PRFLG_LIGHTTHROU
@@ -770,7 +769,7 @@ int MapSetPos( MapPosition_t *p )
 
 int MapJump()
 {
-    int v1;
+    int err;
 
     if( gMapCurrentPos.MapId == 0 ) return 0;
     GmouseUnk03();
@@ -789,7 +788,7 @@ int MapJump()
             return 0;
         }
     } else {
-        v1 = -1;
+        err = -1;
         if( !IN_COMBAT ){
             if( gMapCurrentPos.MapId != gMap.MapId || gMapCurrentLvl == gMapCurrentPos.Lvl ) MapOpenById( gMapCurrentPos.MapId );
             if( gMapCurrentPos.GridPos != -1 && gMapCurrentPos.GridPos && gMap.MapId != 19 && gMap.MapId != 37 && gMapCurrentPos.Lvl <= 2 ){
@@ -799,8 +798,8 @@ int MapJump()
             }
             if( TileSetCenter( gObjDude->GridId, 1 ) == -1 ) eprintf( "\nError: map: attempt to center out-of-bounds!" );
             memset( &gMapCurrentPos, 0, sizeof( gMapCurrentPos ) );
-            WmFindAreaByEntranceId( gMap.MapId, &v1 );
-            if( WmSetArea( v1 ) == -1 ) eprintf( "\nError: couldn't make jump on worldmap for map jump!" );
+            WmFindAreaByEntranceId( gMap.MapId, &err );
+            if( WmSetArea( err ) == -1 ) eprintf( "\nError: couldn't make jump on worldmap for map jump!" );
         }
     }
     return 0;
@@ -915,15 +914,17 @@ int MapSaveMap( char *fName )
     return MapMapSave();
 }
 
-int MapSavingRandomEncounter( int a1 )
+int MapSavingRandomEncounter( int Flag )
 {
     char stmp[ 16 ];
     Scpt_t *res;
-
+DD
+printf("!!!\n");
+return 0;
     if( !gMap.Name[0] ) return 0;
     AnimReset();
     PartySave();
-    if( a1 & 0x01 ){
+    if( Flag & 0x01 ){
         EvQeRunAll();
         PartyLoad();
         PartySaveBox();
@@ -934,7 +935,7 @@ int MapSavingRandomEncounter( int a1 )
     }
     gMap.MapFlags |= 0x01;
     gMap.Time = ScptGetGameDekaSeconds();
-    if ( (a1 & 0x01) && !WmIsCurrentMapMapSaved() ){
+    if ( (Flag & 0x01) && !WmIsCurrentMapMapSaved() ){
         eprintf( "\nNot saving RANDOM encounter map." );
         strcpy( stmp, gMap.Name );
         CharEditFnameChgExt( gMap.Name, stmp, "sav" );
@@ -948,7 +949,7 @@ int MapSavingRandomEncounter( int a1 )
 	strcpy( gMap.Name, stmp );
 	AutomapSave();
     }
-    if( a1 & 1 ){
+    if( Flag & 0x01 ){
         gMap.Name[ 0 ] = '\0';
         ObjClear();
         ProtoResetTypes();
@@ -1109,15 +1110,19 @@ void MapResetGrid()
 int MapLoadGrid( xFile_t *fh, int Flags )
 {
     int lvl, i;
-    unsigned int v6;
+    uint32_t tmp;
 
     MapResetGrid();
     for( lvl = 0; lvl < 3; lvl++ ){
         if( ( Flags & gMapGridFlags[ lvl ] ) ) continue;
-        if( dbreadBeiBlk( fh, gMapIsoGrid[ lvl ], 100*100 ) ) return -1;
+        if( dbreadBeiBlk( fh, gMapIsoGrid[ lvl ], 100*100 ) ){
+DD
+exit(0);
+         return -1;
+        }
         for( i = 0; i != 10000; i++ ){
-            v6 = (gMapIsoGrid[ lvl ][ i ] >> 16);
-            gMapIsoGrid[ lvl ][ i ] |= (((v6 & 0xFFF) | ((((v6 & 0xF000) >> 12) & 0xFE) << 12)) << 16);
+            tmp = (gMapIsoGrid[ lvl ][ i ] >> 16);
+            gMapIsoGrid[ lvl ][ i ] |= (((tmp & 0xFFF) | ((((tmp & 0xF000) >> 12) & 0xFE) << 12)) << 16);
         }
     }
     return 0;

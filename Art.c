@@ -598,7 +598,7 @@ int ArtLoadImage( int FileIdCode, int *Size, ArtFrmHdr_t *Data )
 
     if( !err ) err = ArtLoadFrmFile( fname, Data ) == 0;
     if( !err ) return -1;
-    *Size = Data->AllDataSize + sizeof( ArtFrmHdr_t ) + sizeof( ArtFrm_t ) ; // + 74
+    *Size = Data->AllDataSize + sizeof( ArtFrmHdr_t ) + sizeof( ArtFrm_t ); //74
     return 0;        
 }
 

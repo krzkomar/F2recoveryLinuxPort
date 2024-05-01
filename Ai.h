@@ -114,24 +114,6 @@ typedef struct
   int Intelligence;
 } Ai02_t;
 
-/*
-int gAiPacket;
-Ai_t *gAiPackets;
-Obj_t *gAiUnk03;
-int gAiPacketsCnt;
-int gAiUnk04;
-char gAiUnk06[260];
-int gAiObjCount;
-Obj_t **gAiObjList;
-char gAiUnk05[268];
-int gAiInjureFlags[ 4 ];
-Obj_t *gAiUnk11;
-Obj_t *gAiUnk12;
-int gAiConstPercentRank[ 6 ];
-int gAiUnk10[ 45 ];
-int gAiUnk15[5];
-Msg_t gCombatAiMessages;
-*/
 
 void AiParseInjureFlags( char *str, int *Flags );
 int AiListMatch( char *val, const char **list, int cnt, int *pVal );

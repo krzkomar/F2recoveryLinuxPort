@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 // heap states
 #define HEAP_ZERO		0x00
@@ -7,29 +8,45 @@
 #define	HEAP_FREE		0x04
 #define HEAP_ERROR		-1
 
+#define HEAP_GUARD_TYPE		uint32_t
 #define HEAP_FOREHEAD_GUARD	0xDEADC0DEu
-#define HEAP_BACKEND_GUARD	0xACDCACDCu
-#define HEAP_MEM_GUARD( addr )  *((unsigned int *)(addr))
-#define HEAP_PAYLOAD		( sizeof( HeapBlk_t ) + sizeof( int ) ) // 20 = (forehead header = 16 ) + (backend guard = 4)
+//#define HEAP_BACKEND_GUARD	0xACDCACDCu
+#define HEAP_BACKEND_GUARD	0x12ABCDEFu
+
+#define HEAP_GUARD_SIZE		sizeof( HEAP_GUARD_TYPE )
+#define HEAP_BYTE( addr, idx )	*(((char*)addr) + (idx))
+#define HEAP_SET_MEM_GUARD( addr, idx, magic )  \
+    HEAP_BYTE( addr, idx + 0 ) = magic >> 24; \
+    HEAP_BYTE( addr, idx + 1 ) = magic >> 16; \
+    HEAP_BYTE( addr, idx + 2 ) = magic >> 8; \
+    HEAP_BYTE( addr, idx + 3 ) = magic >> 0; 
+
+#define HEAP_GET_MEM_GUARD( addr, idx )  \
+    ((HEAP_BYTE( addr, idx + 0 ) << 24) & 0xff000000 ) | \
+    ((HEAP_BYTE( addr, idx + 1 ) << 16) & 0x00ff0000 ) | \
+    ((HEAP_BYTE( addr, idx + 2 ) << 8)  & 0x0000ff00 ) | \
+    ((HEAP_BYTE( addr, idx + 3 ) << 0)  & 0x000000ff )
+
+#define HEAP_PAYLOAD		( sizeof( HeapBlk_t ) + HEAP_GUARD_SIZE ) // 20(28) = (forehead header = 16(20) ) + (backend guard = 4(8))
 
 #define HEAP_HANDLERS	64
 
-typedef struct // size of 16
+typedef struct
 {
-    unsigned int Guard; //0
-    int		Size;  //1
-    int		State; //2
-    int		Id;    //3
-    char	Data[];
-} HeapBlk_t;
+    HEAP_GUARD_TYPE	Guard;
+    int			Size;
+    int			State;
+    int			Id;
+    char		Data[];
+} __attribute__((packed)) HeapBlk_t;
 
-typedef struct // size of 8
+typedef struct
 {
     int		State;
     HeapBlk_t	*Blk;
-} HeapHdr_t;
+} __attribute__((packed)) HeapHdr_t;
 
-typedef struct // size of 48
+typedef struct
 {
     int		TotAllocated;
     int 	TotFreeBlk;
@@ -43,15 +60,15 @@ typedef struct // size of 48
     int 	TotSystemSize;
     HeapHdr_t 	*Hdr;
     HeapBlk_t 	*Blk;
-} Heap_t;
+} __attribute__((packed)) Heap_t;
 
-typedef struct // size of 16
+typedef struct
 {
   HeapBlk_t *Block;
   int TotMerged;
   int Stat1Merged;
   int Size;
-} HeapMovBlk_t;
+} __attribute__((packed)) HeapMovBlk_t;
 
 int HeapInit( Heap_t *heap, unsigned int Size );
 int HeapClose( Heap_t *heap );
@@ -59,20 +76,4 @@ int HeapAllocate( Heap_t *heap, int *pBlkIdx, unsigned int BytesToAlloc, unsigne
 int HeapDeallocate( Heap_t *BlockPool, int *BlkNum );
 int HeapLockBlock( Heap_t *heap, int Idx, void **data );
 int HeapUnlockBlock( Heap_t *heap, int idx );
-
-// internal -> to move to static 
-int HeapValidate( Heap_t *heap );
-int HeapStatus( Heap_t *heap, char *str );
-int HeapFreeHandlers( Heap_t *heap );
-int HeapHandlerSetFree( Heap_t *Heap, int Idx );
-int HeapHandlersSetFreeRange( HeapHdr_t *Handler, int Idx );
-int HeapFindFreeBlock( Heap_t *heap, int BytesSize, HeapBlk_t **blk, char NoAllocFlg );
-int HeapFreeBlksMerge( Heap_t *heap );
-int HeapSortFree( Heap_t *heap );
-int HeapBuildMovableList( Heap_t *heap, int *MovableCnt, unsigned int *MaxMerged );
-int HeapSortMovable( unsigned int Total );
-int HeapRebuildHeap( int idx );
-int HeapSort( unsigned int Total );
-int HeapReallocUnk02( unsigned int Elements );
-
 

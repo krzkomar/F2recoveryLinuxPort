@@ -1186,7 +1186,7 @@ int GSoundSetupPaths()
         strcpy( &DirName[ strlen( DirName ) ], p );
         if( xDirCreate( DirName ) ){
     	    if( errno != EEXIST ){            
-        	GSLOG( "gsound_setup_paths mkdir error: %s\n", xstrerror( errno ) );
+        	GSLOG( "gsound_setup_paths mkdir error: '%s'\n", xstrerror( errno ) );
             }
         }
         strcpy( &DirName[ strlen( DirName ) ], "/" );
@@ -1223,9 +1223,9 @@ int GSoundMapAmbient( Obj_t *nu, int *arg )
     time = TimerGetTime();
     if( TimerDiff( time, gGSoundBgPlayTime ) >= 5000 ){
         if( GSoundPlay( SfxFileName ) == -1 )
-            eprintf( "\nGsound: playing ambient map sfx: %s.  FAILED", SfxFileName );
+            eprintf( "\nGsound: playing ambient map sfx: '%s'.  FAILED", SfxFileName );
         else
-            eprintf( "\nGsound: playing ambient map sfx: %s", SfxFileName );
+            eprintf( "\nGsound: playing ambient map sfx: '%s'", SfxFileName );
     }
     gGSoundBgPlayTime = time;
     return 0;

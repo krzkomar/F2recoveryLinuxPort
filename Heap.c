@@ -1,12 +1,16 @@
 #include "FrameWork.h"
 
+static int HeapStatus( Heap_t *heap, char *str );
+static int HeapFreeBlksMerge( Heap_t *heap );
+static int HeapBuildMovableList( Heap_t *heap, int *MovableCnt, unsigned int *MaxMerged );
+static int HeapRebuildHeap( int idx );
 static int HeapOrderRealloc( int Elements );
 static int HeapInternalInit();
 static int HeapInternalFree();
 static int HeapAcqHandle( Heap_t *heap, int *pIdx );
 static int HeapInitializeHandles( Heap_t *heap );
 static int HeapSortCb( HeapBlk_t **p1, HeapBlk_t **p2 );
-int HeapFindFreeBlock( Heap_t *heap, int BytesSize, HeapBlk_t **blk, char NoAllocFlg );
+static int HeapFindFreeBlock( Heap_t *heap, int BytesSize, HeapBlk_t **blk, char NoAllocFlg );
 static int HeapMovableSortCb( HeapMovBlk_t *blk1, HeapMovBlk_t *blk2 );
 
 static HeapBlk_t 	**gHeapFreeBlks = NULL;
@@ -36,9 +40,8 @@ int HeapInit( Heap_t *heap, unsigned int Size )
             heap->Blk->Size    = heap->TotFreeSize;
             heap->Blk->State   = 0;
             heap->Blk->Id      = -1;
-            HEAP_MEM_GUARD( &heap->Blk->Data[ heap->Blk->Size ] ) = HEAP_BACKEND_GUARD;
+            HEAP_SET_MEM_GUARD( heap->Blk->Data, heap->Blk->Size, HEAP_BACKEND_GUARD );
             gHeapsTotal++;
-
             return 1;
         }
     }
@@ -69,7 +72,7 @@ int HeapAllocate( Heap_t *heap, int *pBlkIdx, unsigned int BytesToAlloc, unsigne
 {
     int stat, sz, Idx, Size;
     HeapBlk_t *h, *NewBlock;
-//printf("Allocate\n");
+
     if( heap && pBlkIdx && BytesToAlloc ){
 	if( NoAllocBlk != 1 ) NoAllocBlk = 0;
 	if( HeapFindFreeBlock( heap, BytesToAlloc, &NewBlock, NoAllocBlk ) == 1 ){
@@ -81,13 +84,13 @@ int HeapAllocate( Heap_t *heap, int *pBlkIdx, unsigned int BytesToAlloc, unsigne
 		    if( sz > HEAP_PAYLOAD + 128 ){
     			NewBlock->Size = BytesToAlloc;
     			Size = BytesToAlloc;
-    			HEAP_MEM_GUARD( &NewBlock->Data[ NewBlock->Size ] ) = HEAP_BACKEND_GUARD;
-    			h = (HeapBlk_t *)&NewBlock->Data[ NewBlock->Size + sizeof( int ) ];
+    			HEAP_SET_MEM_GUARD( NewBlock->Data, NewBlock->Size, HEAP_BACKEND_GUARD );
+    			h = (HeapBlk_t *)&NewBlock->Data[ NewBlock->Size + HEAP_GUARD_SIZE ];
     			h->State = HEAP_ZERO;
     			h->Id = -1;
     			h->Size = sz - HEAP_PAYLOAD;
     			h->Guard = HEAP_FOREHEAD_GUARD;
-    			HEAP_MEM_GUARD( &h->Data[ h->Size ] ) = HEAP_BACKEND_GUARD;
+    			HEAP_SET_MEM_GUARD( h->Data, h->Size, HEAP_BACKEND_GUARD );
     			heap->TotFreeBlk++;
     			heap->TotFreeSize -= HEAP_PAYLOAD;
 		    }
@@ -113,13 +116,13 @@ int HeapAllocate( Heap_t *heap, int *pBlkIdx, unsigned int BytesToAlloc, unsigne
 		}
 		heap->Hdr[ Idx ].State = HEAP_ERROR;
 		heap->Hdr[ Idx ].Blk = 0;
-		eprintf("Heap Error: Unknown block state during allocation.\n");
+		eprintf("Heap Error: Unknown block state during allocation.");
 	    }
-	    eprintf( "Heap Error: Could not acquire handle for new block.\n" );
-	    if( stat == 4 ) Free( NewBlock );
+	    eprintf( "Heap Error: Could not acquire handle for new block." );
+	    if( stat == HEAP_FREE ) Free( NewBlock );
 	}
     }
-    eprintf( "Heap Warning: Could not allocate block of %d bytes.\n", BytesToAlloc );
+    eprintf( "Heap Warning: Could not allocate block of %d bytes.", BytesToAlloc );
     return 0;    
 }
 
@@ -127,13 +130,13 @@ int HeapDeallocate( Heap_t *BlockPool, int *BlkNum )
 {
     int Idx, State;
     HeapBlk_t *Blk;
-//printf("Deallocate\n");
+
     if( BlockPool && BlkNum ){
         Idx = *BlkNum;
         State = BlockPool->Hdr[ Idx ].State;
         Blk = BlockPool->Hdr[ Idx ].Blk;
         if( Blk->Guard != HEAP_FOREHEAD_GUARD ) eprintf( "Heap Error: Bad guard begin detected during deallocate." );
-        if( HEAP_MEM_GUARD( &Blk->Data[ Blk->Size ] ) != HEAP_BACKEND_GUARD ) eprintf( "Heap Error: Bad guard end detected during deallocate." );
+        if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ) eprintf( "Heap Error: Bad guard end detected during deallocate." );
         if( State != Blk->State ) eprintf( "Heap Error: Mismatched block states detected during deallocate." );
         if( !(State & HEAP_LOCKED) ){
             if( State == HEAP_MOVABLE ){
@@ -155,11 +158,11 @@ int HeapDeallocate( Heap_t *BlockPool, int *BlkNum )
                 BlockPool->Hdr[ Idx ].Blk = NULL;
                 return 1;
             }
-            eprintf( "Heap Error: Unknown block state during deallocation.\n" );
+            eprintf( "Heap Error: Unknown block state during deallocation." );
         }
-        eprintf( "Heap Error: Attempt to deallocate locked block.\n" );
+        eprintf( "Heap Error: Attempt to deallocate locked block." );
     }
-    eprintf( "Heap Error: Could not deallocate block.\n" );
+    eprintf( "Heap Error: Could not deallocate block." );
     return 0;
 }
 
@@ -167,17 +170,13 @@ int HeapLockBlock( Heap_t *heap, int Idx, void **data )
 {
     int stat;
     HeapBlk_t *Blk;
-//printf("Lock %i\n", Idx);
+
     if( heap ){
         stat = heap->Hdr[ Idx ].State;
         Blk = heap->Hdr[ Idx ].Blk;
-        if( Blk->Guard != HEAP_FOREHEAD_GUARD ) eprintf("Heap Error: Bad guard begin detected during lock.\n");
-        if( HEAP_MEM_GUARD( &Blk->Data[ Blk->Size ] ) != HEAP_BACKEND_GUARD ){
-//         eprintf("Heap Error: Bad guard end detected during lock.\n");
-//printf(">> %x != %x\n", HEAP_MEM_GUARD( &Blk->Data[ Blk->Size ] ), HEAP_BACKEND_GUARD );
-        }
-
-        if( stat != Blk->State ) eprintf("Heap Error: Mismatched block states detected during lock.\n");
+        if( Blk->Guard != HEAP_FOREHEAD_GUARD ) eprintf("Heap Error: Bad guard begin detected during lock.");
+        if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ) eprintf("Heap Error: Bad guard end detected during lock.");
+        if( stat != Blk->State ) eprintf("Heap Error: Mismatched block states detected during lock.");
         if( !( stat & HEAP_LOCKED ) ){
             if( stat == HEAP_MOVABLE ){
                 Blk->State = HEAP_LOCKED;
@@ -195,11 +194,11 @@ int HeapLockBlock( Heap_t *heap, int Idx, void **data )
                 *data = Blk->Data;
                 return 1;
             }
-            eprintf("Heap Error: Unknown block state during lock.\n");
+            eprintf("Heap Error: Unknown block state during lock.");
         }
-        eprintf("Heap Error: Attempt to lock a previously locked block.\n");
+        eprintf("Heap Error: Attempt to lock a previously locked block.");
     }
-    eprintf("Heap Error: Could not lock block.\n");
+    eprintf("Heap Error: Could not lock block.");
     return 0;
 }
 
@@ -207,13 +206,13 @@ int HeapUnlockBlock( Heap_t *heap, int idx )
 {
     int stat; 
     HeapBlk_t *dat;
-//printf("Unlock %i\n",idx);
+
     if( heap ){
 	stat = heap->Hdr[ idx ].State;
 	dat = heap->Hdr[ idx ].Blk;
-	if( dat->Guard != HEAP_FOREHEAD_GUARD ) eprintf("Heap Error: Bad guard begin detected during unlock.\n");
-//	if( HEAP_MEM_GUARD( &dat->Data[ dat->Size ] ) != HEAP_BACKEND_GUARD ) eprintf("Heap Error: Bad guard end detected during unlock.\n");
-	if( stat != dat->State ) eprintf("Heap Error: Mismatched block states detected during unlock.\n");
+	if( dat->Guard != HEAP_FOREHEAD_GUARD ) eprintf( "Heap Error: Bad guard begin detected during unlock." );
+	if( HEAP_GET_MEM_GUARD( dat->Data, dat->Size ) != HEAP_BACKEND_GUARD ) eprintf( "Heap Error: Bad guard end detected during unlock." );	
+	if( stat != dat->State ) eprintf( "Heap Error: Mismatched block states detected during unlock." );
 	if( stat & HEAP_LOCKED ){
 	    if( stat & HEAP_FREE ){
     		dat->State = HEAP_FREE;
@@ -228,78 +227,10 @@ int HeapUnlockBlock( Heap_t *heap, int idx )
 	    }
 	    return 1;
 	}
-	eprintf("Heap Error: Attempt to unlock a previously unlocked block.\n");	
+	eprintf("Heap Error: Attempt to unlock a previously unlocked block.");	
     }
-    eprintf("Heap Error: Could not unlock block.\n");
+    eprintf("Heap Error: Could not unlock block.");
     return 0;
-}
-
-int HeapValidate( Heap_t *heap )
-{
-    HeapBlk_t *Blk;
-    HeapHdr_t *handler;
-    int MovBlks, LockBlks, allocated, stat, Handles, Total;
-    int SysBlks, LockSize, MovSize, FreeBlks, FreeSize, SysSize;
-
-    eprintf( "Validating heap...\n" );
-    FreeSize = FreeBlks = MovSize = LockSize = SysSize = SysBlks = MovBlks = LockBlks = 0;
-    Total = heap->TotMoveableBlk + heap->TotFreeBlk + heap->TotLockedBlk;
-    Blk = heap->Blk;    
-    for( allocated = 0; allocated < Total; allocated++ ){
-        if( Blk->Guard != HEAP_FOREHEAD_GUARD ){
-            eprintf("Bad guard begin detected during validate.\n");
-            break;
-        }
-        if( HEAP_MEM_GUARD( &Blk->Data[Blk->Size] ) != HEAP_BACKEND_GUARD ){
-            eprintf("Bad guard end detected during validate.\n");
-            break;            
-        }
-        stat = Blk->State;
-        if( stat ){
-            if( stat == HEAP_MOVABLE ){
-                MovBlks++;
-                MovSize += Blk->Size;
-            } else if( stat == HEAP_LOCKED ){
-                LockBlks++;
-                LockSize += Blk->Size;
-            }
-        } else {
-            FreeBlks++;
-            FreeSize += Blk->Size;
-        }
-        Blk = (HeapBlk_t *)((char *)Blk + Blk->Size + HEAP_PAYLOAD);
-        if( allocated != Total - 1 && Blk > (HeapBlk_t *)((char *)heap->Blk + heap->TotAllocated) ){
-    	    eprintf("Ran off end of heap during validate!\n");
-    	    break;    	    
-        }            
-    }
-    if( allocated != Total ) return 0;
-    if( FreeBlks != heap->TotFreeBlk      ){ eprintf( "Invalid number of free blocks.\n" ); return 0; }
-    if( FreeSize != heap->TotFreeSize     ){ eprintf( "Invalid size of free blocks.\n" ); return 0; }
-    if( MovBlks  != heap->TotMoveableBlk  ){ eprintf( "Invalid number of moveable blocks.\n" ); return 0; }
-    if( MovSize  != heap->TotMoveableSize ){ eprintf( "Invalid size of moveable blocks.\n" ); return 0; }
-    if( LockBlks != heap->TotLockedBlk    ){ eprintf( "Invalid number of locked blocks.\n" ); return 0; }
-    if( LockSize != heap->TotLockedSize   ){ eprintf( "Invalid size of locked blocks.\n" ); return 0; }
-    eprintf( "Heap is O.K.\n" );
-    handler = heap->Hdr;
-    for( Handles = 0; Handles < heap->TotHandles; Handles++, handler++ ){
-        if( (handler->State != HEAP_ERROR) && (handler->State & HEAP_FREE) == 0 ) continue;
-        SysBlks++;
-	if( handler->Blk == NULL ) break;
-        SysSize += handler->Blk->Size;
-        if( handler->Blk->Guard != HEAP_FOREHEAD_GUARD ){
-            eprintf( "Bad guard begin detected in system block during validate.\n" );
-            break;
-        }
-        if( HEAP_MEM_GUARD( &handler->Blk->Data[ handler->Blk->Size ] ) != HEAP_BACKEND_GUARD ){
-	    eprintf( "Bad guard end detected in system block during validate.\n" );
-	    break;
-        }
-    }
-    if( Handles != heap->TotHandles ) return 0;
-    if( SysBlks != heap->TotSystemBlk  ){ eprintf( "Invalid number of system blocks.\n" ); return 0; }
-    if( SysSize != heap->TotSystemSize ){ eprintf( "Invalid size of system blocks.\n" ); return 0; }
-    return 1;                                                                                            
 }
 
 int HeapStatus( Heap_t *heap, char *str )
@@ -374,7 +305,7 @@ static int HeapInitializeHandles( Heap_t *heap )
     int i;
 
     if( !( heap->Hdr = (HeapHdr_t *)Malloc( 64 * sizeof( HeapHdr_t ) ) ) ){
-        eprintf( "Heap Error: Could not initialize handles.\n" );
+        eprintf( "Heap Error: Could not initialize handles." );
         return 0;
     }
     for( i = 0; i < HEAP_HANDLERS; i++ ){
@@ -382,15 +313,6 @@ static int HeapInitializeHandles( Heap_t *heap )
         heap->Hdr[ i ].Blk = NULL;
     }
     heap->TotHandles = HEAP_HANDLERS;
-    return 1;
-}
-
-int HeapFreeHandlers( Heap_t *heap )
-{
-    if( !heap->Hdr ) return 0;
-    Free( heap->Hdr );
-    heap->Hdr = NULL;
-    heap->TotHandles = 0;
     return 1;
 }
 
@@ -420,28 +342,6 @@ static int HeapAcqHandle( Heap_t *heap, int *pIdx )
     return 1;
 }
 
-int HeapHandlerSetFree( Heap_t *Heap, int Idx )
-{
-    Heap->Hdr[ Idx ].State = HEAP_ERROR;
-    Heap->Hdr[ Idx ].Blk = 0;
-    return 1;
-}
-
-int HeapHandlersSetFreeRange( HeapHdr_t *Handler, int Idx )
-{
-    HeapHdr_t *p;
-
-    if( Idx ){
-        p = &Handler[ Idx ];
-        do{
-            Handler->State = HEAP_ERROR;
-            Handler->Blk = 0;
-            Handler++;
-        } while ( Handler < p );
-    }
-    return 1;
-}
-
 int HeapFindFreeBlock( Heap_t *heap, int BytesSize, HeapBlk_t **blk, char NoAllocFlg )
 {
     HeapBlk_t *pb, *bm, *bw, *bk, *BlkA, *BlkB, *pblk;
@@ -449,13 +349,10 @@ int HeapFindFreeBlock( Heap_t *heap, int BytesSize, HeapBlk_t **blk, char NoAllo
     unsigned int mv2;
     int MovableNum,n,MvBlk,fb,i,w,k,mrg,nn,rk,j,kk,ii,Size;
     char stmp[512];
-//DD
 
     if( (HeapFreeBlksMerge( heap ) == 1) && (BytesSize <= heap->TotFreeSize) ){
-//DD
 	if( heap->TotFreeBlk > 1 ) qsort( gHeapFreeBlks, heap->TotFreeBlk, sizeof( HeapBlk_t * ), (void *)HeapSortCb );
 	k = gHeapFreeBlks[ heap->TotFreeBlk - 1 ]->Size;
-//printf("   hhh->%i, %i\n", k, heap->TotFreeBlk);
 	if( BytesSize <= k ){        
     	    for( fb = i = 0; fb < heap->TotFreeBlk; i++, fb++ ){
     		pb = (HeapBlk_t *)gHeapFreeBlks[ i ];
@@ -468,9 +365,7 @@ int HeapFindFreeBlock( Heap_t *heap, int BytesSize, HeapBlk_t **blk, char NoAllo
 		for( n = 0; n < MovableNum; n++ ){
     		    MvBlk = gHeapMovableList[ n ].Size + HEAP_PAYLOAD * ( gHeapMovableList[ n ].TotMerged - 1 );
     		    if( MvBlk >= BytesSize && HeapRebuildHeap( n ) == 1 ){
-DD
         		qsort( gHeapBlks, gHeapMovableList[ n ].Stat1Merged, sizeof( HeapBlk_t *), (void *)HeapSortCb );
-DD
         		for( w = nn = 0; nn < ( mrg = gHeapMovableList[ n ].Stat1Merged ); nn++ ){
             		    bk = gHeapBlks[ nn ];
             		    if( k >= bk->Size ){                    
@@ -478,7 +373,7 @@ DD
                     		    bm = gHeapFreeBlks[ rk ];
                     		    if( bm->Size < bk->Size ) continue;
                     		    bw = gHeapMovableList[ n ].Block;
-                    		    if( !((bm >= bw) && bm < (HeapBlk_t *)&bw[ MvBlk + sizeof( int ) ] ) ) continue;
+                    		    if( !((bm >= bw) && bm < (HeapBlk_t *)&bw[ MvBlk + HEAP_GUARD_SIZE ] ) ) continue;
                     		    for( j = 0; j < w && ( rk != gHeapOrder[ j ] ); j++ );
                     		    if( j == w ){
                     			gHeapOrder[ w++ ] = rk;
@@ -487,7 +382,6 @@ DD
                 		}
             		    }                
         		}
-DD
         		if( w == mrg ){
 			    for( kk = ii = 0; ii < gHeapMovableList[ n ].Stat1Merged; ii++ ){
     				BlkB = gHeapBlks[ ii ];
@@ -499,16 +393,16 @@ DD
     				if( Size ){
         			    if( Size < 148 ) {
             				BlkA->Size += Size;
-            			        HEAP_MEM_GUARD( (char *)BlkA + BlkA->Size + sizeof( int ) ) = HEAP_BACKEND_GUARD;
+            			        HEAP_SET_MEM_GUARD( BlkA, BlkA->Size + HEAP_GUARD_SIZE, HEAP_BACKEND_GUARD );
             			        heap->TotFreeSize -= Size;
             			        heap->TotMoveableSize = Size + heap->TotMoveableSize;
         			    } else {
-            				pblk = (HeapBlk_t *)&BlkA->Data[ BlkA->Size + sizeof( int ) ];
+            				pblk = (HeapBlk_t *)&BlkA->Data[ BlkA->Size + HEAP_GUARD_SIZE ];
             			        pblk->State = 0;
             			        pblk->Id = -1;
             			        pblk->Size = Size - HEAP_PAYLOAD;
             			        pblk->Guard = HEAP_FOREHEAD_GUARD;
-            			        HEAP_MEM_GUARD( &pblk->Data[ pblk->Size ] ) = HEAP_BACKEND_GUARD;
+            			        HEAP_SET_MEM_GUARD( pblk->Data, pblk->Size, HEAP_BACKEND_GUARD );
             			        heap->TotFreeBlk++;
             			        heap->TotFreeSize = heap->TotFreeSize - HEAP_PAYLOAD;
         			    }
@@ -523,7 +417,7 @@ DD
 			    (*blk)->Size = MvBlk;
 			    (*blk)->State = HEAP_ZERO;
 			    (*blk)->Id = -1;
-			    HEAP_MEM_GUARD( &(*blk)->Data[ (*blk)->Size ] ) = HEAP_BACKEND_GUARD;
+			    HEAP_SET_MEM_GUARD( (*blk)->Data,(*blk)->Size, HEAP_BACKEND_GUARD );
 			    return 1;        		
         		}
     		    }        
@@ -531,21 +425,20 @@ DD
 	    }
 	}
     }
-    if( HeapStatus( heap, stmp ) ) eprintf( "\n%s\n", stmp );
-//    if( !NoAllocFlg ){
-DD
-        eprintf("Allocating block from system memory...\n");
+    if( HeapStatus( heap, stmp ) ) eprintf( "\n%s", stmp );
+    if( !NoAllocFlg ){
+        eprintf("Allocating block from system memory...");
         pblk = (HeapBlk_t *)Malloc(BytesSize + HEAP_PAYLOAD);
         *blk = pblk;
         if( pblk ){
             pblk->Guard = HEAP_FOREHEAD_GUARD;
             (*blk)->Size = BytesSize;
             (*blk)->State = HEAP_FREE;
-            HEAP_MEM_GUARD( &(*blk)->Data[ (*blk)->Size ] ) = HEAP_BACKEND_GUARD;
+            HEAP_SET_MEM_GUARD( (*blk)->Data, (*blk)->Size, HEAP_BACKEND_GUARD );
             return 1;
         }
-        eprintf("fatal error: internal_malloc() failed in heap_find_free_block()!\n");
-//    }
+        eprintf("fatal error: internal_malloc() failed in heap_find_free_block()!");
+    }
     return 0;
 }
 
@@ -570,7 +463,7 @@ int HeapFreeBlksMerge( Heap_t *heap )
     for( i = 0; ( i < heap->TotFreeBlk ) && all; all--, blk = (HeapBlk_t *)((char *)blk + blk->Size + HEAP_PAYLOAD) ){
         if( blk->State != HEAP_ZERO ) continue; // free block        
         for( ;all > 1; all-- ){
-            q = (HeapBlk_t *)(&blk->Data[ blk->Size ] + sizeof(int)); // +4 -> HEAP_BACKEND_GUARD (4 bytes)
+            q = (HeapBlk_t *)(&blk->Data[ blk->Size ] + HEAP_GUARD_SIZE ); // +4 -> HEAP_BACKEND_GUARD (4 bytes)
             if( q->State ) break; // occupied block
             blk->Size += q->Size + HEAP_PAYLOAD;
             heap->TotFreeBlk--;
@@ -578,12 +471,6 @@ int HeapFreeBlksMerge( Heap_t *heap )
         }            
         gHeapFreeBlks[ i++ ] = blk;
     }            
-    return 1;
-}
-
-int HeapSortFree( Heap_t *heap )
-{
-    if( heap->TotFreeBlk > 1 ) qsort( gHeapFreeBlks, heap->TotFreeBlk, sizeof( HeapBlk_t * ), (void *)HeapSortCb );
     return 1;
 }
 
@@ -621,7 +508,7 @@ int HeapBuildMovableList( Heap_t *heap, int *MovableCnt, unsigned int *MaxMerged
     max = 0;
     total = heap->TotMoveableBlk + heap->TotFreeBlk + heap->TotLockedBlk;
     i = 0;
-    for( ;total; total--, blk = (HeapBlk_t *)( &blk->Data[ blk->Size ] + sizeof( int ) ) ){
+    for( ;total; total--, blk = (HeapBlk_t *)( &blk->Data[ blk->Size ] + HEAP_GUARD_SIZE ) ){
         if( idx >= mvb ) break;
         State = blk->State;
         if( State <= 1 ){
@@ -653,12 +540,6 @@ int HeapBuildMovableList( Heap_t *heap, int *MovableCnt, unsigned int *MaxMerged
     return 1;
 }
 
-int HeapSortMovable( unsigned int Total )
-{
-    qsort( gHeapMovableList, Total, sizeof( HeapBlk_t * ), (void *)HeapMovableSortCb );
-    return 1;
-}
-
 static int HeapMovableSortCb( HeapMovBlk_t *blk1, HeapMovBlk_t *blk2 )
 {
     return blk1->Size - blk2->Size;
@@ -676,17 +557,11 @@ int HeapRebuildHeap( int idx )
         gHeapBlksAlloc = n;
     }
     blk = gHeapMovableList[ idx ].Block;
-    for( i = w = 0; i < gHeapMovableList[ idx ].TotMerged; i++, blk = (HeapBlk_t *)( &blk->Data[ blk->Size ] + sizeof( int ) ) ){
+    for( i = w = 0; i < gHeapMovableList[ idx ].TotMerged; i++, blk = (HeapBlk_t *)( &blk->Data[ blk->Size ] + HEAP_GUARD_SIZE ) ){
         if( blk->State != 1 ) continue;
         gHeapBlks[ w++ ] = blk;
     }
     return (w == n);
-}
-
-int HeapSort( unsigned int Total )
-{
-    qsort( gHeapBlks, Total, sizeof( HeapBlk_t * ), (void *)HeapSortCb );
-    return 1;
 }
 
 int HeapReallocOrder( unsigned int Elements )
@@ -717,3 +592,130 @@ static int HeapOrderRealloc( int Elements ) // inlined
     return 0;
 }
 
+#if __COMPILE_JUNK__
+static int HeapValidate( Heap_t *heap );
+static int HeapFreeHandlers( Heap_t *heap );
+static int HeapHandlerSetFree( Heap_t *Heap, int Idx );
+static int HeapHandlersSetFreeRange( HeapHdr_t *Handler, int Idx );
+static int HeapSortFree( Heap_t *heap );
+static int HeapSortMovable( unsigned int Total );
+static int HeapSort( unsigned int Total );
+
+static int HeapSort( unsigned int Total )
+{
+    qsort( gHeapBlks, Total, sizeof( HeapBlk_t * ), (void *)HeapSortCb );
+    return 1;
+}
+
+static int HeapSortMovable( unsigned int Total )
+{
+    qsort( gHeapMovableList, Total, sizeof( HeapBlk_t * ), (void *)HeapMovableSortCb );
+    return 1;
+}
+
+static int HeapSortFree( Heap_t *heap )
+{
+    if( heap->TotFreeBlk > 1 ) qsort( gHeapFreeBlks, heap->TotFreeBlk, sizeof( HeapBlk_t * ), (void *)HeapSortCb );
+    return 1;
+}
+
+static int HeapHandlerSetFree( Heap_t *Heap, int Idx )
+{
+    Heap->Hdr[ Idx ].State = HEAP_ERROR;
+    Heap->Hdr[ Idx ].Blk = 0;
+    return 1;
+}
+
+static int HeapHandlersSetFreeRange( HeapHdr_t *Handler, int Idx )
+{
+    HeapHdr_t *p;
+
+    if( Idx ){
+        p = &Handler[ Idx ];
+        do{
+            Handler->State = HEAP_ERROR;
+            Handler->Blk = 0;
+            Handler++;
+        } while ( Handler < p );
+    }
+    return 1;
+}
+
+static int HeapFreeHandlers( Heap_t *heap )
+{
+    if( !heap->Hdr ) return 0;
+    Free( heap->Hdr );
+    heap->Hdr = NULL;
+    heap->TotHandles = 0;
+    return 1;
+}
+
+static int HeapValidate( Heap_t *heap )
+{
+    HeapBlk_t *Blk;
+    HeapHdr_t *handler;
+    int MovBlks, LockBlks, allocated, stat, Handles, Total;
+    int SysBlks, LockSize, MovSize, FreeBlks, FreeSize, SysSize;
+
+    eprintf( "Validating heap...\n" );
+    FreeSize = FreeBlks = MovSize = LockSize = SysSize = SysBlks = MovBlks = LockBlks = 0;
+    Total = heap->TotMoveableBlk + heap->TotFreeBlk + heap->TotLockedBlk;
+    Blk = heap->Blk;    
+    for( allocated = 0; allocated < Total; allocated++ ){
+        if( Blk->Guard != HEAP_FOREHEAD_GUARD ){
+            eprintf("Bad guard begin detected during validate.\n");
+            break;
+        }
+        if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ){
+            eprintf("Bad guard end detected during validate.\n");
+            break;            
+        }
+        stat = Blk->State;
+        if( stat ){
+            if( stat == HEAP_MOVABLE ){
+                MovBlks++;
+                MovSize += Blk->Size;
+            } else if( stat == HEAP_LOCKED ){
+                LockBlks++;
+                LockSize += Blk->Size;
+            }
+        } else {
+            FreeBlks++;
+            FreeSize += Blk->Size;
+        }
+        Blk = (HeapBlk_t *)((char *)Blk + Blk->Size + HEAP_PAYLOAD);
+        if( allocated != Total - 1 && Blk > (HeapBlk_t *)((char *)heap->Blk + heap->TotAllocated) ){
+    	    eprintf("Ran off end of heap during validate!\n");
+    	    break;    	    
+        }            
+    }
+    if( allocated != Total ) return 0;
+    if( FreeBlks != heap->TotFreeBlk      ){ eprintf( "Invalid number of free blocks.\n" ); return 0; }
+    if( FreeSize != heap->TotFreeSize     ){ eprintf( "Invalid size of free blocks.\n" ); return 0; }
+    if( MovBlks  != heap->TotMoveableBlk  ){ eprintf( "Invalid number of moveable blocks.\n" ); return 0; }
+    if( MovSize  != heap->TotMoveableSize ){ eprintf( "Invalid size of moveable blocks.\n" ); return 0; }
+    if( LockBlks != heap->TotLockedBlk    ){ eprintf( "Invalid number of locked blocks.\n" ); return 0; }
+    if( LockSize != heap->TotLockedSize   ){ eprintf( "Invalid size of locked blocks.\n" ); return 0; }
+    eprintf( "Heap is O.K.\n" );
+    handler = heap->Hdr;
+    for( Handles = 0; Handles < heap->TotHandles; Handles++, handler++ ){
+        if( (handler->State != HEAP_ERROR) && (handler->State & HEAP_FREE) == 0 ) continue;
+        SysBlks++;
+	if( handler->Blk == NULL ) break;
+        SysSize += handler->Blk->Size;
+        if( handler->Blk->Guard != HEAP_FOREHEAD_GUARD ){
+            eprintf( "Bad guard begin detected in system block during validate.\n" );
+            break;
+        }
+        if( HEAP_GET_MEM_GUARD( handler->Blk->Data, handler->Blk->Size ) != HEAP_BACKEND_GUARD ){
+	    eprintf( "Bad guard end detected in system block during validate.\n" );
+	    break;
+        }
+    }
+    if( Handles != heap->TotHandles ) return 0;
+    if( SysBlks != heap->TotSystemBlk  ){ eprintf( "Invalid number of system blocks.\n" ); return 0; }
+    if( SysSize != heap->TotSystemSize ){ eprintf( "Invalid size of system blocks.\n" ); return 0; }
+    return 1;                                                                                            
+}
+
+#endif

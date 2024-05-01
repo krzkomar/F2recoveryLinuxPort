@@ -3532,7 +3532,7 @@ int WmFindAreaByEntranceId( int Id, int *pIdx )
 
 int WmSetArea( int AreaId )
 {
-    if( AreaId < 0 || AreaId >= gWmKnownLocationsCount ) return -1;
+    if( AreaId < 0 || AreaId >= gWmAreasCount ) return -1;
     gWmAreaId = AreaId;
     gWmUnk11 = 0;
     gWmUnk12 = 0;

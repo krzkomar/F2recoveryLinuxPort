@@ -1,28 +1,22 @@
-/*
-int gAnimCnt1 = 0;
-int gAnimIdx = -1;
-int gAnim0 = 0;
-int gAnimUnk41 = 0;
-int gAnimUnk40 = 0;
-
-
-Anim03_t gAnimUnk23[ 24 ];
-Anim02_t gAnimUnk08[ 2000 ];
-Anim_t gAnimations[ 32 ];
-char gAnimUnk37[ 5000 ];
-Anim02_t gAnimUnk01[ 2000 ];
-int gAnimSubIdx;
-Obj_t *gAnimUnk100[ 100 ];
-*/
-
+#pragma once 
 #include "FrameWork.h"
+
+#define ANIM_FLG_REVERSE	0x01	// if set frame dec
+#define ANIM_FLG_2		0x02
+#define ANIM_FLG_4		0x04
+#define ANIM_FLG_10		0x10
+#define ANIM_FLG_20		0x20
+#define ANIM_FLG_40		0x40
+#define ANIM_FLG_FOREVER	0x80
+#define ANIM_INSTANT		0
+#define ANIM_FOREVER		-1
+
 typedef union
 {
     void  *Ptr;
     Obj_t *Obj;    
     int   Int;
 } AnimU_t;
-
 
 typedef struct 
 {
@@ -57,16 +51,6 @@ typedef struct
     int i04; // y
 } Anim04_t;
 
-#define ANIM_FLG_REVERSE	0x01	// if set frame dec
-#define ANIM_FLG_2		0x02
-#define ANIM_FLG_4		0x04
-#define ANIM_FLG_10		0x10
-#define ANIM_FLG_20		0x20
-#define ANIM_FLG_40		0x40
-#define ANIM_FLG_FOREVER	0x80
-
-#define ANIM_INSTANT		0
-#define ANIM_FOREVER		-1
 
 typedef struct 
 {

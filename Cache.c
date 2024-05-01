@@ -265,10 +265,13 @@ int CacheCreateBlock( Cache_t *Cache, int FileId, int *Idx )
     }
     if( !flg ) goto Err1;
     if( HeapLockBlock( &Cache->heap, p->BlkId, &p->Data ) != 1 ) goto Err2;
+DD
+printf("0CACHE SIZE>>%i\n", AllocSize);
     if( Cache->Load( FileId, &AllocSize, p->Data ) ){
 	eprintf("Error: Cache->Load()\n");
 	goto Err2; // set size
     }
+printf("1CACHE SIZE>>%i\n", AllocSize);
     HeapUnlockBlock( &Cache->heap, p->BlkId );
     p->Size = AllocSize;
     p->FileId = FileId;
