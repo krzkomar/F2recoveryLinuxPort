@@ -108,7 +108,7 @@ void SciUnk04( Intp_t *scr, int Pos, int Arg )
     IntpPushwA( scr, SCR_INT );
 }
 
-void SciUnk05( Intp_t *Scr1, Intp_t *Scr2, int Pos, int Arg )
+void SciUnk05( Intp_t *Scr1, Intp_t *Scr2, char *Pos, int Arg )
 {
 DD
     IntpPushIntStack( Scr2->StackB, &Scr2->StackIdxB, Scr2->CodePC ); IntpPushwB( Scr2, SCR_INT );
@@ -125,7 +125,7 @@ DD
     Scr1->Flags |= 0x20;
 }
 
-void SciUnk06( Intp_t *scr1, Intp_t *scr2, int Pos, int Arg )
+void SciUnk06( Intp_t *scr1, Intp_t *scr2, char *Pos, int Arg )
 {
     SciUnk05( scr1, scr2, Pos, Arg);
     IntpPushIntStack( scr2->StackA, &scr2->StackApos, 0 ); IntpPushwA( scr2, SCR_INT );
@@ -712,9 +712,9 @@ int SciUnk26()
     return 0;
 }
 
-void SciUnk27( char *fpath, Intp_t *a2, int cnt )
-{
-DD
+//void SciUnk27( char *fpath, Intp_t *a2, int cnt )
+//{
+//DD
 /*
     FILE *fh;
     char *v8, *v6;
@@ -744,10 +744,10 @@ DD
     }
     fclose( fh );
 */
-}
+//}
 
-void SciUnk28()
-{
+//void SciUnk28()
+//{
 /*
     IntpList_t *p;
     IntpOp_t *Strings;
@@ -771,6 +771,6 @@ void SciUnk28()
     	}
     }    
 */
-}
+//}
 
 

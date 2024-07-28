@@ -174,7 +174,7 @@ int ItemUseItem( Obj_t *Critter, Obj_t *Item, int QuantityMax )
     		}
     		Critter->Container.Box.Cnt--;
 	    } else {
-    		if( ObjAddToStack( stk, Item ) == -1 ) return -1;
+    		if( ObjAddToStack( (void *)stk, Item ) == -1 ) return -1;
     		ObjLightItem( Critter->Container.Box.Box[ i ].obj, NULL );
     		Critter->Container.Box.Box[ i ].Quantity -= QuantityMax;
     		if( ItemGetObjType( Item ) == PR_ITEM_AMMO ){

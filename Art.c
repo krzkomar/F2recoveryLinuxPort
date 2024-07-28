@@ -631,14 +631,20 @@ xx:
 int ArtLoadFrame( ArtFrm_t *Data, xFile_t *fh, int Frames )
 {
     ArtFrm_t *p;
-    int i;
+    int i, tmpi;
+    short tmpw;
     p = Data;
     for( i = 0; i < Frames; i++ ){
-        if( dbgetBew( fh, (short *)&p->Width ) == -1 ) return -1;
-        if( dbgetBew( fh, (short *)&p->Height ) == -1 ) return -1;
-        if( dbgetBei( fh, (int *)&p->Pixels ) == -1 ) return -1;
-        if( dbgetBew( fh, (short *)&p->PixShiftX ) == -1 ) return -1;
-        if( dbgetBew( fh, (short *)&p->PixShiftY ) == -1 ) return -1;
+        if( dbgetBew( fh, &tmpw ) == -1 ) return -1;
+	p->Width = tmpw;
+        if( dbgetBew( fh, &tmpw ) == -1 ) return -1;
+        p->Height = tmpw;
+        if( dbgetBei( fh, &tmpi ) == -1 ) return -1;
+        p->Pixels = tmpi;
+        if( dbgetBew( fh, &tmpw ) == -1 ) return -1;
+        p->PixShiftX = tmpw;
+        if( dbgetBew( fh, &tmpw ) == -1 ) return -1;
+	p->PixShiftY = tmpw;
         if( dbread( p->Data, p->Pixels, 1, fh ) != 1 ) return -1;
         p = (ArtFrm_t *)( (char *)&p->Data + p->Pixels );
     }
@@ -647,14 +653,25 @@ int ArtLoadFrame( ArtFrm_t *Data, xFile_t *fh, int Frames )
 
 int ArtLoadFrmHdr( ArtFrmHdr_t *hdr, xFile_t *fh )
 {
-    if( dbgetBei( fh, (int *)&hdr->Version) == -1 ) return -1;
-    if( dbgetBew( fh, (short *)&hdr->Fps) == -1 ) return -1;
-    if( dbgetBew( fh, (short *)&hdr->ActionFrame ) == -1) return -1;
-    if( dbgetBew( fh, (short *)&hdr->Fpd) == -1 ) return -1;
-    if( dbreadBewBlk( fh, hdr->PixShiftX, 6 ) == -1) return -1;
-    if( dbreadBewBlk( fh, hdr->PixShiftY, 6 ) == -1) return -1;
-    if( dbreadBeiBlk( fh, (int *)hdr->FirstFrame, 6 ) == -1) return -1;
-    if( dbgetBei( fh, (int *)&hdr->AllDataSize ) == -1 ) return -1;    
+    int i, tmp2[ 6 ];
+    short tmp1[ 6 ];
+    
+    if( dbgetBei( fh, &tmp2[0] ) == -1 ) return -1;
+    hdr->Version = tmp2[0];
+    if( dbgetBew( fh, &tmp1[0] ) == -1 ) return -1;
+    hdr->Fps = tmp1[0];
+    if( dbgetBew( fh, &tmp1[0] ) == -1) return -1;
+    hdr->ActionFrame = tmp1[0];
+    if( dbgetBew( fh, &tmp1[0] ) == -1 ) return -1;
+    hdr->Fpd = tmp1[0];
+    if( dbreadBewBlk( fh, tmp1, 6 ) == -1) return -1;
+    for( i = 0; i < 6; i++ ) hdr->PixShiftX[ i ] = tmp1[ i ];
+    if( dbreadBewBlk( fh, tmp1, 6 ) == -1) return -1;
+    for( i = 0; i < 6; i++ ) hdr->PixShiftY[ i ] = tmp1[ i ];
+    if( dbreadBeiBlk( fh, tmp2, 6 ) == -1) return -1;
+    for( i = 0; i < 6; i++ ) hdr->FirstFrame[ i ] = tmp2[ i ];
+    if( dbgetBei( fh, &tmp2[0] ) == -1 ) return -1;    
+    hdr->AllDataSize = tmp2[0];
     return 0;
 }
 
@@ -725,13 +742,20 @@ int ArtSaveFrame( ArtFrm_t *Data, xFile_t *fh, int Frames )
 
 int ArtSaveHdr( ArtFrmHdr_t *Data, xFile_t *fh )
 {
+    int i, tmp2[6];
+    short tmp1[6];
+    
     if( dbputBei( fh, Data->Version ) == -1 ) return -1;
     if( dbputBew( fh, Data->Fps ) == -1 ) return -1;
     if( dbputBew( fh, Data->ActionFrame ) == -1 ) return -1;
     if( dbputBew( fh, Data->Fpd ) == -1 ) return -1;
-    if( dbputBewBlk( fh, Data->PixShiftX, 6 ) == -1 ) return -1;
-    if( dbputBewBlk( fh, Data->PixShiftY, 6 ) == -1 ) return -1;
-    if( dbputBeiBlk( fh, (int *)Data->FirstFrame, 6 ) == -1 ) return -1;
+
+    for( i = 0; i < 6; i++ ) tmp1[i] = Data->PixShiftX[ i ]; 
+    if( dbputBewBlk( fh, tmp1, 6 ) == -1 ) return -1;
+    for( i = 0; i < 6; i++ ) tmp1[i] = Data->PixShiftY[ i ]; 
+    if( dbputBewBlk( fh, tmp1, 6 ) == -1 ) return -1;
+    for( i = 0; i < 6; i++ ) tmp2[i] = Data->FirstFrame[ i ]; 
+    if( dbputBeiBlk( fh, tmp2, 6 ) == -1 ) return -1;
     if( dbputBei( fh, (int)Data->AllDataSize ) == -1 ) return -1;
     return 0;
 }

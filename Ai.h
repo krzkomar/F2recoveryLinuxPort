@@ -192,7 +192,7 @@ int AiUnk52( Obj_t *obj );
 int AiUnk53( Obj_t *obj, int Group );
 int AiUnk54( Obj_t *obj, int PackNb );
 int AiCombatTaunts( Obj_t *Critter, Combat_t *Combat, int ReactionType, int a4 );
-int AiMumble( Obj_t *obj, char *Text );
+int AiMumble( Obj_t *obj, int type );
 Obj_t *AiDrawOponent( Combat_t *a1 );
 int AiGetMaxDamagePower( Obj_t *obj );
 int AiUnk59( Obj_t *obj, Obj_t *a2 );

@@ -3,6 +3,9 @@
 
 SDL_Rect      gUpdateRect;
 
+//SDL_Surface *gSDLSurfaceSrc;	// temporary surface for scalling
+//SDL_Surface *gSDLSurfaceDst;	// temporary surface for scalling
+
 int gVidScaleX = 4;
 int gVidScaleY = 4;
 int gVidUpdateForbid = 0;
@@ -213,6 +216,17 @@ int VidInitMode( int Width, int Height, int Bpp )
 	return -1;
     }
 
+//    if( !(gSDLSurfaceSrc = SDL_CreateRGBSurface( 0, 640, 480, 8, 0, 0, 0, 0 )) ){
+//	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'\n", SDL_GetError() );
+//	return -1;
+//    }
+
+//    if( !(gSDLSurfaceDst = SDL_CreateRGBSurface( 0, 640, 480, 8, 0, 0, 0, 0 )) ){
+//	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'\n", SDL_GetError() );
+//	return -1;
+//    }
+    
+
     // create greyscale 8bit default palette
     for( i = 0; i < 256; i++ ){
         PaletteGray[ i ].g = i;
@@ -252,6 +266,14 @@ void VidClose()
         SDL_FreePalette( gSDLPalette );
         gSDLPalette = NULL;
     }
+//    if( gSDLSurfaceDst ){
+//        SDL_FreeSurface( gSDLSurfaceDst );
+//        gSDLSurfaceDst = NULL;    
+//    }
+//    if( gSDLSurfaceSrc ){
+//        SDL_FreeSurface( gSDLSurfaceSrc );
+//        gSDLSurfaceSrc = NULL;    
+//    }
     gSDLWindow = 0;
 }
 

@@ -3705,7 +3705,7 @@ void ScrGame_InvenUnwield( Intp_t *scr )
     SCP_DBG_VAR;
     Obj_t *obj;
     int n;
-DD
+
     obj = ScptGetSelfObj( scr );
     SCP_DBGA( "inven_unwield( %p )", obj );
     n = 1;

@@ -1,4 +1,5 @@
 #include "FrameWork.h"
+#include <SDL.h>
 
 // substitute: original used MMX instructions, diffrent src file
 void ScrCopyFast( char *Dst, int DstPitch, char *Src, int SrcPitch, short Width, short Height )
@@ -227,21 +228,20 @@ void ScrScaleImg( char *Src, int SrcWidth, int SrcHeight, int SrcPitch, char *Ds
             w = xr1 >> 16;
             kk = xr >> 16;
             e = *p;
-            if( ScaledY < t ){
-                s = Dst + DstPitch * ScaledY;
-                do{
-                    j = xr >> 16;
-                    s += kk;
-                    if( kk < w ){
-                        do{
-                            j++;
-                            *s++ = e;
-                        }while ( j < w );
-                    }
-                    v8++;
-                    s += DstPitch;
-                }while ( v8 < t );
-            }                
+            if( ScaledY >= t ) continue;
+            s = Dst + DstPitch * ScaledY;
+            do{
+                j = xr >> 16;
+                s += kk;
+                if( kk < w ){
+                    do{
+                        j++;
+                        *s++ = e;
+                    }while ( j < w );
+                }
+                v8++;
+                s += DstPitch;
+            }while ( v8 < t );
         }            
     }
 }

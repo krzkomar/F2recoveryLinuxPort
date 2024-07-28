@@ -641,7 +641,7 @@ int ActionUseSceneryObject( Obj_t *dude, Obj_t *object, Obj_t *ap )
 {
     int v9,CurrentAP,v13,v15,Type;
     Proto_t *proto;
-DD
+
     Type = -1;
     if( OBJTYPE( object->ImgId ) == TYPE_SCEN ){
         if( ProtoGetObj( object->Pid, &proto ) == -1 ) return -1;

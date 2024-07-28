@@ -135,8 +135,14 @@ int HeapDeallocate( Heap_t *BlockPool, int *BlkNum )
         Idx = *BlkNum;
         State = BlockPool->Hdr[ Idx ].State;
         Blk = BlockPool->Hdr[ Idx ].Blk;
-        if( Blk->Guard != HEAP_FOREHEAD_GUARD ) eprintf( "Heap Error: Bad guard begin detected during deallocate." );
-        if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ) eprintf( "Heap Error: Bad guard end detected during deallocate." );
+        if( Blk->Guard != HEAP_FOREHEAD_GUARD ){
+    	    eprintf( "Heap Error: Bad guard begin detected during deallocate." );
+DBG_CRASH;
+        }
+        if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ){
+    	    eprintf( "Heap Error: Bad guard end detected during deallocate." );
+DBG_CRASH;
+        }
         if( State != Blk->State ) eprintf( "Heap Error: Mismatched block states detected during deallocate." );
         if( !(State & HEAP_LOCKED) ){
             if( State == HEAP_MOVABLE ){
@@ -174,8 +180,14 @@ int HeapLockBlock( Heap_t *heap, int Idx, void **data )
     if( heap ){
         stat = heap->Hdr[ Idx ].State;
         Blk = heap->Hdr[ Idx ].Blk;
-        if( Blk->Guard != HEAP_FOREHEAD_GUARD ) eprintf("Heap Error: Bad guard begin detected during lock.");
-        if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ) eprintf("Heap Error: Bad guard end detected during lock.");
+        if( Blk->Guard != HEAP_FOREHEAD_GUARD ){
+         eprintf("Heap Error: Bad guard begin detected during lock.");
+DBG_CRASH;
+        }
+        if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ){
+    	    eprintf("Heap Error: Bad guard end detected during lock.");
+DBG_CRASH;
+        }
         if( stat != Blk->State ) eprintf("Heap Error: Mismatched block states detected during lock.");
         if( !( stat & HEAP_LOCKED ) ){
             if( stat == HEAP_MOVABLE ){
@@ -210,8 +222,14 @@ int HeapUnlockBlock( Heap_t *heap, int idx )
     if( heap ){
 	stat = heap->Hdr[ idx ].State;
 	dat = heap->Hdr[ idx ].Blk;
-	if( dat->Guard != HEAP_FOREHEAD_GUARD ) eprintf( "Heap Error: Bad guard begin detected during unlock." );
-	if( HEAP_GET_MEM_GUARD( dat->Data, dat->Size ) != HEAP_BACKEND_GUARD ) eprintf( "Heap Error: Bad guard end detected during unlock." );	
+	if( dat->Guard != HEAP_FOREHEAD_GUARD ){
+	    eprintf( "Heap Error: Bad guard begin detected during unlock." );
+DBG_CRASH;
+	}
+	if( HEAP_GET_MEM_GUARD( dat->Data, dat->Size ) != HEAP_BACKEND_GUARD ){
+	    eprintf( "Heap Error: Bad guard end detected during unlock." );	
+DBG_CRASH;
+	}
 	if( stat != dat->State ) eprintf( "Heap Error: Mismatched block states detected during unlock." );
 	if( stat & HEAP_LOCKED ){
 	    if( stat & HEAP_FREE ){

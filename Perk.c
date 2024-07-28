@@ -141,8 +141,9 @@ void PerkInit()
     char stmp[260];
     MsgLine_t MsgLine;
 
-    gPerkLvlData = (int *)Malloc( 119 * sizeof(int) * gPartyCount ); // 119 * 4 * ...
+    gPerkLvlData = (int *)Malloc( 119 * sizeof(int) * gPartyCount ); // 119 * 4 * ...    
     if( !gPerkLvlData ) return;    
+    memset( gPerkLvlData, 0, 119 * sizeof(int) * gPartyCount );
     PerkReset();
     if( MessageInit( &gMsgPerk ) != 1 ) return;
     sprintf( stmp, "%s%s", gGamePath, "perk.msg" );
@@ -409,9 +410,10 @@ int PerkGrantPts( Obj_t *dude, int lvl )
             if( PerkGetLevelData( dude )[ 107 ] ) return pts + 5;
             return pts;            
         case 8:
-            if( PerkGetLevelData(dude)[38] ){
-//        	if( Unk4002( gObjDude ) <= 0xb333 ) pts = 20;
+            if( PerkGetLevelData( dude )[ 38 ] ){
+        	if( ObjGetLightIntensity( gObjDude ) <= 45875 ) pts = 20;
     	    }
+    	case 3:
         case 9 ... 11:
     	    if( PerkGetLevelData( dude )[ 105 ] ) pts = 10;
     	    if( PerkGetLevelData( dude )[ 33 ] ){

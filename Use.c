@@ -385,18 +385,12 @@ int UseDropObj( Obj_t *crit, Obj_t *obj )
 int UseUnk06( Obj_t *obj )
 {
     VidRect_t rect;
-DD
-printf(">>%p\n", obj );
+
     if( !obj ) return -1;
-DD
     if( obj->Owner ) UseUnk04( obj->Owner, obj );
-DD
     EvQeRmEvent( obj );
-DD
     ObjDestroy( obj, &rect );
-DD
     if( !obj->Owner ) TileUpdateArea( &rect, obj->Elevation );
-DD
     return 0;
 }
 
@@ -762,7 +756,7 @@ int UseObjOnObj( Obj_t *obj, Obj_t *a2, Obj_t *a3 )
 {
     Obj_t *v7;
     int v5, n, t, v8;
-DD
+
     if( (n = UseUseHealSkill( obj, a2, a3 )) == 1 ){
         if( obj ){
             v5 = a2->Flags & 0x3000000;

@@ -376,7 +376,7 @@ Intp_t *IntpLoad( const char *fname )
     xFile_t *fh;
     int flen;
     Intp_t *intp;
-    char stmp[260];
+    char stmp[300];
     char *buff;
 
     if( !(fh = dbOpen( fname, "rb" ) ) ){
@@ -393,7 +393,7 @@ Intp_t *IntpLoad( const char *fname )
     intp = dbg_malloc( sizeof( Intp_t ) );
     memset( intp, 0x00, sizeof( Intp_t ) );
     // set filename
-    intp->FileName = dbg_malloc( strlen( fname ) );
+    intp->FileName = dbg_malloc( strlen( fname ) + 1 );
     strcpy( intp->FileName, fname );    
     intp->ChildProcess = NULL;        
     intp->Parent = NULL;
@@ -438,7 +438,7 @@ void IntpNegArg( Intp_t *scr, char *Str )
     INTP_STR_LEN( scr->Strings ) = -INTP_STR_LEN( scr->Strings );
     INTP_STR_REF( scr->Strings ) = 0;
 }
-
+/*
 void IntpValidate( Intp_t *intp )
 {    
     char *p;
@@ -468,7 +468,7 @@ void IntpValidateAll()
     
     for( p = gIntpQe; p; p = p->Prev ) IntpValidate( p->Itp );    
 }
-
+*/
 void IntpMergeString( Intp_t *intp )
 {
     short len, ofst;

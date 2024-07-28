@@ -87,16 +87,16 @@ int 	gLsgSaveFilesCondition[ 10 ];
 char 	*gLsgThumbnailP;
 char 	*gLsgThumbnailEnd;
 MsgLine_t gLsgMsgLine;
-int 	gLsgUnk09;
+int 	gLsgTimer;
 int 	gLsgWin;
 char 	*gLsgImg[ 9 ];
 char 	*gLsgThumbnailBuffer;
-char 	gLsgUnk38[260];
+char 	gLsgFileDir[300];
 char 	gLsgBakFileName[300];
 char 	gLsgCurFileName[300];
-char 	gLsgMsgPath[260];
+char 	gLsgMsgPath[300];
 char 	*gLsgSurf;
-char 	gLsgFileName[260];
+char 	gLsgFileName[300];
 xFile_t *gLsgFileHandler;
 int 	gLsgError;
 int 	gLsgFontSave;
@@ -126,21 +126,21 @@ void LsgPurgeFiles()
 
 int LsgSaveGameMenu( int Mode )
 {
-    int ExtCode, tb,sel,aa,v39,stime,v44,v45,tt,tmp,v48,cc,v42,bottom,right,ee,dd,bb,ff;
+    int ExtCode, tb,sel,aa,stime,v44,tt,tmp,v42,bottom,right,ee,MoveUpDn,SelectedLine,ff;
     uint32_t SysTime;
     char stmp[260], a1[260], *Str2[3];
 
     ExtCode = -1;
-    bb = -1;
+    SelectedLine = -1;
     Str2[0] = gLsgCurFileName;
-    Str2[1] = gLsgUnk38;
+    Str2[1] = gLsgFileDir;
     Str2[2] = stmp;
     gLsgError = 0;
     if( CfgGetString( &gConfiguration, "system", "master_patches", &gLsgMasterPatches ) != 1 ){
         eprintf( "\nLOADSAVE: Error reading patches config variable! Using default." );
         gLsgMasterPatches = "/fallout/cd/data/savegame";
     }
-    if( Mode == 2 && gLsgUnk01 ){
+    if( Mode == 2 && gLsgUnk01 ){ // fast save
         sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
         strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "save.dat" );
         gLsgFileHandler = dbOpen( gLsgFileName, "rb" );
@@ -148,7 +148,7 @@ int LsgSaveGameMenu( int Mode )
             LsgSlotLoad( gLsgSelectedSlotIdx );
             dbClose( gLsgFileHandler );
         }
-        gLsgThumbnailEnd = 0;
+        gLsgThumbnailEnd = NULL;
         if( (tb = LsgMakeThumbnail()) == 1 ) LsgSaveGame();
         if( gLsgThumbnailEnd ) Free( gLsgThumbnailBuffer );
         GmouseLoadCursor( 1 );
@@ -172,12 +172,13 @@ int LsgSaveGameMenu( int Mode )
         GSoundPlay( "iisxxxx1" );
         strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
         strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
-        sprintf( gLsgUnk38, "\"%s/\"", "savegame" );
+        sprintf( gLsgFileDir, "\"%s/\"", "savegame" );
         strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
         DlgBox( gLsgBakFileName, Str2, 2, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
         LsgClose( 0 );
         return -1;
     }
+
     tmp = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
     if( tmp == 0 || tmp == 2 || tmp == 3 ){
         ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
@@ -188,57 +189,56 @@ int LsgSaveGameMenu( int Mode )
     LsgDrawSlotList( 0 );
     LsgDescription( gLsgSelectedSlotIdx );
     WinUpdate( gLsgWin );
-    gLsgUnk09 = 24;
-    while( ExtCode == -1 ){
+    gLsgTimer = 24;
+    while( ExtCode == -1 ){ // select slot
         SysTime = TimerGetSysTime();
         sel = InpUpdate();
-        aa = 0; dd = 0; ee = 0; ff = 0;
+        aa = 0; MoveUpDn = 0; ee = 0; ff = 0;
         if( gMenuEscape ) ExtCode = 0;
         switch( sel ){
-            	case KEY_ESC:
-            	case 501: ExtCode = 0; break;
-                case 328: if( --gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0; aa = 1; bb = -1; break;
-                case 336: if( ++gLsgSelectedSlotIdx > 9 ) gLsgSelectedSlotIdx = 9; aa = 1; bb = -1; break;
-                case 327: aa = 1; bb = -1; gLsgSelectedSlotIdx = gMenuEscape; break;
-                case 335: bb = -1; gLsgSelectedSlotIdx = 9; aa = 1; break;
-                case 506: dd = 1; break;
-                case 504: dd = 2; break;
-                case 502:
-                    MseGetCursorPosition( &right, &bottom );
-                    gLsgSelectedSlotIdx = (bottom - 79) / (3 * gFont.ChrHeight() + 4);
-                    if( gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0;
-                    if( gLsgSelectedSlotIdx > 9 ) gLsgSelectedSlotIdx = 9;
-                    aa = 1;
-                    if( gLsgSelectedSlotIdx == bb ){ sel = 500; GSoundPlay( "ib1p1xx1" ); }
-                    bb = gLsgSelectedSlotIdx;
-                    dd = 0;
-                    break;
-                case 17: case 24: case 324: SysQuitDlg(); if( gMenuEscape ) ExtCode = 0; break;
-                case 61: case 43: OptBrightInc(); break;
-                case 45: case 95: OptBrightDec(); break;
-                case KEY_ENTER: sel = 500; break;
+            case KEY_ESC:
+            case 501: ExtCode = 0; break; // click Close, or hit Esc
+            case 328: if( --gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0; aa = 1; SelectedLine = -1; break;
+            case 336: if( ++gLsgSelectedSlotIdx > 9 ) gLsgSelectedSlotIdx = 9; aa = 1; SelectedLine = -1; break;
+            case 327: aa = 1; SelectedLine = -1; gLsgSelectedSlotIdx = gMenuEscape; break;
+            case 335: SelectedLine = -1; gLsgSelectedSlotIdx = 9; aa = 1; break;
+            case 506: MoveUpDn = 1; break; // click Up Arrow
+            case 504: MoveUpDn = 2; break; // click Dn Arrow
+            case 502: // click list area
+                MseGetCursorPosition( &right, &bottom );
+                gLsgSelectedSlotIdx = (bottom - 79) / (3 * gFont.ChrHeight() + 4); // mouse y position to line number
+                if( gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0;
+                if( gLsgSelectedSlotIdx > 9 ) gLsgSelectedSlotIdx = 9;
+                aa = 1;
+                if( gLsgSelectedSlotIdx == SelectedLine ){ sel = 500; GSoundPlay( "ib1p1xx1" ); }
+                SelectedLine = gLsgSelectedSlotIdx;
+                MoveUpDn = 0;
+                break;
+            case 17: case 24: case 324: SysQuitDlg(); if( gMenuEscape ) ExtCode = 0; break;
+            case 61: case 43: OptBrightInc(); break;
+            case 45: case 95: OptBrightDec(); break;
+            case KEY_ENTER: sel = 500; break;
         }            
-	if( sel == 500 ){
+	if( sel == 500 ){ // click Done
             ExtCode = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
-            if( ExtCode == 1 ){
+            if( ExtCode == 1 ){ // file exist, overwrite
             	if( !DlgBox( MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 131 ), 0, 0, 169, 116, COLOR_A0, 0, COLOR_A0, 16) ) ExtCode = -1;
             } else {
             	ExtCode = 1;
             }
             aa = 1;
-            dd = 0;
+            MoveUpDn = 0;
 	}
-        if( dd ){
-/*
+        if( MoveUpDn ){
                 v42 = 4;
-                bb = -1;
+                SelectedLine = -1;
                 do{
                     stime = TimerGetSysTime();
                     v44 = ++ff;
                     if( !ee && (v44 == 1 || ee == 1) && (double)ff > 14.4 ){
                         ee = 1;
-                        if( (double)ff > 14.4 && ++v42 > 0x18 ) v42 = 24;
-                        if( dd == 1 ){
+                        if( (double)ff > 14.4 && ++v42 > 24 ) v42 = 24;
+                        if( MoveUpDn == 1 ){ // Up
                             if( --gLsgSelectedSlotIdx < 0 ) gLsgSelectedSlotIdx = 0;
                         } else if( ++gLsgSelectedSlotIdx > 9 ){
                             gLsgSelectedSlotIdx = 9;
@@ -255,13 +255,12 @@ int LsgSaveGameMenu( int Mode )
                         WinUpdate( gLsgWin );
                     }
                     if( (double)ff > 14.4 ){
-//                        while ( TimerCurrDiff(stime) < 0x3E8 / v42 );
+                	TIMER_WAIT( stime, 1000 / v42 );
                     } else {
-//                        while( TimerCurrDiff(stime) < 0x29 );
+                        TIMER_WAIT( stime, 41 );
                     }
                     tt = InpUpdate();
                 } while( tt != 505 && tt != 503 );
-*/
             continue;
         }
         if( aa ){
@@ -276,19 +275,16 @@ int LsgSaveGameMenu( int Mode )
             LsgDrawSlotList( 0 );
         }
         WinUpdate( gLsgWin );
-        if( !--gLsgUnk09 ){
-            gLsgUnk09 = 24;
-            bb = -1;
+        if( !--gLsgTimer ){
+            gLsgTimer = 24;
+            SelectedLine = -1;
         }
-//        while( TimerCurrDiff( SysTime ) < 41 );
+        TIMER_WAIT( SysTime, 41 );
     }
-DD
-return 0;
-/*
-    if( ExtCode == 1 ){
-        v48 = LsgEditLine( gLsgSelectedSlotIdx );
-        if( v48 < 0 ){
-            if( v48 == -1 ){
+
+    if( ExtCode == 1 ){ // selection done
+	switch( LsgEditLine( gLsgSelectedSlotIdx ) ){
+	    case -1:
                 GmouseLoadCursor( 1 );
                 GSoundPlay( "iisxxxx1" );
                 eprintf( "\nLOADSAVE: ** Error getting save file comment **" );
@@ -296,47 +292,49 @@ return 0;
                 strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 133 ) );
                 ExtCode = -1;
                 DlgBox( gLsgBakFileName, Str2, 1, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
-            }
-        } else if( v48 <= 0 ){
-            GmouseLoadCursor( 1 );
-            ExtCode = -1;
-        } else if( v48 == 1 && LsgSaveGame() == -1 ){
-            GmouseLoadCursor( 1 );
-            GSoundPlay( "iisxxxx1" );
-            strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 132 ) );
-            strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 133 ) );
-            ExtCode = -1;
-            DlgBox( gLsgBakFileName, Str2, 1, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
-            if( LsgLoadSlots() == -1 ){
-                WinUpdate( gLsgWin );
-                GSoundPlay( "iisxxxx1" );
-                strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
-                strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
-                sprintf(gLsgUnk38, "\"%s/\"", "savegame");
-                strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
-                DlgBox( gLsgBakFileName, Str2, 2, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
-                LsgClose( 0 );
-                return -1;
-            }
-            tmp = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
-            if( tmp == 0 || tmp == 2 || tmp == 3 ){
-                ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
-            } else {
-                LsgReadThumbnail( gLsgSelectedSlotIdx );
-                ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
-            }
-            LsgDrawSlotList( 0 );
-            LsgDescription( gLsgSelectedSlotIdx );
-            WinUpdate( gLsgWin );
-            gLsgUnk09 = 24;
+                break;
+    	    case 0:
+        	GmouseLoadCursor( 1 );
+        	ExtCode = -1;
+        	break;
+    	    case 1:
+		if( LsgSaveGame() == -1 ){
+        	    GmouseLoadCursor( 1 );
+        	    GSoundPlay( "iisxxxx1" );
+        	    strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 132 ) );
+        	    strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 133 ) );
+        	    ExtCode = -1;
+        	    DlgBox( gLsgBakFileName, Str2, 1, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
+        	    if( LsgLoadSlots() == -1 ){
+            	        WinUpdate( gLsgWin );
+            		GSoundPlay( "iisxxxx1" );
+            		strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
+            		strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
+            		sprintf( gLsgFileDir, "\"%s/\"", "savegame");
+            		strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
+            		DlgBox( gLsgBakFileName, Str2, 2, 169, 116, COLOR_A0, 0, COLOR_A0, 1 );
+            		LsgClose( 0 );
+            		return -1;
+        	    }
+        	    tmp = gLsgSaveFilesCondition[ gLsgSelectedSlotIdx ];
+        	    if( tmp == 0 || tmp == 2 || tmp == 3 ){
+            		ScrCopy( gLsgThumbnailEnd, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
+        	    } else {
+            		LsgReadThumbnail( gLsgSelectedSlotIdx );
+            		ScrCopy( gLsgThumbnailP, 223, 132, THUMBNAIL_WIDTH, WIN_XY( 366, 58, 640, gLsgSurf ), 640 );
+        	    }
+        	    LsgDrawSlotList( 0 );
+        	    LsgDescription( gLsgSelectedSlotIdx );
+        	    WinUpdate( gLsgWin );
+        	    gLsgTimer = 24;
+        	    break;
+    	    }
         }
     }
     GmouseLoadCursor( 1 );
     LsgClose( 0 );
     TileUpdate();
     if( Mode == 2 && ExtCode == 1 ) gLsgUnk01 = 1;
-*/
-DD
     return ExtCode;    
 }
 
@@ -365,7 +363,7 @@ int LsgMenuGameLoad( unsigned int arg )
     Exit = -1;
     v89 = -1;
     Str2[0] = gLsgCurFileName;
-    Str2[1] = gLsgUnk38;
+    Str2[1] = gLsgFileDir;
     Str2[2] = stmp;
     gLsgError = 0;
 
@@ -414,7 +412,7 @@ int LsgMenuGameLoad( unsigned int arg )
         GSoundPlay( "iisxxxx1" );
         strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 106 ) );
         strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 107 ) );
-        sprintf( gLsgUnk38, "\"%s/\"", "savegame" );
+        sprintf( gLsgFileDir, "\"%s/\"", "savegame" );
         strcpy( stmp, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 108 ) );
         DlgBox( gLsgBakFileName, Str2, 2, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
         LsgClose( mode );
@@ -431,7 +429,7 @@ int LsgMenuGameLoad( unsigned int arg )
     LsgDrawSlotList( 2 );
     LsgDescription( gLsgSelectedSlotIdx );
     WinUpdate( gLsgWin );
-    gLsgUnk09 = 24;
+    gLsgTimer = 24;
     while( Exit == -1 ){
         while( Exit == -1 ){
             SysTime = TimerGetSysTime();
@@ -515,8 +513,8 @@ int LsgMenuGameLoad( unsigned int arg )
                     LsgDrawSlotList( 2 );
                 }
                 WinUpdate( gLsgWin );
-                if( !--gLsgUnk09 ){
-                    gLsgUnk09 = 24;
+                if( !--gLsgTimer ){
+                    gLsgTimer = 24;
                     v89 = -1;
                 }
 		TIMER_WAIT( SysTime, 41 );
@@ -528,7 +526,7 @@ int LsgMenuGameLoad( unsigned int arg )
             	    GSoundPlay( "iisxxxx1" );
             	    strcpy( gLsgBakFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 134 ) );
             	    strcpy( gLsgCurFileName, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 136 ) );
-            	    strcpy( gLsgUnk38, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 135 ) );
+            	    strcpy( gLsgFileDir, MessageGetMessage( &gLsgMsg, &gLsgMsgLine, 135 ) );
             	    Exit = -1;
             	    DlgBox( gLsgBakFileName, Str2, 2, 169, 116, gPalColorCubeRGB[31][18][8], 0, gPalColorCubeRGB[31][18][8], 1 );
             	    break;
@@ -568,7 +566,7 @@ int LsgMenuCreate( unsigned int mode )
     if( MessageInit( &gLsgMsg ) != 1 ) return -1;
     sprintf( gLsgMsgPath, "%s%s", gGamePath, "lsgame.msg" );
     if( MessageLoad( &gLsgMsg, gLsgMsgPath ) != 1 ) return -1;
-    if( !( gLsgThumbnailBuffer = Malloc( THUMBNAIL_SIZE ) ) ){ MessageClose( &gLsgMsg ); FontSet( gLsgFontSave ); return -1; }
+    if( !( gLsgThumbnailBuffer = Malloc( 61632 ) ) ){ MessageClose( &gLsgMsg ); FontSet( gLsgFontSave ); return -1; }
 
     gLsgThumbnailP = gLsgThumbnailBuffer;
     gLsgThumbnailEnd = gLsgThumbnailBuffer + THUMBNAIL_SIZE;
@@ -586,7 +584,6 @@ int LsgMenuCreate( unsigned int mode )
     for( i = 0; i < 9; i++ ){
         if( !(gLsgImg[ i ] = ArtLoadBmp( ArtMakeId( 6, gLsgImgIds[ i ], 0, 0, 0 ), &gLsgArt[ i ], &gLsgGeo[ i ].Width, &gLsgGeo[ i ].Height ) ) ) break;
     }
-
     if( i < 9 ){
         while( --i ) ArtClose( gLsgArt[ i ] );        
         Free( gLsgThumbnailBuffer );
@@ -597,7 +594,6 @@ int LsgMenuCreate( unsigned int mode )
         GmouseLoadCursor( 1 );
         return -1;
     }
-    
     if( (gLsgWin = WinCreateWindow( 0, 0, 640, 480, 256, 20 )) == -1 ){
         Free( gLsgThumbnailBuffer );
         MessageClose( &gLsgMsg );
@@ -607,7 +603,6 @@ int LsgMenuCreate( unsigned int mode )
         GmouseLoadCursor( 1 );
         return -1;
     }
-
     gLsgSurf = WinGetSurface( gLsgWin );
     memcpy( gLsgSurf, gLsgImg[ 0 ], gLsgGeo[ 0 ].Width * gLsgGeo[ 0 ].Height );
     switch( mode ){
@@ -639,7 +634,7 @@ void LsgClose( int Mode )
 
     WinClose( gLsgWin );
     FontSet( gLsgFontSave );
-    MessageClose(&gLsgMsg);
+    MessageClose( &gLsgMsg );
     for( i = 0; i < 9; i++)  ArtClose( gLsgArt[ i ] );
     Free( gLsgThumbnailBuffer );
     if( Mode != 3 && gLsgUnk18 ) MapAmbientEnable();
@@ -651,7 +646,8 @@ int LsgSaveGame()
 {
     int i, PrevPos;
 DD
-return 0;
+printf("*************************** SAVE ***************************************\n");
+
     gLsgError = 0;
     gLsgUnk55 = -1;
     GmouseLoadCursor( 25 );
@@ -730,7 +726,6 @@ int LsgLoad( int SlotNo )
 {
     int i, PrevPos;
 
-printf("*********************** LOAD SAVE *******************************\n");
     gLsgLoadSaveInProcess = 1;
     if( IN_COMBAT ){
         IfaceCombatClose( 0 );
@@ -1056,7 +1051,7 @@ int LsgEditLine( int SlotNo )
     return err;
 }
 
-int LsgEditLineHandler( int WinId, int CodeKey1, int CodeKey2, char *str, int FieldLen, int Width, int Height, int ColorA, int ColorB, int flags )
+int LsgEditLineHandler( int WinId, int CodeKey1, int CodeKey2, char *str, int FieldLen, int Xpos, int Ypos, int ColorA, int ColorB, int flags )
 {
     char stmp[260], *surf;
     int CursW, WinW, CursorPos, SysTime, sel, Blink, Cnt, ExtCode, BlinkCnt, FontH;
@@ -1073,7 +1068,8 @@ int LsgEditLineHandler( int WinId, int CodeKey1, int CodeKey2, char *str, int Fi
     strncpy( stmp, str, FieldLen );
     CursorPos = strlen( stmp );
     stmp[ CursorPos + 1 ] = '\0';
-    stmp[ CursorPos + 0 ] = ' ';
+    stmp[ CursorPos + 0 ] = ' ';    
+    surf += WinW * Ypos + Xpos;    
     ScrFillSolid( surf, gFont.LineWidth( stmp ), FontH, WinW, ColorB );
     gFont.Print( surf, stmp, WinW, WinW, ColorA );
     WinUpdate( WinId );
@@ -1081,9 +1077,9 @@ int LsgEditLineHandler( int WinId, int CodeKey1, int CodeKey2, char *str, int Fi
         SysTime = TimerGetSysTime();
         sel = InpUpdate();
         if( sel >= 0 ) Cnt++;
-        if( sel == CodeKey1 || sel == 13 ){
+        if( sel == CodeKey1 || sel == KEY_ENTER ){
             ExtCode = 0;
-        } else if( sel == 27 || sel == CodeKey2 ){
+        } else if( sel == KEY_ESC || sel == CodeKey2 ){
             ExtCode = -1;
         } else {
             if( (sel == 339 || sel == 8) && CursorPos >= 1 ){
@@ -1322,7 +1318,7 @@ int LsgBackup()
         if( FileRename( gLsgBakFileName, gLsgCurFileName ) ) return -1;
     }
     sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
-    sprintf( gLsgBakFileName, "%s*.%s", gLsgFileName, "sav" );
+    sprintf( gLsgBakFileName, "%.250s*.%.3s", gLsgFileName, "sav" );
     if( (files = dbGetFileList( gLsgBakFileName, &FileList ) ) == -1 ) return -1;
     gLsgUnk55 = files;
     sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
@@ -1335,8 +1331,8 @@ int LsgBackup()
     dbDelFileList( FileList );
     eprintf( "\nLOADSAVE: %d map files backed up.", files );
     sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
-    sprintf( gLsgBakFileName, "%s/%s", gLsgFileName, CharEditFnameChgExt(gLsgUnk38, "automap.db", "sav" ) );
-    sprintf( gLsgCurFileName, "%s/%s", gLsgFileName, CharEditFnameChgExt(gLsgUnk38, "automap.db", "bak") );
+    sprintf( gLsgBakFileName, "%.250s/%.12s", gLsgFileName, CharEditFnameChgExt( gLsgFileDir, "automap.db", "sav" ) );
+    sprintf( gLsgCurFileName, "%.250s/%.12s", gLsgFileName, CharEditFnameChgExt( gLsgFileDir, "automap.db", "bak") );
     gLsgUnk56 = 0;        
     if( (fh = dbOpen( gLsgBakFileName, "rb" ) ) ){
         dbClose( fh );
@@ -1360,7 +1356,7 @@ int LsgBackupRestore()
     xFileRemove( gLsgBakFileName );
     if( FileRename(gLsgCurFileName, gLsgBakFileName) ){ LsgEraseBadSlot(); return -1; }
     sprintf(gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1);
-    sprintf(gLsgBakFileName, "%s*.%s", gLsgFileName, "bak");
+    sprintf(gLsgBakFileName, "%.250s*.%.3s", gLsgFileName, "bak");
     files = dbGetFileList( gLsgBakFileName, &FileList );
     if( files == -1 ) return -1;        
     if( files != gLsgUnk55 ){ LsgEraseBadSlot(); return -1; }
@@ -1378,9 +1374,9 @@ int LsgBackupRestore()
     if( !gLsgUnk56 ) return 0;
     sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     strcpy( gLsgBakFileName, gLsgFileName );
-    strcpy( &gLsgBakFileName[ strlen( gLsgBakFileName ) ], CharEditFnameChgExt( gLsgUnk38, "automap.db", "bak" ) );
+    strcpy( &gLsgBakFileName[ strlen( gLsgBakFileName ) ], CharEditFnameChgExt( gLsgFileDir, "automap.db", "bak" ) );
     strcpy( gLsgCurFileName, gLsgFileName );
-    strcpy( &gLsgCurFileName[ strlen( gLsgCurFileName ) ], CharEditFnameChgExt( gLsgUnk38, "automap.db", "sav" ) );
+    strcpy( &gLsgCurFileName[ strlen( gLsgCurFileName ) ], CharEditFnameChgExt( gLsgFileDir, "automap.db", "sav" ) );
     if( FileRename( gLsgBakFileName, gLsgCurFileName ) ){  LsgEraseBadSlot();  return -1; }
     return 0;            
 }
@@ -1412,7 +1408,7 @@ int LsgEraseBadSlot()
     strcpy( gLsgBakFileName + strlen( gLsgBakFileName ), "save.dat" );
     xFileRemove( gLsgBakFileName );
     sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
-    sprintf( gLsgBakFileName, "%s*.%s", gLsgFileName, "sav" );
+    sprintf( gLsgBakFileName, "%.250s*.%.3s", gLsgFileName, "sav" );
     if( (files = dbGetFileList( gLsgBakFileName, &FileList ) ) == -1 ) files = 0;
     s = gLsgBakFileName;
     sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );

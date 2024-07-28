@@ -25,37 +25,6 @@ typedef struct // size of 136
     char 	MapFname[ 16 ];
 } LsgSlot_t;
 
-//const int gLsgImgIds[ 9 ] = { 237, 238, 239, 9, 8, 181, 182, 199, 200 };
-//int	gLsgSelectedSlotIdx = 0;
-//int 	gLsgUnk01 = 0;
-//int 	gLsgUnk18 = 0;
-//int 	gLsgUnk55 = -1;
-//int 	gLsgUnk56 = 0;
-//char 	*gLsgMasterPatches = NULL;
-//int (*gLsgSaveAction[ 27 ])( xFile_t * ) = {
-//int (*gLsgLoadAction[ 27 ])( xFile_t *) = {
-//int gLsgUnk02 = 0;
-//Geo_t 	gLsgGeo[9];
-//Msg_t 	gLsgMsg;
-//LsgSlot_t gLsgSlots[ 10 ];
-//int 	gLsgSaveFilesCondition[ 10 ];
-//char 	*gLsgUnk15;
-//char 	*gLsgThumbnail;
-////MsgLine_t gLsgMsgLine;
-//int 	gLsgUnk09;
-//int 	gLsgWin;
-//char 	*gLsgImg[ 9 ];
-//char 	*gLsgThumbnail;
-//char 	gLsgUnk38[260];
-//char 	gLsgBakFileName[300];
-//char 	gLsgCurFileName[300];
-//char 	gLsgMsgPath[260];
-//char 	*gLsgSurf;
-//char 	gLsgFileName[260];
-//xFile_t *gLsgFileHandler;
-//int 	gLsgError;
-//int 	gLsgFontSave;
-//CachePool_t *gLsgArt[ 9 ];
 
 void LsgClean();
 void LsgPurgeFiles();
