@@ -665,10 +665,11 @@ printf("*************************** SAVE ***************************************
     if( LsgBackup() == -1 ) eprintf( "\nLOADSAVE: Warning, can't backup save file!" );
     sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "save.dat" );
-    eprintf( "\nLOADSAVE: Save name: %s\n", gLsgFileName );
+    eprintf( "\n\tLOADSAVE: Save name: %s\n", gLsgFileName );
+
     gLsgFileHandler = dbOpen( gLsgFileName, "wb" );
     if( !gLsgFileHandler ){
-        eprintf("\nLOADSAVE: ** Error opening save game for writing! **");
+        eprintf("\n\tLOADSAVE: ** Error opening save game for writing! **");
         LsgBackupRestore();
         sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
         LsgDeleteFiles( gLsgFileName, "bak" );
@@ -678,7 +679,7 @@ printf("*************************** SAVE ***************************************
     }
     PrevPos = dbtell( gLsgFileHandler );
     if( LsgSaveHdr( gLsgSelectedSlotIdx ) == -1 ){
-        eprintf( "\nLOADSAVE: ** Error writing save game header! **" );
+        eprintf( "\n\tLOADSAVE: ** Error writing save game header! **" );
         eprintf( "LOADSAVE: Save file header size written: %d bytes.", dbtell( gLsgFileHandler ) - PrevPos );
         dbClose( gLsgFileHandler );
         LsgBackupRestore();
@@ -692,7 +693,7 @@ printf("*************************** SAVE ***************************************
     for( i = 0; i < 27; i++ ){
         PrevPos = dbtell( gLsgFileHandler );
         if( gLsgSaveAction[i]( gLsgFileHandler ) == -1 ){
-            eprintf( "\nLOADSAVE: ** Error writing save function #%d data! **", i );
+            eprintf( "\n\tLOADSAVE: ** Error writing save function #%d data! **", i );
             dbClose( gLsgFileHandler );
     	    LsgBackupRestore();
             sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
@@ -791,16 +792,22 @@ int LsgSaveHdr( int SlotNo )
 
     gLsgError = 4;
     strncpy( gLsgSlots[ SlotNo ].Magic, "FALLOUT SAVE FILE", 24 );
+DD
     if( dbwrite( &gLsgSlots[ SlotNo ].Magic, 24, 1, gLsgFileHandler ) != 1 ) return -1;
     tmp[ 0 ] = 1; tmp[ 1 ] = 2;
     gLsgSlots[ SlotNo ].VerMinor = 1;
     gLsgSlots[ SlotNo ].VerMajor = 2;
+DD
     if( dbputBewBlk( gLsgFileHandler, tmp, 2 ) == -1 ) return -1;    
+DD
     gLsgSlots[ SlotNo ].VerRelease = 'R';
     if( dbputb( gLsgFileHandler, 'R' ) == -1 ) return -1;    
+DD
     strncpy( gLsgSlots[ SlotNo ].PlayerName, CritterGetName( gObjDude ), 32 );
     if( dbwrite( gLsgSlots[ SlotNo ].PlayerName, 32, 1, gLsgFileHandler ) != 1 ) return -1;
+DD
     if( dbwrite( gLsgSlots[ SlotNo ].SaveName, 30, 1, gLsgFileHandler ) != 1 ) return -1;
+DD
     // RTC time
     t = time( NULL );
     tim = *localtime( &t );
@@ -812,7 +819,9 @@ int LsgSaveHdr( int SlotNo )
     gLsgSlots[ SlotNo ].RtcDay   = tmp[ 1 ];
     gLsgSlots[ SlotNo ].RtcYear  = tmp[ 2 ];
     gLsgSlots[ SlotNo ].RtcTime  = n;
+DD
     if( dbputBewBlk( gLsgFileHandler, tmp, 3 ) == -1 ) return -1; // RTC day/month/year
+DD
     if( dbputLei( gLsgFileHandler, n ) == -1 ) return -1; // RTC time houres + minutes
     // In game time
     ScptGetGameDate( &n, &Gday, &Gyear );
@@ -821,23 +830,31 @@ int LsgSaveHdr( int SlotNo )
     tmp[ 3 ] = Gyear;
     n = ScptGetGameDekaSeconds();
     gLsgSlots[ SlotNo ].GTime = n;                            
+DD
     if( dbputBewBlk( gLsgFileHandler, tmp, 3 ) == -1 ) return -1;
+DD
     if( dbputLei( gLsgFileHandler, n ) == -1 ) return -1;
+DD
     // map level
     gLsgSlots[ SlotNo ].MapLvl = gMapCurrentLvl;
     if( dbputBew( gLsgFileHandler, gMapCurrentLvl ) == -1 ) return -1;
+DD
     // map number
     n = MapGetCurrentMapId();
     gLsgSlots[ SlotNo ].MapNum = n;
     if( dbputBew( gLsgFileHandler, n ) == -1 )  return -1;
+DD
     // map name
     strcpy( stmp, gMap.Name );
     strncpy( gLsgSlots[ SlotNo ].MapFname, CharEditFnameChgExt( gLsgMsgPath, stmp, "sav" ), 16 );
     if( dbwrite( gLsgSlots[ SlotNo ].MapFname, 16, 1, gLsgFileHandler ) != 1 ) return -1;
+DD
     // thumbnail
     if( dbwrite( gLsgThumbnailEnd, THUMBNAIL_SIZE, 1, gLsgFileHandler ) != 1 ) return -1;                                                
+DD
     memset( stmp, 0, sizeof( stmp ) );
     if( dbwrite( stmp, 1, 128, gLsgFileHandler ) != 128 ) return -1;
+DD
     gLsgError = 0;
     return 0;
 }
@@ -1146,7 +1163,8 @@ int LsgFSaveMaps( xFile_t *fh1 )
     int i, n, t;
     char **FileList, stmp[30], *s;
     xFile_t *fh2;
-
+printf("******************************************** SAVE MAPS *****\n");
+DD
     if( PartyLeaveAll() == -1 ) return -1;
     if( MapSavingRandomEncounter( 0 ) == -1 ) return -1;
     if( gPartyCount > 1 ){

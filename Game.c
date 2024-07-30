@@ -206,7 +206,8 @@ int GameProcess( int sel, int a2 )
 	case  -20: if( IfaceGetUiState() ){ IfaceHandSlotSelect();  } break;
 	case  9:  if( IfaceGetUiState() && !gKeyStates[56] && !gKeyStates[184] ){ GSoundPlay( "ib1p1xx1" ); AutomapScanner( 1, 0 ); } break; // [TAB] Automap
 	case  12: GSoundPlay( "ib1p1xx1" ); if( LsgMenuGameLoad( 1 ) == -1 ){ eprintf( "\n ** Error calling LoadGame()! **\n" ); } break; // [CTRL-L]
-	case  16: GSoundPlay( "ib1p1xx1" ); OptPauseWindow( 0 ); break; // [Ctrl-P] Pause
+//	case  16: GSoundPlay( "ib1p1xx1" ); OptPauseWindow( 0 ); break; // [Ctrl-P] Pause
+	case  'Q': case 'q':GSoundPlay( "ib1p1xx1" ); OptPauseWindow( 0 ); break; // [Ctrl-P] Pause
 	case  17: case 24: GSoundPlay( "ib1p1xx1" ); SysQuitDlg(); break;
 	case  19: GSoundPlay( "ib1p1xx1" ); if( LsgSaveGameMenu( 1 ) == -1 ) eprintf( "\n ** Error calling SaveGame()! **\n" ); break; // [CTRL-S]
 	case  22: GSoundPlay( "ib1p1xx1" ); MainGameVersion( Version ); IfcMsgOut( Version ); IfcMsgOut( "Dec 11 1998 16:54:30" ); break; // 

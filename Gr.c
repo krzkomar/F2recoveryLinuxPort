@@ -1,9 +1,19 @@
 #include "FrameWork.h"
 // ** Graphic library **
 
-char gGrUnk02[ 256 ];
+#define GRAY_SCALE        240.0 * 0.0019607844
 
+char gGrGrayMap[ 256 ];
+int *gGrUnk03;
+unsigned int gGrUnk06;
+int dword_596E98;
+int *gGrUnk04;
+int *gGrUnk05;
 char *gGrUnk01;
+int gGrUnk07;
+int gGrUnk08;
+
+
 
 unsigned char GrMaxRGB( unsigned char Color8 )
 {
@@ -19,8 +29,8 @@ unsigned char GrMaxRGB( unsigned char Color8 )
     return g;
 }
 
-void GrUnk08( unsigned int a1, int a2, int a3, int a4, int a5, int a6, char *a7, int a8, unsigned int a9, int a10, char a11 )
-{
+//void GrUnk08( unsigned int a1, int a2, int a3, int a4, int a5, int a6, char *a7, int a8, unsigned int a9, int a10, char a11 ) // nu ?
+//{
 /*
     int v11; // ecx
     char *v12; // ebp
@@ -75,10 +85,10 @@ void GrUnk08( unsigned int a1, int a2, int a3, int a4, int a5, int a6, char *a7,
         v25 = v15;
     }
 */
-}
+//}
 
-void GrUnk07(char *a1, unsigned int a2, int a3, int a4,unsigned char *a5, int a6, int a7 )
-{
+//void GrUnk07(char *a1, unsigned int a2, int a3, int a4,unsigned char *a5, int a6, int a7 ) // nu ?
+//{
 /*
     unsigned char *result; // eax
     unsigned int j; // edx
@@ -106,10 +116,10 @@ void GrUnk07(char *a1, unsigned int a2, int a3, int a4,unsigned char *a5, int a6
         result += v15;
     }
 */
-}
+//}
 
-void GrUnk06( char *result, unsigned int a2, int a3, int a4, char *a5, int a6, char a7 )
-{
+//void GrUnk06( char *result, unsigned int a2, int a3, int a4, char *a5, int a6, char a7 ) // nu ?
+//{
 /*
     unsigned int i;
 
@@ -128,11 +138,10 @@ void GrUnk06( char *result, unsigned int a2, int a3, int a4, char *a5, int a6, c
         result += a4 - a2;
     }
 */
-}
+//}
 
-int GrUnk05( const char *Fname, char *a2, int a3, int a4, int a5, int a6 )
-{
-DD
+//int GrUnk05( const char *Fname, char *a2, int a3, int a4, int a5, int a6 ) // nu
+//{
 /*
     int v7; // ebx
     struct xFile_t *fh; // edi MAPDST
@@ -293,12 +302,11 @@ LABEL_44:
     dbClose(fh);
     return err;
 */
-return -1;
-}
+//return -1;
+//}
 
 int GrCompress( unsigned char *a1, char *a2, int a3 )
 {
-/*
     int v3; // esi
     int v4; // edi
     unsigned int v5; // eax
@@ -318,7 +326,7 @@ int GrCompress( unsigned char *a1, char *a2, int a3 )
     char *v19; // ebp
     char v20; // al
     unsigned int v21; // ebp
-    __int16 v22; // cx
+    short v22; // cx
     unsigned int v23; // eax
     unsigned int v24; // ebp
     int v25; // esi
@@ -326,7 +334,7 @@ int GrCompress( unsigned char *a1, char *a2, int a3 )
     int v27; // ebx
     char v30[32]; // [esp+2h] [ebp-60h]
     int v31; // [esp+22h] [ebp-40h]
-    unsigned __int8 *v32; // [esp+26h] [ebp-3Ch]
+    unsigned char *v32; // [esp+26h] [ebp-3Ch]
     char *v33; // [esp+2Ah] [ebp-38h]
     int v34; // [esp+2Eh] [ebp-34h]
     int v35; // [esp+32h] [ebp-30h]
@@ -335,7 +343,7 @@ int GrCompress( unsigned char *a1, char *a2, int a3 )
     unsigned int v38; // [esp+3Eh] [ebp-24h]
     int v39; // [esp+42h] [ebp-20h]
     char *v40; // [esp+46h] [ebp-1Ch]
-    unsigned __int8 *v41; // [esp+4Ah] [ebp-18h]
+    unsigned char *v41; // [esp+4Ah] [ebp-18h]
     char v42; // [esp+4Eh] [ebp-14h]
 
     v41 = a1;
@@ -347,77 +355,51 @@ int GrCompress( unsigned char *a1, char *a2, int a3 )
     v31 = 0;
     v37 = 1;
     v42 = 1;
-    gGrUnk03 = 0;
-    gGrUnk04 = 0;
-    gGrUnk05 = 0;
-    gGrUnk01 = 0;
-    gGrUnk05 = Malloc(16416u);
-    if ( gGrUnk05 )
-    {
-        gGrUnk04 = Malloc(17504u);
-        if ( gGrUnk04 )
-        {
-            gGrUnk03 = Malloc(16416u);
-            if ( gGrUnk03 )
-            {
-                gGrUnk01 = (char *)Malloc(4122u);
-                if ( gGrUnk01 )
-                    v35 = 1;
+    gGrUnk03 = gGrUnk04 = gGrUnk05 = gGrUnk01 = NULL;    
+    if( ( gGrUnk05 = Malloc( 16416 ) ) ){
+        if( ( gGrUnk04 = Malloc( 17504 ) ) ){            
+            if( ( gGrUnk03 = Malloc( 16416 ) ) ){                
+                if( ( gGrUnk01 = Malloc( 4122 ) ) ) v35 = 1;
             }
         }
     }
-    if ( !v35 )
-    {
+    if( !v35 ){
         eprintf("\nGRAPHLIB: Error allocating compression buffers!\n");
-        if ( gGrUnk05 )
-            Free(gGrUnk05);
-        if ( gGrUnk04 )
-            Free(gGrUnk04);
-        if ( gGrUnk03 )
-            Free(gGrUnk03);
-        if ( gGrUnk01 )
-            Free(gGrUnk01);
+        if( gGrUnk05 ) Free( gGrUnk05 );
+        if( gGrUnk04 ) Free( gGrUnk04 );
+        if( gGrUnk03 ) Free( gGrUnk03 );
+        if( gGrUnk01 ) Free( gGrUnk01 );
         return -1;
     }
     GrUnk03();
     v30[0] = 0;
-    memset(gGrUnk01, 32u, 4078u);
+    memset( gGrUnk01, 32, 4078 );
     v5 = 4078;
     v6 = 0;
-    v36 = 4096;
-    do
-    {
+    do{
         v32 = v41;
-        v33 = &gGrUnk01[v5];
-        v7 = (char *)v41++;
-        gGrUnk01[v5] = *v7;
-        v8 = v31++;
-        if ( v8 >= v39 )
-            break;
-        ++v5;
+        v33 = &gGrUnk01[ v5 ];
+        gGrUnk01[ v5 ] = *v41++;
+        if( ++v31 >= v39 ) break;
         ++v6;
-    }
-    while ( v5 < v36 );
+    }while ( ++v5 < 4096 );
+    
+
     v9 = 4077;
     dword_596E98 = v6;
     do
-        GrUnk02(v9);
+        GrUnk02( v9 );
     while ( v9 != 4059 );
-    GrUnk02(4078);
-    while ( 1 )
-    {
-        if ( v6 < gGrUnk06 )
-            gGrUnk06 = v6;
+    GrUnk02( 4078 );
+    while( 1 ){
+        if( v6 < gGrUnk06 ) gGrUnk06 = v6;
         v11 = v37 + 1;
-        if ( (unsigned int)gGrUnk06 > 2 )
-        {
+        if( (unsigned int)gGrUnk06 > 2 ){
             v30[v37] = gGrUnk08;
             v33 = (char *)((gGrUnk06 - 3) | ((unsigned int)gGrUnk08 >> 4) & 0xF0);
             v37 = v11 + 1;
             v30[v11] = (gGrUnk06 - 3) | ((unsigned int)gGrUnk08 >> 4) & 0xF0;
-        }
-        else
-        {
+        } else {
             gGrUnk06 = 1;
             v30[0] |= v42;
             v12 = gGrUnk01[v3];
@@ -425,11 +407,9 @@ int GrCompress( unsigned char *a1, char *a2, int a3 )
             v30[v13] = v12;
         }
         v42 *= 2;
-        if ( v42 )
-            goto LABEL_33;
+        if ( v42 ) goto LABEL_33;
         v14 = 0;
-        if ( v37 )
-            break;
+        if( v37 ) break;
 LABEL_32:
         gGrUnk07 += v37;
         v30[0] = 0;
@@ -438,91 +418,71 @@ LABEL_32:
 LABEL_33:
         v16 = 0;
         v38 = gGrUnk06;
-        if ( gGrUnk06 )
-        {
-            do
-            {
+        if( gGrUnk06 ){
+            do{
                 v34 = *v41;
                 v17 = v31;
                 ++v41;
                 ++v31;
-                if ( v17 >= v39 )
-                    break;
+                if( v17 >= v39 ) break;
                 GrUnk01(v10);
                 v19 = &gGrUnk01[v18];
                 v20 = v34;
                 gGrUnk01[v18] = v34;
-                if ( v18 < 0x11 )
-                    v19[4096] = v20;
+                if( v18 < 0x11 ) v19[4096] = v20;
                 v21 = v38;
-                v3 = ((_WORD)v3 + 1) & 0xFFF;
+                v3 = ((short)v3 + 1) & 0xFFF;
                 GrUnk02(v3);
-            }
-            while ( v16 < v21 );
+            } while ( v16 < v21 );
         }
-        while ( v16 < v38 )
-        {
+        while ( v16 < v38 ){
             GrUnk01(v10);
-            v3 = ((_WORD)v3 + 1) & 0xFFF;
+            v3 = ((short)v3 + 1) & 0xFFF;
             v10 = (v22 + 1) & 0xFFF;
-            if ( --v6 )
-                GrUnk02(v3);
+            if( --v6 ) GrUnk02(v3);
         }
-        if ( !v6 )
-        {
-            if ( v37 > 1 )
-            {
+        if( !v6 ){
+            if( v37 > 1 ){
                 v23 = 0;
                 v24 = v37;
                 v25 = v39;
-                do
-                {
+                do{
                     ++v4;
                     v26 = v40 + 1;
                     *v40 = v30[v23];
                     v40 = v26;
-                    if ( v4 > v25 )
-                    {
+                    if( v4 > v25 ){
                         v35 = -1;
                         goto LABEL_49;
                     }
                     ++v23;
-                }
-                while ( v23 < v24 );
+                }while ( v23 < v24 );
                 gGrUnk07 += v37;
             }
             goto LABEL_49;
         }
     }
-    while ( 1 )
-    {
+    while( 1 ){
         v15 = v40;
         ++v4;
         *v40 = v30[v14];
         v40 = v15 + 1;
-        if ( v4 > v39 )
-            break;
-        if ( ++v14 >= v37 )
-            goto LABEL_32;
+        if( v4 > v39 ) break;
+        if( ++v14 >= v37 ) goto LABEL_32;
     }
     v35 = -1;
 LABEL_49:
-    Free(gGrUnk05);
-    Free(gGrUnk04);
-    Free(gGrUnk03);
+    Free( gGrUnk05 );
+    Free( gGrUnk04 );
+    Free( gGrUnk03 );
     v27 = v35;
     Free(gGrUnk01);
-    if ( v27 == -1 )
-        return -1;
+    if( v27 == -1 ) return -1;
     return v4;
-*/
-DD
-return -1;
 }
 
 void GrUnk03()
 {
-/*
     int *v0; // ebx
     int *v1; // ecx
     int v2; // eax
@@ -539,14 +499,12 @@ void GrUnk03()
     for( i = 0; i != 4096; i++ ) v1[ i ] = 4096;
     gGrUnk03 = v1;
     gGrUnk04 = v0;
-*/
 }
 
 int GrUnk02( int a1 )
 {
-/*
-    unsigned __int8 *v1; // edi
-    unsigned __int8 *v2; // ebp
+    unsigned char *v1; // edi
+    unsigned char *v2; // ebp
     int *v3; // edx
     int v4; // eax
     int v5; // ecx
@@ -555,7 +513,7 @@ int GrUnk02( int a1 )
     int *result; // eax
     int *v9; // eax
     unsigned int v10; // eax
-    unsigned __int8 *v11; // ebx
+    unsigned char *v11; // ebx
     int v12; // edx
     int *v13; // eax
     int *v14; // ebx
@@ -567,9 +525,9 @@ int GrUnk02( int a1 )
     int v20; // [esp+8h] [ebp-24h]
     int v22; // [esp+10h] [ebp-1Ch]
 
-    v1 = (unsigned __int8 *)gGrUnk01;
-    v2 = (unsigned __int8 *)&gGrUnk01[a1];
-    v22 = (unsigned __int8)gGrUnk01[a1] + 4097;
+    v1 = (unsigned char *)gGrUnk01;
+    v2 = (unsigned char *)&gGrUnk01[a1];
+    v22 = (unsigned char)gGrUnk01[a1] + 4097;
     v3 = gGrUnk05;
     v4 = a1;
     gGrUnk05[v4] = 4096;
@@ -647,14 +605,10 @@ int GrUnk02( int a1 )
 LABEL_18:
     gGrUnk01 = (char *)v1;
     return result;
-*/
-DD
-return -1;
 }
 
 int GrUnk01( int a1 )
 {
-/*
     int *v1; // esi
     int idx; // eax
     int *v4; // ebx
@@ -722,8 +676,6 @@ int GrUnk01( int a1 )
     }
     gGrUnk04 = v1;
     return idx;
-*/
-return -1;
 }
 
 int GrDecompress( unsigned char *InBuff, char *OutBuff, int MaxSize )
@@ -762,86 +714,45 @@ int GrDecompress( unsigned char *InBuff, char *OutBuff, int MaxSize )
     return 0;
 }
 
-void GrUpdateColors( int FirstColor, int LastColor )
+void GrMakeGrayMap( int FirstColor, int LastColor ) // create gray scale
 {
-/*
-    int i; // ebx
-    int v4; // edx MAPDST
-    short v6; // ax
-    int v8; // ecx
-    int v9; // eax
-    char v11; // al
-    int v13; // ecx
-    int v14; // esi
-    int v16; // edx
-    short v17; // ax
-    int v19; // ecx
-    int v20; // eax
-    int v21; // edx
-    char v22; // al
-    int v24; // ecx
+    unsigned int i, gs, tmp, b, g, r;
 
-    if( FirstColor >= 0 && LastColor <= 255 ){
-	v4 = 0;
-        for( i = FirstColor; i <= LastColor; i++ ){
-            PalConvColor8to16( i );
-            PalConvColor8to16( v4 );
-            PalConvColor8to16( v4 );
-            v6 = PalConvColor8to16( i );
-            if( (v6 & 0x7C00) >> 10 <= v8 ){
-                PalConvColor8to16( v4 );
-                v11 = PalConvColor8to16( v4 );
-                if( v13 >> 5 <= (v11 & 0x1F) )
-                    v9 = PalConvColor8to16( v4 ) & 0x1F;
-                else
-                    v9 = (PalConvColor8to16( v4 ) & 0x3E0) >> 5;
-            } else {
-                v9 = (PalConvColor8to16(v4) & 0x7C00) >> 10;
-            }
-            PalConvColor8to16( i );
-            PalConvColor8to16( v4 );
-            PalConvColor8to16( v4 );
-            v17 = PalConvColor8to16( i );
-            if( (v17 & 0x7C00) >> 10 >= v19 ){
-                PalConvColor8to16( v4 );
-                if ( v24 >> 5 >= (PalConvColor8to16( v4 ) & 0x1F) )
-                    v20 = PalConvColor8to16( v4 ) & 0x1F;
-                else
-                    v20 = (PalConvColor8to16( v4 ) & 0x3E0) >> 5;
-            } else {
-                v20 = (PalConvColor8to16( v4 ) & 0x7C00) >> 10;
-            }
-            v4 = lround( (v20 + v9) * 240.0 * 0.0019607844 );            
-	    gGrUnk02[ i ] = gPalColorCubeRGB[0][0][ v4 | (v4 << 10) | (32 * v4) ];
-        }
+    if( FirstColor < 0 || LastColor > 255 || FirstColor > LastColor ) return;
+    
+    for( i = FirstColor; i <= LastColor; i++ ){
+	tmp = PalConvColor8to16( i );
+	r = RGB16_GET_R( tmp );
+	g = RGB16_GET_G( tmp );
+	b = RGB16_GET_B( tmp );
+
+	// select max value from RGB
+        tmp = ( g > b ) ? g : b;
+        if( r > tmp ) tmp = r;
+	gs = tmp;
+
+	// select min value from RGB
+        tmp = ( g < b ) ? g : b;
+        if( r < tmp ) tmp = r;
+        gs += tmp;
+
+        tmp = (unsigned char)lround( gs * GRAY_SCALE );
+        gGrGrayMap[ i ] = gPalColorCubeRGB[ tmp ][ tmp ][ tmp ];
     }
-*/
 }
 
-void GrUnk10( unsigned char *result, int a2, int a3, int a4 )
+// turns image to gray scale
+void GrGrayMapApply( unsigned char *img, int w, int h, int pitch )
 {
-/*
-    int v6; // ecx
-    int v7; // edx
-    int v8; // ebx
+    int nl, i, j;
 
-    v6 = a4 - a2;
-    do
-    {
-        v7 = a2;
-        do
-        {
-            v8 = *result++;
-            *(result - 1) = gGrUnk02[v8 + 1];
-            --v7;
+    nl = pitch - w;
+    for( j = 0; j < h; j++ ){
+        for( i = 0; i < w; i++, img++ ){
+            *img = gGrGrayMap[ *img ];
         }
-        while ( v7 );
-        result += v6;
-        --a3;
+        img += nl;
     }
-    while ( a3 );
-    return result;
-*/
 }
 
 

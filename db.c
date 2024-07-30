@@ -334,8 +334,8 @@ int dbputBewBlk( xFile_t *stream, short *pwdata, int size )
     int i;
 
     for( i= 0; i < size; i++, pwdata++ ){
-        if( ((xputc_int( *pwdata >> 16, stream ) == -1) - 1) == -1 ) return -1;
-        if( ((xputc_int( *pwdata, stream ) == -1) - 1) == -1 ) return -1;
+        if( ((xputc_int( *pwdata >> 16, stream ) != -1) - 1) == -1 ) return -1;
+        if( ((xputc_int( *pwdata, stream ) != -1) - 1) == -1 ) return -1;
     }
     return 0;
 }

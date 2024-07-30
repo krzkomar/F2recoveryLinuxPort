@@ -918,9 +918,7 @@ int MapSavingRandomEncounter( int Flag )
 {
     char stmp[ 16 ];
     Scpt_t *res;
-DD
-printf("!!!\n");
-return 0;
+
     if( !gMap.Name[0] ) return 0;
     AnimReset();
     PartySave();

@@ -284,7 +284,7 @@ int OptPauseWindow( int Flg )
         if( (flg2 = GmouseUnk58()) ) GmouseUnk03();
     }
     GmouseLoadCursor( 1 );
-    OptPauseUnk01( Flg );
+    OptPauseGrayScreen( Flg );
     for( i = 0; i < 4; i++ ){
         if( !( ImgData[ i ] = ArtLoadBmp( ArtMakeId( 6, ImgIds[ i ], 0, 0, 0 ), &Img[ i ], &ImgSize[ i ].Width, &ImgSize[ i ].Height ) ) ) break;
     }
@@ -350,14 +350,14 @@ int OptPauseWindow( int Flg )
     return 0;    
 }
 
-void OptPauseUnk01( int a1 )
+void OptPauseGrayScreen( int a1 )
 {
     if( a1 ){
         MseCursorHide();
     } else {
         MseCursorHide();
         TileUpdate();
-        GrUnk10( (unsigned char *)WinGetSurface( gMapIsoWin ), 640, WinGetHeight( gMapIsoWin ), 640 );
+        GrGrayMapApply( (unsigned char *)WinGetSurface( gMapIsoWin ), 640, WinGetHeight( gMapIsoWin ), 640 );
         WinUpdate( gMapIsoWin );
     }
     MseCursorShow();
@@ -925,7 +925,7 @@ int OptMenuInit()
 
     for( i = 0; i != 11; i++ ) gOptPrefKnobs[ i ].Dir = 0;
     OptLoad();
-    GrUpdateColors( 0, 255 );
+    GrMakeGrayMap( 0, 255 );
     return 0;
 }
 
