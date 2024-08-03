@@ -692,7 +692,9 @@ printf("*************************** SAVE ***************************************
     eprintf( "LOADSAVE: Save file header size written: %d bytes.", dbtell( gLsgFileHandler ) - PrevPos );
     for( i = 0; i < 27; i++ ){
         PrevPos = dbtell( gLsgFileHandler );
-        if( gLsgSaveAction[i]( gLsgFileHandler ) == -1 ){
+DD
+        if( gLsgSaveAction[ i ]( gLsgFileHandler ) == -1 ){
+DD
             eprintf( "\n\tLOADSAVE: ** Error writing save function #%d data! **", i );
             dbClose( gLsgFileHandler );
     	    LsgBackupRestore();
@@ -704,6 +706,7 @@ printf("*************************** SAVE ***************************************
         }
         eprintf( "LOADSAVE: Save function #%d data size written: %d bytes.", i, dbtell( gLsgFileHandler ) - PrevPos );
     }
+DD
     eprintf( "LOADSAVE: Total save data written: %ld bytes.", (long int)dbtell( gLsgFileHandler ) );
     dbClose( gLsgFileHandler );
     sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
@@ -1180,28 +1183,40 @@ DD
     sprintf( gLsgBakFileName, "%s/*.%s", "maps", "sav" );
     if( (n = dbGetFileList( gLsgBakFileName, &FileList ) ) == -1 ) return -1;
     if( dbputBei( fh1, n ) == -1 ){ dbDelFileList( FileList ); return -1; }
+DD
     if( n ){ dbDelFileList( FileList ); return -1; }
+DD
     sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     if( LsgDeleteFiles( gLsgFileName, "sav" ) == -1 ){ dbDelFileList( FileList ); return -1; }
     sprintf( gLsgFileName, "%s/%s/%s%.2d/", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     strcpy( gLsgFileName + strlen( gLsgFileName ), CharEditFnameChgExt(gLsgBakFileName, "automap.db", "sav" ) );
     xFileRemove( gLsgFileName );
+DD
     for( i = 0; i < n; i++ ){
 	if( dbwrite( FileList[ i ], strlen( FileList[ i ] ) + 1, 1, fh1 ) != 1 ){ dbDelFileList( FileList ); return -1; }
         sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, "maps", FileList[ i ] );
         sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1, FileList[ i ] );
         if( FileDeflate( gLsgBakFileName, gLsgCurFileName ) == -1 ) break;
     }
+DD
     dbDelFileList( FileList );    
     sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1, CharEditFnameChgExt( gLsgBakFileName, "automap.db", "sav" ) );
     sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, "maps", "automap.db" );
+DD
     if( FileDeflate( gLsgBakFileName, gLsgCurFileName) == -1 ) return -1;
+DD
     sprintf( gLsgBakFileName, "%s/%s", "maps", "automap.db" );
+DD
     if( !(fh2 = dbOpen( gLsgBakFileName, "rb" ) ) ) return -1;
+DD
     if( (n = dbFileLength( fh2 ) ) == -1 ){ dbClose( fh2 ); return -1; }
+DD
     dbClose( fh2 );
+DD
     if( dbputBei( fh1, n ) == -1 ) return -1;
+DD
     if( PartyRejoinAll() == -1 ) return -1;
+DD
     return 0;            
 }
 

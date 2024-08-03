@@ -323,7 +323,8 @@ int AutomapSave()
     if( AutomapReadHdr( fh2 ) == -1 )
 	{ eprintf( "\nAUTOMAP: Error reading automap database file header!\n" ); Free( gAutomapData ); Free( gAutomapRawData ); dbClose( fh2 ); return -1; }
     AutomapMakeMinimap( gMapCurrentLvl );    
-    if( ( v7 = GrCompress( (unsigned char *)gAutomapData, gAutomapRawData, 10000 ) ) == -1 ) {
+
+    if( ( v7 = GrLZDeflate( (unsigned char *)gAutomapData, gAutomapRawData, 10000 ) ) == -1 ) {
         gAutomapUnk102 = 0;
         gAutomapRawSize = 10000;
     } else {
@@ -462,7 +463,7 @@ int AutomapCreateMinimap( int MapId, int MapLvl )
 	    { eprintf( "\nAUTOMAP: Error allocating decompression buffer!\n" ); dbClose( fh ); return -1; }
 	if( dbreadByteBlk( fh, gAutomapRawData, gAutomapRawSize ) == -1 )
 	    { eprintf( "\nAUTOMAP: Error reading automap database entry data!\n" ); dbClose( fh ); return -1; }
-	if( GrDecompress( (unsigned char *)gAutomapRawData, gAutomapData, 100 * 100 ) == -1 )
+	if( GrLZInflate( (unsigned char *)gAutomapRawData, gAutomapData, 100 * 100 ) == -1 )
 	    { eprintf( "\nAUTOMAP: Error decompressing DB entry!\n" ); dbClose( fh ); Free( gAutomapRawData ); return -1; }
     }
     dbClose( fh );

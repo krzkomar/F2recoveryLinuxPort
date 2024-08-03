@@ -3,16 +3,33 @@
 
 #define GRAY_SCALE        240.0 * 0.0019607844
 
-char gGrGrayMap[ 256 ];
-int *gGrUnk03;
+char 	gGrGrayMap[ 256 ];
+int 	*gGrBuff3;
 unsigned int gGrUnk06;
-int dword_596E98;
-int *gGrUnk04;
-int *gGrUnk05;
-char *gGrUnk01;
-int gGrUnk07;
-int gGrUnk08;
+int 	gGrUnk02;
+int 	*gGrBuff2;
+int 	*gGrBuff1;
+char	*gGrBuff4;
+int 	gGrUnk08;
 
+
+unsigned int 	gGrMatchLength;
+unsigned int 	*gGrLZBranchL;
+unsigned int 	*gGrLZBranchR;
+unsigned int 	*gGrLZNode;
+unsigned char	*gGrBuffData;
+unsigned int 	gGrMatchOffset;
+
+static void GrLZTreeSort( int idx );
+static void GrLZLookForMatch( int Idx );
+static void GrLZDictionaryInit();
+
+#define LZROOT	0x1001
+#define LZNULL	0x1000
+
+#define d_out( dat )	\
+    { *OutBuffer++ = dat;	\
+    if( ++OutSize > InSize ){ err = -1; goto Error; } }
 
 
 unsigned char GrMaxRGB( unsigned char Color8 )
@@ -29,24 +46,13 @@ unsigned char GrMaxRGB( unsigned char Color8 )
     return g;
 }
 
-//void GrUnk08( unsigned int a1, int a2, int a3, int a4, int a5, int a6, char *a7, int a8, unsigned int a9, int a10, char a11 ) // nu ?
-//{
 /*
-    int v11; // ecx
-    char *v12; // ebp
-    char *v13; // edx
-    char *v14; // edx
-    unsigned int v15; // eax
-    char *v16; // ebx
-    unsigned int v17; // ecx
-    unsigned __int8 i; // al
-    unsigned __int8 v19; // al
-    unsigned int v21; // [esp+0h] [ebp-28h]
-    unsigned int v22; // [esp+8h] [ebp-20h]
-    unsigned int v23; // [esp+Ch] [ebp-1Ch]
-    int v24; // [esp+10h] [ebp-18h]
-    unsigned __int8 v25; // [esp+14h] [ebp-14h]
-    unsigned __int8 v26; // [esp+18h] [ebp-10h]
+void GrUnk08( unsigned int a1, int a2, int a3, int a4, int a5, int a6, char *a7, int a8, unsigned int a9, int a10, char a11 ) // nu ?
+{
+    unsigned char i,v19,v25,v26;
+    unsigned int v15, v17, v21, v22, v23;
+    int v11,v24;
+    char *v12,*v13,*v14,*v16;
 
     v11 = a4 - a2;
     v12 = &a7[(a9 >> 3) * a2];
@@ -60,86 +66,51 @@ unsigned char GrMaxRGB( unsigned char Color8 )
     v23 = v15;
     v22 = a10 - v15;
     v16 = (char *)(a8 + a5 + a10 * a6);
-    while ( --v24 != -1 )
-    {
-        v17 = v23;
-        for ( i = v26;
-              v17;
-              --v17 )
-        {
-            if ( (v25 & i) != 0 )
-                *v16 = a11;
+    while( --v24 != -1 ){        
+        i = v26;
+        for( v17 = v23; v17; v17--, v16++ ){
+            if( (v25 & i) != 0 ) *v16 = a11;
             i >>= 1;
-            if ( !i )
-            {
+            if( !i ){
                 v19 = *v14++;
                 v25 = v19;
                 i = 0x80;
-            }
-            ++v16;
+            }            
         }
         v12 += a9 >> 3;
         v16 += v22;
-        LOBYTE(v15) = v12[v21];
+        v15 = v12[ v21 ] & 0xff;
         v14 = &v12[v21 + 1];
         v25 = v15;
     }
-*/
-//}
+}
 
-//void GrUnk07(char *a1, unsigned int a2, int a3, int a4,unsigned char *a5, int a6, int a7 ) // nu ?
-//{
-/*
-    unsigned char *result; // eax
-    unsigned int j; // edx
-    int v11; // ecx
-    int v12; // ebx
-    unsigned int i; // [esp+4h] [ebp-Ch]
-    int v15; // [esp+18h] [ebp+8h]
+void GrUnk07(char *Src, unsigned int Width, int Height, int SrcPitch, unsigned char *img, int DstPitch, char *Shader ) // nu ?
+{
+    unsigned int j, i, diff;
 
-    result = a5;
-    v15 = a6 - a2;
-    for ( i = a4 - a2;
-          --a3 != -1;
-          a1 += i )
-    {
-        for ( j = 0;
-              j < a2;
-              *(result - 1) = *(_BYTE *)(v11 + v12) )
-        {
-            v11 = ((*a1 & 0xF) << 8) + a7;
-            v12 = *result;
-            ++a1;
-            ++result;
-            ++j;
+    diff = DstPitch - Width;
+    for( i = SrcPitch - Width; Height != -1; Height--, Src += i ) {
+        for( j = 0; j < Width; Src++, img++, j++ ){
+            *img = Shader[ (*Src & 0xf ) * 256 + *img ];
         }
-        result += v15;
+        img += diff;
     }
-*/
-//}
+}
 
-//void GrUnk06( char *result, unsigned int a2, int a3, int a4, char *a5, int a6, char a7 ) // nu ?
-//{
-/*
+void GrUnk06( char *MaskData, unsigned int Width, int Height, int MaskPitch, char *ImgData, int DstPitch, char FillColor ) // nu ?
+{
     unsigned int i;
 
-    while ( --a3 != -1 )
-    {
-        for ( i = 0;
-              i < a2;
-              ++a5 )
-        {
-            if ( *result )
-                *a5 = a7;
-            ++result;
-            ++i;
+    while( --Height != -1 ){
+        for( i = 0; i < Width; ImgData++, MaskData++, i++ ){
+            if( *MaskData ) *ImgData = FillColor;
         }
-        a5 += a6 - a2;
-        result += a4 - a2;
+        ImgData += DstPitch - Width;
+        MaskData += MaskPitch - Width;
     }
+}
 */
-//}
-
 //int GrUnk05( const char *Fname, char *a2, int a3, int a4, int a5, int a6 ) // nu
 //{
 /*
@@ -305,380 +276,183 @@ LABEL_44:
 //return -1;
 //}
 
-int GrCompress( unsigned char *a1, char *a2, int a3 )
+int GrLZDeflate( unsigned char *InBuffer, char *OutBuffer, int InSize )
 {
-    int v3; // esi
-    int v4; // edi
-    unsigned int v5; // eax
-    unsigned int v6; // ebx
-    char *v7; // edx
-    int v8; // edx
-    int v9; // edx
-    int v10; // ecx
-    unsigned int v11; // eax
-    char v12; // dl
-    int v13; // ebp
-    int v14; // edx
-    char *v15; // ebp
-    unsigned int v16; // edx
-    int v17; // ebp
-    unsigned int v18; // ecx
-    char *v19; // ebp
-    char v20; // al
-    unsigned int v21; // ebp
-    short v22; // cx
-    unsigned int v23; // eax
-    unsigned int v24; // ebp
-    int v25; // esi
-    char *v26; // ecx
-    int v27; // ebx
-    char v30[32]; // [esp+2h] [ebp-60h]
-    int v31; // [esp+22h] [ebp-40h]
-    unsigned char *v32; // [esp+26h] [ebp-3Ch]
-    char *v33; // [esp+2Ah] [ebp-38h]
-    int v34; // [esp+2Eh] [ebp-34h]
-    int v35; // [esp+32h] [ebp-30h]
-    unsigned int v36; // [esp+36h] [ebp-2Ch]
-    unsigned int v37; // [esp+3Ah] [ebp-28h]
-    unsigned int v38; // [esp+3Eh] [ebp-24h]
-    int v39; // [esp+42h] [ebp-20h]
-    char *v40; // [esp+46h] [ebp-1Ch]
-    unsigned char *v41; // [esp+4Ah] [ebp-18h]
-    char v42; // [esp+4Eh] [ebp-14h]
+    unsigned int DataSrcIdx;
+    char BitMask, Seq[ 32 ];
+    int BlkStop, OutSize, dat, err, i, DataInCnt, tail, nSeq,len;
 
-    v41 = a1;
-    v40 = a2;
-    v39 = a3;
-    v3 = 4078;
-    v4 = 0;
-    v35 = 0;
-    v31 = 0;
-    v37 = 1;
-    v42 = 1;
-    gGrUnk03 = gGrUnk04 = gGrUnk05 = gGrUnk01 = NULL;    
-    if( ( gGrUnk05 = Malloc( 16416 ) ) ){
-        if( ( gGrUnk04 = Malloc( 17504 ) ) ){            
-            if( ( gGrUnk03 = Malloc( 16416 ) ) ){                
-                if( ( gGrUnk01 = Malloc( 4122 ) ) ) v35 = 1;
+    gGrLZNode = NULL;
+    gGrLZBranchR = NULL;
+    gGrLZBranchL = NULL;
+    gGrBuffData = NULL;    
+    if( (gGrLZBranchL = Malloc( (4096 + 8) * 4 )) ){        
+        if( (gGrLZBranchR = Malloc( (4096 + 280) * 4 )) ){            
+            if( (gGrLZNode = Malloc( (4096 + 8) * 4 )) ){
+                if( (gGrBuffData = Malloc( 4096 + 18 + 8 ) ) ) err = 1;
             }
         }
     }
-    if( !v35 ){
-        eprintf("\nGRAPHLIB: Error allocating compression buffers!\n");
-        if( gGrUnk05 ) Free( gGrUnk05 );
-        if( gGrUnk04 ) Free( gGrUnk04 );
-        if( gGrUnk03 ) Free( gGrUnk03 );
-        if( gGrUnk01 ) Free( gGrUnk01 );
+    if( !err ){
+        eprintf( "\nGRAPHLIB: Error allocating compression buffers!\n" );
+        if( gGrLZBranchL ) Free( gGrLZBranchL );
+        if( gGrLZBranchR ) Free( gGrLZBranchR );
+        if( gGrLZNode ) Free( gGrLZNode );
+        if( gGrBuffData ) Free( gGrBuffData );
         return -1;
     }
-    GrUnk03();
-    v30[0] = 0;
-    memset( gGrUnk01, 32, 4078 );
-    v5 = 4078;
-    v6 = 0;
+
+    GrLZDictionaryInit();
+    memset( gGrBuffData, 32, 4078 );    
+    Seq[ 0 ] = 0;    
+    BlkStop = 4096 - 18;
+    for( i = 0; ( i < 18 ) && ( i < InSize ); i++ ) gGrBuffData[ BlkStop + i ] = *InBuffer++;
+    for( i = 0; i < 18; i++ ) GrLZLookForMatch( 4077 - i ); // !! diff
+    GrLZLookForMatch( BlkStop );
+    err = 0;
+    DataSrcIdx = 0;
+    OutSize = 0;
+    nSeq = 1;
+    DataInCnt = 18;
+    tail = 18;
+    BitMask = 1;
     do{
-        v32 = v41;
-        v33 = &gGrUnk01[ v5 ];
-        gGrUnk01[ v5 ] = *v41++;
-        if( ++v31 >= v39 ) break;
-        ++v6;
-    }while ( ++v5 < 4096 );
-    
-
-    v9 = 4077;
-    dword_596E98 = v6;
-    do
-        GrUnk02( v9 );
-    while ( v9 != 4059 );
-    GrUnk02( 4078 );
-    while( 1 ){
-        if( v6 < gGrUnk06 ) gGrUnk06 = v6;
-        v11 = v37 + 1;
-        if( (unsigned int)gGrUnk06 > 2 ){
-            v30[v37] = gGrUnk08;
-            v33 = (char *)((gGrUnk06 - 3) | ((unsigned int)gGrUnk08 >> 4) & 0xF0);
-            v37 = v11 + 1;
-            v30[v11] = (gGrUnk06 - 3) | ((unsigned int)gGrUnk08 >> 4) & 0xF0;
+        if( gGrMatchLength > tail ) gGrMatchLength = tail;
+        if( gGrMatchLength > 2 ){
+    	    // copy of sequence length
+            Seq[ nSeq++ ] = gGrMatchOffset; //!! diff
+            Seq[ nSeq++ ] = ( (gGrMatchOffset >> 4) & 0xf0 ) | (gGrMatchLength - 3);
         } else {
-            gGrUnk06 = 1;
-            v30[0] |= v42;
-            v12 = gGrUnk01[v3];
-            v13 = v37++;
-            v30[v13] = v12;
+    	    // indirect copying
+            gGrMatchLength = 1;
+            Seq[ 0     ] |= BitMask;
+            Seq[ nSeq++ ] = gGrBuffData[ BlkStop ];
         }
-        v42 *= 2;
-        if ( v42 ) goto LABEL_33;
-        v14 = 0;
-        if( v37 ) break;
-LABEL_32:
-        gGrUnk07 += v37;
-        v30[0] = 0;
-        v37 = 1;
-        v42 = 1;
-LABEL_33:
-        v16 = 0;
-        v38 = gGrUnk06;
-        if( gGrUnk06 ){
-            do{
-                v34 = *v41;
-                v17 = v31;
-                ++v41;
-                ++v31;
-                if( v17 >= v39 ) break;
-                GrUnk01(v10);
-                v19 = &gGrUnk01[v18];
-                v20 = v34;
-                gGrUnk01[v18] = v34;
-                if( v18 < 0x11 ) v19[4096] = v20;
-                v21 = v38;
-                v3 = ((short)v3 + 1) & 0xFFF;
-                GrUnk02(v3);
-            } while ( v16 < v21 );
+        if( (BitMask <<= 1) == 0 ){    	    
+	    for( i = 0; i < nSeq; i++ ) d_out( Seq[ i ] );
+    	    Seq[ 0 ] = 0; // map reset
+    	    nSeq = 1;	 // buffer counter reset
+    	    BitMask = 1; // mask reset
         }
-        while ( v16 < v38 ){
-            GrUnk01(v10);
-            v3 = ((short)v3 + 1) & 0xFFF;
-            v10 = (v22 + 1) & 0xFFF;
-            if( --v6 ) GrUnk02(v3);
+        len = gGrMatchLength;
+        for( i = 0; i < len; i++ ){
+            dat = *InBuffer++;
+            if( ++DataInCnt >= InSize ) break;
+            GrLZTreeSort( DataSrcIdx );
+            gGrBuffData[ DataSrcIdx ] = dat;
+            if( DataSrcIdx < 17 ) gGrBuffData[ DataSrcIdx + 4096 ] = dat;
+            DataSrcIdx = (DataSrcIdx + 1) & 0xFFF;
+            BlkStop = (BlkStop + 1) & 0xFFF;
+            GrLZLookForMatch( BlkStop );
         }
-        if( !v6 ){
-            if( v37 > 1 ){
-                v23 = 0;
-                v24 = v37;
-                v25 = v39;
-                do{
-                    ++v4;
-                    v26 = v40 + 1;
-                    *v40 = v30[v23];
-                    v40 = v26;
-                    if( v4 > v25 ){
-                        v35 = -1;
-                        goto LABEL_49;
-                    }
-                    ++v23;
-                }while ( v23 < v24 );
-                gGrUnk07 += v37;
-            }
-            goto LABEL_49;
+        for( ;i < len; i++ ){ // finish, when indata buffer exhausted
+            GrLZTreeSort( DataSrcIdx );
+            DataSrcIdx = (DataSrcIdx + 1) & 0xFFF;
+            BlkStop = (BlkStop + 1) & 0xFFF;
+            if( --tail ) GrLZLookForMatch( BlkStop );
         }
+    } while( tail > 0 );
+    if( nSeq > 1 ){ // flush out rest of the buffer
+	for( i = 0; i < nSeq; i++ ) d_out( Seq[ i ] );
     }
-    while( 1 ){
-        v15 = v40;
-        ++v4;
-        *v40 = v30[v14];
-        v40 = v15 + 1;
-        if( v4 > v39 ) break;
-        if( ++v14 >= v37 ) goto LABEL_32;
-    }
-    v35 = -1;
-LABEL_49:
-    Free( gGrUnk05 );
-    Free( gGrUnk04 );
-    Free( gGrUnk03 );
-    v27 = v35;
-    Free(gGrUnk01);
-    if( v27 == -1 ) return -1;
-    return v4;
+Error:
+    Free( gGrLZBranchL );
+    Free( gGrLZBranchR );
+    Free( gGrLZNode );
+    Free( gGrBuffData );
+    if( err == -1 ) return -1;
+    return OutSize;
 }
 
-void GrUnk03()
+void GrLZDictionaryInit()
 {
-    int *v0; // ebx
-    int *v1; // ecx
-    int v2; // eax
-    int *v3; // edx
-    int i; // eax
+    int i;
 
-    v0 = gGrUnk04;
-    v1 = gGrUnk03;
-    v2 = 4097;
-    v3 = gGrUnk04;
-    do
-        v3[ v2++ ] = 4096;
-    while( v2 != 4353 );
-    for( i = 0; i != 4096; i++ ) v1[ i ] = 4096;
-    gGrUnk03 = v1;
-    gGrUnk04 = v0;
+    for( i = 4097; i < 4353; i++ ) gGrLZBranchR[ i ] = LZNULL;    
+    for( i = 0; i < 4096; i++ ) gGrLZNode[ i ] = LZNULL;
 }
 
-int GrUnk02( int a1 )
+void GrLZLookForMatch( int StartIdx )
 {
-    unsigned char *v1; // edi
-    unsigned char *v2; // ebp
-    int *v3; // edx
-    int v4; // eax
-    int v5; // ecx
-    int v6; // eax
-    int *v7; // eax
-    int *result; // eax
-    int *v9; // eax
-    unsigned int v10; // eax
-    unsigned char *v11; // ebx
-    int v12; // edx
-    int *v13; // eax
-    int *v14; // ebx
-    int *v15; // ecx
-    int v16; // eax
-    int *v17; // ecx
-    int *v18; // [esp+0h] [ebp-2Ch]
-    int *v19; // [esp+4h] [ebp-28h]
-    int v20; // [esp+8h] [ebp-24h]
-    int v22; // [esp+10h] [ebp-1Ch]
+    unsigned int length, DictPos, tmp;    
+    int Match;
 
-    v1 = (unsigned char *)gGrUnk01;
-    v2 = (unsigned char *)&gGrUnk01[a1];
-    v22 = (unsigned char)gGrUnk01[a1] + 4097;
-    v3 = gGrUnk05;
-    v4 = a1;
-    gGrUnk05[v4] = 4096;
-    v5 = 1;
-    gGrUnk04[v4] = v3[v4];
-    v20 = v4 * 4;
-    gGrUnk06 = 0;
-    while ( 1 )
-    {
-        v6 = v22;
-        if ( v5 < 0 )
-        {
-            v9 = &gGrUnk05[v6];
-            if ( *v9 == 4096 )
-            {
-                *v9 = a1;
-                result = (int *)((char *)gGrUnk03 + v20);
-                *(int *)((char *)gGrUnk03 + v20) = v22;
-                gGrUnk01 = (char *)v1;
-                return result;
-            }
-            v22 = *v9;
-        }
-        else
-        {
-            v7 = &gGrUnk04[v6];
-            if ( *v7 == 4096 )
-            {
-                *v7 = a1;
-                result = (int *)((char *)gGrUnk03 + v20);
-                *(int *)((char *)gGrUnk03 + v20) = v22;
-                goto LABEL_18;
-            }
-            v22 = *v7;
-        }
-        v10 = 1;
-        v11 = v2 + 1;
-        v12 = v22 + 1;
-        do
-        {
-            v5 = *v11 - v1[v12];
-            if ( v5 )
-                break;
-            ++v12;
-            ++v10;
-            ++v11;
-        }
-        while ( (int)v10 < 18 );
-        if ( v10 > gGrUnk06 )
-        {
-            gGrUnk06 = v10;
-            gGrUnk08 = v22;
-            if ( v10 >= 18 )
-                break;
-        }
-    }
-    v13 = gGrUnk03;
-    v18 = &gGrUnk03[v22];
-    gGrUnk03[a1] = *v18;
-    v14 = gGrUnk05;
-    v19 = &gGrUnk05[v22];
-    gGrUnk05[a1] = *v19;
-    v15 = gGrUnk04;
-    gGrUnk04[a1] = gGrUnk04[v22];
-    v13[*v19] = a1;
-    v13[v15[v22]] = a1;
-    v16 = *v18;
-    v17 = &v15[v16];
-    if ( v22 == *v17 )
-        *v17 = a1;
+    Match = 1;
+    DictPos = LZROOT + gGrBuffData[ StartIdx ];
+    gGrLZBranchL[ StartIdx ] = LZNULL;
+    gGrLZBranchR[ StartIdx ] = LZNULL;
+    gGrMatchLength = 0;
+    do{
+	do{
+    	    if( Match < 0 ){
+    		if( gGrLZBranchL[ DictPos ] == LZNULL ){
+            	    gGrLZBranchL[ DictPos ] = StartIdx;
+            	    gGrLZNode[ StartIdx ] = DictPos;
+            	    return;
+        	}
+        	DictPos = gGrLZBranchL[ DictPos ];
+    	    } else {
+        	if( gGrLZBranchR[ DictPos ] == LZNULL ){
+            	    gGrLZBranchR[ DictPos ] = StartIdx;
+            	    gGrLZNode[ StartIdx ] = DictPos;
+		    return;
+        	}
+        	DictPos = gGrLZBranchR[ DictPos ];
+    	    }        
+    	    for( length = 1; length < 18; length++ ){
+        	Match = (unsigned int)gGrBuffData[ StartIdx + length ] - (unsigned int)gGrBuffData[ DictPos + length ];
+        	if( Match != 0 ) break;
+    	    }        
+        }while( length <= gGrMatchLength );
+        gGrMatchOffset = DictPos;
+        gGrMatchLength = length;
+    }while( length < 18 );
+
+    gGrLZNode[ StartIdx ] = gGrLZNode[ DictPos ];
+    gGrLZBranchL[ StartIdx ] = gGrLZBranchL[ DictPos ];
+    gGrLZBranchR[ StartIdx ] = gGrLZBranchR[ DictPos ];
+    gGrLZNode[ gGrLZBranchL[ DictPos ] ] = StartIdx;
+    gGrLZNode[ gGrLZBranchR[ DictPos ] ] = StartIdx;
+    
+    tmp = gGrLZNode[ DictPos ];
+    if( gGrLZBranchR[ tmp ] == DictPos )
+        gGrLZBranchR[ tmp ] = StartIdx;
     else
-        v14[v16] = a1;
-    result = (int *)v22;
-    gGrUnk03[v22] = 4096;
-LABEL_18:
-    gGrUnk01 = (char *)v1;
-    return result;
+        gGrLZBranchL[ tmp ] = StartIdx;
+    gGrLZNode[ DictPos ] = LZNULL;
 }
 
-int GrUnk01( int a1 )
+void GrLZTreeSort( int idx )
 {
-    int *v1; // esi
-    int idx; // eax
-    int *v4; // ebx
-    int v5; // eax
-    int *p; // eax
-    int v7; // ebp
-    int *v8; // ecx
-    int v9; // edx
-    int v10; // edx
-    int *v11; // ebx
-    int v12; // ecx
-    int *v13; // edx
-    int *v14; // [esp+0h] [ebp-20h]
-    int *v15; // [esp+4h] [ebp-1Ch]
+    unsigned int k, m;
 
-    v1 = gGrUnk04;
-    idx = 4 * a1;
-    if ( *(int *)((char *)gGrUnk03 + idx) != 4096 )
-    {
-        v4 = (int *)((char *)gGrUnk04 + idx);
-        if ( *(int *)((char *)gGrUnk04 + idx) == 4096 )
-        {
-            v5 = *(int *)((char *)gGrUnk05 + idx);
-        }
-        else
-        {
-            p = (int *)((char *)gGrUnk05 + idx);
-            v7 = *p;
-            if ( *p == 4096 )
-            {
-                v5 = *v4;
+    if( gGrLZNode[ idx ] == LZNULL ) return;
+    if( gGrLZBranchR[ idx ] != LZNULL ){
+        if( gGrLZBranchL[ idx ] != LZNULL ){
+            k = gGrLZBranchL[ idx ];
+            if( gGrLZBranchR[ k ] != LZNULL ){
+                while( gGrLZBranchR[ k = gGrLZBranchR[ k ] ] != LZNULL );
+                gGrLZBranchR[ gGrLZNode[ k ] ] = gGrLZBranchL[ k ];
+                gGrLZNode[ gGrLZBranchL[ k ] ] = gGrLZNode[ k ];
+                gGrLZBranchL[ k ] = gGrLZBranchL[ idx ];
+                gGrLZNode[ gGrLZBranchL[ idx ] ] = k;
             }
-            else
-            {
-                v5 = *p;
-                if ( gGrUnk04[v7] != 4096 )
-                {
-                    do
-                        v5 = gGrUnk04[v5];
-                    while ( gGrUnk04[v5] != 4096 );
-                    v14 = gGrUnk05;
-                    v15 = &gGrUnk05[v5];
-                    v8 = gGrUnk03;
-                    gGrUnk04[gGrUnk03[v5]] = *v15;
-                    v8[*v15] = v8[v5];
-                    v9 = v14[a1];
-                    *v15 = v9;
-                    v8[v9] = v5;
-                }
-                v10 = v1[a1];
-                v11 = gGrUnk03;
-                v1[v5] = v10;
-                v11[v10] = v5;
-            }
-        }
-        v12 = gGrUnk03[a1];
-        gGrUnk03[v5] = v12;
-        v13 = &v1[v12];
-        if ( a1 == *v13 )
-            *v13 = v5;
-        else
-            gGrUnk05[v12] = v5;
-        idx = (int)gGrUnk03;
-        gGrUnk03[a1] = 4096;
-    }
-    gGrUnk04 = v1;
-    return idx;
+            gGrLZBranchR[ k ] = gGrLZBranchR[ idx ];
+            gGrLZNode[ gGrLZBranchR[ idx ] ] = k;
+        } else
+            k = gGrLZBranchR[ idx ];
+    } else
+        k = gGrLZBranchL[ idx ];
+    gGrLZNode[ k ] = gGrLZNode[ idx ];
+    m = gGrLZNode[ idx ];
+    if( gGrLZBranchR[ m ] == idx )
+        gGrLZBranchR[ m ] = k;
+    else
+        gGrLZBranchL[ m ] = k;
+    gGrLZNode[ idx ] = LZNULL;
 }
 
-int GrDecompress( unsigned char *InBuff, char *OutBuff, int MaxSize )
+int GrLZInflate( unsigned char *InBuff, char *OutBuff, int MaxSize )
 {
     int Size, FrmIdx;
     unsigned short mask,len;
@@ -687,15 +461,15 @@ int GrDecompress( unsigned char *InBuff, char *OutBuff, int MaxSize )
     FrmIdx = 0xfee;
     Size = 0;
     mask = 0;
-    if( !( gGrUnk01 = Malloc( 0x101a ) ) ){ eprintf( "\nGRAPHLIB: Error allocating decompression buffer!\n" ); return -1; }
-    memset( gGrUnk01, 0x20, 0xfee );
+    if( !( gGrBuff4 = Malloc( 0x101a ) ) ){ eprintf( "\nGRAPHLIB: Error allocating decompression buffer!\n" ); return -1; }
+    memset( gGrBuff4, 0x20, 0xfee );
     do{
         mask >>= 1;
         if( (mask & 0x100) == 0 ){
             mask = ( unsigned short)*InBuff++ | 0xff00;
         }
         if( mask & 0x01 ){
-    	    gGrUnk01[ FrmIdx++ ] = *InBuff;
+    	    gGrBuff4[ FrmIdx++ ] = *InBuff;
     	    *OutBuff++ = *InBuff++;
     	    FrmIdx &= 0xFFF;
     	} else {
@@ -703,14 +477,14 @@ int GrDecompress( unsigned char *InBuff, char *OutBuff, int MaxSize )
 	    len = (InBuff[ 1 ] & 0x0F) + 2;    
 	    InBuff += 2;
 	    for( i = 0; i <= len; i++ ){
-    		*OutBuff = gGrUnk01[ FrmIdx++ ] = gGrUnk01[ (patt + i) & 0xFFF ];
+    		*OutBuff = gGrBuff4[ FrmIdx++ ] = gGrBuff4[ (patt + i) & 0xFFF ];
     		FrmIdx &= 0xFFF;
     		OutBuff++;
-    		if( ++Size >= MaxSize ){ Free( gGrUnk01 ); return 0; }
+    		if( ++Size >= MaxSize ){ Free( gGrBuff4 ); return 0; }
 	    }
         }
     }while( Size++ < MaxSize );
-    Free( gGrUnk01 );
+    Free( gGrBuff4 );
     return 0;
 }
 
@@ -754,5 +528,6 @@ void GrGrayMapApply( unsigned char *img, int w, int h, int pitch )
         img += nl;
     }
 }
+
 
 
