@@ -274,12 +274,10 @@ int dbputLei( xFile_t *stream, int idata)
     return dbputb( stream, idata >> 24 );
 }
 
-int dbputBed( xFile_t *stream, double data )
+int dbputBed( xFile_t *stream, unsigned int wdata )
 { 
-DD
-//    if( dbputBew( stream, wdata >> 16) != -1 ) return -1;
-//    return dbputBew( stream, wdata );
-    return -1;
+    if( dbputBew( stream, wdata >> 16) != -1 ) return -1;
+    return dbputBew( stream, wdata );
 }
 
 int dbreadByteBlk( xFile_t *stream, char *buff, int size )

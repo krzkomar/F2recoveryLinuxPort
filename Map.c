@@ -668,10 +668,10 @@ int MapLoadSAV( char *fname )
     err = MapLoadMAP( stmp2 );
     if( ScptGetGameDekaSeconds() >= gMap.Time ){
 	if( ((ScptGetGameDekaSeconds() - gMap.Time) / 3600 ) >= 24 ) UseUnjamAll();
-	if( MapClearKilled() == -1 ){ eprintf( "\nError: Critter aging failed on map load!" ); return -1; }
+	if( MapClearKilled() == -1 ){ eprintf( "Error: Critter aging failed on map load!" ); return -1; }
     }
     if( !WmIsCurrentMapMapSaved() ){
-        eprintf( "\nDestroying RANDOM encounter map." );
+        eprintf( "Destroying RANDOM encounter map." );
         strcpy( stmp1, gMap.Name );
         CharEditFnameChgExt( gMap.Name, stmp1, "sav" );
         LsgDeleteFile( "maps/", gMap.Name );
@@ -934,13 +934,13 @@ int MapSavingRandomEncounter( int Flag )
     gMap.MapFlags |= 0x01;
     gMap.Time = ScptGetGameDekaSeconds();
     if ( (Flag & 0x01) && !WmIsCurrentMapMapSaved() ){
-        eprintf( "\nNot saving RANDOM encounter map." );
+        eprintf( "Not saving RANDOM encounter map." );
         strcpy( stmp, gMap.Name );
         CharEditFnameChgExt( gMap.Name, stmp, "sav" );
         LsgDeleteFile( "maps/", gMap.Name );
         strcpy( gMap.Name, stmp );
     } else {
-	eprintf( "\n Saving \".sav\" map." );
+	eprintf( "Saving \".sav\" map." );
 	strcpy( stmp, gMap.Name );
         CharEditFnameChgExt( gMap.Name, stmp, "sav" );
 	if( MapMapSave() == -1 ) return -1;

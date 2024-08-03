@@ -26,7 +26,7 @@ int dbputb( xFile_t *stream, int bdata );
 int dbputBew( xFile_t *stream, short wdata );
 int dbputBei( xFile_t *stream, int idata );
 int dbputLei( xFile_t *stream, int idata );
-int dbputBed( xFile_t *stream, double data );
+int dbputBed( xFile_t *stream, unsigned int data );
 int dbreadByteBlk( xFile_t *stream, char *buff, int size );
 int dbreadBewBlk( xFile_t *stream, short *pwdata, int size );
 int dbreadBeiBlk( xFile_t *stream, int *pidata, int size );

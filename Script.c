@@ -1010,7 +1010,7 @@ int ScptGameInit()
 
 int ScptGameReset()
 {
-    eprintf( "\nScripts: [Game Reset]\n" );
+    eprintf( "Scripts: [Game Reset]" );
     ScptReset();
     ScptGameInit();
     PartyUnk06();

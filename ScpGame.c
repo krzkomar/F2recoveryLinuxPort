@@ -196,7 +196,7 @@ void ScrGame_OverrideMapStart( Intp_t *scr )
     GETARGI( scr, type[ 3 ], x, 3, "override_map_start" );
     SCP_DBGA( "override_map_start( [%x]%i, [%x]%i, [%x]%i, [%x]%i )", type[3], x, type[2], y, type[1], lvl, type[0], rotation );
     sprintf( stmp, "OVERRIDE_MAP_START: x: %d, y: %d", x, y );
-    eprintf( "%s\n", stmp );
+    eprintf( "%s", stmp );
     
     GridPos = 200 * y + x;
     if( GridPos == -1 ) return;
@@ -1747,7 +1747,7 @@ void ScrGame_SetObjVisibility( Intp_t *scr )
         return;
     }
     if( LsgPending() ){
-        eprintf( "\nError: attempt to set_obj_visibility in load/save-game: %s!", scr->FileName );
+        eprintf( "Error: attempt to set_obj_visibility in load/save-game: %s!", scr->FileName );
         return;
     }
     if( val ){ // set visibility

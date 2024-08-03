@@ -1223,9 +1223,9 @@ int GSoundMapAmbient( Obj_t *nu, int *arg )
     time = TimerGetTime();
     if( TimerDiff( time, gGSoundBgPlayTime ) >= 5000 ){
         if( GSoundPlay( SfxFileName ) == -1 )
-            eprintf( "\nGsound: playing ambient map sfx: '%s'.  FAILED", SfxFileName );
+            eprintf( "Gsound: playing ambient map sfx: '%s'.  FAILED", SfxFileName );
         else
-            eprintf( "\nGsound: playing ambient map sfx: '%s'", SfxFileName );
+            eprintf( "Gsound: playing ambient map sfx: '%s'", SfxFileName );
     }
     gGSoundBgPlayTime = time;
     return 0;

@@ -97,7 +97,7 @@ int EvQeSave( xFile_t *fh )
     
     for( i = 0, p = gEvQueue; p; i++,  p = p->Next );
     
-    if( dbputBei( fh, i ) != -1 ) return -1;
+    if( dbputBei( fh, i ) == -1 ) return -1;
     for( p = gEvQueue; p; p = p->Next ){
         tmp = ( p->Ptr ) ? *p->Ptr : -2;
         if( dbputBei( fh, p->TimeEv ) == -1 ) return -1;

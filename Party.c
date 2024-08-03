@@ -307,12 +307,10 @@ int PartyPrepLoadInstance( Party_t *pm )
             memset( pm->LocalVars, 0, scr->LocVarsCnt * sizeof( int ) );
         }
     }
-DD
     for( i = 1; i < pm->dude->Critter.Box.Cnt; i++ ){
 	PartyItemSave( pm->dude->Critter.Box.Box[ i ].obj );
     }
     scr->Flags &= ~0x18;
-DD
     ScptRemove( scr->Id );
     if( OBJTYPE( pm->dude->Pid ) == TYPE_CRIT ) AnimUnk24( pm->dude, pm->dude->Orientation, -1 );
     return 0;
@@ -324,10 +322,9 @@ int PartyRecoverLoad()
     int i;
 
     if( gPartyLock != 1 ){
-        eprintf( "\npartyMemberRecoverLoad DENIED" );
+        eprintf( "partyMemberRecoverLoad DENIED" );
         return -1;
     }
-    eprintf( "\n" );
     for( i = 0; i < gPartyMembersCount; i++ ){
     	if( PartyRecoverLoadInstance( &gParty[ i ] ) ) return -1;
         eprintf( "[Party Member %d]: %s", i, CritterGetName( gParty[ i ].dude ) );
@@ -726,7 +723,7 @@ int PartyFix()
     Scpt_t *scr;
     int v2,TotCrittCnt,v18,i;
 
-    eprintf( "\n\n\n[Party Members]:" );
+    eprintf( "[Party Members]:" );
     v18 = 0;
     TotCrittCnt = 0;
     for( obj = ObjGetObjectFirst(); obj; obj = ObjGetObjectNext() ){
@@ -737,7 +734,7 @@ int PartyFix()
     	    if( obj->Pid == gPartyPids[ i ] ){ v2 = 1; break; }
         }            
         if( !v2 ) continue; // object is not a member of the party
-        eprintf( "\n   PM: %s", CritterGetName( obj ) );
+        eprintf( "PM: %s", CritterGetName( obj ) );
 	// 
         if( obj->ScrId == -1 ){
             v18 = 1;
@@ -762,12 +759,12 @@ int PartyFix()
             if( obj->Pid == v10->Pid ) break;
     	}
     	if( obj == v10 ){
-    	    eprintf( "\nError: Attempting to destroy evil obj doppleganger FAILED!" );
+    	    eprintf( "Error: Attempting to destroy evil obj doppleganger FAILED!" );
     	    continue;
     	}
-    	eprintf( "\nDestroying evil obj doppleganger!" );
+    	eprintf( "Destroying evil obj doppleganger!" );
     	if( obj->ScrId == -1 ){
-    	    if( EvQeRmEventType( obj, EV_SCRIPT_TIMER  ) == -1 ) eprintf( "\nERROR Removing Timed Events on FIX remove!!" );
+    	    if( EvQeRmEventType( obj, EV_SCRIPT_TIMER  ) == -1 ) eprintf( "ERROR Removing Timed Events on FIX remove!!" );
     	} else {
     	    ScptRemove( obj->ScrId );
     	    obj->ScrId = -1;
@@ -777,11 +774,11 @@ int PartyFix()
     }
     for( i = 0; i < gPartyMembersCount; i++ ){
         if( ScptPtr( gParty[ i ].dude->ScrId, &scr ) == -1 )
-            eprintf( "\nError: Failed to fix party member obj scripts!" );
+            eprintf( "Error: Failed to fix party member obj scripts!" );
         else
             scr->TimeEv = gParty[ i ].dude;
     }
-    eprintf( "\nTotal Critter Count: %d", TotCrittCnt );
+    eprintf( "Total Critter Count: %d", TotCrittCnt );
     return 0;
 }
 

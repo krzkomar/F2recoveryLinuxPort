@@ -49,7 +49,7 @@ int CombatInit()
     gCombat00 = 0;
     gCombatRoundCnt = 0;
     gCombatCritters = NULL;
-    gCombat03 = 0;
+    gCombat03 = NULL;
     gCombatTurns = 0;
     gCombat05 = 0;
     gCombatCritCnt = 0;
@@ -69,11 +69,10 @@ int CombatInit()
 
 int CombatReset()
 {
-DD
     gCombat00 = 0;
     gCombatRoundCnt = 0;
     gCombatCritters = NULL;
-    gCombat03 = 0;
+    gCombat03 = NULL;
     gCombatTurns = 0;
     gCombat05 = 0;
     gCombatCritCnt = 0;
@@ -186,7 +185,7 @@ int CombatFSave( xFile_t *fh )
     int i;
 
     if( dbputBei( fh, gCombatStatus ) == -1 ) return -1;
-    if( !IN_COMBAT== 0 ) return 0;
+    if( !IN_COMBAT ) return 0;
     if( dbputBei( fh, gCombat00 ) == -1 ) return -1;
     if( dbputBei( fh, gCombatMovePts ) == -1 ) return -1;
     if( dbputBei( fh, gCombat21 ) == -1 ) return -1;
