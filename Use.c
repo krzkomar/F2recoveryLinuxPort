@@ -163,7 +163,7 @@ DD
         if( Dsc && !strcmp( Dsc, gProtoUnk100[0] ) ) v10 = NULL;
         if( !v10 || !*v10 ){
             msg1.Id = 493; // 'YouSee nothing out of the ordinary'
-            if( MessageGetMsg( &gProtoMessages, &msg1 ) != 1 ) eprintf( "\nError: Can't find msg num!" );
+            if( MessageGetMsg( &gProtoMessages, &msg1 ) != 1 ) eprintf( "Error: Can't find msg num!" );
             Dsc = msg1.Text;
             OutCb( Dsc );
         } else {
@@ -191,22 +191,22 @@ DD
                 v17 /= (Val + 1);
             }
             msg1.Id = v17 + 500; // Examine text 'dead/almost dead,seve ....
-            if( MessageGetMsg( &gProtoMessages, &msg1 ) != 1 ){ eprintf( "\nError: Can't find msg num!" ); exit( 1 ); }
+            if( MessageGetMsg( &gProtoMessages, &msg1 ) != 1 ){ eprintf( "Error: Can't find msg num!" ); exit( 1 ); }
             if( v17 > 4 ){
                 msg1.Id = 550; // examine text error msg
-                if( MessageGetMsg( &gProtoMessages, &msg1) != 1 ){ eprintf( "\nError: Can't find msg num!" ); exit( 1 ); }
+                if( MessageGetMsg( &gProtoMessages, &msg1) != 1 ){ eprintf( "Error: Can't find msg num!" ); exit( 1 ); }
                 eprintf( "%s", msg1.Text );
                 return 0;
             }
             if( obj == gObjDude ){
                 msg2.Id = idx + 520;
-                if( MessageGetMsg( &gProtoMessages, &msg2 ) != 1 ){ eprintf( "\nError: Can't find msg num!" ); exit( 1 ); }
+                if( MessageGetMsg( &gProtoMessages, &msg2 ) != 1 ){ eprintf( "Error: Can't find msg num!" ); exit( 1 ); }
                 sprintf( stmp1, msg2.Text, msg1.Text );
             } else {
                 msg2.Id = idx + 521; // examine text
-                if( MessageGetMsg( &gProtoMessages, &msg2 ) != 1 ){ eprintf( "\nError: Can't find msg num!" ); exit( 1 ); }
+                if( MessageGetMsg( &gProtoMessages, &msg2 ) != 1 ){ eprintf( "Error: Can't find msg num!" ); exit( 1 ); }
                 msg3.Id = FeatGetVal(obj, 34) + 522;
-                if( MessageGetMsg( &gProtoMessages, &msg3 ) != 1 ){ eprintf( "\nError: Can't find msg num!" ); exit( 1 ); }
+                if( MessageGetMsg( &gProtoMessages, &msg3 ) != 1 ){ eprintf( "Error: Can't find msg num!" ); exit( 1 ); }
                 sprintf( stmp1, msg3.Text, msg1.Text );
             }
         } else {
@@ -214,11 +214,11 @@ DD
             RHandObj = InvGetRHandObj( obj );
             obj2 = RHandObj;
             if( RHandObj && ItemGetObjType( RHandObj ) != PR_ITEM_WEAPON ) obj2 = NULL;
-            if( MessageGetMsg( &gProtoMessages, &msg3 ) != 1 ){ eprintf( "\nError: Can't find msg num!" ); exit( 1 ); }
+            if( MessageGetMsg( &gProtoMessages, &msg3 ) != 1 ){ eprintf( "Error: Can't find msg num!" ); exit( 1 ); }
             if( obj2 ){
                 msg4.Id = 546;                  // examine wielding
                 if( Item48( obj2 ) ) msg4.Id++;
-                if( MessageGetMsg( &gProtoMessages, &msg4 ) != 1 ){ eprintf( "\nError: Can't find msg num!" ); exit( 1 ); }
+                if( MessageGetMsg( &gProtoMessages, &msg4 ) != 1 ){ eprintf( "Error: Can't find msg num!" ); exit( 1 ); }
                 sprintf( stmp2, "%s%s", msg3.Text, msg4.Text );
                 if( Item48( obj2 ) ){
                     sprintf( stmp1, stmp2, FeatGetVal( obj, 35 ), 
@@ -229,7 +229,7 @@ DD
             } else {
                 msg4.Id = 545;
                 if( CritterUnk30( obj ) ) msg4.Id--;
-                if( MessageGetMsg( &gProtoMessages, &msg4 ) != 1 ){ eprintf( "\nError: Can't find msg num!" ); exit( 1 ); }
+                if( MessageGetMsg( &gProtoMessages, &msg4 ) != 1 ){ eprintf( "Error: Can't find msg num!" ); exit( 1 ); }
                 sprintf( stmp1, msg3.Text, FeatGetVal( obj, 35 ), FeatGetVal( obj, 7 ) );
                 strcpy( &stmp1[ strlen( stmp1 ) ], msg4.Text );
             }
@@ -237,7 +237,7 @@ DD
         if( CritterUnk30(obj) ){
             msg3.Id = ( FeatGetVal( obj, 35 ) >= FeatGetVal( obj, 7 ) ) + 530;           // examine woman
             if( obj == gObjDude ) msg3.Id += 2;
-            if( MessageGetMsg( &gProtoMessages, &msg3 ) != 1 ){ eprintf( "\nError: Can't find msg num!" ); exit( 1 ); }
+            if( MessageGetMsg( &gProtoMessages, &msg3 ) != 1 ){ eprintf( "Error: Can't find msg num!" ); exit( 1 ); }
             strcpy( &stmp1[ strlen( stmp1 ) ], msg3.Text );
         }
         OutCb( stmp1 );
@@ -248,7 +248,7 @@ DD
         v42 = GlobVarGet( 18 );
         msg1.Id = 549; // examine car
         if( !v42 ) msg1.Id = 548;
-        if( MessageGetMsg((Msg_t *)&gProtoMessages, &msg1) != 1 ) eprintf( "\nError: Couldn't find message!" );
+        if( MessageGetMsg((Msg_t *)&gProtoMessages, &msg1) != 1 ) eprintf( "Error: Couldn't find message!" );
         if( v42 ){
             sprintf( stmp1, msg1.Text, 100 * WmCarFuelGauge() / 80000 ); // gas gauge
         } else {

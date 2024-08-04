@@ -294,7 +294,7 @@ void MveFinish( int StopPlay )
     if( gMveUnk01 ) gMveUnk01();
     
     MovGetFrameNo( &dropped, &Dropped );
-    eprintf( "Frames %d, dropped %d\n", dropped, Dropped );
+    eprintf( "Frames %d, dropped %d", dropped, Dropped );
     if( StopPlay ) MovStop();
     MovClose();
     dbClose( gMveFile );
@@ -421,7 +421,7 @@ xFile_t *MveOpenMovie( char *fname )
     gMveFile = dbOpen( fname, "rb" );
     if( !gMveFile ){
         if( !gMveUnk24 ){
-            eprintf( "Couldn't find movie file %s\n", fname );
+            eprintf( "Couldn't find movie file %s", fname );
             return NULL;
         }
         while( !gMveFile && gMveUnk24() ) gMveFile = dbOpen( fname, "rb" );
@@ -440,9 +440,9 @@ void MveLoadSubtitles( char *fname )
     gMveSubsHeight = gFont.ChrHeight() + 4;
     if( gMveGetSubsFname ) fname = gMveGetSubsFname();
     strcpy( stmp, fname );
-    eprintf( "Opening subtitle file %s\n", stmp );    
+    eprintf( "Opening subtitle file %s", stmp );    
     if( !(fh = dbOpen( stmp, "r" ) ) ){
-        eprintf( "Couldn't open subtitle file %s\n", stmp );
+        eprintf( "Couldn't open subtitle file %s", stmp );
         gMveStat &= ~MVE_STAT_SUBS;
         return;
     }
@@ -458,7 +458,7 @@ void MveLoadSubtitles( char *fname )
         if( (s = strchr( stmp, '\n' ) ) ) *s = '\0';        
         if( (s = strchr( stmp, '\r' ) ) ) *s = '\0';        
         if( !(s = strchr( stmp, ':' ) ) ){
-            eprintf( "subtitle: couldn't parse %s\n", stmp );
+            eprintf( "subtitle: couldn't parse %s", stmp );
             continue;
         }
         *s = '\0';
@@ -471,7 +471,7 @@ void MveLoadSubtitles( char *fname )
         p = NewSub;
     }
     dbClose( fh );
-    eprintf( "Read %d subtitles\n", SubTitlesCnt );
+    eprintf( "Read %d subtitles", SubTitlesCnt );
 }
 
 void MvePrintSubs( )
@@ -560,7 +560,7 @@ int MveStartSubs( int WinId, char *fname, int (*a2)(void) ) // no xref
     VidRect_t pArea;
 
     MveSurfaceFree();
-    eprintf( "runToEnd\n" );
+    eprintf( "runToEnd" );
     gMveFile = MveOpenMovie( fname );
     if( !gMveFile ) return 1;
     gMveWin = WinId;
@@ -643,12 +643,12 @@ void MvePlay()
     
     if( !gMvePlaying ) return;    
     if( gMveStat & MVE_STAT_ABORT ){
-        eprintf( "Movie aborted\n" );
+        eprintf( "Movie aborted" );
         MveFinish( 1 );
         return;
     }
     if( gMveStat & MVE_STAT_ERROR ){
-        eprintf( "Movie error\n" );
+        eprintf( "Movie error" );
         MveFinish( 1 );
         return;
     }        

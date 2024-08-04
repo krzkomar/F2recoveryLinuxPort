@@ -995,7 +995,7 @@ int CombatAttack( Obj_t *Critter, Obj_t *Target, int HandSlot, int BodyPart )
         if( ArtFileExist( ArtMakeId( 1, ART_IDX( Critter ), 17, ART_TYP( Critter ), ART_GRP( Critter ) ) ) ) HandSlot = 5;
     }
     CombatSetUp( &gCombat20, Critter, Target, HandSlot, BodyPart );
-    eprintf( "computing attack...\n" );
+    eprintf( "computing attack..." );
     if( CombatUnk42( &gCombat20 ) == -1 ) return -1;
     if( gCombat07 ){
         gCombat20.CompDmg += gCombat07->Bonus.Unk01;
@@ -1012,7 +1012,7 @@ int CombatAttack( Obj_t *Critter, Obj_t *Target, int HandSlot, int BodyPart )
         ranged = 1;
     }
     ApCost = ItemGetAPCost( Critter, gCombat20.Hand, ranged );
-    eprintf( "sequencing attack...\n" );
+    eprintf( "sequencing attack..." );
     if( ActionAttack( &gCombat20 ) == -1 ) return -1;
     Critter->Critter.State.CurrentAP = ( ApCost > Critter->Critter.State.CurrentAP ) ? 0 : ( Critter->Critter.State.CurrentAP - ApCost );
     if( Critter == gObjDude ){
@@ -1022,7 +1022,7 @@ int CombatAttack( Obj_t *Critter, Obj_t *Target, int HandSlot, int BodyPart )
     gCombat08 = 1;
     gCombat12 = 1;
     CombatStopAttack( Critter, Target );
-    eprintf( "running attack...\n" );
+    eprintf( "running attack..." );
     return 0;            
 }
 
@@ -1295,7 +1295,7 @@ void CombatExplosion( Combat_t *cmbt, int a2, int flg1, int a4 )
     VAR_DD = 0;
     VAR_AA = GridId;
     if( GridId == -1 ){
-        eprintf( "\nError: compute_explosion_on_extras: Called with bad target/tileNum" );
+        eprintf( "Error: compute_explosion_on_extras: Called with bad target/tileNum" );
         return;
     }
     while( cmbt->Count < 6 ){
@@ -1608,7 +1608,7 @@ int CombatGetHitChance( Obj_t *Attacker, int arg2, Obj_t *Target, int Penalty, i
         if( tmp == 0 ) HitChance -= 20; // easy
     }
     if( HitChance > 95 ) HitChance = 95; // keep 5% uncertainty
-    if( HitChance < -100 ) eprintf( "Whoa! Bad skill value in determine_to_hit!\n" );
+    if( HitChance < -100 ) eprintf( "Whoa! Bad skill value in determine_to_hit!" );
     return HitChance;
 }
 
@@ -2330,7 +2330,7 @@ void CombatStartAttack( Obj_t *Target )
                 CombatAttack( gObjDude, Target, HandSlot, BP_ALL );
                 return;
             }
-            if( ShotValue != 1 ) eprintf( "Bad called shot value %d\n", ShotValue );
+            if( ShotValue != 1 ) eprintf( "Bad called shot value %d", ShotValue );
             if( CombatFocusMenu( Target, &BodyPart, HandSlot ) != -1 ){
                 CombatAttack( gObjDude, Target, HandSlot, BodyPart );
                 return;

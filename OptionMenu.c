@@ -103,6 +103,7 @@ OptPref_t gOptPrefKnobs[ 19 ] = {
 
 
 int OptPrefUpdate( int WgNo );
+void OptPauseGrayScreen( int a1 );
 
 /*********************************************/
 
@@ -310,7 +311,7 @@ int OptPauseWindow( int Flg )
     if( ( win = WinCreateWindow( WinPosX, WinPosY, ImgSize[0].Width, ImgSize[0].Height, 256, 18 ) ) == -1 ){
         for( i = 0; i != 4; i++ ) ArtClose( Img[ i ] );        
         MessageClose(&gOptPrefMsgBase);
-        eprintf("\n** Error opening pause window! **\n");
+        eprintf("** Error opening pause window! **");
         return -1;
     } 
     p = ImgData[ 0 ];
@@ -371,7 +372,7 @@ void OptPrefDialog()
     sel = OptPrefDialogCreate();
 
     if( sel == -1 ){
-        eprintf( "\nPREFERENCE MENU: Error loading preference dialog data!\n" );
+        eprintf( "PREFERENCE MENU: Error loading preference dialog data!" );
         return;
     }
     for( Exit = -1; Exit == -1; ){
@@ -798,7 +799,7 @@ int OptPrefUpdate( int WgNo )
     	    }
 	}
 	n = *gOptPrefKnobs[ WgNo ].iVal;
-	if( n >= 4 ){ eprintf( "\nOPTION MENU: Invalid column 1 value!\n" ); return 1; }
+	if( n >= 4 ){ eprintf( "OPTION MENU: Invalid column 1 value!" ); return 1; }
 	ScrCopyAlpha( gOptPrefPix[ 2 ] + 46 * 47 * n, 46, 47, 46, WIN_XY( gOptPrefKnobs[ WgNo ].x, gOptPrefKnobs[ WgNo ].y, 640, gOptPrefSurface), 640 );
 	return 1;
     }

@@ -39,7 +39,7 @@ int GameSysInit( char *ProgName, int flag1, int Font, int Flags, int argc, char 
 //    MessageBadWordsInit(); // wieszaja się
     SkillInit();
     FeatStatInit();
-    if( PartyInit() ){ eprintf("Failed on partyMember_init\n"); return -1; } eprintf(">partyMember_init\t");
+    if( PartyInit() ){ eprintf("Failed on partyMember_init"); return -1; } eprintf(">partyMember_init\t");
     PerkInit();
     TraitInit();
     ItemInit();
@@ -137,7 +137,7 @@ void GameExit()
 {
 DD
 /*
-    eprintf( "\nGame Exit\n" );
+    eprintf( "Game Exit\n" );
     TileUpdateDisable();
     MessageClose( &gMessage );
     CombatClose();
@@ -205,11 +205,11 @@ int GameProcess( int sel, int a2 )
     switch( sel ){
 	case  -20: if( IfaceGetUiState() ){ IfaceHandSlotSelect();  } break;
 	case  9:  if( IfaceGetUiState() && !gKeyStates[56] && !gKeyStates[184] ){ GSoundPlay( "ib1p1xx1" ); AutomapScanner( 1, 0 ); } break; // [TAB] Automap
-	case  12: GSoundPlay( "ib1p1xx1" ); if( LsgMenuGameLoad( 1 ) == -1 ){ eprintf( "\n ** Error calling LoadGame()! **\n" ); } break; // [CTRL-L]
+	case  12: GSoundPlay( "ib1p1xx1" ); if( LsgMenuGameLoad( 1 ) == -1 ){ eprintf( "** Error calling LoadGame()! **" ); } break; // [CTRL-L]
 //	case  16: GSoundPlay( "ib1p1xx1" ); OptPauseWindow( 0 ); break; // [Ctrl-P] Pause
 	case  'Q': case 'q':GSoundPlay( "ib1p1xx1" ); OptPauseWindow( 0 ); break; // [Ctrl-P] Pause
 	case  17: case 24: GSoundPlay( "ib1p1xx1" ); SysQuitDlg(); break;
-	case  19: GSoundPlay( "ib1p1xx1" ); if( LsgSaveGameMenu( 1 ) == -1 ) eprintf( "\n ** Error calling SaveGame()! **\n" ); break; // [CTRL-S]
+	case  19: GSoundPlay( "ib1p1xx1" ); if( LsgSaveGameMenu( 1 ) == -1 ) eprintf( "** Error calling SaveGame()! **" ); break; // [CTRL-S]
 	case  22: GSoundPlay( "ib1p1xx1" ); MainGameVersion( Version ); IfcMsgOut( Version ); IfcMsgOut( "Dec 11 1998 16:54:30" ); break; // 
 	case '+': case '=': OptBrightInc(); break; // Increase Brightness
 	case '-': case '_': OptBrightDec(); break; // Decrease Brightness
@@ -266,7 +266,7 @@ int GameProcess( int sel, int a2 )
                 GSoundPlay( "ib1p1xx1" );
                 tmp = -1;
                 switch( SkillDexMenu() ){
-                    case -1: eprintf( "\n ** Error calling skilldex_select()! ** \n" ); break;
+                    case -1: eprintf( "** Error calling skilldex_select()! ** " ); break;
                     case 1:  ActionUseSneak( SKILL_SNEAK ); break;
                     case 2:  tmp = 6; break;
                     case 3:  tmp = 7; break;
@@ -293,22 +293,22 @@ int GameProcess( int sel, int a2 )
 	case 315: GSoundPlay( "ib1p1xx1" ); SysHelpDialog(); break;
 	case 316: GSoundSetMasterVolume( GSoundGetMasterVolume() - 2047 ); break; // F2 volume Down
 	case 317: GSoundSetMasterVolume( GSoundGetMasterVolume() + 2047 ); break; // F3 volume Up
-	case 318: GSoundPlay( "ib1p1xx1" ); if( LsgSaveGameMenu(1) == -1 ) eprintf( "\n ** Error calling SaveGame()! **\n" ); break;
+	case 318: GSoundPlay( "ib1p1xx1" ); if( LsgSaveGameMenu(1) == -1 ) eprintf( "** Error calling SaveGame()! **" ); break;
 	case 319: 
     	    GSoundPlay( "ib1p1xx1" );
-    	    if( LsgMenuGameLoad( 1 ) == -1 ){ eprintf( "\n ** Error calling LoadGame()! **\n" ); break; }
+    	    if( LsgMenuGameLoad( 1 ) == -1 ){ eprintf( "** Error calling LoadGame()! **" ); break; }
     	    break;    
 	case 320: // fast save game
     	    GSoundPlay( "ib1p1xx1" );
     	    if( ( tmp = LsgSaveGameMenu( 2 ) ) >= -1 ){
-        	if( tmp <= -1 ){ eprintf( "\n ** Error calling SaveGame()! **\n" ); break; }
+        	if( tmp <= -1 ){ eprintf( "** Error calling SaveGame()! **" ); break; }
     		if( tmp == 1 ){ IfcMsgOut( MessageGetMessage( &gMessage, &msg, 5 ) ); break; }
 	    }
     	    break;    
 	case 321: // fast load game
     	    GSoundPlay( "ib1p1xx1" );
     	    if( ( tmp = LsgMenuGameLoad( 2 ) ) >= -1 ){
-        	if( tmp <= -1 ){ eprintf("\n ** Error calling LoadGame()! **\n"); break; }
+        	if( tmp <= -1 ){ eprintf("** Error calling LoadGame()! **"); break; }
     		if( tmp == 1 ){ IfcMsgOut( MessageGetMessage( &gMessage, &msg, 4 ) ); break; }
     	    }
     	    break;    

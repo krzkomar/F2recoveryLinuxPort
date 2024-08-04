@@ -84,7 +84,7 @@ int AnimReserve( int flg )
         if( Idx == -1 && ( !(flg & 0x100) || !( gAnimations[ i ].Flags & 0x10 ) ) ) Idx = i;
     }
     if( Idx == -1 ){
-        if( flg & 0x02 ) eprintf( "Unable to begin reserved animation!\n" );
+        if( flg & 0x02 ) eprintf( "Unable to begin reserved animation!" );
         return -1;
     }
     if( !(flg & 0x02) && n >= 20 ) return -1;

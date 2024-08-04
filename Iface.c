@@ -1216,19 +1216,19 @@ int IfaceIndicatorBoxInit()
     FontId = Current;
     if( gIfcIndBoxWin != -1 ) return 0; // already initialized
     // load messages
-    if( MessageInit( &msg ) != 1 ){ eprintf( "\nINTRFACE: Error indicator box messages! **\n" ); return -1; }
+    if( MessageInit( &msg ) != 1 ){ eprintf( "INTRFACE: Error indicator box messages! **" ); return -1; }
     sprintf( stmp, "%s%s", gGamePath, "intrface.msg" );
-    if( MessageLoad( &msg, stmp ) != 1 ){ eprintf( "\nINTRFACE: Error indicator box messages! **\n" ); return -1; }
+    if( MessageLoad( &msg, stmp ) != 1 ){ eprintf( "INTRFACE: Error indicator box messages! **" ); return -1; }
     // load window decoration
     if( !(Img = ArtLoadBmp( ArtMakeId( 6, 126, 0, 0, 0 ), &ImgObj, &w, &h ) ) ){
-        eprintf( "\nINTRFACE: Error initializing indicator box graphics! **\n" );
+        eprintf( "INTRFACE: Error initializing indicator box graphics! **" );
         MessageClose( &msg );
         return -1;
     }
     // initialize sufrfaces for text
     for( i = 0; i < 5; i++ ){
         if( !(gIfcIndBox[ i ].Img = Malloc( TEXT_BOX_SIZE ) ) ){
-	    eprintf( "\nINTRFACE: Error initializing indicator box graphics! **\n" );
+	    eprintf( "INTRFACE: Error initializing indicator box graphics! **" );
 	    while( 1 ){
     		i--;
     		if( !i ) break;
@@ -1341,7 +1341,7 @@ int IfaceIndicatorBoxAddEffect( int Effect )
 
     for( i = 0; i < 5 && gIfcBarSlots[ i ] != -1; i++ );
     if( i >= 5 ){
-        eprintf( "\nINTRFACE: no free bar box slots!\n" );
+        eprintf( "INTRFACE: no free bar box slots!" );
         return 0;
     }
     gIfcBarSlots[ i ] = Effect;    

@@ -354,7 +354,7 @@ void MainUnk05()
                 if( subs ){
                     if( !MainUnk08( v5, v22 ) ){
                         tmp = 0;
-                        eprintf( "\n((ShowDeath)): %s\n", v22 );
+                        eprintf( "((ShowDeath)): %s", v22 );
                         if( !MainUnk06( v22, 560, v23, &tmp ) ){
                             scrn = &Surface[ 640 * ( 480 - tmp * gFont.ChrHeight() ) - 5120 ];
                             ScrFillSolid( scrn - 602, 564, tmp * gFont.ChrHeight() + 2, 640, 0 );
@@ -405,7 +405,7 @@ int MainUnk08( char *a1, char *path )
     lang = NULL;    
     if( !( s = strrchr( a1, '/' ) ) ) return -1;
     if( CfgGetString( &gConfiguration, "system", "language", &lang ) != 1 ){
-        eprintf( "MAIN: Error grabing language for ending. Defaulting to english.\n" );
+        eprintf( "MAIN: Error grabing language for ending. Defaulting to english." );
         lang = "english";
     }
     sprintf( stmp, "text/%s/cuts/%s%s", lang, s + 1, ".TXT" );

@@ -83,7 +83,7 @@ int PartyInit()
                     member->LevelPids[ member->LevelPidsNo++ ] = Value;
                 }
             } else {
-                eprintf( "\nERROR:partyMember_init: Failed to load level information properly!" );
+                eprintf( "ERROR:partyMember_init: Failed to load level information properly!" );
                 member->LevelMinimum = 0;
                 member->LevelUpEvery = 0;
             }
@@ -165,7 +165,7 @@ int PartyAddMember( Obj_t *dude )
     for( i = 0; i < gPartyMembersCount; i++ ){
     	if( dude == gParty[ i ].dude || gParty[ i ].dude->Pid == dude->Pid ) return 0; // dude is already in a party
     }
-    if( gPartyLock ){ eprintf( "\npartyMemberAdd DENIED: %s", CritterGetName( dude ) ); return -1; }
+    if( gPartyLock ){ eprintf( "partyMemberAdd DENIED: %s", CritterGetName( dude ) ); return -1; }
     gParty[ gPartyMembersCount ].dude = dude;
     gParty[ gPartyMembersCount ].Script = NULL;
     gParty[ gPartyMembersCount ].LocalVars = NULL;
@@ -196,7 +196,7 @@ int PartyRemoveMember( Obj_t *dude )
     }
     if( i == gPartyMembersCount ) return -1; // not found
 
-    if( gPartyLock ){ eprintf( "\npartyMemberRemove DENIED: %s", CritterGetName( dude ) ); return -1; }
+    if( gPartyLock ){ eprintf( "partyMemberRemove DENIED: %s", CritterGetName( dude ) ); return -1; }
     if( i < gPartyMembersCount - 1 ) gParty[ i ].dude = gParty[ gPartyMembersCount - 1 ].dude;
     dude->Flags &= ~0x404;
     gPartyMembersCount--;
@@ -281,7 +281,7 @@ int PartyPrepLoadInstance( Party_t *pm )
 
     dude = pm->dude;
     if( !pm->dude ){
-        eprintf( "\n  Error!: partyMemberPrepLoadInstance: No Critter Object!" );
+        eprintf( "  Error!: partyMemberPrepLoadInstance: No Critter Object!" );
         pm->Script = NULL;
         pm->LocalVars = NULL;
         pm->Next = NULL;
@@ -289,8 +289,8 @@ int PartyPrepLoadInstance( Party_t *pm )
     }    
     if( OBJTYPE( dude->Pid ) == TYPE_CRIT ) dude->Critter.State.WhoHitMe = 0;
     if( ScptPtr( pm->dude->ScrId, &scr ) == -1 ){
-	eprintf( "\n  Error!: partyMemberPrepLoadInstance: Can't find script!" );
-	eprintf( "\n          partyMemberPrepLoadInstance: script was: (%s)", CritterGetName( pm->dude ) );
+	eprintf( "  Error!: partyMemberPrepLoadInstance: Can't find script!" );
+	eprintf( "          partyMemberPrepLoadInstance: script was: (%s)", CritterGetName( pm->dude ) );
 	pm->Script = NULL;
 	pm->LocalVars = NULL;
 	pm->Next = NULL;
@@ -303,7 +303,7 @@ int PartyPrepLoadInstance( Party_t *pm )
         if( gMapLocalVars ){
             memcpy( pm->LocalVars, &gMapLocalVars[scr->LocalVarBase], scr->LocVarsCnt * sizeof( int ) );
         } else {
-            eprintf( "\nWarning: partyMemberPrepLoadInstance: No map_local_vars found, but script references them!" );
+            eprintf( "Warning: partyMemberPrepLoadInstance: No map_local_vars found, but script references them!" );
             memset( pm->LocalVars, 0, scr->LocVarsCnt * sizeof( int ) );
         }
     }
@@ -349,7 +349,7 @@ int PartyRecoverLoadInstance( Party_t *party )
     Id = -1;
     type = 4;
     if( !party->Script ){
-        eprintf("\n  Error!: partyMemberRecoverLoadInstance: No script!");
+        eprintf("  Error!: partyMemberRecoverLoadInstance: No script!");
         return 0;
     }
     if( OBJTYPE( party->dude->Pid ) != TYPE_CRIT ) type = 3;
@@ -589,7 +589,7 @@ int PartyItemSave( Obj_t *item )
 DD
         if( ScptPtr( item->ScrId, &scr ) == -1 ){ 
 //    	    WinMsgError( "\n  Error!: partyMemberItemSave: Can't find script!" ); 
-    	    eprintf("\nMissing script Id: %i (0x%x)", item->ScrId, item->ScrId); 
+    	    eprintf("Missing script Id: %i (0x%x)", item->ScrId, item->ScrId); 
     	    exit( 1 ); 
     	}
 DD
@@ -734,7 +734,7 @@ int PartyFix()
     	    if( obj->Pid == gPartyPids[ i ] ){ v2 = 1; break; }
         }            
         if( !v2 ) continue; // object is not a member of the party
-        eprintf( "PM: %s", CritterGetName( obj ) );
+        eprintf( "\tPM: %s", CritterGetName( obj ) );
 	// 
         if( obj->ScrId == -1 ){
             v18 = 1;
@@ -762,7 +762,7 @@ int PartyFix()
     	    eprintf( "Error: Attempting to destroy evil obj doppleganger FAILED!" );
     	    continue;
     	}
-    	eprintf( "Destroying evil obj doppleganger!" );
+    	eprintf( "\tDestroying evil obj doppleganger!" );
     	if( obj->ScrId == -1 ){
     	    if( EvQeRmEventType( obj, EV_SCRIPT_TIMER  ) == -1 ) eprintf( "ERROR Removing Timed Events on FIX remove!!" );
     	} else {
@@ -778,7 +778,7 @@ int PartyFix()
         else
             scr->TimeEv = gParty[ i ].dude;
     }
-    eprintf( "Total Critter Count: %d", TotCrittCnt );
+    eprintf( "\tTotal Critter Count: %d", TotCrittCnt );
     return 0;
 }
 
@@ -875,7 +875,7 @@ void PartyLvlUp()
     for( i = 1; i < gPartyMembersCount; i++ ){
         if( PartyGetDsc( gParty[ i ].dude, &dsc ) == -1 ) break;
         if( OBJTYPE( gParty[ i ].dude->Pid ) != 1 ) continue;
-        eprintf( "\npartyMemberIncLevels: %s", CritterGetName( gParty[ i ].dude ) );
+        eprintf( "partyMemberIncLevels: %s", CritterGetName( gParty[ i ].dude ) );
         if( !dsc->LevelUpEvery ) continue;
         for( j = 1; j < gPartyCount; j++ ){
             if( gPartyPids[ j ] == gParty[ i ].dude->Pid ) v0 = j;
@@ -885,7 +885,7 @@ void PartyLvlUp()
         if( FeatGetPoints( FEAT_PTS_LVL ) < dsc->LevelMinimum || v5->i01 >= dsc->LevelPidsNo ) continue;                    
         LvlMod = (v5->i02 % dsc->LevelUpEvery);
         v5->i02++;
-        eprintf( "\npm: levelMod: %d, Lvl: %d, Early: %d, Every: %d", LvlMod, v5->i02, v5->i03, dsc->LevelUpEvery );
+        eprintf( "pm: levelMod: %d, Lvl: %d, Early: %d, Every: %d", LvlMod, v5->i02, v5->i03, dsc->LevelUpEvery );
         if( LvlMod || !v5->i03 ){
     	    if( v5->i03 ) continue;
     	    if( LvlMod ){

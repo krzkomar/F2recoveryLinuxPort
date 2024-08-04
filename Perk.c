@@ -203,7 +203,7 @@ int *PerkGetLevelData( Obj_t *dude )
     for( i = 1; i < gPartyCount; i++ ){
         if( dude->Pid == gPartyPids[ i ] ) return &gPerkLvlData[ 119 * i ];
     }
-    eprintf("\nError: perkGetLevelData: Can't find party member match!");
+    eprintf("Error: perkGetLevelData: Can't find party member match!");
     return gPerkLvlData;    
 }
 
@@ -357,7 +357,7 @@ void PerkAddEffect( Obj_t *dude, int PerkIdx )
     int *lvl, i;
 
     if( OBJTYPE( dude->Pid ) != TYPE_CRIT ){ 
-	eprintf( "\nERROR: perk_remove_effect: Was called on non-critter!" );
+	eprintf( "ERROR: perk_remove_effect: Was called on non-critter!" );
 	return;
     }
     if( PerkIdx >= 119 ) return;
@@ -380,7 +380,7 @@ void PerkRemoveEffect( Obj_t *dude, unsigned int PerkIdx )
     int i;
 
     if( OBJTYPE( dude->Pid ) != TYPE_CRIT ){
-        eprintf("\nERROR: perk_remove_effect: Was called on non-critter!");
+        eprintf("ERROR: perk_remove_effect: Was called on non-critter!");
         return;
     }
     if( PerkIdx >= 119 ) return;

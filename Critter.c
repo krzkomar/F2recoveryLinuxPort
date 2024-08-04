@@ -27,9 +27,9 @@ int CritterInit()
 
     CritterNameInit();
     memset( gCrKillStats, 0, sizeof( gCrKillStats ) );
-    if( MessageInit( &gCrMsg ) != 1 ){ eprintf("\nError: Initing critter name message file!\n"); return -1; }    
+    if( MessageInit( &gCrMsg ) != 1 ){ eprintf("Error: Initing critter name message file!"); return -1; }    
     sprintf( path, "%sscrname.msg", gGamePath );
-    if( MessageLoad( &gCrMsg, path ) != 1 ) { eprintf( "\nError: Loading critter name message file!\n" ); return -1;}
+    if( MessageLoad( &gCrMsg, path ) != 1 ) { eprintf( "Error: Loading critter name message file!" ); return -1;}
     return 0;    
 }
 
@@ -421,11 +421,11 @@ LABEL_13:
             Id = ArtMakeId(1, dude->ImgId & 0xFFF, 48, (dude->ImgId & 0xF000) >> 12, dude->Orientation + 1);
     } else {
         if( DeathFrame < 0 ) DeathFrame = 63;
-        if( DeathFrame > 63 ) eprintf( "\nError: Critter Kill: death_frame out of range!" );
+        if( DeathFrame > 63 ) eprintf( "Error: Critter Kill: death_frame out of range!" );
         Id = ArtMakeId(1, dude->ImgId & 0xFFF, DeathFrame, (dude->ImgId & 0xF000) >> 12, dude->Orientation + 1);
         ObjGetArtFileId(&Id);
         if( !ArtFileExist(Id) ){
-            eprintf( "\nError: Critter Kill: Can't match fid!" );
+            eprintf( "Error: Critter Kill: Can't match fid!" );
             Id = ArtMakeId(1, dude->ImgId & 0xFFF, 62, (dude->ImgId & 0xF000) >> 12, dude->Orientation + 1);
             ObjGetArtFileId( &Id );
         }
@@ -507,7 +507,7 @@ int CritterGetBodyType( Obj_t *pObj )
     Proto_t *proto;
 
     if( !pObj ){
-        eprintf( "\nError: critter_body_type: pobj was NULL!" );
+        eprintf( "Error: critter_body_type: pobj was NULL!" );
         return 0;
     }
 

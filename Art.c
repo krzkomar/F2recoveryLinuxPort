@@ -37,7 +37,7 @@ int ArtInit()
 
     if( !CfgGetInteger( &gConfiguration, "system", "art_cache_size", &CacheSizeMB ) ) CacheSizeMB = ART_DEFAULT_CACHE_SIZE_MB;
     if( CacheInit( &gArtCacheDb, ArtGetFileLen, (void *)ArtLoadImage, ArtFree, SIZE_MB( CacheSizeMB ) ) != 1 ){
-	eprintf("cache_init failed in art_init\n");
+	eprintf("cache_init failed in art_init");
 	return -1;
     }
 
@@ -51,7 +51,7 @@ int ArtInit()
         sprintf( str, "%s%s%s/%s.lst", gProtoDataFilePath, "art/", gArtCatalog[ i ].SubDirName, gArtCatalog[ i ].SubDirName );
 
         if( ArtReadLstFile( str, &gArtCatalog[ i ].DirLstFname, &gArtCatalog[ i ].NamesCount ) ){
-            eprintf( "art_read_lst failed in art_init\n" );
+            eprintf( "art_read_lst failed in art_init" );
             CacheClose( &gArtCacheDb );
             return -1;
         }
@@ -60,14 +60,14 @@ int ArtInit()
     gArtAnonAlias = Malloc( gArtCatalog[ PROTO_CRITTERS ].NamesCount * sizeof( void * ) );
     if( !gArtAnonAlias ){
         gArtCatalog[ PROTO_CRITTERS ].NamesCount = 0;
-        eprintf( "Out of memory for anon_alias in art_init\n" );
+        eprintf( "Out of memory for anon_alias in art_init" );
         CacheClose( &gArtCacheDb );
         return -1;
     }
     gArtCritterFidShouldRunData = Malloc( gArtCatalog[ PROTO_CRITTERS ].NamesCount * sizeof( void * ) );
     if( !gArtCritterFidShouldRunData ){
         gArtCatalog[ PROTO_CRITTERS ].NamesCount = 0;
-        eprintf( "Out of memory for artCritterFidShouldRunData in art_init\n" );
+        eprintf( "Out of memory for artCritterFidShouldRunData in art_init" );
         CacheClose( &gArtCacheDb );
         return -1;
     }
@@ -79,7 +79,7 @@ int ArtInit()
     sprintf( str, "%s%s%s/%s.lst", gProtoDataFilePath, "art/", gArtCatalog[ PROTO_CRITTERS ].SubDirName, gArtCatalog[ PROTO_CRITTERS ].SubDirName );
     // open list
     if( !( fd = dbOpen( str, "rt" ) ) ){
-        eprintf("Unable to open %s in art_init\n", str);
+        eprintf("Unable to open %s in art_init", str);
         CacheClose( &gArtCacheDb );
         return -1;
     }
@@ -125,7 +125,7 @@ int ArtInit()
     gArtHeadsInfo = Malloc( gArtCatalog[ PROTO_HEADS ].NamesCount * sizeof( ArtHeadsInfo_t ));
     if( !gArtHeadsInfo ){
         gArtCatalog[ PROTO_HEADS ].NamesCount = 0;
-        eprintf( "Out of memory for head_info in art_init\n" );
+        eprintf( "Out of memory for head_info in art_init" );
         CacheClose( &gArtCacheDb );
         return -1;
     }
@@ -133,7 +133,7 @@ int ArtInit()
     // open lst file
     sprintf( str, "%s%s%s/%s.lst", gProtoDataFilePath, "art/", gArtCatalog[ PROTO_HEADS ].SubDirName, gArtCatalog[ PROTO_HEADS ].SubDirName );    
     if( !(fd = dbOpen( str, "rt") ) ){
-        eprintf( "Unable to open %s in art_init\n", str );
+        eprintf( "Unable to open %s in art_init", str );
         CacheClose( &gArtCacheDb );
         return -1;
     }

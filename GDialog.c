@@ -153,14 +153,14 @@ void GdialogEnter( Obj_t *target, int flg )
     Scpt_t *scr;
     int tmp;
 
-    if( !target ){ eprintf( "\nError: gdialogEnter: target was NULL!" ); return; }
+    if( !target ){ eprintf( "Error: gdialogEnter: target was NULL!" ); return; }
     gDlgUnk13 = 0;
     if( IN_COMBAT || target->ScrId == -1 ) return;
     if( (OBJTYPE( target->Pid ) != TYPE_ITEM) && (target->ScrId >> 24 ) != 1 ){
         tmp = ActionTargetAccessible( gObjDude, target );
         if( tmp == -1 ){
             msg.Id = 660; // 'You can't see there.'
-            if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "\nError: gdialog: Can't find message!" ); return; }
+            if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "Error: gdialog: Can't find message!" ); return; }
             if( flg )
                 IfcMsgOut( msg.Text );
             else
@@ -169,7 +169,7 @@ void GdialogEnter( Obj_t *target, int flg )
         }
         if( tmp == -2 ){
             msg.Id = 661; // 'Too far away.'
-            if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "\nError: gdialog: Can't find message!" ); return; }
+            if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "Error: gdialog: Can't find message!" ); return; }
             if( flg )
                 IfcMsgOut( msg.Text );
             else
@@ -237,7 +237,7 @@ int GdialogLipsyncStart( char *DirName )
 {
     char fname[ 16 ];
 
-    if( !DirName ){ eprintf( "\nGDialog: Bleep!" ); return GSoundPlay( "censor" ); }
+    if( !DirName ){ eprintf( "GDialog: Bleep!" ); return GSoundPlay( "censor" ); }
     if( ArtGetFilenameFromList( 8, gDlgHeadId & 0xFFF, fname ) == -1 ) return -1;    
     if( LipsyncLoadFile( DirName, fname ) == -1 ) return -1;
     gDlgLipsEn = 1;
@@ -326,7 +326,7 @@ int GdialogUnk06()
         gDlgFidgetImg = 0;
     }
     if( gDlgHeadArtObj ){
-        if( ArtClose( gDlgHeadArtObj ) == -1 ) eprintf( "Failure unlocking lips frame!\n" );
+        if( ArtClose( gDlgHeadArtObj ) == -1 ) eprintf( "Failure unlocking lips frame!" );
         gDlgHeadArtObj = 0;
         gDlgHeadFrameImg = 0;
         gDlgHeadFrameId = 0;
@@ -363,7 +363,7 @@ void GdialogReply( char *str )
 {
     int Position = 0;
 
-    if( gDlgReplyWin == -1 ) eprintf( "\nError: Reply window doesn't exist!" );
+    if( gDlgReplyWin == -1 ) eprintf( "Error: Reply window doesn't exist!" );
     gDlgBoxTitleArea.lt = 5;
     gDlgBoxTitleArea.tp = 10;
     gDlgBoxTitleArea.bm = 58;
@@ -489,7 +489,7 @@ int GdialogReplyWinMoveTop()
 
 int GdialogAddOptionByIdx( int MsgList, int MsgNum, int Reaction )
 {
-    if( gDlgOptionCnt >= 30 ){ eprintf( "\nError: dialog: Ran out of options!" ); return -1; }
+    if( gDlgOptionCnt >= 30 ){ eprintf( "Error: dialog: Ran out of options!" ); return -1; }
     gDlgOptions[ gDlgOptionCnt ].Text[ 0 ] = '\0';
     gDlgOptions[ gDlgOptionCnt ].Button = -1;
     gDlgOptions[ gDlgOptionCnt ].MsgPage = MsgList;
@@ -501,7 +501,7 @@ int GdialogAddOptionByIdx( int MsgList, int MsgNum, int Reaction )
 
 int GdialogAddOptionByStr( int a1, char *Text, int Reaction )
 {
-    if( gDlgOptionCnt >= 30 ){ eprintf( "\nError: dialog: Ran out of options!" ); return -1; }
+    if( gDlgOptionCnt >= 30 ){ eprintf( "Error: dialog: Ran out of options!" ); return -1; }
     gDlgOptions[ gDlgOptionCnt ].MsgPage = -4;
     gDlgOptions[ gDlgOptionCnt ].MsgId = -4;
     sprintf( gDlgOptions[ gDlgOptionCnt ].Text, "%c %s", 149, Text );
@@ -572,7 +572,7 @@ int GdialogReview()
     int pos, win, sel;
 
     pos = 0;
-    if( GdialogCreateReview( &win ) == -1 ){ eprintf( "\nError initializing review window!" ); return -1; }
+    if( GdialogCreateReview( &win ) == -1 ){ eprintf( "Error initializing review window!" ); return -1; }
     GdialogReviewUpdate( win, 0 );
     do{
         switch( ( sel = InpUpdate() ) ){
@@ -607,7 +607,7 @@ void GdialogReviewUpdate( int win, int pos )
 
     h = gFont.ChrHeight() + 2;
     v20 = WinGetSurface(win) + 113;
-    if( !v20 ) eprintf( "\nError: gdialog: review: can't find buffer!" );
+    if( !v20 ) eprintf( "Error: gdialog: review: can't find buffer!" );
     v16 = gVidMainGeo.rt - gVidMainGeo.lt + 1;
     surf = WinGetSurface( win );
     ScrCopy(
@@ -663,7 +663,7 @@ void GdialogUnk27()
 
 int GdialogAddReplyToReviewIdx( Intp_t *scr, int MsgList, int MsgNum )
 {
-    if( gDlgReviewCount >= 80 ){ eprintf( "\nError: Ran out of review slots!" ); return -1; }
+    if( gDlgReviewCount >= 80 ){ eprintf( "Error: Ran out of review slots!" ); return -1; }
     gDlgReviewSlots[ gDlgReviewCount ].ReplyMsgList = MsgList;
     gDlgReviewSlots[ gDlgReviewCount ].ReplyMsgNum = MsgNum;
     gDlgReviewSlots[ gDlgReviewCount ].OptionMsgList = -1;
@@ -676,7 +676,7 @@ int GdialogAddReplyToReviewIdx( Intp_t *scr, int MsgList, int MsgNum )
 
 int GdialogAddReplyToReviewStr( Intp_t *a1, char *Text )
 {
-    if( gDlgReviewCount >= 80 ){ eprintf( "\nError: Ran out of review slots!" ); return -1; }
+    if( gDlgReviewCount >= 80 ){ eprintf( "Error: Ran out of review slots!" ); return -1; }
     gDlgReviewSlots[ gDlgReviewCount ].ReplyMsgList = -4;
     gDlgReviewSlots[ gDlgReviewCount ].ReplyMsgNum = -4;
     if( gDlgReviewSlots[ gDlgReviewCount ].ReplyText ) Free( gDlgReviewSlots[ gDlgReviewCount ].ReplyText );
@@ -695,7 +695,7 @@ int GdialogAddOptionToReviewIdx( int MsgList, int MsgNum )
 {
     int tmp;
 
-    if( gDlgReviewCount >= 80 ){ eprintf( "\nError: Ran out of review slots!" ); return -1; }
+    if( gDlgReviewCount >= 80 ){ eprintf( "Error: Ran out of review slots!" ); return -1; }
     tmp = gDlgReviewCount - 1;
     gDlgReviewSlots[ tmp ].OptionMsgList = MsgList;
     gDlgReviewSlots[ tmp ].OptionMsgNum = MsgNum;
@@ -708,7 +708,7 @@ int GdialogAddOptionToReviewStr( char *Text )
     int n;
     char *s;
 
-    if( gDlgReviewCount >= 80 ){ eprintf( "\nError: Ran out of review slots!" ); return -1; }
+    if( gDlgReviewCount >= 80 ){ eprintf( "Error: Ran out of review slots!" ); return -1; }
     n = gDlgReviewCount - 1;
     gDlgReviewSlots[ n ].OptionMsgList = -4;
     gDlgReviewSlots[ n ].OptionMsgNum = -4;
@@ -922,7 +922,7 @@ int GdialogUnk35( int a1 )
 	case 49: reaction = -1; break;
 	case 50: reaction = 0; break;
 	case 51: reaction = 1; break;
-	default: eprintf( "\nError: dialog: Empathy Perk: invalid reaction!" ); break;
+	default: eprintf( "Error: dialog: Empathy Perk: invalid reaction!" ); break;
     }
     GdialogReplyWinCls( gDlgBoxReply );
     GdialogOptionWinCls( gDlgBoxOption );
@@ -961,7 +961,7 @@ void GdialogFocusOptionLine( int LineNo )
 	    case 49: color = gPalColorCubeRGB[31][0][31]; break;
     	    case 50: break;
 	    case 51: color = gPalColorCubeRGB[31][10][10]; break;
-    	    default: eprintf( "\nError: dialog: Empathy Perk: invalid reaction!" ); break;
+    	    default: eprintf( "Error: dialog: Empathy Perk: invalid reaction!" ); break;
         }
     }
     GdialogDisplayMsg( WinGetSurface( gDlgBoxOption ), &gDlgBoxWinArea, dlg->Text, 0, gFont.ChrHeight(), 393, color, 1 );
@@ -989,7 +989,7 @@ void GdialogLeaveOptionLine( int LineNo )
 	    case 49: color = DLG_COLOR_8 | 0x2000000; break;
 	    case 50: color = DLG_COLOR_5 | 0x2000000; break;
 	    case 51: color = DLG_COLOR_9 | 0x2000000; break;
-	    default: eprintf( "\nError: dialog: Empathy Perk: invalid reaction!" ); break;
+	    default: eprintf( "Error: dialog: Empathy Perk: invalid reaction!" ); break;
 	}
     }
     gDlgBoxWinArea.lt = 5;
@@ -1049,7 +1049,7 @@ void GdialogCreateDialog()
         	    case 49: MsgColor = DLG_COLOR_8 | 0x2000000; break;
         	    case 50: MsgColor = DLG_COLOR_5 | 0x2000000; break;
         	    case 51: MsgColor = DLG_COLOR_9 | 0x2000000; break;
-        	    default: eprintf( "\nError: dialog: Empathy Perk: invalid reaction!" );
+        	    default: eprintf( "Error: dialog: Empathy Perk: invalid reaction!" );
         	}
             }   
             if( p->MsgPage < 0 ){
@@ -1057,7 +1057,7 @@ void GdialogCreateDialog()
                     if( i == 0 ){
                         msg.Id = 655; // 'Go on'
                         if( FeatGetVal( gObjDude, FEAT_INTELLIGENCE) < 4 ) msg.Id++; // 'Err...'
-                        if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "\nError...can't find message!" ); return; }
+                        if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "Error...can't find message!" ); return; }
                         Text = msg.Text;
                     } else {
                         Text = " ";
@@ -1065,7 +1065,7 @@ void GdialogCreateDialog()
                     strcpy( p->Text, Text );
                 } else if( p->MsgPage == -2 ){
                     msg.Id = 650; // '[Done]'
-                    if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "\nError...can't find message!" ); return; }
+                    if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ){ eprintf( "Error...can't find message!" ); return; }
                     sprintf( p->Text, "%c %s", 149, msg.Text );
                 }
             } else {
@@ -1076,7 +1076,7 @@ void GdialogCreateDialog()
             bm = GdialogGetLines( p->Text, gDlgBoxWinArea.rt - gDlgBoxWinArea.lt) * gFont.ChrHeight() + gDlgBoxWinArea.tp + 2;
             if( bm >= gDlgBoxWinArea.bm ){
                 if( LineErr )
-                    eprintf( "Error: couldn't make button because it went below the window.\n" );
+                    eprintf( "Error: couldn't make button because it went below the window." );
                 else
                     LineErr = 1;
             } else {
@@ -1088,7 +1088,7 @@ void GdialogCreateDialog()
                 GdialogDisplayMsg( Surface, &gDlgBoxWinArea, p->Text, NULL, gFont.ChrHeight(), 393, MsgColor, 1 );
                 gDlgBoxWinArea.tp += 2;
                 if( (p->Button = WinCreateButton( gDlgBoxOption, 2, Ypos, w, gDlgBoxWinArea.tp - Ypos - 4, 1200 + i,  1300 + i, -1, '1' + i, 0, 0, 0, 0 )) == -1 )
-                    eprintf( "\nError: Can't create button!" );
+                    eprintf( "Error: Can't create button!" );
                 else
                     WinSetClickSound( p->Button, GSoundPlayPushBt, GSoundPlayReleaseBt );
             }            
@@ -1165,7 +1165,7 @@ void GdialogHeadUpdate( int HeadId, unsigned int Mood )
     if( Mood == 7 ) Frame = 11;
 
     if( gDlgHeadFrameId && (Frame != gDlgHeadFrame) ){ // last frame ?
-        if( ArtClose( gDlgHeadArtObj ) == -1 ) eprintf( "failure unlocking lips frame!\n" );
+        if( ArtClose( gDlgHeadArtObj ) == -1 ) eprintf( "failure unlocking lips frame!" );
         gDlgHeadArtObj = NULL;
         gDlgHeadFrameImg = NULL;
         gDlgHeadFrameId = 0;
@@ -1175,13 +1175,13 @@ void GdialogHeadUpdate( int HeadId, unsigned int Mood )
         gDlgHeadFrameId = ArtMakeId( 8, HeadId, Frame, 0, 0 );
         gDlgHeadFrameImg = ArtLoadImg( gDlgHeadFrameId, &gDlgHeadArtObj );
         if( !gDlgHeadFrameImg ){
-            eprintf( "failure!\n" );
+            eprintf( "failure!" );
             CacheStats( &gArtCacheDb, stmp );
             eprintf( "%s", stmp );
         }
     }
     if( !(HeadsInfo = ArtGetHeadsInfo( ArtMakeId( 8, HeadId, Mood, 0, 0 ) ) ) ){
-	eprintf( "\tError - No available fidgets for given frame id\n" );
+	eprintf( "\tError - No available fidgets for given frame id" );
         return;
     }
     Random = RandMinMax( 1, 100 ) + gDlgFidgetDrawFactor / 2;
@@ -1204,13 +1204,13 @@ void GdialogHeadUpdate( int HeadId, unsigned int Mood )
 		fidget = ( Random < 77 ) ? 2 : 3;
 	}
     }
-    eprintf( "Choosing fidget %d out of %d\n", fidget, HeadsInfo );
-    if( gDlgFidgetImg && ArtClose( gDlgFidgetImgObj ) == -1 ) eprintf( "failure!\n" );
+    eprintf( "Choosing fidget %d out of %d", fidget, HeadsInfo );
+    if( gDlgFidgetImg && ArtClose( gDlgFidgetImgObj ) == -1 ) eprintf( "failure!" );
     gDlgFidgetId = ArtMakeId( 8, HeadId, Mood, fidget, 0 );
     gDlgFidgetFrame = 0;
     gDlgFidgetImg = ArtLoadImg( gDlgFidgetId, &gDlgFidgetImgObj );
     if( !gDlgFidgetImg ){
-        eprintf( "failure!\n" );
+        eprintf( "failure!" );
         CacheStats( &gArtCacheDb, stmp );
         eprintf( "%s", stmp );
     }
@@ -1222,7 +1222,7 @@ void GdialogHeadUpdate( int HeadId, unsigned int Mood )
 void GdialogUnk43()
 {
     if( gDlgFidgetImg && gDlgMainWin != -1 ){
-        eprintf("Waiting for fidget to complete...\n");
+        eprintf("Waiting for fidget to complete...");
         while( ArtGetFpd( gDlgFidgetImg ) > gDlgFidgetFrame ){
             if( TimerCurrDiff( gDlgFidgetTimer ) >= gDlgFidgetSpeed ){
                 GdialogRenderScreen( gDlgFidgetImg, gDlgFidgetFrame );
@@ -1243,13 +1243,13 @@ void GdialogTransition( int a1 )
 
     if ( gDlgFidgetImg && gDlgMainWin == -1 ) return;
     MseCursorHide();
-    eprintf( "Starting transition...\n" );
+    eprintf( "Starting transition..." );
     GdialogUnk43();
     if( gDlgFidgetImg ){
         if( ArtClose( gDlgFidgetImgObj ) == -1 ) eprintf( "\tError unlocking fidget in transition func..." );
         gDlgFidgetImg = 0;
     }
-    if( !(Img = ArtLoadImg( ArtMakeId( 8, gDlgHeadId, a1, 0, 0 ), &ImgObj ) ) ) eprintf( "\tError locking transition...\n" );
+    if( !(Img = ArtLoadImg( ArtMakeId( 8, gDlgHeadId, a1, 0, 0 ), &ImgObj ) ) ) eprintf( "\tError locking transition..." );
     v7 = 1000 / ArtGetObjSpeed( Img );  
     v9 = 0;  
     for( v8 = 0; v8 < ArtGetFpd( Img ); v8++ ){
@@ -1258,8 +1258,8 @@ void GdialogTransition( int a1 )
             v9 = TimerGetSysTime();            
         }
     }
-    if( ArtClose( ImgObj ) == -1 ) eprintf( "\tError unlocking transition...\n" );
-    eprintf( "Finished transition...\n" );
+    if( ArtClose( ImgObj ) == -1 ) eprintf( "\tError unlocking transition..." );
+    eprintf( "Finished transition..." );
     MseCursorShow();
 }
 
@@ -1286,13 +1286,13 @@ void GdialogReplyWinCls( int Win )
     char *Surface;
 
     gDlgReplyWin = Win;
-    if( Win == -1 ){ eprintf( "\nError: demo_copy_title: win invalid!" ); return; }
+    if( Win == -1 ){ eprintf( "Error: demo_copy_title: win invalid!" ); return; }
     Width = WinGetWidth( Win );
-    if( Width < 1 ){ eprintf("\nError: demo_copy_title: width invalid!"); return; }
-    if( (w = WinGetHeight( Win )) < 1 ){ eprintf( "\nError: demo_copy_title: length invalid!" ); return; }
-    if( gDlgBackWindow == -1 ){ eprintf( "\nError: demo_copy_title: dialogueBackWindow wasn't created!" ); return; }
+    if( Width < 1 ){ eprintf("Error: demo_copy_title: width invalid!"); return; }
+    if( (w = WinGetHeight( Win )) < 1 ){ eprintf( "Error: demo_copy_title: length invalid!" ); return; }
+    if( gDlgBackWindow == -1 ){ eprintf( "Error: demo_copy_title: dialogueBackWindow wasn't created!" ); return; }
     Surface = WinGetSurface( gDlgBackWindow );
-    if( !Surface ){ eprintf( "\nError: demo_copy_title: couldn't get buffer!" ); return; }
+    if( !Surface ){ eprintf( "Error: demo_copy_title: couldn't get buffer!" ); return; }
     ScrCopy( Surface + 144135, Width, w, 640, WinGetSurface( Win ), Width );    
 }
 
@@ -1303,13 +1303,13 @@ void GdialogOptionWinCls( int Win ) // cls option area
     VidRect_t Area;
 
     gDlgOptionWin = Win;
-    if( Win == -1 ){ eprintf( "\nError: demo_copy_options: win invalid!" ); return; }
-    if( ( w = WinGetWidth( Win ) ) < 1 ){ eprintf( "\nError: demo_copy_options: width invalid!" ); return; }
+    if( Win == -1 ){ eprintf( "Error: demo_copy_options: win invalid!" ); return; }
+    if( ( w = WinGetWidth( Win ) ) < 1 ){ eprintf( "Error: demo_copy_options: width invalid!" ); return; }
     Height = WinGetHeight( Win );
-    if( Height < 1 ){ eprintf("\nError: demo_copy_options: length invalid!"); return; }
-    if( gDlgBackWindow == -1 ){ eprintf( "\nError: demo_copy_options: dialogueBackWindow wasn't created!"); return; }
+    if( Height < 1 ){ eprintf("Error: demo_copy_options: length invalid!"); return; }
+    if( gDlgBackWindow == -1 ){ eprintf( "Error: demo_copy_options: dialogueBackWindow wasn't created!"); return; }
     WinGetRect( gDlgMainWin, &Area );
-    if( !(src = WinGetSurface( gDlgMainWin )) ){ eprintf("\nError: demo_copy_options: couldn't get buffer!"); return; }
+    if( !(src = WinGetSurface( gDlgMainWin )) ){ eprintf("Error: demo_copy_options: couldn't get buffer!"); return; }
     ScrCopy( &src[ 640 * ( 335 - Area.tp ) + 127 ], w, Height, 640, WinGetSurface( Win ), w );
 }
 
@@ -1319,14 +1319,14 @@ void GdialogRfshOptionRect( int win, VidRect_t *DrawRect )
     char *Surface;
     int Width;
 
-    if( !DrawRect ){ eprintf( "\nError: gDialogRefreshOptionsRect: drawRect NULL!" ); return; }
-    if( win == -1 ){ eprintf("\nError: gDialogRefreshOptionsRect: win invalid!"); return; }
-    if( gDlgBackWindow == -1 ){ eprintf("\nError: gDialogRefreshOptionsRect: dialogueBackWindow wasn't created!"); return; }
+    if( !DrawRect ){ eprintf( "Error: gDialogRefreshOptionsRect: drawRect NULL!" ); return; }
+    if( win == -1 ){ eprintf("Error: gDialogRefreshOptionsRect: win invalid!"); return; }
+    if( gDlgBackWindow == -1 ){ eprintf("Error: gDialogRefreshOptionsRect: dialogueBackWindow wasn't created!"); return; }
     WinGetRect( gDlgMainWin, &Area );
     Surface = WinGetSurface( gDlgMainWin );
-    if( !Surface ){ eprintf( "\nError: gDialogRefreshOptionsRect: couldn't get buffer!" );  return; }
-    if( DrawRect->tp >= DrawRect->bm ) { eprintf( "\nError: gDialogRefreshOptionsRect: Invalid Rect (too many options)!" ); return; }
-    if( DrawRect->lt >= DrawRect->rt ){ eprintf( "\nError: gDialogRefreshOptionsRect: Invalid Rect (too many options)!" ); return; }
+    if( !Surface ){ eprintf( "Error: gDialogRefreshOptionsRect: couldn't get buffer!" );  return; }
+    if( DrawRect->tp >= DrawRect->bm ) { eprintf( "Error: gDialogRefreshOptionsRect: Invalid Rect (too many options)!" ); return; }
+    if( DrawRect->lt >= DrawRect->rt ){ eprintf( "Error: gDialogRefreshOptionsRect: Invalid Rect (too many options)!" ); return; }
     Width = WinGetWidth( win );
     ScrCopy( 
         &Surface[640 * (335 - Area.tp) + 127] + 640 * DrawRect->tp + DrawRect->lt, 
@@ -1407,7 +1407,7 @@ void GdialogReaction( int a1 )
     int v4, v6;
 
     eprintf( "Dialogue Reaction: " );
-    if( a1+1 < 3 ) eprintf( "%s\n", gDlgUnk52[ a1 ] );
+    if( a1+1 < 3 ) eprintf( "%s", gDlgUnk52[ a1 ] );
     gDlgFidgetDrawFactor = 0;
     if( a1 >= -50 ){
         if( a1 != -1 ) return;
@@ -1556,7 +1556,7 @@ int GdialogDisplayMsg( char *Surf, VidRect_t *Area, char *Text, int *pPosition, 
 	    }
 	    if( *s == ' ' ) *s = '\0';
     	}
-    	if( gFont.LineWidth(str) > Width ){ eprintf( "\nError: display_msg: word too long!" ); return Area->tp; }
+    	if( gFont.LineWidth(str) > Width ){ eprintf( "Error: display_msg: word too long!" ); return Area->tp; }
     	if( Flag ){
     	    h = gFont.ChrHeight();
     	    if( Area->bm - h < Area->tp ){
@@ -1875,7 +1875,7 @@ int GdialogMenuTrade()
     if( MessageGetMsg( &gProtoMessages, &msg ) == 1 )
         GdialogReply( msg.Text );
     else
-        eprintf( "\nError: gdialog: Can't find message!" );
+        eprintf( "Error: gdialog: Can't find message!" );
     return 0;
 }
 
@@ -2035,7 +2035,7 @@ void GdialogUpdateCustomDispMenu()
     if( gDlgDispositions[ 0 ] == -1 ){
         gFont.Print( &surf[ 20 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, 99 ), 248, w, DLG_COLOR_5 );
     } else {
-        eprintf( "\nburst: %d", gDlgDispositions[ 0 ] );
+        eprintf( "burst: %d", gDlgDispositions[ 0 ] );
         gFont.Print( &surf[ 20 * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[0][ gDlgDispositions[0] ][0] ), 248, w, DLG_COLOR_5 );
     }        
     gFont.Print( &surf[ 48  * w + 232 ], MessageGetMessage( &gDlgMsg, &fmt, gDlgTextIds[1][ gDlgDispositions[1] ][0]), 248, w, DLG_COLOR_5 );
@@ -2206,7 +2206,7 @@ void GdialogBarter()
     	    if( MessageGetMsg( &gProtoMessages, &msg ) == 1 )
         	GdialogReply( msg.Text );
     	    else
-        	eprintf( "\nError: gdialog: Can't find message!" );
+        	eprintf( "Error: gdialog: Can't find message!" );
     	    return;
 	}    
     }
@@ -2378,7 +2378,7 @@ void GdialogRenderScreen( ArtFrmHdr_t *Img, int FrameNo )
         if( ( p = ArtGetObjData( img, 0, 0 ) ) )
             ScrCopy( p, 388, 200, 388, gDlgSurf, gVidMainGeo.rt - gVidMainGeo.lt + 1 );
         else
-            eprintf( "\tError getting background data in display...\n" );
+            eprintf( "\tError getting background data in display..." );
         ArtClose( ImgObj );
         w = ArtGetObjWidth( Img, FrameNo, 0 );
         h = ArtGetObjHeight( Img, FrameNo, 0 );
@@ -2393,7 +2393,7 @@ void GdialogRenderScreen( ArtFrmHdr_t *Img, int FrameNo )
             if( tmp + pitch * CentY > 0 ) tmp += pitch * CentY;
             ScrCopyAlpha( pSrc, w, h, w, gDlgSurf + tmp, pitch );
         } else {
-            eprintf( "\tError getting head data in display...\n" );
+            eprintf( "\tError getting head data in display..." );
         }
     } else { // render miniature
         if( gDlgUnk26 == 1 ){

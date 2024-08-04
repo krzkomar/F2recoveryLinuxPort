@@ -193,8 +193,8 @@ void SciUnk08( Intp_t *scr, int a2, int *a3, char *a4, int a5 )
     } else {
 	if( IntpReadBei( (char *)&scr->ProcTable[a2].NameOfst, 20) != a5 ){
     	    v18 = IntpReadBei( (char *)&scr->ProcTable[a2].NameOfst, 0 );
-    	    eprintf( "Wrong number of args to procedure %s\n", scr->ProcVarNames + v18 );
-    	    IntpLog( "Wrong number of args to procedure %s\n", scr ? scr->ProcVarNames + v18 : 0 );
+    	    eprintf( "Wrong number of args to procedure %s", scr->ProcVarNames + v18 );
+    	    IntpLog( "Wrong number of args to procedure %s", scr ? scr->ProcVarNames + v18 : 0 );
     	    return;
 	}
 	v20 = IntpReadBei( (char *)&scr->ProcTable[ a2 ].NameOfst, 16 );
@@ -758,16 +758,16 @@ int SciUnk26()
         if( !p->Itp ) continue;
     	Strings = p->Itp->Strings;
     	if( !Strings ){
-            eprintf( "No string heap for program %s\n", p->Itp->FileName );
+            eprintf( "No string heap for program %s", p->Itp->FileName );
     	} else {    	        	    
-    	    eprintf( "Program %s\n", p->Itp->FileName );
+    	    eprintf( "Program %s", p->Itp->FileName );
     	    for( str = (IntpString_t *)Strings->Data, heap = 0; str->Size != 0x8000; str += str->Size + sizeof( IntpString_t ), heap += str->Size + sizeof( IntpString_t ) ){
         	if( str->Size < 0 )
-        	    eprintf( "Free space, length %d\n", str->Size );        	
+        	    eprintf( "Free space, length %d", str->Size );        	
         	else
-        	    eprintf( "Size: %d, ref: %d, string %s\n", str->Size, str->Ref, str->String );
+        	    eprintf( "Size: %d, ref: %d, string %s", str->Size, str->Ref, str->String );
     	    }
-    	    eprintf( "Total length of heap %d, stored length %d\n", heap, p->Itp->Strings->w01 );
+    	    eprintf( "Total length of heap %d, stored length %d", heap, p->Itp->Strings->w01 );
     	}
     }    
 */

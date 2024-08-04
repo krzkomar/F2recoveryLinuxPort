@@ -134,7 +134,7 @@ void IntpError( char *fmt, ... )
 
     va_start( valist, fmt );
     vsprintf( tmp, fmt, valist );
-    eprintf( "\nError during execution: %s\n", tmp );
+    eprintf( "Error during execution: %s", tmp );
     if( gIntpCurScript ){
         eprintf( "Current script: %s, procedure %s", gIntpCurScript->FileName, IntpGetProcName( gIntpCurScript ) );
     } else {
@@ -260,9 +260,9 @@ void IntpStringDeRef( Intp_t *scr, short type, int Idx )
     if( INTP_STR_REF( scr->Strings + Idx ) ){
         INTP_STR_REF( scr->Strings + Idx )--;
     } else {
-        eprintf( "Reference count zero for %s!\n", &scr->Strings[ Idx + 4 ] );
+        eprintf( "Reference count zero for %s!", &scr->Strings[ Idx + 4 ] );
     }
-    if( INTP_STR_REF( scr->Strings + Idx ) < 0 ) eprintf( "String ref went negative, this shouldn't ever happen\n" );
+    if( INTP_STR_REF( scr->Strings + Idx ) < 0 ) eprintf( "String ref went negative, this shouldn't ever happen" );
 }
 
 void IntpPushwA( Intp_t *scr, short wdata )
@@ -449,12 +449,12 @@ void IntpValidate( Intp_t *intp )
         ofst = INTP_STR_LEN( p );
         if( ofst < 0 ){
             ofst = -ofst;
-            if( INTP_STR_REF( p ) ) eprintf( "Warning, reference count on invalid string is not zero!\n" );
+            if( INTP_STR_REF( p ) ) eprintf( "Warning, reference count on invalid string is not zero!" );
         }
         if( p > intp->Strings + INTP_STR_LEN( p ) + 4  ){
             SciUnk28();
             eprintf( "Program ? string table trashed, got length ?\nnext ?, table end is ?\n"
-//        	"Program %s string table trashed, got length %d(%x)\nnext %d(%x), table end is %d(%x)\n", 
+//        	"Program %s string table trashed, got length %d(%x)\nnext %d(%x), table end is %d(%x)", 
 //        	v7, v7, p - scr->Strings - 4, p - scr->Strings - 4, v8, v8, v9
     	    );
             exit( 1 );
@@ -485,7 +485,7 @@ void IntpMergeString( Intp_t *intp )
             if( len >= 0 ) continue;
             tmp = 4 - len;
             if( tmp + ofst >= (0x8000 - 2) ){
-                eprintf( "merged string would be too long, size %d %d\n", tmp, ofst );
+                eprintf( "merged string would be too long, size %d %d", tmp, ofst );
             } else {
                 ofst += tmp;
                 INTP_STR_LEN( p ) += len - 4;

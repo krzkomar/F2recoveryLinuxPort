@@ -47,7 +47,7 @@ void AiParseInjureFlags( char *str, int *Flags )
     		break;
     	    }
         }
-        if( i == 4 ) eprintf( "Unrecognized flag: %s\n", str );
+        if( i == 4 ) eprintf( "Unrecognized flag: %s", str );
         str = &str[ SepPos ];
         *str = sep;
         if( sep ) str++;
@@ -330,7 +330,7 @@ Ai_t *AiGetPacketByObj( Obj_t *obj )
     for( i = 0; i < gAiPacketsCnt; i++ ){
         if( obj->Critter.State.AIpackNb == gAiPackets[ i ].PacketNum ) return &gAiPackets[ i ];        
     }
-    eprintf( "Missing AI Packet\n" );
+    eprintf( "Missing AI Packet" );
     return gAiPackets;
 }
 
@@ -341,7 +341,7 @@ Ai_t *AiGetPacketById( int PacketId )
     for( i = 0; i < gAiPacketsCnt; i++ ){
     	if( PacketId == gAiPackets[ i ].PacketNum ) return &gAiPackets[ i ];    	
     }        
-    eprintf("Missing AI Packet\n");
+    eprintf("Missing AI Packet");
     return gAiPackets;
 }
 
@@ -393,7 +393,7 @@ int AiSetRunAway( Obj_t *obj, int RunAwayMode )
     pck = AiGetPacketByObj( obj );
     pck->RunAwayMode = RunAwayMode;
     pck->MinHP = FeatGetVal( obj, FEAT_HP ) - FeatGetVal( obj, FEAT_HP ) * gAiConstPercentRank[ RunAwayMode ] / 100;
-    eprintf( "\n%s minHp = %d; curHp = %d", CritterGetName( obj ), pck->MinHP, FeatGetVal( obj, FEAT_35 ) );
+    eprintf( "%s minHp = %d; curHp = %d", CritterGetName( obj ), pck->MinHP, FeatGetVal( obj, FEAT_35 ) );
     return 0;
 }
 
@@ -776,7 +776,7 @@ Obj_t *AiDangerSource( Obj_t *obj )
                 v18 = CombatUnk11( gObjDude );
                 if( !v18 || obj->Critter.State.GroupId == v18->Critter.State.GroupId ) break;
                 if( !AnimMakeTrace( obj, obj->GridId, gObjDude->Critter.State.WhoHitMeObj->GridId, 0, 0, (void *)ObjReach ) && CombatAttackTest( obj, v18, 2, 0 ) ){
-                    eprintf( "\nai_danger_source: %s couldn't attack at target!  Picking alternate!", CritterGetName( obj ) );
+                    eprintf( "ai_danger_source: %s couldn't attack at target!  Picking alternate!", CritterGetName( obj ) );
                     break;
                 }
                 if( v2 && CritterUnk49( v18 ) ) break;
@@ -824,7 +824,7 @@ Obj_t *AiDangerSource( Obj_t *obj )
         if( objs[ i ] && AiObjCanHearObj( obj, objs[ i ] ) ){
             if( AnimMakeTrace( obj, obj->GridId, objs[ i ]->GridId, 0, 0, (void *)ObjReach ) ) return objs[ i ];
             if( !CombatAttackTest( obj, objs[ i ], 2, 0 ) ) return objs[ i ];
-            eprintf( "\nai_danger_source: I couldn't get at my target!  Picking alternate!" );
+            eprintf( "ai_danger_source: I couldn't get at my target!  Picking alternate!" );
         }
     }
     return 0;
@@ -1544,7 +1544,7 @@ Obj_t *AiUnk50( Obj_t *a1, Obj_t *a2 )
     pck = AiGetPacketByObj( a1 );
     v25 = AiUnk49( pck );
     if( pck->RunAwayMode != -1 ){
-        eprintf( "\n\t%s minHp = %d; curHp = %d", CritterGetName( a1 ), FeatGetVal( a1, 7 ) - (FeatGetVal( a1, 7 ) * v25 / 100), FeatGetVal( a1, 35 ) );
+        eprintf( "\t%s minHp = %d; curHp = %d", CritterGetName( a1 ), FeatGetVal( a1, 7 ) - (FeatGetVal( a1, 7 ) * v25 / 100), FeatGetVal( a1, 35 ) );
     }
     if( (p_State->Reaction & 0x04) || (pck->HurtTooMuch & p_State->CombatResult) || FeatGetVal( a1, 35 ) < pck->MinHP ){
         eprintf( "%s: FLEEING: I'm Hurt!", CritterGetName( a1 ) );
@@ -1600,7 +1600,7 @@ Obj_t *AiUnk50( Obj_t *a1, Obj_t *a2 )
             }
         }
         if( a1->Critter.State.CurrentAP > 0 ){
-            eprintf( "\n>>>NOTE: %s had extra AP's to use!<<<", CritterGetName( a1 ) );
+            eprintf( ">>>NOTE: %s had extra AP's to use!<<<", CritterGetName( a1 ) );
             AiUnk48( a1, a2 );
         }
     }
@@ -1649,7 +1649,7 @@ int AiUnk53( Obj_t *obj, int Group )
     obj->Critter.State.GroupId = Group;
     if( WhoHitMe == (void *)-1 ){
         CritterUnk45( obj, 0 );
-        eprintf( "\nError: CombatData found with invalid who_hit_me!" );
+        eprintf( "Error: CombatData found with invalid who_hit_me!" );
         return -1;
     }
     if( WhoHitMe ){
@@ -1697,7 +1697,7 @@ int AiCombatTaunts( Obj_t *Critter, Combat_t *Combat, int ReactionType, int a4 )
     if( Critter->Critter.State.CombatResult & 0x81 ) return -1; // player is blind or dead ?
     
     pck = AiGetPacketByObj( Critter );
-    eprintf( "%s is using %s packet with a %d%% chance to taunt\n", ObjGetName( Critter ), pck->Name, pck->Chance );
+    eprintf( "%s is using %s packet with a %d%% chance to taunt", ObjGetName( Critter ), pck->Name, pck->Chance );
     if( RandMinMax( 1, 100 ) > pck->Chance ) return -1; // roll failed
 
     switch( ReactionType ){
@@ -1714,10 +1714,10 @@ int AiCombatTaunts( Obj_t *Critter, Combat_t *Combat, int ReactionType, int a4 )
     if( RunEnd < RunStart ) return -1;
     fmt.Id = RandMinMax( RunStart, RunEnd );
     if( MessageGetMsg( &gCombatAiMessages, &fmt ) != 1 ){
-        eprintf( "\nERROR: combatai_msg: Couldn't find message # %d for %s", fmt.Id, CritterGetName( Critter ) );
+        eprintf( "ERROR: combatai_msg: Couldn't find message # %d for %s", fmt.Id, CritterGetName( Critter ) );
         return -1;
     }
-    eprintf( "%s said message %d\n", ObjGetName( Critter ), fmt.Id );
+    eprintf( "%s said message %d", ObjGetName( Critter ), fmt.Id );
     strncpy( s, fmt.Text, 259 );
     return AnimSetCallback11( Critter, (AnimU_t)ReactionType, (void *)AiMumble, a4 ); // !!! scalar to pointer !!!
 }
@@ -1855,7 +1855,7 @@ void AiUnk63( Obj_t *obj )
         if( !AiObjCanHearObj( gAiObjList[ i ], obj ) ) continue;        
         p->Critter.State.Reaction |= 0x01;
         if( ( obj->Critter.State.CombatResult & 0x80 ) && !AiObjCanHearObj( p, obj->Critter.State.WhoHitMeObj ) ){
-            eprintf( "\nSomebody Died and I don't know why!  Run!!!" );
+            eprintf( "Somebody Died and I don't know why!  Run!!!" );
             CombatUnk10( p, obj );
         }                
     }

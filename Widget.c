@@ -635,7 +635,7 @@ void WidgetWinRegisterUpdate( WidgetProc_t *proc )
 	case 0x800: if( proc->i07 ) proc->i07( proc->itg ); return;
     }
 err:
-    eprintf( "Invalid input type given to win_register_update\n" );
+    eprintf( "Invalid input type given to win_register_update" );
     return;
 }
 
@@ -796,7 +796,7 @@ void WidgetUnk23( int WinId, char *fname1, char *fname2, int a4, int lt, int tp 
         gWidgetUnk12 = 1;
     } else {
         WidgetUnk16();
-        eprintf( "status bar dimensions not the same\n" );
+        eprintf( "status bar dimensions not the same" );
     }
 }
 

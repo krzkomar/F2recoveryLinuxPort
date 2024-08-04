@@ -576,7 +576,7 @@ LABEL_58:
         }
     }
     if( AnimRegEnd() == -1 ){
-        eprintf( "Something went wrong with a ranged attack sequence!\n" );
+        eprintf( "Something went wrong with a ranged attack sequence!" );
         if( obj && (v52 || WeaponBase == 6 || num != 18) ) ObjDestroy( obj, 0 );
         for( j = 0; j != 6; j++ ){
             if( TmpObj[j] ) ObjDestroy(TmpObj[j], 0);
@@ -1065,12 +1065,12 @@ int ActionExplode( int GridPos, int MapLvl, int DmgMin, int DmgMax, Obj_t *Targe
 	cmbt->DudeInjuries = 256;
 	GameIfaceDisable( 1 );
 	if( p ){
-    	    if( AnimRegClear( p ) == -2 ) eprintf( "Cannot clear target's animation for action_explode!\n" );
+    	    if( AnimRegClear( p ) == -2 ) eprintf( "Cannot clear target's animation for action_explode!" );
     	    cmbt->CompDmg = ActionGetExplosionDmg( DmgMin, DmgMax, p, &cmbt->CompKnockDown );
 	}
 	CombatExplosion( cmbt, 0, 0, 1 );
 	for( i = 0; i < cmbt->Count; i++ ){
-    	    if( AnimRegClear( cmbt->obj[ i ] ) == -2 ) eprintf( "Cannot clear extra's animation for action_explode!\n" );
+    	    if( AnimRegClear( cmbt->obj[ i ] ) == -2 ) eprintf( "Cannot clear extra's animation for action_explode!" );
     	    cmbt->Damage[ i ] = ActionGetExplosionDmg( DmgMin, DmgMax, cmbt->obj[ i ], &cmbt->KnockDown[ i ] );
 	}
         CombatKillUpdate( cmbt );

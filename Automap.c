@@ -271,7 +271,7 @@ int AutomapRenderMinimap( int WinId, int MapId, int MapLvl )
     surf = WIN_XY( 238, 105 - 25 , 640, WinGetSurface( WinId ) );
     color1 = gPalColorCubeRGB[0][31][0];
     color2 = gPalColorCubeRGB[0][15][0];
-    if( !( gAutomapData = Malloc( 11024 ) ) ){ eprintf( "AUTOMAP: Error allocating data buffer!\n" ); return -1; }
+    if( !( gAutomapData = Malloc( 11024 ) ) ){ eprintf( "AUTOMAP: Error allocating data buffer!" ); return -1; }
     memset( gAutomapData, 0, 11024 );
     if( AutomapCreateMinimap( MapId, MapLvl ) == -1 ){ Free( gAutomapData ); return -1; }
     nible = 0;
@@ -316,12 +316,12 @@ int AutomapSave()
         gAutomapRawData = (char *)Malloc( 11024 );
         if( gAutomapRawData ) v7 = 1;
     }
-    if( !v7 ){ eprintf( "AUTOMAP: Error allocating data buffers!\n" ); return -1; }
+    if( !v7 ){ eprintf( "AUTOMAP: Error allocating data buffers!" ); return -1; }
     sprintf( stmp, "%s/%s", "maps", "automap.db" );    
     if( !( fh2 = dbOpen( stmp, "r+b" ) ) )
-	{ eprintf( "AUTOMAP: Error opening automap database file!\n" ); eprintf( "Error continued: automap_pip_save: path: %s", stmp ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
+	{ eprintf( "AUTOMAP: Error opening automap database file!" ); eprintf( "Error continued: automap_pip_save: path: %s", stmp ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
     if( AutomapReadHdr( fh2 ) == -1 )
-	{ eprintf( "AUTOMAP: Error reading automap database file header!\n" ); Free( gAutomapData ); Free( gAutomapRawData ); dbClose( fh2 ); return -1; }
+	{ eprintf( "AUTOMAP: Error reading automap database file header!" ); Free( gAutomapData ); Free( gAutomapRawData ); dbClose( fh2 ); return -1; }
     AutomapMakeMinimap( gMapCurrentLvl );    
 
     if( ( v7 = GrLZDeflate( (unsigned char *)gAutomapData, gAutomapRawData, 10000 ) ) == -1 ) {
@@ -334,7 +334,7 @@ int AutomapSave()
     if( !v8 ){
         if( dbseek( fh2, 0, 2 ) == -1 || dbtell( fh2 ) != gAutomap_05.i01 ) v9 = 0;
         if( !v9 ){
-            eprintf( "AUTOMAP: Error reading automap database file header!\n" );
+            eprintf( "AUTOMAP: Error reading automap database file header!" );
             Free( gAutomapData );
             Free( gAutomapRawData );
             dbClose( fh2 );
@@ -352,21 +352,21 @@ int AutomapSave()
     }
     sprintf( a1, "%s/%s", "maps", "automap.tmp" );        
     if( !( fh1 = dbOpen( a1, "wb" ) ) )
-        { eprintf( "AUTOMAP: Error creating temp file!\n" ); Free( gAutomapData ); Free( gAutomapRawData ); dbClose( fh2 ); return -1; }
+        { eprintf( "AUTOMAP: Error creating temp file!" ); Free( gAutomapData ); Free( gAutomapRawData ); dbClose( fh2 ); return -1; }
     dbrewind( fh2 );
     if( AutomapFileCopy( fh2, fh1, v8 ) == -1 )
-        { eprintf( "AUTOMAP: Error copying file data!\n" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
+        { eprintf( "AUTOMAP: Error copying file data!" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
     if( AutomapSaveEntryData( fh1 ) == -1 ){ dbClose( fh2 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
     if( dbgetBei( fh2, &pint ) == -1 )
-        { eprintf( "AUTOMAP: Error reading database #1!\n" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
+        { eprintf( "AUTOMAP: Error reading database #1!" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
     v7 = pint + 5;
     if( ( v13 = dbFileLength( fh2 ) ) == -1 )
-        { eprintf( "AUTOMAP: Error reading database #2!\n" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
+        { eprintf( "AUTOMAP: Error reading database #2!" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
     if( v13 != v7 ){
         if( dbseek( fh2, v7, 0 ) == -1 )
-    	{ eprintf( "AUTOMAP: Error writing temp data!\n" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
+    	{ eprintf( "AUTOMAP: Error writing temp data!" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
         if( AutomapFileCopy( fh2, fh1, v13 - v7 ) == -1 )
-    	{ eprintf( "AUTOMAP: Error copying file data!\n" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
+    	{ eprintf( "AUTOMAP: Error copying file data!" ); dbClose( fh2 ); dbClose( fh1 ); Free( gAutomapData ); Free( gAutomapRawData ); return -1; }
     }
     v7 = gAutomapRawSize - pint;
     for( i = 0; i < 160; i++ ){
@@ -389,7 +389,7 @@ static int AutomapUnk11( char *sub )
 
     Free( gAutomapRawData );
     if( CfgGetString( &gConfiguration, "system", sub, &p ) != 1 ){
-	eprintf( "AUTOMAP: Error reading config info!\n" );
+	eprintf( "AUTOMAP: Error reading config info!" );
 	return -1;
     }
     return AutomapTmp2Db( p );
@@ -401,7 +401,7 @@ static int AutomapTmp2Db( char *subdirname )
 
     sprintf( stmp, "%s/%s/%s", subdirname, "maps", "automap.db" );
     if( xFileRemove( stmp ) ){
-	eprintf( "AUTOMAP: Error removing database!\n" );
+	eprintf( "AUTOMAP: Error removing database!" );
 	return -1;
     }    
     return AutomapRename( subdirname, stmp );
@@ -413,7 +413,7 @@ static int AutomapRename( char *dir, char *NewFileName )
 
     sprintf( stmp, "%s/%s/%s", dir, "maps", "automap.tmp" );
     if( rename( stmp, NewFileName ) ){
-	eprintf( "AUTOMAP: Error renaming database!\n" );
+	eprintf( "AUTOMAP: Error renaming database!" );
 	return -1;
     }
     return 1;
@@ -428,7 +428,7 @@ int AutomapSaveEntryData( xFile_t *fh )
     p = ( gAutomapUnk102 == 1 ) ? gAutomapRawData : gAutomapData;
     if( dbputLei( fh, gAutomapRawSize ) == -1 || dbputb( fh, gAutomapUnk102 ) == -1 || dbputbBlk( fh, p, gAutomapRawSize ) == -1 ) err = 0;
     if( !err ){
-	eprintf( "AUTOMAP: Error writing automap database entry data!\n" );
+	eprintf( "AUTOMAP: Error writing automap database entry data!" );
 	dbClose( fh );
 	return -1;
     }
@@ -444,27 +444,27 @@ int AutomapCreateMinimap( int MapId, int MapLvl )
     sprintf( stmp, "%s/%s", "maps", "automap.db" );
 
     if( !( fh = dbOpen( stmp, "r+b" ) ) )
-	{ eprintf( "AUTOMAP: Error opening automap database file!\n" ); eprintf( "Error continued: AM_ReadEntry: path: %s", stmp ); return -1; }
+	{ eprintf( "AUTOMAP: Error opening automap database file!" ); eprintf( "Error continued: AM_ReadEntry: path: %s", stmp ); return -1; }
     if( AutomapReadHdr( fh ) == -1 )
-	{ eprintf( "AUTOMAP: Error reading automap database header!\n" ); dbClose( fh ); return -1; }
+	{ eprintf( "AUTOMAP: Error reading automap database header!" ); dbClose( fh ); return -1; }
     if( gAutomap_05.tab[ 3 * MapId + MapLvl ] <= 0 )
-	{ eprintf( "AUTOMAP: Error reading automap database entry data!\n" ); dbClose( fh ); return -1; }
+	{ eprintf( "AUTOMAP: Error reading automap database entry data!" ); dbClose( fh ); return -1; }
     if( dbseek( fh, gAutomap_05.tab[ 3 * MapId + MapLvl ], SEEK_SET ) == -1  )
-	{ eprintf( "AUTOMAP: Error reading automap database entry data!\n" ); dbClose( fh ); return -1; }
+	{ eprintf( "AUTOMAP: Error reading automap database entry data!" ); dbClose( fh ); return -1; }
     if( dbgetBei( fh, &gAutomapRawSize ) == -1  )
-	{ eprintf( "AUTOMAP: Error reading automap database entry data!\n" ); dbClose( fh ); return -1; }
+	{ eprintf( "AUTOMAP: Error reading automap database entry data!" ); dbClose( fh ); return -1; }
     if( dbgetb( fh, &gAutomapUnk102 ) == -1 )
-	{ eprintf( "AUTOMAP: Error reading automap database entry data!\n" ); dbClose( fh ); return -1; }
+	{ eprintf( "AUTOMAP: Error reading automap database entry data!" ); dbClose( fh ); return -1; }
     if( gAutomapUnk102 != 1 ){
         if( dbreadByteBlk( fh, gAutomapData, gAutomapRawSize ) == -1 )
-    	    { eprintf( "AUTOMAP: Error reading automap database entry data!\n" ); dbClose( fh ); return -1; }
+    	    { eprintf( "AUTOMAP: Error reading automap database entry data!" ); dbClose( fh ); return -1; }
     } else {
 	if( !( gAutomapRawData = Malloc( 11024 ) ) )
-	    { eprintf( "AUTOMAP: Error allocating decompression buffer!\n" ); dbClose( fh ); return -1; }
+	    { eprintf( "AUTOMAP: Error allocating decompression buffer!" ); dbClose( fh ); return -1; }
 	if( dbreadByteBlk( fh, gAutomapRawData, gAutomapRawSize ) == -1 )
-	    { eprintf( "AUTOMAP: Error reading automap database entry data!\n" ); dbClose( fh ); return -1; }
+	    { eprintf( "AUTOMAP: Error reading automap database entry data!" ); dbClose( fh ); return -1; }
 	if( GrLZInflate( (unsigned char *)gAutomapRawData, gAutomapData, 100 * 100 ) == -1 )
-	    { eprintf( "AUTOMAP: Error decompressing DB entry!\n" ); dbClose( fh ); Free( gAutomapRawData ); return -1; }
+	    { eprintf( "AUTOMAP: Error decompressing DB entry!" ); dbClose( fh ); Free( gAutomapRawData ); return -1; }
     }
     dbClose( fh );
     if( gAutomapRawData ) Free( gAutomapRawData );
@@ -523,7 +523,7 @@ int AutomapCreateDatabase()
     memcpy( gAutomap_05.tab, gAutomap_03, sizeof( gAutomap_05.tab ) );
     sprintf( fpath, "%s/%s", "maps", "automap.db" );
     if( !(fh = dbOpen( fpath, "wb" )) ){
-        eprintf( "AUTOMAP: Error creating automap database file!\n" );
+        eprintf( "AUTOMAP: Error creating automap database file!" );
         return -1;
     }
     if( AutomapWriteHdr( fh ) == -1 ) return -1;    
@@ -568,11 +568,11 @@ int AutomapLoadDB( Automap_t **pAutomap )
 
     sprintf( stmp, "%s/%s", "maps", "automap.db" );
     if( !(fh = dbOpen( stmp, "rb" ) ) ){
-	eprintf( "AUTOMAP: Error opening database file for reading!\n" );
-	eprintf( "Error continued: ReadAMList: path: %s\n", stmp );
+	eprintf( "AUTOMAP: Error opening database file for reading!" );
+	eprintf( "Error continued: ReadAMList: path: %s", stmp );
 	return -1;
     }
-    if( AutomapReadHdr( fh ) == -1 ){ eprintf( "AUTOMAP: Error reading automap '%s' database header pt2!\n", stmp ); dbClose( fh ); return -1; }
+    if( AutomapReadHdr( fh ) == -1 ){ eprintf( "AUTOMAP: Error reading automap '%s' database header pt2!", stmp ); dbClose( fh ); return -1; }
     dbClose( fh );
     *pAutomap = &gAutomap_05;
     return 0;

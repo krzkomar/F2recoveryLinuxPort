@@ -59,7 +59,7 @@ int LipsyncSpeechStart()
 {
     gLipsync.Status |= LIPS_ANIMATE;
 
-    if( SoundSpeechSetOffset( gLipsync.Snd, gLipsync.Position ) ) eprintf( "Failed set of start_offset!\n" );
+    if( SoundSpeechSetOffset( gLipsync.Snd, gLipsync.Position ) ) eprintf( "Failed set of start_offset!" );
 
     for( gLipsPosition = 0; gLipsync.Markers[ gLipsPosition ].Pos < gLipsync.Position; gLipsPosition++ ){
         gLipsPhoneme = gLipsync.Phonemes[ gLipsPosition ];        
@@ -69,7 +69,7 @@ printf("*******************************\n* spk vol: %ld %p %i %i\n", lround( GSo
     SoundSetSndVol( gLipsync.Snd, lround( GSoundGetSpkVolume() * 0.69 ) );
     gLipsTime = TimerGetSysTime();
     if( SoundPlayAcm( gLipsync.Snd ) ){
-        eprintf( "Failed play!\n" );
+        eprintf( "Failed play!" );
         gLipsPosition = 0;
         SoundStop( gLipsync.Snd );
         gLipsync.Status &= LIPS_CLRMASK;
@@ -156,14 +156,14 @@ int LipsyncLoadFile( char *a1, char *DirName )
     if( (fh = dbOpen( fpath, "rb" ) ) ){
 	if( dbgetBei( fh, &gLipsync.Version ) ) return -1;
 	if( gLipsync.Version == 1 ){
-    	    eprintf( "\nLoading old save-file version (1)" );
+    	    eprintf( "Loading old save-file version (1)" );
     	    if( dbseek( fh, 0, 0 ) ) return -1;
     	    if( LipsyncLoadDataOldFmt( &gLipsync, fh ) ) return -1;
 	} else {
 	    if( gLipsync.Version != 2 ){
-    		eprintf( "\nError: Lips file WRONG version: %s!", fpath );
+    		eprintf( "Error: Lips file WRONG version: %s!", fpath );
 	    } else {
-		eprintf( "\nLoading current save-file version (2)" );
+		eprintf( "Loading current save-file version (2)" );
 		if( dbgetBei( fh, &gLipsync.Magic ) ) return -1;
 		if( dbgetBei( fh, &gLipsync.Status ) ) return -1;
 		if( dbgetBei( fh, &gLipsync.Unk11 ) ) return -1;
@@ -176,29 +176,29 @@ int LipsyncLoadFile( char *a1, char *DirName )
 	    }
 	}
     }    
-    if( !(gLipsync.Phonemes = Malloc( gLipsync.PhonemesCnt )) ){ eprintf( "Out of memory in lips_load_file.\n" ); return -1; }
+    if( !(gLipsync.Phonemes = Malloc( gLipsync.PhonemesCnt )) ){ eprintf( "Out of memory in lips_load_file." ); return -1; }
     if( fh ){
         for( i = 0; i < gLipsync.PhonemesCnt; i++ ){
-            if( dbgetb( fh, &gLipsync.Phonemes[ i ] ) ){ eprintf( "lips_load_file: Error reading phoneme type.\n" ); return -1; }                        
+            if( dbgetb( fh, &gLipsync.Phonemes[ i ] ) ){ eprintf( "lips_load_file: Error reading phoneme type." ); return -1; }                        
         }
         for( i = 0; i < gLipsync.PhonemesCnt; i++ ){
-            if( gLipsync.Phonemes[ i ] >= 42 ) eprintf( "\nLoad error: Speech phoneme %d is invalid (%d)!", i, gLipsync.Phonemes[ i ] );
+            if( gLipsync.Phonemes[ i ] >= 42 ) eprintf( "Load error: Speech phoneme %d is invalid (%d)!", i, gLipsync.Phonemes[ i ] );
         }
     }
-    if( !(gLipsync.Markers = Malloc( gLipsync.MarkersCnt * sizeof( LipsMarker_t ) )) ){ eprintf( "Out of memory in lips_load_file.\n" ); return -1; }
+    if( !(gLipsync.Markers = Malloc( gLipsync.MarkersCnt * sizeof( LipsMarker_t ) )) ){ eprintf( "Out of memory in lips_load_file." ); return -1; }
     if( fh ){
 	for( i = 0; i < gLipsync.MarkersCnt; i++ ){
     	    if( dbgetBei( fh, &tmp ) == -1 || dbgetBei( fh, &gLipsync.Markers[ i ].Pos ) == -1 ){
-        	eprintf( "lips_load_file: Error reading marker type.\n" ); return -1;
+        	eprintf( "lips_load_file: Error reading marker type." ); return -1;
     	    } else {
         	gLipsync.Markers[ i ].Type = tmp;
     	    }
 	}
-	if( gLipsync.Markers[ 0 ].Type >= 2 )  eprintf( "\nLoad error: Speech marker 0 is invalid (%d)!", gLipsync.Markers[ 0 ].Type );
-	if( gLipsync.Markers[ 0 ].Pos != 0 ) eprintf( "\nLoad error: Speech marker 0 has invalid position(%d)!", gLipsync.Markers[ 0 ].Pos );	
+	if( gLipsync.Markers[ 0 ].Type >= 2 )  eprintf( "Load error: Speech marker 0 is invalid (%d)!", gLipsync.Markers[ 0 ].Type );
+	if( gLipsync.Markers[ 0 ].Pos != 0 ) eprintf( "Load error: Speech marker 0 has invalid position(%d)!", gLipsync.Markers[ 0 ].Pos );	
         for( i = 1; i < gLipsync.MarkersCnt; i++ ){
-            if( gLipsync.Markers[ i ].Type >= 2 ) eprintf( "\nLoad error: Speech marker %d is invalid (%d)!", i, gLipsync.Markers[ i ].Type );
-            if( gLipsync.Markers[ i ].Pos < gLipsync.Markers[ i - 1 ].Pos ) eprintf( "\nLoad error: Speech marker %d has invalid position(%d)!", i, gLipsync.Markers[ i ].Pos );
+            if( gLipsync.Markers[ i ].Type >= 2 ) eprintf( "Load error: Speech marker %d is invalid (%d)!", i, gLipsync.Markers[ i ].Type );
+            if( gLipsync.Markers[ i ].Pos < gLipsync.Markers[ i - 1 ].Pos ) eprintf( "Load error: Speech marker %d has invalid position(%d)!", i, gLipsync.Markers[ i ].Pos );
         }
     }
     if( fh ) dbClose( fh );
@@ -232,13 +232,13 @@ DD
         gLipsync.Snd = NULL;
     }
     gLipsync.Snd = SoundCreate( 1, 8 );
-    if( !gLipsync.Snd ){ eprintf( "\nsoundAllocate falied in lips_make_speech!" ); return -1; }
+    if( !gLipsync.Snd ){ eprintf( "soundAllocate falied in lips_make_speech!" ); return -1; }
     if( SoundSetFileIO( gLipsync.Snd, AudioOpen, AudioRead, AudioClose, NULL, AudioSeek, NULL, AudioLen, AudioGetFmt ) ){ eprintf( "Ack!" ); eprintf( "Error!" ); }
     if( SoundLoadFile( gLipsync.Snd, fname ) ){
         SoundDelete( gLipsync.Snd );
         gLipsync.Snd = NULL;
         eprintf( "lips_make_speech: soundLoad failed with path " );
-        eprintf( "%s -- file probably doesn't exist.\n", fname );
+        eprintf( "%s -- file probably doesn't exist.", fname );
         return -1;
     }
 printf("=>freq:%i, ch:%i, samples:%i\n", gLipsync.Snd->Freq, gLipsync.Snd->Channels, gLipsync.Snd->Samples );

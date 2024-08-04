@@ -106,7 +106,7 @@ int MouseMgrInsertCache( MseMgrCursor_t **Cursor, int Type, Pal8_t *Palette, cha
                 n = i;
             }
         }
-        if( n == -1 ){ eprintf( "Mouse cache overflow!!!!\n" ); exit( 1 ); }
+        if( n == -1 ){ eprintf( "Mouse cache overflow!!!!" ); exit( 1 ); }
         i = n;
         MouseMgrDelCache( &gMouseMgrCache[ i ] );
     }
@@ -170,7 +170,7 @@ void MouseMgrAnimate()
 
     if( !gMouseMgrAnimating ) return;    
     if( !gMouseMgrCurAnim ){
-        eprintf( "Animating == 1 but curAnim == 0\n" );
+        eprintf( "Animating == 1 but curAnim == 0" );
         gMouseMgrAnimating = 0;
         return;    
     }
@@ -246,7 +246,7 @@ int MouseMgrLoadAnim( char *fname, int StartFrame )
         dbg_free( gMouseMgrCurStat );
         gMouseMgrCurStat = NULL;
     }
-    if( !(fh = dbOpen(v47, "r")) ){ eprintf( "mouseSetFrame: couldn't find %s\n", v47 ); return 0; }
+    if( !(fh = dbOpen(v47, "r")) ){ eprintf( "mouseSetFrame: couldn't find %s", v47 ); return 0; }
     dbgets( ErrCode, 80, fh );
     if( strncasecmp( ErrCode, "anim", 4 ) ){ dbClose( fh ); MouseMgrLoadCursor( s ); return 1; }    
     if( !(s = strchr( ErrCode, ' ' )) ) return 0;
@@ -266,10 +266,10 @@ int MouseMgrLoadAnim( char *fname, int StartFrame )
         ErrCode[0] = 0;
         dbgets( ErrCode, 80, fh );
         if( !ErrCode[ 0 ] ){
-            eprintf( "Not enough frames in %s, got %d, needed %d\n", v47, tmp, frames );
+            eprintf( "Not enough frames in %s, got %d, needed %d", v47, tmp, frames );
             break;
         }
-        if( !(s = strchr( ErrCode, ' ' )) ){ eprintf( "Bad line %s in %s\n", ErrCode, s ); return 0; }
+        if( !(s = strchr( ErrCode, ' ' )) ){ eprintf( "Bad line %s in %s", ErrCode, s ); return 0; }
         *s = '\0';
         sscanf( s + 1, "%d %d", &v41, &v40 );
         p->bmp[ tmp ] = DataFileUnk06( gMouseMgrHandlerCb( ErrCode ), &v39, &v38 );
@@ -371,7 +371,7 @@ int MouseMgrLoadCursor( char *fname )
         s = strrchr( fname, '.' );
         if( s && !strcasecmp( s + 1, "mou" ) ) return MouseMgrLoadMou( fname, 0, 0 );
         s = gMouseMgrHandlerCb( fname );        
-        if( !( fh = dbOpen( s, "r" ) ) ){ eprintf( "Can't find %s\n", s ); return 0; }
+        if( !( fh = dbOpen( s, "r" ) ) ){ eprintf( "Can't find %s", s ); return 0; }
         stmp[ 0 ] = '\0';
         dbgets( stmp, 79, fh );
         if( !stmp[ 0 ] == '\0' ) return 0;
@@ -417,7 +417,7 @@ void MouseMgrCursorUpdate()
         	gMouseMgrCache[ gMouseMgrCurrentIdx ].Cursor->stat.CentX, gMouseMgrCache[ gMouseMgrCurrentIdx ].Cursor->stat.CentY, 0 
     	    );
         } else {
-            eprintf( "Hm, current mouse type is M_STATIC, but no current mouse pointer\n" );
+            eprintf( "Hm, current mouse type is M_STATIC, but no current mouse pointer" );
         }
     } else if( Type == M_ANIMATED ){
         if( gMouseMgrCurAnim ){            
@@ -431,7 +431,7 @@ void MouseMgrCursorUpdate()
         	gMouseMgrCurAnim->anim.CentX[ gMouseMgrCurAnim->anim.cnt3 ], gMouseMgrCurAnim->anim.CentY[ gMouseMgrCurAnim->anim.cnt3 ], 0
     	    );
         } else {
-            eprintf( "Hm, current mouse type is M_ANIMATED, but no current mouse pointer\n" );
+            eprintf( "Hm, current mouse type is M_ANIMATED, but no current mouse pointer" );
         }
     }
 }

@@ -508,7 +508,7 @@ LABEL_28:
                 v14 = v35 - v32;
                 goto LABEL_28;
             }
-            eprintf("Hm, no second write pointer, but buffer not big enough, this shouldn't happen\n");
+            eprintf("Hm, no second write pointer, but buffer not big enough, this shouldn't happen");
         } else {
             v34 = v43;
             memcpy(v43, Snd->InBuffer, num);
@@ -1097,7 +1097,7 @@ void SoundPauseAll()
         if( SoundPause( p ) ){
             err = gSoundErrno;
             if( gSoundErrno >= SND_ERR_ALL ) err = SND_ERR_UNK;
-            eprintf( "soundPauseAll: %s\n", gSoundErrorList[ err ] );
+            eprintf( "soundPauseAll: %s", gSoundErrorList[ err ] );
         }
     }
 }
@@ -1111,7 +1111,7 @@ void SoundPauseFadeAll( int a1, int a2 )
         if( SoundFadePause( p, a1, a2, 1 ) ){
             err = gSoundErrno;
             if( gSoundErrno >= SND_ERR_ALL ) err = SND_ERR_UNK;
-            eprintf( "soundPauseFadeAll: %s\n", gSoundErrorList[ err ] );
+            eprintf( "soundPauseFadeAll: %s", gSoundErrorList[ err ] );
         }        
     }
 }

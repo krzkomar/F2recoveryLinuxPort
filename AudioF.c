@@ -154,7 +154,7 @@ int AudiofTell( int Id )
 
 int AudiofWrite()
 {
-    eprintf( "AudiofWrite shouldn't be ever called\n" );
+    eprintf( "AudiofWrite shouldn't be ever called" );
     return 0;
 }
 

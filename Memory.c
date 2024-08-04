@@ -117,7 +117,7 @@ void *MemSetBlock( MemInt_t *ptr, int size )
 
 void MemCheckBlock( MemInt_t *ptr )
 {
-    if( ptr->Guard != MEMORY_BEGIN_GUARD ) eprintf( "Memory header stomped.\n" );
-    if( *((int *)&( ptr->Data[ ptr->Size - sizeof( unsigned int ) ])) != MEMORY_END_GUARD ) eprintf( "Memory footer stomped.\n" );
+    if( ptr->Guard != MEMORY_BEGIN_GUARD ) eprintf( "Memory header stomped." );
+    if( *((int *)&( ptr->Data[ ptr->Size - sizeof( unsigned int ) ])) != MEMORY_END_GUARD ) eprintf( "Memory footer stomped." );
 }
 

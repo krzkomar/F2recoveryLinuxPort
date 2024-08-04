@@ -932,7 +932,7 @@ int WmFindMatchForEncounterType( char *EncTypeName, int *pIdx )
         if( !strcasecmp( EncTypeName, gWmEncounterTable[ i ].Name ) ) break;
     }
     if( i >= gWmEncounterTableCnt ){
-        eprintf( "\nWorldMap Error: Couldn't find match for Encounter Type!" );
+        eprintf( "WorldMap Error: Couldn't find match for Encounter Type!" );
         *pIdx = -1;
         return -1;
     }
@@ -948,7 +948,7 @@ int WmFindMatchForTerrainType( char *TerrainTypeName, int *pIdx )
         if( !strcasecmp( TerrainTypeName, gWmTerrainTypes[ i ].Name ) ) break;
     }    
     if( i >= gWmTerrainTypesCnt ){
-        eprintf("\nWorldMap Error: Couldn't find match for Terrain Type!");
+        eprintf("WorldMap Error: Couldn't find match for Terrain Type!");
         *pIdx = -1;
         return -1;
     }
@@ -1232,7 +1232,7 @@ int WmLookupMapByName( char *Name, int *Idx )
         *Idx = i;
         return 0;
     }
-    eprintf( "\nWorldMap Error: Couldn't find match for Map Index!" );
+    eprintf( "WorldMap Error: Couldn't find match for Map Index!" );
     *Idx = -1;
     return -1;
 }
@@ -1283,7 +1283,7 @@ int WmMapInit()
                     if( !*pValue ) pValue = NULL;
                     if( m->AmbientSfxCnt >= 6 ){
                         if( pValue ){
-                            eprintf( "\n\nwmMapInit::Error reading ambient sfx.  Too many!  Str: %s, MapIdx: %d", pValue, i );
+                            eprintf( "\nwmMapInit::Error reading ambient sfx.  Too many!  Str: %s, MapIdx: %d", pValue, i );
                             pValue = NULL;
                         }
                     }
@@ -1514,7 +1514,7 @@ int WmMenu1( int UnusedArg )
                     } else {
                         gWmCurrentArea = gWmAreaId;
                     }
-                    eprintf( "\nRan outta gas!" );
+                    eprintf( "Ran outta gas!" );
                 }
     	    }  
 
@@ -1734,7 +1734,7 @@ int WmRandomEncounter()
         }
 	if( v13 > 95 ) v13 = 95;
         zz = gWmWorldPosY / 300 * gWmHorizTileCnt + gWmWorldPosX / 350 % gWmHorizTileCnt;
-        eprintf( "\nEncounter Difficulty Mod: %d", gWmTiles[ zz ].Difficulty );
+        eprintf( "Encounter Difficulty Mod: %d", gWmTiles[ zz ].Difficulty );
         v13 = gWmTiles[ zz ].Difficulty + v13;
         if( RandMinMax( 1, 100 ) < v13 ){
             v25 = 1;
@@ -1860,12 +1860,12 @@ int WmSetupRandomEncounter()
     IfcMsgOut( MessageGetMessage( &gWmMsg, &Line, 50 * gWmEncounterType + 3000 + gWmUnk34 ) );
     switch( enc->SceneryType ){
 	case 0 ... 3:
-            eprintf( "\nwmSetupRandomEncounter: Scenery Type: %s", gWmWeightList[ enc->SceneryType ] );
+            eprintf( "wmSetupRandomEncounter: Scenery Type: %s", gWmWeightList[ enc->SceneryType ] );
             CfgGetInteger( &gConfiguration, "preferences", "game_difficulty", &difficulty );
             if( enc->EncCnt <= 0 ) return 0;
             break;
         default:
-            eprintf( "\nERROR: wmSetupRandomEncounter: invalid Scenery Type!" );
+            eprintf( "ERROR: wmSetupRandomEncounter: invalid Scenery Type!" );
             return -1;
     }
     for( i = 0; i < enc->EncCnt; i++/*, enc += 16*/ ){
@@ -1926,7 +1926,7 @@ int WmSetupCritter( int eax0, Obj_t **edx0, int a3 )
     if ( eax0 == -1 ) return 0;
     *edx0 = 0;
     player = &gWmPlayers[ eax0 ];
-    eprintf( "\nwmSetupCritterObjs: typeIdx: %d, Formation: %s", eax0, gWmPositionsList[ player->Position ] );
+    eprintf( "wmSetupCritterObjs: typeIdx: %d, Formation: %s", eax0, gWmPositionsList[ player->Position ] );
     if( WmSetupCritterObjs(player) == -1 ) return -1;
     for( i = 0; i < player->TeamCnt; i++ ){
         v5 = &player->Team[ i ];
@@ -1939,7 +1939,7 @@ int WmSetupCritter( int eax0, Obj_t **edx0, int a3 )
             if( TileNum < 1 ) TileNum = 1;
             for( j = 0; j < TileNum; j++ ){
                 if( WmSetupRndNextTileNum( player, v5, &GridPos, TileNum ) == -1 ){
-                    eprintf( "\nERROR: wmSetupCritterObjs: wmSetupRndNextTileNum:" );
+                    eprintf( "ERROR: wmSetupCritterObjs: wmSetupRndNextTileNum:" );
                 } else if( v5->Pid != -1 ){
                     if( ObjCopy( &pObj, v5->Pid ) == -1 ) return -1;
                     if( !*edx0 && OBJTYPE( v5->Pid ) == TYPE_CRIT ) *edx0 = pObj;
@@ -1961,7 +1961,7 @@ int WmSetupCritter( int eax0, Obj_t **edx0, int a3 )
                         if( ItemAdd( pObj, a1, v12 ) == -1 ) return -1;
                         ObjLightItem( a1, 0 );
                         if( v5->Items[ k ].Used && InvUnk28( pObj, a1, 1 ) == -1 ){
-                            eprintf( "\nERROR: wmSetupCritterObjs: Inven Wield Failed: %d on %s: Critter Fid: %d", a1->Pid, CritterGetName( pObj ), pObj->ImgId );
+                            eprintf( "ERROR: wmSetupCritterObjs: Inven Wield Failed: %d on %s: Critter Fid: %d", a1->Pid, CritterGetName( pObj ), pObj->ImgId );
                         }
                     }
                     if( (v5->Flags & 1) != 0 && OBJTYPE( pObj->Pid ) == TYPE_CRIT ) CritterKill( pObj, -1, 0 );
@@ -2008,7 +2008,7 @@ int WmSetupCritterObjs( WmPlayer_t *player )
             gWmMapStart = gWmMapDst[ 0 ];
             return 0;
     }
-    eprintf( "\nERROR: wmSetupCritterObjs: invalid Formation Type!" );
+    eprintf( "ERROR: wmSetupCritterObjs: invalid Formation Type!" );
     return -1;
 }
 
@@ -2067,11 +2067,11 @@ int WmSetupRndNextTileNum( WmPlayer_t *player, WmTeam_t *team, int *pTileNum, in
         }        
         gWmUnk129++;
         if( WmUnk53( TileNum ) ){
-	    eprintf( "\nwmSetupRndNextTileNum:TileNum: %d", TileNum );
+	    eprintf( "wmSetupRndNextTileNum:TileNum: %d", TileNum );
 	    *pTileNum = TileNum;
 	    return 0;
         }
-        eprintf( "\nWARNING: EVAL-TILE-NUM FAILED!" );
+        eprintf( "WARNING: EVAL-TILE-NUM FAILED!" );
         if( TileGetDistance( gWmMapStart, gWmMapDst[ gWmUnk128 ] ) > 25 ) return -1;        
     }
     return -1;
@@ -3496,14 +3496,14 @@ int WmStartMapMusic()
 	    if( GSoundSetBg( gWmMaps[ MapIdx ].BgMusicFname, 12 ) != -1 ) return 0; // Success
 	}
     }
-    eprintf( "\nWorldMap Error: Couldn't start map Music!\n" ); 
+    eprintf( "WorldMap Error: Couldn't start map Music!\n" ); 
     return -1; // Fail
 }
 int WmSetMapMusic( int MapId, const char *MusicFname )
 {
     if( MapId == -1 || MapId >= gWmMapCount ) return -1;
     if( !MusicFname ) return -1;
-    eprintf( "\nwmSetMapMusic: %d, %s", MapId, MusicFname );
+    eprintf( "wmSetMapMusic: %d, %s", MapId, MusicFname );
     strncpy( gWmMaps[ MapId ].BgMusicFname, MusicFname, 40 );
     gWmMaps[ MapId ].BgMusicFname[ 39 ] = '\0';
     if( MapGetCurrentMapId() == MapId ){

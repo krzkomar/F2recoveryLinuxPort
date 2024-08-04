@@ -294,7 +294,7 @@ int GrLZDeflate( unsigned char *InBuffer, char *OutBuffer, int InSize )
         }
     }
     if( !err ){
-        eprintf( "\nGRAPHLIB: Error allocating compression buffers!\n" );
+        eprintf( "GRAPHLIB: Error allocating compression buffers!" );
         if( gGrLZBranchL ) Free( gGrLZBranchL );
         if( gGrLZBranchR ) Free( gGrLZBranchR );
         if( gGrLZNode ) Free( gGrLZNode );
@@ -461,7 +461,7 @@ int GrLZInflate( unsigned char *InBuff, char *OutBuff, int MaxSize )
     FrmIdx = 0xfee;
     Size = 0;
     mask = 0;
-    if( !( gGrBuff4 = Malloc( 0x101a ) ) ){ eprintf( "\nGRAPHLIB: Error allocating decompression buffer!\n" ); return -1; }
+    if( !( gGrBuff4 = Malloc( 0x101a ) ) ){ eprintf( "GRAPHLIB: Error allocating decompression buffer!" ); return -1; }
     memset( gGrBuff4, 0x20, 0xfee );
     do{
         mask >>= 1;

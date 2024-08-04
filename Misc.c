@@ -82,7 +82,7 @@ void FileListFree( char **FileList )
 
 int FileRename( char *a, char *b )
 {
-DD
+    printf("{Misc.c dummy} FileRename( '%s', '%s')\n", a, b);
     return -1;
 }
 

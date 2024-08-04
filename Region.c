@@ -124,7 +124,7 @@ Region_t *RegionInit( int Cnt )
 void RegionAddPoint( Region_t *reg, int a2, int a3 )
 {
     if( !reg ){
-	eprintf( "regionAddPoint(): null region ptr\n" );
+	eprintf( "regionAddPoint(): null region ptr" );
 	return;
     }
     if( reg->p01 ){
@@ -149,7 +149,7 @@ void RegionDelete( Region_t *reg )
         if( reg->p01 ) dbg_free( reg->p01 );
         dbg_free( reg );
     } else {
-        eprintf( "regionDelete(): null region ptr\n" );
+        eprintf( "regionDelete(): null region ptr" );
     }
 }
 
@@ -161,14 +161,14 @@ void RegionAddName( Region_t *reg, char *Name )
         else
             reg->Name[ 0 ] = '\0';
     } else {
-        eprintf( "regionAddName(): null region ptr\n" );
+        eprintf( "regionAddName(): null region ptr" );
     }
 }
 
 const char * RegionGetName( Region_t *reg )
 {
     if( !reg ){
-        eprintf( "regionGetName(): null region ptr\n" );
+        eprintf( "regionGetName(): null region ptr" );
         return "<null>";
     }
     return reg->Name;
@@ -177,7 +177,7 @@ const char * RegionGetName( Region_t *reg )
 void *RegionGetUserData( Region_t *reg )
 {
     if( reg ) return reg->UserData;
-    eprintf( "regionGetUserData(): null region ptr\n" );
+    eprintf( "regionGetUserData(): null region ptr" );
     return NULL;
 }
 
@@ -186,7 +186,7 @@ void RegionSetUserData( Region_t *reg, void *UserData )
     if( reg )
         reg->UserData = UserData;
     else
-        eprintf( "regionSetUserData(): null region ptr\n" );
+        eprintf( "regionSetUserData(): null region ptr" );
 }
 
 void RegionSetFlags( Region_t *reg, int flags )

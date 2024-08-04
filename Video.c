@@ -192,37 +192,37 @@ int VidInitMode( int Width, int Height, int Bpp )
     gSDLRect.h = Height * gVidScaleY;
     if( SDL_SetWindowDisplayMode( gWindow, &mode ) ) return -1;
     if( !(gSDLSurfaceMain = SDL_CreateRGBSurfaceWithFormat( 0, Width, Height, 32, SDL_PIXELFORMAT_RGBA32 )) ){
-	eprintf( "<ERROR> Creating SDL main surface error !! '%s'\n", SDL_GetError() );
+	eprintf( "<ERROR> Creating SDL main surface error !! '%s'", SDL_GetError() );
 	return -1;
     }
     if( !(gSDLRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED /*| SDL_RENDERER_PRESENTVSYNC*/ ) ) ){
-	eprintf( "<ERROR> Creating SDL renderer error !! '%s'\n", SDL_GetError() );
+	eprintf( "<ERROR> Creating SDL renderer error !! '%s'", SDL_GetError() );
 	return -1;
     }
     if( !(gSDLSurfaceCur = SDL_CreateRGBSurface( 0, 640, 480, 8, 0, 0, 0, 0 )) ){
-	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'\n", SDL_GetError() );
+	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'", SDL_GetError() );
 	return -1;
     }
     if( !(gSDLPalette = SDL_AllocPalette( 256 )) ){
-	eprintf( "<ERROR> Creating SDL palette error !! '%s'\n", SDL_GetError() );
+	eprintf( "<ERROR> Creating SDL palette error !! '%s'", SDL_GetError() );
 	return -1;
     }    
     if( SDL_SetSurfacePalette( gSDLSurfaceCur, gSDLPalette ) < 0 ){
-	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'\n", SDL_GetError() );
+	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'", SDL_GetError() );
 	return -1;
     }    
     if(!(gSDLTexture = SDL_CreateTexture( gSDLRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, mode.w, mode.h ))){
-	eprintf( "<ERROR> Creating SDL texture error !! '%s'\n", SDL_GetError() );
+	eprintf( "<ERROR> Creating SDL texture error !! '%s'", SDL_GetError() );
 	return -1;
     }
 
 //    if( !(gSDLSurfaceSrc = SDL_CreateRGBSurface( 0, 640, 480, 8, 0, 0, 0, 0 )) ){
-//	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'\n", SDL_GetError() );
+//	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'", SDL_GetError() );
 //	return -1;
 //    }
 
 //    if( !(gSDLSurfaceDst = SDL_CreateRGBSurface( 0, 640, 480, 8, 0, 0, 0, 0 )) ){
-//	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'\n", SDL_GetError() );
+//	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'", SDL_GetError() );
 //	return -1;
 //    }
     

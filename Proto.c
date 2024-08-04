@@ -410,7 +410,7 @@ int ProtoLoadObj( Obj_t *dude, xFile_t *fh )
 	// ?? 'Unknown 11'
         if( dbgetBei( fh, &dude->Container.i04 ) == -1 ) return -1; // 54 Unk11
         if( dude->PosY == 0xCCCCCCCC ){
-            eprintf( "\nNote: Reading pud: updated_flags was un-Set!" );
+            eprintf( "Note: Reading pud: updated_flags was un-Set!" );
             dude->PosY = 0;
         }
         switch( OBJTYPE( dude->Pid ) ){
@@ -675,7 +675,7 @@ int ProtoDudeInit( char *fname )
     if( gObjDude->Flags & 0x10 ) gObjDude->Flags &= ~0x11;
     FeatStatsRecalculate( gObjDude );
     CritterHeal( gObjDude, 10000 );
-    if( gProtoError ) eprintf( "\n ** Error in proto_dude_init()! **\n" );    
+    if( gProtoError ) eprintf( " ** Error in proto_dude_init()! **" );    
     return 0;
 }
 
@@ -832,7 +832,7 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
                 case 555:
             	    if( proto->Critt.Type == 3 ) *DataMember = &proto->Critt.BaseStat[4];
             	    return 1;
-                default: eprintf( "\n\tError: Unimp'd data member in proto_data_member! " ); 
+                default: eprintf( "\tError: Unimp'd data member in proto_data_member! " ); 
                 return 1;
             }            
             break;
@@ -849,7 +849,7 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
                 case 8: *DataMember = &proto->AttackMode; return 1;
                 case 10: *DataMember = &proto->i09; return 1;
                 case 11: *DataMember = &proto->Critt.ProtoID; return 1;
-                default: eprintf("\n\tError: Unimp'd data member in proto_data_member!"); return 1;
+                default: eprintf("\tError: Unimp'd data member in proto_data_member!"); return 1;
             }
         case TYPE_SCEN:
             switch( MembId ){
@@ -864,7 +864,7 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
                 case 8: *DataMember = &proto->AttackMode; return 1;
                 case 9: *DataMember = &proto->Critt; return 1;
                 case 11:*DataMember = &proto->Critt.BaseStat[2]; return 1;
-                default: eprintf("\n\tError: Unimp'd data member in proto_data_member!"); return 1;
+                default: eprintf("\tError: Unimp'd data member in proto_data_member!"); return 1;
             }
         case TYPE_WALL:
             switch( MembId ){
@@ -878,9 +878,9 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
                 case 7: *DataMember = &proto->FlgExt; return 1;
                 case 8: *DataMember = &proto->AttackMode; return 1;
                 case 9: *DataMember = &proto->Critt; return 1;
-                default: eprintf("\n\tError: Unimp'd data member in proto_data_member!"); return 1;
+                default: eprintf("\tError: Unimp'd data member in proto_data_member!"); return 1;
             }
-        case TYPE_TILE: eprintf("\n\tError: Unimp'd data member in proto_data_member!"); return 1;
+        case TYPE_TILE: eprintf("\tError: Unimp'd data member in proto_data_member!"); return 1;
         case TYPE_MISC:
             switch( MembId ){
                 case 0: *DataMember = proto; return 1;
@@ -891,7 +891,7 @@ int ProtoDataMember( unsigned int Pid, unsigned int MembId, void **DataMember )
                 case 5: *DataMember = &proto->LtInt; return 1;
                 case 6: *DataMember = &proto->Flags; return 1;
                 case 7: *DataMember = &proto->FlgExt; return 1;
-                default: eprintf( "\n\tError: Unimp'd data member in proto_data_member!" ); return 1;
+                default: eprintf( "\tError: Unimp'd data member in proto_data_member!" ); return 1;
             }
         default: return 1;
     }
@@ -928,30 +928,30 @@ int ProtoInit()
     ProtoDudeInit( "premade/player.gcd" );
 
     for( i = 0; i < 6; i++ ){
-        if( MessageInit( &gProtoMsg[ i ] ) != 1 ){ eprintf( "\nError: Initing proto message files!" ); return -1; }
+        if( MessageInit( &gProtoMsg[ i ] ) != 1 ){ eprintf( "Error: Initing proto message files!" ); return -1; }
     }
 
     for( i = 0; i < 6; i++ ){
         strcpy( txt, ArtGetCatDirName( i ) );
         txt[ 4 ] = '\0';
         sprintf( stmp, "%spro_%4s%s", gGamePath, txt, ".msg" );
-        if( MessageLoad( &gProtoMsg[ i ], stmp ) != 1 ){ eprintf( "\nError: Loading proto message files!" ); return -1; }
+        if( MessageLoad( &gProtoMsg[ i ], stmp ) != 1 ){ eprintf( "Error: Loading proto message files!" ); return -1; }
     }
 
     gProtoStatNames[ 0 ] = "Drug Stat (Special)";
     gProtoStatNames[ 1 ] = "None";
     for( i = 0; i < 38; i++ ){
-        if( !( gProtoStatNames[ 2 + i ] = FeatGetName( i ) ) ){ eprintf("\nError: Finding stat names!"); return -1; }
+        if( !( gProtoStatNames[ 2 + i ] = FeatGetName( i ) ) ){ eprintf("Error: Finding stat names!"); return -1; }
     }
 
     gProtoPerkNames[0] = "None";        
     for( i = 0; i < 119; i++ ){        
-        if( !(gProtoPerkNames[ 1 + i ] = PerkGetName(i)) ){ eprintf("\nError: Finding perk names!"); return -1; }
+        if( !(gProtoPerkNames[ 1 + i ] = PerkGetName(i)) ){ eprintf("Error: Finding perk names!"); return -1; }
     }
-    if( MessageInit( &gProtoMessages ) != 1 ){ eprintf( "\nError: Initing main proto message file!" ); return -1; }
+    if( MessageInit( &gProtoMessages ) != 1 ){ eprintf( "Error: Initing main proto message file!" ); return -1; }
     sprintf( stmp, "%sproto.msg", gGamePath );
 
-    if( MessageLoad( &gProtoMessages, stmp ) != 1 ){ eprintf("\nError: Loading main proto message file!"); return -1; }
+    if( MessageLoad( &gProtoMessages, stmp ) != 1 ){ eprintf("Error: Loading main proto message file!"); return -1; }
     gProtoUnk100[0] = MessageGetMessage( &gProtoMessages, &MsgLine, 10 );
     for( i = 0; i < 8; i++ ){
         gProtoUnk106[ i ] = MessageGetMessage( &gProtoMessages, &MsgLine, 100 + i );
@@ -1389,7 +1389,7 @@ int ProtoLoadCritterFile( unsigned int Pid, Proto_t **Pt )
     len = strlen( fname ) + 1;
     fname[ len - 1 ] = '/';
     if( ProtoGetFName( Pid, &fname[ len ] ) == -1 ) return -1;
-    if( !(fh = dbOpen(fname, "rb")) ){ eprintf("\nError: Can't fopen proto! '%s'\n", fname); *Pt = 0; return -1; }
+    if( !(fh = dbOpen(fname, "rb")) ){ eprintf("Error: Can't fopen proto! '%s'\n", fname); *Pt = 0; return -1; }
     if( ProtoAlloc( OBJTYPE( Pid ), (void **)Pt ) == -1 ){ dbClose(fh); return -1; }
     err = 0;
     if( ProtoLoadPrototype( *Pt, fh ) ) err =-1;
@@ -1606,12 +1606,12 @@ int ProtoFindArtMatch( int Pid )
     Active = gProtoObjLib[Type].Active;
     for( i = 1; i < Active; i++ ){
 	if( ProtoGetObj( i | (Type << 24), &proto2 ) == -1 ){    
-	    eprintf( "\nError: proto_find_art_match: proto_ptr failed!" );
+	    eprintf( "Error: proto_find_art_match: proto_ptr failed!" );
 	    return -1;
 	}
 	if( Pid == proto2->ImgId ){
             if( flg ){
-                eprintf("\nError: Found duplicate fid in second prototype!");
+                eprintf("Error: Found duplicate fid in second prototype!");
             } else {
                 flg = 1;
                 err = Pid;

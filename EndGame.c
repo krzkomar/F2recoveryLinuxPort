@@ -512,7 +512,7 @@ void EndGameSetupDeathEnding( int a1 )
 
     flg = 0;
     RandMax = 0;
-    if( !gEndGameInfoCnt ){ eprintf( "\nError: endgameSetupDeathEnding: No endgame death info!" ); return; }
+    if( !gEndGameInfoCnt ){ eprintf( "Error: endgameSetupDeathEnding: No endgame death info!" ); return; }
     strcpy( gEndGameNarratorFile, "narrator/" );
     EndGameChance( &RandMax );
     i = 0;
@@ -532,7 +532,7 @@ void EndGameSetupDeathEnding( int a1 )
         }
     }
     strcpy( gEndGameUnk02, gEndGameInfo[ i ].FileName );
-    eprintf( "\nendgameSetupDeathEnding: Death Filename Picked: %s", gEndGameNarratorFile );
+    eprintf( "endgameSetupDeathEnding: Death Filename Picked: %s", gEndGameNarratorFile );
 }
 
 int EndGameChance( int *a1 )
@@ -557,10 +557,10 @@ int EndGameChance( int *a1 )
 char *EndGameSetNarratorFile()
 {
     if( !gEndGameInfoCnt ){
-        eprintf( "\nError: endgameSetupDeathEnding: No endgame death info!" );
+        eprintf( "Error: endgameSetupDeathEnding: No endgame death info!" );
         strcpy( gEndGameNarratorFile, "narrator/nar_4" );
     }
-    eprintf( "\nendgameSetupDeathEnding: Death Filename: %s", gEndGameNarratorFile );
+    eprintf( "endgameSetupDeathEnding: Death Filename: %s", gEndGameNarratorFile );
     return gEndGameNarratorFile;
 }
 

@@ -535,7 +535,7 @@ void ScrGame_CreateObject( Intp_t *scr )
     GETARGI( scr, type[ 3 ], pid, 3, "create_object" );
     SCP_DBGA( "create_object( [%x]%i, [%x]%i, [%x]%i, [%x]%i )", type[3], pid, type[2], tile_num, type[1], lvl, type[0], sid );    
     if( LsgPending() ){
-        eprintf( "\nError: attempt to Create critter in load/save-game: %s!", scr->FileName );
+        eprintf( "Error: attempt to Create critter in load/save-game: %s!", scr->FileName );
     } else if( pid ){
         if( ProtoGetObj( pid, &proto ) != -1 ){
     	    if( ObjCreate( &Obj, proto->ImgId, pid ) != -1 ){
@@ -567,7 +567,7 @@ void ScrGame_CreateObject( Intp_t *scr )
             }
         }
     } else {
-        eprintf( "\nError: attempt to Create critter With PID of 0: %s!", scr->FileName );
+        eprintf( "Error: attempt to Create critter With PID of 0: %s!", scr->FileName );
     }
     RETPTR( scr, Obj );
 }
@@ -595,7 +595,7 @@ void ScrGame_DestroyObject( Intp_t *scr )
         return;
     }
     if( OBJTYPE( obj->Pid ) == 1 && LsgPending() ){
-        eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
+        eprintf( "Error: attempt to destroy critter in load/save-game: %s!", scr->FileName );
         scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
@@ -1204,7 +1204,7 @@ void ScrGame_TileNumInDirection( Intp_t *scr )
     } else if( val[0] ){
         num = TileGetTileNumInDir( val[2], val[1], val[0] );
         if( num < -1 ){
-            eprintf( "\nError: %s: op_tile_num_in_direction got #: %d", scr->FileName, num );
+            eprintf( "Error: %s: op_tile_num_in_direction got #: %d", scr->FileName, num );
             num = -1;
         }
     }
@@ -1456,17 +1456,17 @@ void ScrGame_Attack( Intp_t *scr )
         return;
     }
     if( !CritterCanTalk( p ) || ( p->Flags & 0x01 ) ){
-        eprintf( "\n   But is already Inactive (Dead/Stunned/Invisible)" );
+        eprintf( "   But is already Inactive (Dead/Stunned/Invisible)" );
         scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( !CritterCanTalk( who ) || ( who->Flags & 0x01) ){
-        eprintf( "\n   But target is already dead or invisible" );
+        eprintf( "   But target is already dead or invisible" );
         scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
     if( who->Critter.State.Reaction & 0x04 ){
-        eprintf( "\n   But target is AFRAID" );
+        eprintf( "   But target is AFRAID" );
         scr->Flags &= ~SCR_FPROC_RUN;
         return;
     }
@@ -1723,7 +1723,7 @@ void ScrGame_SetMapMusic( Intp_t *scr )
     GETARGI( scr, type[ 1 ], val[ 1 ], 1, "set_map_music" );
     SCP_DBGA( "set_map_music( [%x]%i, [%x]%i )", type[1], val[1], type[0], val[0] );
     s = IntpGetString( scr, type[0] >> 8, val[ 0 ] );
-    eprintf( "\nset_map_music: %d, %s", val[ 1 ], s );
+    eprintf( "set_map_music: %d, %s", val[ 1 ], s );
     WmSetMapMusic( val[ 1 ], s );
 }
 
@@ -1982,7 +1982,7 @@ void ScrGame_KillCritter( Intp_t *scr )
     SCP_DBGA( "kill_critter( [%x]%p, [%x]%i )", type[1], obj, type[0], val );
     if( obj ){
         if( LsgPending() ){
-            eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
+            eprintf( "Error: attempt to destroy critter in load/save-game: %s!", scr->FileName );
         } else {
             scr->Flags |= SCR_FPROC_RUN;
             if( ScptGetSelfObj( scr ) == obj ) flg = 1;
@@ -2054,7 +2054,7 @@ DD
     GETARGI( scr, type[ 0 ], val[0], 0, "kill_critter_type" );
     GETARGI( scr, type[ 1 ], val[1], 1, "kill_critter_type" );
     if( LsgPending() ){
-        eprintf( "\nError: attempt to destroy critter in load/save-game: %s!", scr->FileName );
+        eprintf( "Error: attempt to destroy critter in load/save-game: %s!", scr->FileName );
         return;
     }
     scr->Flags |= SCR_FPROC_RUN;
@@ -2500,7 +2500,7 @@ void ScrGame_OpCritterAddTrait( Intp_t *scr )
                     ScrGameEprintf( "\nScript Error: %s: op_critter_add_trait: Trait out of range", scr->FileName );
                 }
             } else {
-                eprintf( "\nintextra::critter_add_trait: Adding Perk %s to %s", PerkGetName( prk ), CritterGetName( obj ) );
+                eprintf( "intextra::critter_add_trait: Adding Perk %s to %s", PerkGetName( prk ), CritterGetName( obj ) );
                 if( val ){
                     if( PerkLvlUp( obj, prk ) ){
                         ScrGameEprintf( "\nScript Error: %s: op_critter_add_trait: perk_add_force failed", scr->FileName );
@@ -2587,7 +2587,7 @@ void ScrGame_MessageStr( Intp_t *scr )
     if( msg_list ){
         msg = ScptGetDialog( msg_list, msg_num, 1 );
         if( !msg ){
-            eprintf( "\nError: No message file EXISTS!: index %d, line %d", msg_list, msg_num );
+            eprintf( "Error: No message file EXISTS!: index %d, line %d", msg_list, msg_num );
             msg = "Error";
         }
     } else {
@@ -2849,7 +2849,7 @@ void ScrGame_MetaRule( Intp_t *scr )
     	    WmGetWorldPos( NULL, &EntryValue ); RETINT( scr, EntryValue ); 
     	    break;
         case 46:
-            if( WmGetCurrentLocation( &EntryValue ) == -1 ) eprintf( "\nIntextra: Error: metarule: current_town" );
+            if( WmGetCurrentLocation( &EntryValue ) == -1 ) eprintf( "Intextra: Error: metarule: current_town" );
 	    RETINT( scr, EntryValue );
 	    break;
         case 47:
@@ -3160,7 +3160,7 @@ void ScrGame_PlayGmovie( Intp_t *scr )
     GETARGI( scr, type, val, 0, "play_gmovie" );
     SCP_DBGA( "play_gmovie( [%x]%i )", type, val );
     GdialogUnk04();
-    if( GMoviePlay( val, tmp[ val ] ) == -1 ) eprintf( "\nError playing movie %d!", val );
+    if( GMoviePlay( val, tmp[ val ] ) == -1 ) eprintf( "Error playing movie %d!", val );
     GdialogTaskCb();
     scr->Flags &= ~SCR_FPROC_RUN;
 }
@@ -3269,7 +3269,7 @@ void ScrGame_Explosion( Intp_t *scr )
     SCP_DBGA( "explosion( [%x]%i, [%x]%i, [%x]%i )", type[2], tilenum, type[1], lvl, type[0], dmg );
     buum = 1;
     if( tilenum == -1 ){
-        eprintf( "\nError: explosion: bad tile_num!" );
+        eprintf( "Error: explosion: bad tile_num!" );
     } else {
         if( !dmg ) buum = 0;
         ScptExplosion( tilenum, lvl, buum, dmg );
@@ -3551,7 +3551,7 @@ void ScrGame_GetPoison( Intp_t *scr )
         if( OBJTYPE( obj->Pid ) == TYPE_CRIT )
             state = CritterPoisoned( obj );
         else
-            eprintf( "\nScript Error: get_poison: who is not a critter!" );
+            eprintf( "Script Error: get_poison: who is not a critter!" );
     } else {
         ScrGameErrorMsg( scr, "get_poison", 1 );
     }
@@ -3668,7 +3668,7 @@ void ScrGame_GdialogBarter( Intp_t *scr )
 
     GETARGI( scr, type, bartermod, 0, "gdialog_barter" );
     SCP_DBGA( "gdialog_barter( [%x]%i )", type, bartermod );
-    if( GdialogBarterMenu( bartermod ) == -1 ) eprintf( "\nScript Error: gdialog_barter: failed" );
+    if( GdialogBarterMenu( bartermod ) == -1 ) eprintf( "Script Error: gdialog_barter: failed" );
 }
 
 /*
@@ -4175,17 +4175,17 @@ void ScrGame_AttackSetup( Intp_t *scr )
     scr->Flags |= SCR_FPROC_RUN;
     if( WhoObj ){
         if( !CritterCanTalk( WhoObj ) || ( WhoObj->Flags & 0x01 ) ){
-            eprintf( "\n   But is already dead or invisible" );
+            eprintf( "   But is already dead or invisible" );
             scr->Flags &= ~SCR_FPROC_RUN;
             return;
         }
         if( !CritterCanTalk( VictimObj ) || (VictimObj->Flags & 0x01) ){
-            eprintf( "\n   But target is already dead or invisible" );
+            eprintf( "   But target is already dead or invisible" );
             scr->Flags &= ~SCR_FPROC_RUN;
             return;
         }
         if( VictimObj->Critter.State.Reaction & OBJ_STAT_FLEE ){
-            eprintf( "\n   But target is AFRAID" );
+            eprintf( "   But target is AFRAID" );
             scr->Flags &= ~SCR_FPROC_RUN;
             return;
         }
@@ -4559,7 +4559,7 @@ void ScrGame_DebugMsg( Intp_t *scr )
     SCP_DBGA( "debug_msg( text:[%x]%i )", type, val );
     if( (s = IntpGetString( scr, type >> 8, val )) ){
         CfgGetInteger( &gConfiguration, "const", "show_script_messages", &debug_en );
-        if( debug_en ) eprintf( "\n%s", s );
+        if( debug_en ) eprintf( "%s", s );
     }
 }
 

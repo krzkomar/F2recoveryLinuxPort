@@ -69,7 +69,7 @@ int StrParseFromList( char **pStr, int *ElementFoundIdx, const char **MatchList,
     }
     if( idx ) s[ idx ] = tmp;
     if( i >= MatchElements ){
-        eprintf( "\nstrParseStrFromList Error: Couldn't find match for string: %s!", s );
+        eprintf( "strParseStrFromList Error: Couldn't find match for string: %s!", s );
         *ElementFoundIdx = -1;
         return -1;
     }
@@ -98,7 +98,7 @@ int StrParseFromFunc( char **pStr, int *ElementFoundIdx, int (*Func)(char *, int
     err = Func( s, ElementFoundIdx );
     if( comma ) s[ comma ] = tmp;
     if( err ){
-        eprintf( "\nstrParseStrFromFunc Error: Couldn't find match for string: %s!", s );
+        eprintf( "strParseStrFromFunc Error: Couldn't find match for string: %s!", s );
         err = -1;
         *ElementFoundIdx = -1;
     }

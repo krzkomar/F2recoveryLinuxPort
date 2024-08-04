@@ -117,7 +117,7 @@ int DlgBox( char *Str1, char **List, int Lines, int Xpos, int Ypos, int Color1, 
                 }
                 y += gFont.ChrHeight();
             } else {
-                if( WinTextWrap( List[ i ], WinW - 26, pLines, &Splitted) ) eprintf( "\nError: dialog_out" );                
+                if( WinTextWrap( List[ i ], WinW - 26, pLines, &Splitted) ) eprintf( "Error: dialog_out" );
                 for( n = 1,ps = &List[ i ]; n < Splitted; n++, y += gFont.ChrHeight() ){
                     len = pLines[n] - pLines[n - 1];
                     if( len >= 260 ) len = 259;

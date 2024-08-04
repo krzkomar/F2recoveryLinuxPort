@@ -187,7 +187,7 @@ int NgDudeInit()
 
     sprintf( stmp, "%s.gcd", gPremadeCharacter[ gNgDudeSel ].path );
     if( ProtoDudeInit( stmp ) == -1 ){
-        eprintf( "\n ** Error in dude init! **\n" );
+        eprintf( " ** Error in dude init! **" );
     } else {
         ScrCopy( gNgUnk01, 560, 300, 560, gNgSurface + 30*640 + 40, 640 );
         if( (NgLoadDudeShot() == 1) && ( NgFeats() == 1 )) err = NgCaption();        

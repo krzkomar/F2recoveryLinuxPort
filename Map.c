@@ -38,20 +38,20 @@ int MapIsoInit()
     TileUnk21();
     gMap.Name[0] = '\0';
     for( i = 0; i != 3; i++ ) gMapIsoGrid[ i ] = &gMapIsoGridData[ i * 100 * 100 ];
-    if( (gMapIsoWin = WinCreateWindow( 0, 0, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99, 256, 10 )) == -1 ){ eprintf( "win_add failed in iso_init\n" ); return -1; }
+    if( (gMapIsoWin = WinCreateWindow( 0, 0, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99, 256, 10 )) == -1 ){ eprintf( "win_add failed in iso_init" ); return -1; }
     gMapIsoSurf = WinGetSurface( gMapIsoWin );
-    if( !gMapIsoSurf ){ eprintf( "win_get_buf failed in iso_init\n" ); return -1; }
-    if( WinGetRect( gMapIsoWin, &gMapIsoGeo ) ){ eprintf( "win_get_rect failed in iso_init\n" ); return -1; }
-    if( ArtInit() ){ eprintf( "art_init failed in iso_init\n" ); return -1; }
+    if( !gMapIsoSurf ){ eprintf( "win_get_buf failed in iso_init" ); return -1; }
+    if( WinGetRect( gMapIsoWin, &gMapIsoGeo ) ){ eprintf( "win_get_rect failed in iso_init" ); return -1; }
+    if( ArtInit() ){ eprintf( "art_init failed in iso_init" ); return -1; }
     eprintf( ">art_init\t\t" );
     if( TileInit( gMapIsoGrid, 100, 100, 200, 200, gMapIsoSurf, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99, gVidMainGeo.rt - gVidMainGeo.lt + 1, MapUpdateArea ) ){
-        eprintf( "tile_init failed in iso_init\n" );
+        eprintf( "tile_init failed in iso_init" );
         return -1;
     }
     eprintf( ">tile_init\t\t" );
 
     if( ObjInit( gMapIsoSurf, gVidMainGeo.rt - gVidMainGeo.lt + 1, gVidMainGeo.bm - gVidMainGeo.tp - 99, gVidMainGeo.rt - gVidMainGeo.lt + 1 ) ){ 
-	eprintf( "obj_init failed in iso_init\n" ); 
+	eprintf( "obj_init failed in iso_init" ); 
 	return -1; 
     }
 
@@ -60,7 +60,7 @@ int MapIsoInit()
     eprintf( ">cycle_init\t\t" );
     TileUnk20();
     TileUnk23();
-    if( IfaceInit() ){ eprintf( "intface_init failed int iso_init\n" ); return -1; }
+    if( IfaceInit() ){ eprintf( "intface_init failed int iso_init" ); return -1; }
     eprintf( ">intface_init\t" );
     MapUnk08( -1 );
     gMapIsoPlayerElevation = -1;
@@ -116,9 +116,9 @@ void MapMsgInit()
     if( !strcasecmp( Exec, "mapper" ) ) gMapRedrawIsoCb = MapMapperCb;
     if( MessageInit( &gMapMsg ) == 1 ){
         sprintf( stmp, "%smap.msg", gGamePath );
-        if( MessageLoad( &gMapMsg, stmp ) != 1 ) eprintf( "\nError loading map_msg_file!" );
+        if( MessageLoad( &gMapMsg, stmp ) != 1 ) eprintf( "Error loading map_msg_file!" );
     } else {
-        eprintf( "\nError initing map_msg_file!" );
+        eprintf( "Error initing map_msg_file!" );
     }
     MapReset();
 
@@ -140,7 +140,7 @@ int MapExitMsg()
     WinUpdateDirty( gMapIsoWin );
     GmouseLoadCursor( 1 );
     InpTaskStop( GmouseProcess );
-    if( MessageClose( &gMapMsg ) != 1 ){ eprintf( "\nError exiting map_msg_file!" ); return -1; }
+    if( MessageClose( &gMapMsg ) != 1 ){ eprintf( "Error exiting map_msg_file!" ); return -1; }
     return 1;
 }
 
@@ -239,7 +239,7 @@ int MapAddLocalVars( int VarNum )
 
     base = gMapLocalVarsCnt;
     gMapLocalVarsCnt += VarNum;    
-    if( !(p = (int *)Realloc( gMapLocalVars, gMapLocalVarsCnt * sizeof( int ) )) ){ eprintf( "\nError: Ran out of memory!" ); return -1; }
+    if( !(p = (int *)Realloc( gMapLocalVars, gMapLocalVarsCnt * sizeof( int ) )) ){ eprintf( "Error: Ran out of memory!" ); return -1; }
     gMapLocalVars = p;
     memset( p + gMapLocalVarsCnt - VarNum, 0, VarNum * sizeof( int ) );
     return base;
@@ -633,7 +633,7 @@ Error:
     MapAmbientEnable();
     GmouseScrollDisable();
     GmouseLoadCursor( 25 );
-    if( ScptLoadAllScripts() == -1 ) eprintf( "\n   Error: scr_load_all_scripts failed!" );
+    if( ScptLoadAllScripts() == -1 ) eprintf( "   Error: scr_load_all_scripts failed!" );
     ScptMapEnter();
     ScptMapUpdate();
     TileUpdateEnable();
@@ -714,7 +714,7 @@ int MapClearKilled()
                         olist[ cnt++ ] = p;
                         if( cnt >= ObjAllocated ){
                             ObjAllocated *= 2;
-                            if( !(olist = Realloc( olist, ObjAllocated * sizeof( Obj_t * ) )) ){ eprintf( "\nError: Out of Memory!" ); return -1; }
+                            if( !(olist = Realloc( olist, ObjAllocated * sizeof( Obj_t * ) )) ){ eprintf( "Error: Out of Memory!" ); return -1; }
                         }
                     }
                 }
@@ -723,7 +723,7 @@ int MapClearKilled()
             olist[ cnt++ ] = p;
             if( cnt >= ObjAllocated ){
                 ObjAllocated *= 2;                
-                if( !(olist = Realloc( olist, ObjAllocated * sizeof( Obj_t * ) )) ){ eprintf( "\nError: Out of Memory!" ); return -1; }
+                if( !(olist = Realloc( olist, ObjAllocated * sizeof( Obj_t * ) )) ){ eprintf( "Error: Out of Memory!" ); return -1; }
             }
         }
     }    
@@ -796,10 +796,10 @@ int MapJump()
                 MapSetLvl( gMapCurrentPos.Lvl );
                 ObjSetRotation( gObjDude, gMapCurrentPos.Orientation, 0 );
             }
-            if( TileSetCenter( gObjDude->GridId, 1 ) == -1 ) eprintf( "\nError: map: attempt to center out-of-bounds!" );
+            if( TileSetCenter( gObjDude->GridId, 1 ) == -1 ) eprintf( "Error: map: attempt to center out-of-bounds!" );
             memset( &gMapCurrentPos, 0, sizeof( gMapCurrentPos ) );
             WmFindAreaByEntranceId( gMap.MapId, &err );
-            if( WmSetArea( err ) == -1 ) eprintf( "\nError: couldn't make jump on worldmap for map jump!" );
+            if( WmSetArea( err ) == -1 ) eprintf( "Error: couldn't make jump on worldmap for map jump!" );
         }
     }
     return 0;
@@ -842,7 +842,7 @@ int MapMapSave()
         strcpy( stmp + strlen( stmp ), "/maps" );
         xDirCreate(stmp);
     }
-    if( !gMap.Name[0] ){ eprintf( "\nError: map_save: map header corrupt!" ); return -1; }
+    if( !gMap.Name[0] ){ eprintf( "Error: map_save: map header corrupt!" ); return -1; }
     FilePath = MapGetFilePath( gMap.Name );    
     if( (fh = dbOpen(FilePath, "wb")) ){
 	err = MapSaving( fh );

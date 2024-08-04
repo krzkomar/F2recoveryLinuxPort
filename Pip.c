@@ -137,14 +137,14 @@ int PipCreate( int a1 )
         if( !(gPipImgs[ i ] = ArtLoadBmp( ArtMakeId( 6, gPipImgIds[ i ], 0, 0, 0 ), &gPipImgHan[ i ], &gPipGeo[ i ].Width, &gPipGeo[ i ].Height )) ) break;
     }
     if( i < 11 ){
-        eprintf( "\n** Error loading pipboy graphics! **\n" );
+        eprintf( "** Error loading pipboy graphics! **" );
         for( i--; i; i-- ) ArtClose( gPipImgHan[ i ] );
         return -1;
     }
     win = WinCreateWindow( 0, 0, 640, 480, gPalColorCubeRGB[0][0][0], 16 );
     gPipWin = win;
     if( win == -1 ){
-        eprintf( "\n** Error opening pipboy window! **\n" );
+        eprintf( "** Error opening pipboy window! **" );
         for( i = 0; i < 11; i++ ) ArtClose( gPipImgHan[i] );
         return -1;
     }
@@ -204,7 +204,7 @@ void PipClose()
 
     i = 0;
     CfgGetInteger( &gConfiguration, "debug", "show_script_messages", &i );
-    if( i ) eprintf( "\nScript <Map Update>" );
+    if( i ) eprintf( "Script <Map Update>" );
     ScptMapUpdate();
     WinClose( gPipWin );
     MessageClose( &gPipMsg );
@@ -445,7 +445,7 @@ void PipStatus( int Selected )
         if( v19 >= gPipQuestList[ v59 ].d ){
             sprintf( v53, "%d. %s", v58++, MessageGetMessage( &gPipUnk28, &gPipMsgLine, gPipQuestList[ v59 ].b ) );
             if( WinTextWrap( v53, 350, WrapList, &pWraps ) ){
-                eprintf( "\n ** Word wrap error in pipboy! **\n" );
+                eprintf( " ** Word wrap error in pipboy! **" );
             } else {
                 for( i = 0; i < pWraps - 1; i++ ){
                     v28 = v53 + WrapList[ i + 0 ];
@@ -507,19 +507,19 @@ void PipHoloList()
         if( !strcmp( MessageGetMessage( &gPipMsg, &gPipMsgLine, c++), "**END-DISK**" ) ) break;
         if( ++v2 >= 35 ){ v2 = 0; gPipButtons[ 0 ]++; }
     }
-    if( c >= gPipHoloTapes[ gPipUnk33 ].c + 500 ) eprintf( "\nPIPBOY: #1 Holodisk text end not found!\n" );
+    if( c >= gPipHoloTapes[ gPipUnk33 ].c + 500 ) eprintf( "PIPBOY: #1 Holodisk text end not found!" );
     v5 = &gPipHoloTapes[ gPipUnk33 ];
     v6 = v5->c;
     if( gPipArchivesEnabled ){        
         for( v9 = v11 = 0; v6 < gPipHoloTapes[ gPipUnk33 ].c + 500; v6++ ){
             if( !strcmp( MessageGetMessage( &gPipMsg, &gPipMsgLine, v6 ), "**END-DISK**") ){
-                eprintf( "\nPIPBOY: Premature page end in holodisk page search!\n" );
+                eprintf( "PIPBOY: Premature page end in holodisk page search!" );
                 break;
             }
             v11++;
             if( v11 >= 35 && ++v9 >= gPipArchivesEnabled ) break;            
         }
-        if( ++v6 >= gPipHoloTapes[gPipUnk33].c + 500 ) eprintf( "\nPIPBOY: #2 Holodisk text end not found!\n" );
+        if( ++v6 >= gPipHoloTapes[gPipUnk33].c + 500 ) eprintf( "PIPBOY: #2 Holodisk text end not found!" );
     } else {
         PipPrintLine( MessageGetMessage( &gPipMsg, &gPipMsgLine, v5->b), 10, gPalColorCubeRGB[0][31][0] );
     }
@@ -712,7 +712,7 @@ void PipArchives( int Selected )
     if( i <= 17 )
         GMoviePlay( i, MOVIE_BGSND_PAUSE | MOVIE_FADE_OUT | MOVIE_FADE_IN );
     else
-        eprintf( "\n ** Selected movie not found in list! **\n" );
+        eprintf( " ** Selected movie not found in list! **" );
 
     FontSet( 101 );
     gPipTime = TimerGetSysTime();
@@ -888,7 +888,7 @@ int PipWaitGameTime( int Hour, int Min, char heal )
                 EvT = EvQeGetTime();
                 if( timea >= EvT ){
                     ScptSetGameTime( EvT + 1 );                    
-                    if( EvQeTrig() ){ err = 1;  eprintf( "PIPBOY: Returning from Queue trigger...\n" ); gPipExit = 1; break; }
+                    if( EvQeTrig() ){ err = 1;  eprintf( "PIPBOY: Returning from Queue trigger..." ); gPipExit = 1; break; }
                     if( gMenuEscape ) err = 1;
                 }
                 if( !err ){
@@ -925,7 +925,7 @@ int PipWaitGameTime( int Hour, int Min, char heal )
                 EvT = EvQeGetTime();
                 if( !err && time >= EvT ){
                     ScptSetGameTime( EvT + 1 );
-                    if( EvQeTrig() ){ err = 1; eprintf( "PIPBOY: Returning from Queue trigger...\n" ); gPipExit = 1; break; }
+                    if( EvQeTrig() ){ err = 1; eprintf( "PIPBOY: Returning from Queue trigger..." ); gPipExit = 1; break; }
                     if( gMenuEscape ) err = 1;
                 }
                 if( !err ){
@@ -950,7 +950,7 @@ int PipWaitGameTime( int Hour, int Min, char heal )
         }
     }    
     if( ScptGetGameDekaSeconds() > EvQeGetTime() ){
-        if( EvQeTrig() ){ err = 1; eprintf( "PIPBOY: Returning from Queue trigger...\n" ); gPipExit = 1; }
+        if( EvQeTrig() ){ err = 1; eprintf( "PIPBOY: Returning from Queue trigger..." ); gPipExit = 1; }
     }
     PipPrintCounter( ScptGetGameTime(), 4, 155, 17 );
     PipPrintDate();
@@ -963,7 +963,7 @@ int PipAddHealth( int a1 )
 {
     gPipUnk07 += a1;
     if( gPipUnk07 < 180 ) return 0;
-    eprintf( "\n health added!\n" );
+    eprintf( " health added!" );
     gPipUnk07 = 0;
     return 1;
 }

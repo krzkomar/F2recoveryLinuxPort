@@ -629,7 +629,7 @@ Acm_t *AcmOpen(int (*ReadCb)(void *Fh, void *data, int size), void *file, int *p
     *pFreq = 22050;//acm->Frequency; // commented because of dialogs
     *pnSamples = acm->ReadAvail;
 #ifdef DEBUG
-    eprintf( "Decode ACM file: samples=%i, freq=%i, channels=%i\n", acm->ReadAvail, acm->Frequency, acm->nChannels );
+    eprintf( "Decode ACM file: samples=%i, freq=%i, channels=%i", acm->ReadAvail, acm->Frequency, acm->nChannels );
 #endif
     return acm;
 }

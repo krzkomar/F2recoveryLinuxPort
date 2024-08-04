@@ -314,7 +314,7 @@ char *MessageGetMessage( Msg_t *Msg, MsgLine_t *Line, int StrId )
     Line->Id = StrId;
     if( MessageGetMsg( Msg, Line ) != 1 ){
         Line->Text = "Error";
-        eprintf( "\n ** String not found @ getmsg(), MESSAGE.C **\n" );
+        eprintf( " ** String not found @ getmsg(), MESSAGE.C **" );
     }
     return Line->Text;
 }

@@ -193,7 +193,7 @@ int CharEditMenu( int mode )
     gChrEditMenuMode = mode;
     CharEditStoreObj();
 
-    if( CharEditMenuCreate() == -1 ){ eprintf( "\n ** Error loading character editor data! **\n" ); return -1; }
+    if( CharEditMenuCreate() == -1 ){ eprintf( " ** Error loading character editor data! **" ); return -1; }
 
     if( (gChrEditMenuMode == 0) && CharEditLvlUp() ){
         FeatStatsRecalculate( gObjDude );
@@ -822,7 +822,7 @@ void CharEditShowFolder()
     	    ScrCopy( gChrEditImgPixMaps[45], gChrEditImgGeo[46].Width, gChrEditImgGeo[46].Height, gChrEditImgGeo[46].Width, gChrEditSurface + 327*640 + 11, 640 );
     	    gChrEditUnk70 = CharEditShowKills();
     	    break;
-    	default: eprintf("\n ** Unknown folder type! **\n"); break;
+    	default: eprintf("** Unknown folder type! **"); break;
 
     }
 }
@@ -2313,7 +2313,7 @@ int CharEditFindPerk( int PerkId )
         if( PerkLvl(gObjDude, i) && i == PerkId ) break;
     }
     if( i < 119 ) return i;
-    eprintf( "\n ** Perk not found in translate! **\n" );
+    eprintf( "** Perk not found in translate! **" );
     return -1;
 }
 
@@ -2809,7 +2809,7 @@ int CharEditLvlUp()
         CharEditShowFolder();
         WinUpdate( gChrEditWin );
         if( (ex = CharEditPerkDialog() ) < 0 ){
-            if( ex == -1 ){ eprintf( "\n *** Error running perks dialog! ***\n" ); return -1; }
+            if( ex == -1 ){ eprintf( "*** Error running perks dialog! ***" ); return -1; }
         } else if( ex <= 0 ){
             CharEditShowFolder();
         } else if( ex == 1 ){
@@ -2852,10 +2852,10 @@ int CharEditPerkDialog()
     gChrEditSavePerks[0] = 0;
     gChrEditPerkImg = ArtLoadBmp( ArtMakeId( 6, 86, 0, 0, 0 ), &Img, &tmp[0], &tmp[1] );
     if( !gChrEditPerkImg ){ 
-	eprintf( "\n *** Error running perks dialog window ***\n" ); return -1; 
+	eprintf( "*** Error running perks dialog window ***" ); return -1; 
     }
     if( (gChrEditPerkWin = WinCreateWindow( 33, 91, 573, 230, 256, 18 ) ) == -1 ){
-	eprintf( "\n *** Error running perks dialog window ***\n" ); ArtClose( Img ); return -1;
+	eprintf( "*** Error running perks dialog window ***" ); ArtClose( Img ); return -1;
     }
     gChrEditPerkDlgSurf = WinGetSurface( gChrEditPerkWin ); 
     memcpy( gChrEditPerkDlgSurf, gChrEditPerkImg, tmp[0] * tmp[1] ); 
@@ -2884,7 +2884,7 @@ int CharEditPerkDialog()
     WinUpdate( gChrEditPerkWin ); 
 
     err = CharEditListMenu( v15, CharEditPerkListCb );
-    if( err == 1 && PerkLvlInc( gObjDude, idx) == -1 ){ eprintf( "\n*** Unable to add perk! ***\n" ); err = 2; }
+    if( err == 1 && PerkLvlInc( gObjDude, idx) == -1 ){ eprintf( "*** Unable to add perk! ***" ); err = 2; }
     if( err & 0x01 ){
         if( !PerkLvl( gObjDude, 51 ) || gChrEditSavePerks[52] ){
     	    if( PerkLvl(gObjDude, 52 ) && !gChrEditSavePerks[53] ){

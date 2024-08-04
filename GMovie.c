@@ -73,10 +73,10 @@ int GMoviePlay( int MovieId, int Flags )
     int err, Win, flen, CursorHidden, FileLen, SubTit, MseButt, MseY, MseX, SaveFont, flg;
 
     gMovieError = 1;
-    eprintf( "\nPlaying movie: %s\n", gMovieFileList[ MovieId ] );
+    eprintf( "Playing movie: %s\n", gMovieFileList[ MovieId ] );
     err = 0;
     if( CfgGetString( &gConfiguration, "system", "language", &Language ) != 1 ){
-        eprintf( "\ngmovie_play() - Error: Unable to determine language!\n" );
+        eprintf( "gmovie_play() - Error: Unable to determine language!" );
         gMovieError = 0;
         return -1;
     }
@@ -84,11 +84,10 @@ int GMoviePlay( int MovieId, int Flags )
         sprintf( FilePath, "art/%s/cuts/%s", Language, gMovieFileList[ MovieId ] );
         err = dbCheckFileLength( FilePath, &FileLen ) + 1;
     }
-printf("=>%s\n", Language);
     if( !err ){
 	sprintf( FilePath, "art/cuts/%s", gMovieFileList[ MovieId ] );
 	if( dbCheckFileLength(FilePath, &FileLen) == -1 ){
-    	    eprintf( "\ngmovie_play() - Error: Unable to open %s\n", gMovieFileList[ MovieId ] );
+    	    eprintf( "gmovie_play() - Error: Unable to open %s", gMovieFileList[ MovieId ] );
     	    gMovieError = 0;
 	    return -1;
 	}

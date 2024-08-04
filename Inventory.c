@@ -1502,7 +1502,7 @@ int InvUnk29( Obj_t *a1, Obj_t *a2, int a3, int a4 )
     if( ItemGetObjType(a2) ){
         SelectedHand = ( a1 == gObjDude ) ? IfaceGetSelectedHand() : 1;        
         if( !ArtFileExist( ArtMakeId( 1, a1->ImgId & 0xFFF, Item45( a2, 2 ), Item58( a2 ), a1->Orientation + 1 ) ) ){ 
-    	    eprintf( "\ninven_wield failed!  ERROR ERROR ERROR!" ); 
+    	    eprintf( "inven_wield failed!  ERROR ERROR ERROR!" ); 
     	    return -1; 
     	}
         if( a3 ){
@@ -1675,7 +1675,7 @@ void InvDisplMsg( char *strmsg )
     surf = WinGetSurface( gInvWin ) + 22253;
     if( strmsg ){
         while( *strmsg ){
-            if( ++gInvUnk2 > 17 ){ eprintf( "\nError: inven_display_msg: out of bound!" ); return; }
+            if( ++gInvUnk2 > 17 ){ eprintf( "Error: inven_display_msg: out of bound!" ); return; }
             if( gFont.LineWidth(strmsg) > 152 ){
                 s = strmsg + 1;
                 if( strmsg[1] ){
@@ -1705,7 +1705,7 @@ void InvDisplMsg( char *strmsg )
                 }
                 if( *s == ' ' ) *s = '\0';
             }
-            if( gFont.LineWidth( strmsg ) > 152 ){ eprintf( "\nError: inven_display_msg: word too long!" ); return; }
+            if( gFont.LineWidth( strmsg ) > 152 ){ eprintf( "Error: inven_display_msg: word too long!" ); return; }
             gFont.Print( &surf[ gInvUnk2 * 499 * gFont.ChrHeight() ], strmsg, 152, 499, gPalColorCubeRGB[0][31][0] );
             if( s ){
                 strmsg = s + 1;
@@ -1744,7 +1744,7 @@ void InvInfo( Obj_t *Critter, Obj_t *Item )
     if( (ItemWeight = ItemGetItemWeight( Item ) ) ){
         msg.Id = 540; // 'It weighs %d pounds.'
         if( ItemWeight == 1 ) msg.Id = 541; // 'ItWeighs %d pound.'
-        if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ) eprintf( "\nError: Couldn't find message!" );
+        if( MessageGetMsg( &gProtoMessages, &msg ) != 1 ) eprintf( "Error: Couldn't find message!" );
         sprintf( stmp, msg.Text, ItemWeight );
         InvDisplMsg( stmp );
     }
@@ -2211,7 +2211,7 @@ int InvMenuSteal( Obj_t *Critter, Obj_t *Obj2 )
     	if( gSkillUnk80 && !v76 ){
     	    if( v78 > 0 && !PartyMembRdy(Obj2) ){
                 if( 300 - SkillGetTotal( Critter, 10 ) < v78 ) v78 = 300 - SkillGetTotal( Critter, 10 );
-                eprintf( "\n[[[%d]]]", 300 - SkillGetTotal( Critter, 10 ) );
+                eprintf( "[[[%d]]]", 300 - SkillGetTotal( Critter, 10 ) );
                 msg.Id = 29;// 'You gain %d experience points for succesfully using Steal skill.'
                 if( MessageGetMsg( &gInvMsg, &msg ) == 1 ){
             	    sprintf( stmp, msg.Text, v78 );

@@ -198,7 +198,7 @@ int ScptMidnightEv( Obj_t *obj, int *Ptr )
     int v4;
 
     v4 = -1;
-    eprintf( "\nQUEUE PROCESS: Midnight!" );
+    eprintf( "QUEUE PROCESS: Midnight!" );
     if( GMovieGetError() ) return 0;
     UseUnjamAll();
     if( !IN_DIALOG ) ScptPlayMovieEv( &v4, -1 );
@@ -268,7 +268,7 @@ int ScptNewObjId()
             if( gScptObjIds == p->TimeEv ) break;
         }
     } while ( p );
-    if( gScptObjIds >= 18000 ) eprintf( "\n    ERROR: new_obj_id() !!!! Picked PLAYER ID!!!!" );
+    if( gScptObjIds >= 18000 ) eprintf( "    ERROR: new_obj_id() !!!! Picked PLAYER ID!!!!" );
     return gScptObjIds++;
 }
 
@@ -570,7 +570,7 @@ void ScptActionExec()
                             i->Critter.State.Reaction &= ~0x01;
                             ObjLightGrid();
                         } else {
-                            eprintf( "\nWarning: Elevator: Couldn't find old elevator doors!" );
+                            eprintf( "Warning: Elevator: Couldn't find old elevator doors!" );
                         }
                     }
                 } else {
@@ -584,7 +584,7 @@ void ScptActionExec()
                         p->Critter.State.Reaction &= ~0x01;
                         ObjLightGrid();
                     } else {
-                        eprintf( "\nWarning: Elevator: Couldn't find old elevator doors!" );
+                        eprintf( "Warning: Elevator: Couldn't find old elevator doors!" );
                     }
                     jmp.MapId = MapId;
                     jmp.Lvl = lvl;
@@ -633,7 +633,7 @@ void ScptTurn()
                         i->Critter.State.Reaction &= ~0x01;
                         ObjLightGrid();
                     } else {
-                        eprintf( "\nWarning: Elevator: Couldn't find old elevator doors!" );
+                        eprintf( "Warning: Elevator: Couldn't find old elevator doors!" );
                     }
                 }
             } else {
@@ -692,7 +692,7 @@ int ScptRequestElevator( Obj_t *a1, int en )
     n = a1->GridId;
     lvl = gMapCurrentLvl;
     if( n == -1 ){
-	eprintf( "\nError: scripts_request_elevator! Bad tile num" );
+	eprintf( "Error: scripts_request_elevator! Bad tile num" );
 	return -1;
     }
     n -= 1005;
@@ -773,7 +773,7 @@ int ScptRun( int ScriptId, int ActionEventId )
         if( ScptGetScriptFname( scr->LocVarId & 0xFFFFFF, stmp ) == -1 ) return -1;
         if( ( s = strchr( stmp, '.' ) ) ) *s = '\0';
         scr->Intp = ScptLoad( stmp );
-        if( !scr->Intp ){ eprintf( "\nError: ScptRun: script load failed '%s'!", stmp ); return -1; }
+        if( !scr->Intp ){ eprintf( "Error: ScptRun: script load failed '%s'!", stmp ); return -1; }
         flg = 1;
         scr->Flags |= SCR_01;
     }
@@ -938,11 +938,11 @@ int ScptSetDudeScript()
 
     proto = NULL;
     if( ScptClearDudeScript() == -1 ) return -1;    
-    if( !gObjDude ){ eprintf( "\nError in scr_set_dude_script: obj_dude uninitialized!" ); return -1; }    
-    if( ProtoGetObj( 0x1000000, &proto ) == -1 ){ eprintf( "\nError in scr_set_dude_script: can't find obj_dude proto!" ); return -1; }
+    if( !gObjDude ){ eprintf( "Error in scr_set_dude_script: obj_dude uninitialized!" ); return -1; }    
+    if( ProtoGetObj( 0x1000000, &proto ) == -1 ){ eprintf( "Error in scr_set_dude_script: can't find obj_dude proto!" ); return -1; }
     proto->AttackMode = 0x4000000;
     UseCreateScript( gObjDude, &gObjDude->ScrId );
-    if( ScptPtr( gObjDude->ScrId, &scr ) == -1 ){ eprintf( "\nError in scr_set_dude_script: can't find obj_dude script!" ); return -1; }
+    if( ScptPtr( gObjDude->ScrId, &scr ) == -1 ){ eprintf( "Error in scr_set_dude_script: can't find obj_dude script!" ); return -1; }
     scr->Flags |= SCR_NOTREMOVE | SCR_08;
     return 0;
 }
@@ -951,7 +951,7 @@ int ScptClearDudeScript()
 {
     Scpt_t *scr;
 
-    if( !gObjDude ){ eprintf( "\nError in scr_clear_dude_script: obj_dude uninitialized!" ); return -1; }
+    if( !gObjDude ){ eprintf( "Error in scr_clear_dude_script: obj_dude uninitialized!" ); return -1; }
     if( gObjDude->ScrId != -1 ){
         if( ScptPtr( gObjDude->ScrId, &scr ) != -1 ) scr->Flags &= ~(SCR_NOTREMOVE | SCR_08);
         ScptRemove( gObjDude->ScrId );
@@ -991,12 +991,12 @@ int ScptGameInit()
     char stmp[ 260 ];
     int i;
 
-    if( MessageInit( &gScptMsg ) != 1 ){ eprintf( "\nError initing script message file!" ); return -1; }
+    if( MessageInit( &gScptMsg ) != 1 ){ eprintf( "Error initing script message file!" ); return -1; }
     for( i = 0; i < 1450; i++ ){
-        if( MessageInit( &gScptMsgBook[ i ] ) != 1 ){ eprintf( "\nERROR IN SCRIPT_DIALOG_MSGS!" ); return -1; }            
+        if( MessageInit( &gScptMsgBook[ i ] ) != 1 ){ eprintf( "ERROR IN SCRIPT_DIALOG_MSGS!" ); return -1; }            
     }
     sprintf( stmp, "%s%s", gGamePath, "script.msg" );
-    if( MessageLoad( &gScptMsg, stmp ) != 1 ){ eprintf("\nError loading script message file!"); return -1; }
+    if( MessageLoad( &gScptMsg, stmp ) != 1 ){ eprintf("Error loading script message file!"); return -1; }
     gScptEnable = 1;
     gScptUnk03 = 1;
     gScptInGameDekaSeconds = 1;
@@ -1023,7 +1023,7 @@ int ScptClose()
     gScptEnable = 0;
     gScptAmbient = 0;
     if( MessageClose( &gScptMsg ) != 1 ){
-        eprintf( "\nError exiting script message file!" );
+        eprintf( "Error exiting script message file!" );
         return -1;
     }
     ScptFlush();
@@ -1047,7 +1047,7 @@ int ScptMsgFree()
     for( i = 0; i < 1450; i++ ){
         if( gScptMsgBook[i].Count ){
             if( MessageClose( &gScptMsgBook[i] ) != 1 || MessageInit( &gScptMsgBook[i] ) != 1 ){
-                eprintf( "\nERROR in scr_message_free!" );
+                eprintf( "ERROR in scr_message_free!" );
                 return -1;
             }
         }
@@ -1341,7 +1341,7 @@ int ScptPtr( int Pid, Scpt_t **pScript )
     *pScript = NULL;
     if( Pid == -1 ) return -1;
     if( Pid == SCPT_UNSETID ){
-        eprintf( "\n  ERROR: scr_ptr called with UN-SET id #!!!!" );
+        eprintf( "  ERROR: scr_ptr called with UN-SET id #!!!!" );
         return -1;
     }
     for( spt = gScrScripts[ SCRT( Pid ) ].First; spt; spt = spt->Next ){
@@ -1454,7 +1454,7 @@ int ScptRemoveLocalVars( Scpt_t *Scr )
     memmove( &gScptLocalVars[ Scr->LocalVarBase ], &gScptLocalVars[ Scr->LocalVarBase + Scr->LocVarsCnt ], (size - Scr->LocVarsCnt - Scr->LocalVarBase) * sizeof( int ) );
 
     p = Realloc( gScptLocalVars, gScptLocalVarsCnt * sizeof( int ) );
-    if( !p ) eprintf( "\nError in mem_realloc in scr_remove_local_vars!\n" );    
+    if( !p ) eprintf( "Error in mem_realloc in scr_remove_local_vars!\n" );    
     gScptLocalVars = p;
 
     for( j = 0; j < 5; j++ ){
@@ -1488,8 +1488,8 @@ int ScptRemove( int Pid )
     if( ( qq->Script[ i ].Flags & SCR_02 ) && qq->Script[ i ].Intp ) qq->Script[ i ].Intp = 0;
     if( qq->Script[ i ].Flags & SCR_NOTREMOVE ) return 0;
     if( (gScptActionFlags & SCP_ACT_01 ) && (gScptUnk15.obj == qq->Script[ i ].TimeEv) ) gScptActionFlags &= ~( SCP_ACT_400 | SCP_ACT_01 );
-    if( ScptRemoveLocalVars( &qq->Script[ i ] ) == -1 ) eprintf( "\nERROR Removing local vars on scr_remove!!\n" );
-    if( EvQeRmEventType( qq->Script[ i ].TimeEv, EV_SCRIPT_TIMER ) == -1 ) eprintf( "\nERROR Removing Timed Events on scr_remove!!\n" );
+    if( ScptRemoveLocalVars( &qq->Script[ i ] ) == -1 ) eprintf( "ERROR Removing local vars on scr_remove!!" );
+    if( EvQeRmEventType( qq->Script[ i ].TimeEv, EV_SCRIPT_TIMER ) == -1 ) eprintf( "ERROR Removing Timed Events on scr_remove!!" );
     Current = bk->Current;
     if(( qq != bk->Current ) || ( i + 1 != Current->ScptUsed )){
         memcpy( &qq->Script[ i ], &bk->Current->Script[ bk->Current->ScptUsed - 1 ], sizeof( Scpt_t ) );
@@ -1740,7 +1740,7 @@ void ScptExecMapUpdateScripts( int ProcIdx )
     }
     if( used == 0 ) return;    
     // create script table    
-    if( !(ScriptsId = Malloc( used * sizeof( int ) ) ) ){ eprintf( "\nError: scr_exec_map_update_scripts: Out of memory for sidList!"); return; }
+    if( !(ScriptsId = Malloc( used * sizeof( int ) ) ) ){ eprintf( "Error: scr_exec_map_update_scripts: Out of memory for sidList!"); return; }
     used = 0;
     for( i = 0; i < 5; i++ ){
         for( p = gScrScripts[ i ].First; p; p = p->Next ){
@@ -1774,25 +1774,25 @@ void ScptPrintScriptUsage()
     ScptCache_t *p;
 
     alc = Malloc( gScptCount * sizeof( int ) );
-    if( !alc ){ eprintf( "\nERROR: scr_print_script_usage failed!\n" ); return; }
+    if( !alc ){ eprintf( "ERROR: scr_print_script_usage failed!" ); return; }
     for( i = 0; i < gScptCount; i++ ) alc[ i ] = 0;    
-    eprintf( "\n\n\t<<< SCRIPT DEBUG DUMP >>>\n" );
+    eprintf( "\t<<< SCRIPT DEBUG DUMP >>>" );
     for( i = 0; i < 5; i++ ){
         strcpy( stmp, gScptTypeName[ i ] );
         StrUpr( stmp );
 	tmp = gScrScripts->Blocks * 16;
 	if( gScrScripts->Current ) tmp += gScrScripts->Current->ScptUsed - 16;
-        eprintf( "\n\t[%s]: %d", stmp, tmp );
+        eprintf( "\t[%s]: %d", stmp, tmp );
         for( p = gScrScripts->First; p; p = p->Next ){                
             for( j = 0; j < p->ScptUsed; j++ ){
                 alc[ p->Script[ j ].LocVarId & 0xFFFFFF ] = 1;
             }
         }            
     }
-    eprintf( "\n[MAP_USAGE]scripts/obj_dude.int   [DEST]scripts/" );
+    eprintf( "[MAP_USAGE]scripts/obj_dude.int   [DEST]scripts/" );
     for( i = 0; i < gScptCount; i++ ){
         if( alc[ i ] == 0 ) continue;
-        eprintf( "\n[MAP_USAGE]scripts/" );
+        eprintf( "[MAP_USAGE]scripts/" );
         stmp[0] = '\0';
         if( ScptGetScriptFname( i & 0xFFFFFF, stmp ) == -1 )
             eprintf( "ERROR /" );
@@ -1816,8 +1816,8 @@ int ScptGetMsgStr( int MsgPage, Msg_t **Msg )
 	p = strrchr( fname, '.' );
 	if( p ) *p = '\0';
 	sprintf( stmp, "dialog/%s.msg", fname );
-	if( MessageLoad( &gScptMsgBook[ MsgPage ], stmp ) != 1 ){ eprintf( "\nError loading script dialog message file!" ); return -1; }
-	if( MessageLangFilter( gScptMsgBook ) != 1 ){ eprintf( "\nError filtering script dialog message file!" ); return -1; }
+	if( MessageLoad( &gScptMsgBook[ MsgPage ], stmp ) != 1 ){ eprintf( "Error loading script dialog message file!" ); return -1; }
+	if( MessageLangFilter( gScptMsgBook ) != 1 ){ eprintf( "Error filtering script dialog message file!" ); return -1; }
     }
     *Msg = &gScptMsgBook[ MsgPage ];
     return 0;
@@ -1836,12 +1836,12 @@ char *ScptGetDialog( int MsgPage, int MsgId, int SpkFlg )
     if( !MsgPage && !MsgId ) return NULL;
     if( MsgPage == -1 && MsgId == -1 ) return NULL;
     if( MsgPage == -2 && MsgId == -2 ) return MessageGetMessage( &gProtoMessages, &MsgList, 650 ); // '[Done]'
-    if( ScptGetMsgStr( MsgPage, &Message ) == -1 ){ eprintf( "\nERROR: message_str: can't find message file: List: %d!", MsgPage ); return 0; }
+    if( ScptGetMsgStr( MsgPage, &Message ) == -1 ){ eprintf( "ERROR: message_str: can't find message file: List: %d!", MsgPage ); return 0; }
     if( ( gDlgHeadId & 0xF000000 ) >> 24 != 8 ) SpkFlg = 0;
     MsgList.Id = MsgId;
-    if( MessageGetMsg( Message, &MsgList ) != 1 ){ eprintf( "\nError: can't find message: List: %d, Num: %d(%x)!", MsgPage, MsgId,  MsgId ); return "Error"; }
+    if( MessageGetMsg( Message, &MsgList ) != 1 ){ eprintf( "Error: can't find message: List: %d, Num: %d(%x)!", MsgPage, MsgId,  MsgId ); return "Error"; }
     if( !SpkFlg || !IN_DIALOG ) return MsgList.Text;
-    if( !( MsgList.Audio && *MsgList.Audio ) ){ eprintf( "Missing speech name: %d\n", MsgList.Id ); return MsgList.Text; }
+    if( !( MsgList.Audio && *MsgList.Audio ) ){ eprintf( "Missing speech name: %d", MsgList.Id ); return MsgList.Text; }
     GdialogLipsyncStart( ( MsgList.Unk & 0x01 ) ? 0 : MsgList.Audio );
     return MsgList.Text;    
 }
@@ -1852,10 +1852,10 @@ int ScptGetLocVar( int ScrId, int VarIdx, int *pValue )
 
     scr = 0;
     if( (ScrId >> 24) == 0 ){
-        eprintf("\nError! System scripts/Map scripts not allowed local_vars! ");
+        eprintf("Error! System scripts/Map scripts not allowed local_vars! ");
         gScptFileName[ 0 ] = 0;
         ScptGetScriptFname( ScrId & 0xFFFFFF, gScptFileName);
-        eprintf( ":%s\n", gScptFileName );
+        eprintf( ":%s", gScptFileName );
         *pValue = -1;
 	return -1;
     }    

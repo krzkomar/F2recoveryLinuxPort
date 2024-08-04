@@ -438,11 +438,11 @@ int DialogUnk24( int eax0 )
     DialogUnk20( Cnt3 );
     if( Cnt <= 1 ){
         if( gSayUnk122 ) return gSayUnk100;
-        eprintf( "reply has only one option, waiting for dialog to end\n" );
+        eprintf( "reply has only one option, waiting for dialog to end" );
         do
             WinDlgProcess();
         while( !gSayUnk01 && !DialogUnk21(1) );
-        eprintf( "Ended\n" );
+        eprintf( "Ended" );
         while( WinDlgProcess() != -1 );
         DialogUnk22();
         gSayUnk01 = 0;
@@ -450,12 +450,12 @@ int DialogUnk24( int eax0 )
         return gSayUnk100;
     }
     WinDlgProcess();
-    eprintf( "waiting for reply to end\n" );
+    eprintf( "waiting for reply to end" );
     while( !gSayUnk01 ){
         if( DialogUnk21( Cnt <= 1 ) ) break;
         WinDlgProcess();
     }
-    eprintf( "reply ended\n" );
+    eprintf( "reply ended" );
     zz = ( gSayOptWinX1 ) ? gSayOptWinX1 : ( 300 * WinGetScreenWidth() / 640 );
     Font = WinGetFont();
     v11 = gSayWinVertical;

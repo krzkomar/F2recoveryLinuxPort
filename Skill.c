@@ -777,7 +777,7 @@ int SkillDexMenu()
     int ability = -1, sel;
 
     if( SkillMenuOpen() == -1 ){
-	eprintf( "\n ** Error loading skilldex dialog data! **\n" );
+	eprintf( "** Error loading skilldex dialog data! **" );
 	return -1;
     }    
     while( ability == -1 ){

@@ -90,7 +90,7 @@ int ElevatorMenu( int Style, int *pMapId, int *pStartLvl, short *a4 )
 	case 4: if( *pStartLvl == 4 ) *pStartLvl -= 2; break;
     }
     if( *pStartLvl > 3 ) *pStartLvl -= 3;
-    eprintf( "\n the start elev level %d\n", *pStartLvl );
+    eprintf( " the start elev level %d", *pStartLvl );
 
     v41 = 12.0 / (gElevButtNum[Style] - 1);
     v12 = *pStartLvl * v41;

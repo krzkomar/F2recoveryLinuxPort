@@ -166,7 +166,7 @@ int LsgSaveGameMenu( int Mode )
         return 1;
     }
     gLsgUnk01 = 0;
-    if( LsgMenuCreate( Mode == 2 ) == -1 ){ eprintf( "\nLOADSAVE: ** Error loading save game screen data! **" ); return -1; } 
+    if( LsgMenuCreate( Mode == 2 ) == -1 ){ eprintf( "LOADSAVE: ** Error loading save game screen data! **" ); return -1; } 
     if( LsgLoadSlots() == -1 ){
         WinUpdate( gLsgWin );
         GSoundPlay( "iisxxxx1" );
@@ -405,7 +405,7 @@ int LsgMenuGameLoad( unsigned int arg )
             mode = 4;
         }
     }
-    if( LsgMenuCreate( mode ) == -1 ){ eprintf( "\nLOADSAVE: ** Error loading save game screen data! **" ); return -1; } 
+    if( LsgMenuCreate( mode ) == -1 ){ eprintf( "LOADSAVE: ** Error loading save game screen data! **" ); return -1; } 
     if( LsgLoadSlots() == -1 ){
         GmouseLoadCursor( 1 );
         WinUpdate( gLsgWin );

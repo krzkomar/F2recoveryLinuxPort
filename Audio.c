@@ -54,7 +54,7 @@ int AudioOpen( char *Name, char mode )
         if( (mode & 2) != 0 ) smode[ m ] = 'b';
     }
     if( !(fh = dbOpen( fname, smode ) ) ){
-        eprintf( "AudioOpen: Couldn't open %s for read\n", fname );
+        eprintf( "AudioOpen: Couldn't open %s for read", fname );
         return -1;
     }
     NewAudio = gAudio;
@@ -158,7 +158,7 @@ int AudioTell( int fh )
 
 int AudioWrite()
 {
-    eprintf( "AudioWrite shouldn't be ever called\n" );
+    eprintf( "AudioWrite shouldn't be ever called" );
     return 0;
 }
 

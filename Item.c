@@ -118,7 +118,7 @@ printf("ItemAdd: %i\n", Quantity);
         item->Owner = dude;
         return 0;
     } else if( item == bpck->Box.Box[ i ].obj ){
-        eprintf( "Warning! Attempt to add same item twice in item_add()\n" );
+        eprintf( "Warning! Attempt to add same item twice in item_add()" );
         return 0;
     }
     if( ItemGetObjType( item ) == PR_ITEM_AMMO ){
@@ -1986,7 +1986,7 @@ int ItemWithdrawalStart( Obj_t *Obj, int EffectId, int a3 )
 {
     int RecoveryTime;
 
-    if( OBJTYPE( Obj->Pid ) != TYPE_CRIT ) return eprintf( "\nERROR: perform_withdrawal_start: Was called on non-critter!" );
+    if( OBJTYPE( Obj->Pid ) != TYPE_CRIT ) return eprintf( "ERROR: perform_withdrawal_start: Was called on non-critter!" );
     PerkAddEffect( Obj, EffectId );
     if( Obj == gObjDude ) IfcMsgOut( PerkGetDsc( EffectId ) ); // player    
     RecoveryTime = 10080;
@@ -2008,7 +2008,7 @@ void ItemWithdrawalEnd( Obj_t *Obj, int EffectId )
             if( MessageGetMsg( &gItemMsg, &msg ) == 1 ) IfcMsgOut( msg.Text );
         }
     } else {
-        eprintf( "\nERROR: perform_withdrawal_end: Was called on non-critter!" );
+        eprintf( "ERROR: perform_withdrawal_end: Was called on non-critter!" );
     }
 }
 

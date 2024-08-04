@@ -63,12 +63,12 @@ int GSoundInit()
     AudioInit( GSoundNullSub );
     CfgGetInteger( &gConfiguration, "sound", "cache_size", &tmp );
     if( tmp >= SIZE_KB( 256 ) ){
-        eprintf( "\n!!! Config file needs adustment.  Please remove the " );
+        eprintf( "!!! Config file needs adustment.  Please remove the " );
         eprintf( "cache_size line and run fallout again.  This will reset " );
-        eprintf( "cache_size to the new default, which is expressed in K.\n" );
+        eprintf( "cache_size to the new default, which is expressed in K." );
         return -1;
     }
-    if( SfxCacheInit( SIZE_KB( tmp ), gGSoundPath[0] ) && gGSoundDbgLog ) eprintf( "Unable to initialize sound effects cache.\n" );
+    if( SfxCacheInit( SIZE_KB( tmp ), gGSoundPath[0] ) && gGSoundDbgLog ) eprintf( "Unable to initialize sound effects cache." );
 
     if( !SoundInitIO( (void *)GSoundFileOpen, (void *)GSoundFileClose, (void *)GSoundFileWrite, (void *)GSoundFileRead, (void *)GSoundFileSeek, (void *)GSoundFileTell, (void *)GSoundFileLen, NULL ) ){
         InpTaskStart( GSoundUpdate );
@@ -475,7 +475,7 @@ void GSoundSetSpkVolume( int volume )
             return;
         }
     } else if( gGSoundDbgLog ){
-        eprintf("Requested speech volume out of range.\n");
+        eprintf("Requested speech volume out of range.");
     }
 }
 

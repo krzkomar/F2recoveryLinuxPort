@@ -120,7 +120,7 @@ int ObjInit( char *a1, int Width, int Height, int Pitch )
     ObjCreate( &gObjDude, ArtMakeId(1, gArtPrep[0], 0, 0, 0), 0x1000000 ); // main character create
     gObjDude->Flags |= 0x20000405;
     ObjSetLight( gObjDude, 4, 0x10000, 0 );
-    if( PartyAddMember( gObjDude ) == -1 ){ eprintf( "\n  Error: Can't add Player into party!" ); exit(1); }
+    if( PartyAddMember( gObjDude ) == -1 ){ eprintf( "  Error: Can't add Player into party!" ); exit(1); }
     ObjCreate( &gObjRadius, ArtMakeId( 6, 2, 0, 0, 0), -1 ); // light spot on player
     gObjRadius->Flags |= 0x20000405;
     gObjUnk20 = 1;
@@ -237,7 +237,7 @@ int ObjLoadFile( xFile_t *fh )
     	    // connect script
             if( Obj->object->ScrId != -1 ){
                 if( ScptPtr( Obj->object->ScrId, &scr ) == -1 ){
-                    eprintf( "\nError connecting object to script Id:0x%x ObjName:'%s'!", Obj->object->ScrId, CritterGetName( Obj->object ) );
+                    eprintf( "Error connecting object to script Id:0x%x ObjName:'%s'!", Obj->object->ScrId, CritterGetName( Obj->object ) );
                     Obj->object->ScrId = -1;
                 } else {
                     scr->TimeEv = Obj->object; // ???
@@ -254,10 +254,10 @@ int ObjLoadFile( xFile_t *fh )
             } else {
                 if( !(p->Box.Box = Malloc( p->Box.Capacity * sizeof( ObjStack_t ) ) ) ) return -1;
                 for( k = 0; k < p->Box.Cnt; k++ ){
-                    if( dbgetBei( fh, &p->Box.Box[ k ].Quantity ) ){ eprintf( "Error loading inventory\n" ); return -1; }
+                    if( dbgetBei( fh, &p->Box.Box[ k ].Quantity ) ){ eprintf( "Error loading inventory" ); return -1; }
                     if( FixMapInv ){
                         p->Box.Box[ k ].obj = Malloc( sizeof( Obj_t ) );
-                        if( !p->Box.Box[ k ].obj || ObjLoadObj( p->Box.Box[ k ].obj, fh ) ){ eprintf( "Error loading inventory\n" ); return -1; }
+                        if( !p->Box.Box[ k ].obj || ObjLoadObj( p->Box.Box[ k ].obj, fh ) ){ eprintf( "Error loading inventory" ); return -1; }
                     } else {
                         if( ObjLoadItems( fh, &p->Box.Box[ k ].obj, j ) == -1 ) return -1;
                     }                        
@@ -295,7 +295,7 @@ void ObjLoad( Obj_t *dude )
     ef = &dude->Container;
     if( OBJTYPE( dude->Pid ) != TYPE_ITEM ) return;
     proto = NULL;
-    if( ProtoGetObj( dude->Pid, &proto ) == -1 ){ eprintf( "\nError: obj_load: proto_ptr failed on pid" ); exit( 1 ); }
+    if( ProtoGetObj( dude->Pid, &proto ) == -1 ){ eprintf( "Error: obj_load: proto_ptr failed on pid" ); exit( 1 ); }
     if( ItemGetObjType( dude ) == PR_ITEM_WEAPON ){
         if( ef->AmmoId == 0xCCCCCCCC || ef->AmmoId == -1 ) ef->AmmoId = proto->Critt.BaseStat[14];
         if( ef->Charges == 0xCCCCCCCC || ef->Charges == -1 || ef->Charges != proto->Critt.BaseStat[15] ) ef->Charges = proto->Critt.BaseStat[15];
@@ -303,7 +303,7 @@ void ObjLoad( Obj_t *dude )
         if( ef->Charges == 0xCCCCCCCC ){
             ef->Charges = proto->Critt.BaseStat[2];
             if( proto->Critt.BaseStat[2] == 0xCCCCCCCC ){
-                eprintf( "\nError: Misc Item Prototype %s: charges incorrect!", ProtoGetObjName( dude->Pid ) );
+                eprintf( "Error: Misc Item Prototype %s: charges incorrect!", ProtoGetObjName( dude->Pid ) );
                 ef->Charges = 0;
             }
         } else {
@@ -2202,7 +2202,7 @@ int ObjLoadItems( xFile_t *fh, Obj_t **stack, int Lvl )
     }
     ObjGetArtFileId( &tmp.obj->ImgId );
     if( !ArtFileExist1( tmp.obj->ImgId ) ){
-        eprintf( "\nError: invalid object art fid: %u", tmp.obj->ImgId );
+        eprintf( "Error: invalid object art fid: %u", tmp.obj->ImgId );
         if( tmp.obj ){ Free( tmp.obj ); tmp.obj = NULL; }
         return -2;
     }
@@ -2282,7 +2282,7 @@ int ObjLoadDude( xFile_t *fh )
     tmp->Critter.Box.Box = NULL;
     tmp->Critter.Box.Cnt = 0;
     tmp->Flags &= ~OBJ_FLG_NOTREMOVE;
-    if( ObjDestroy( tmp, 0 ) == -1 ) eprintf( "\nError: obj_load_dude: Can't destroy temp object!\n" );
+    if( ObjDestroy( tmp, 0 ) == -1 ) eprintf( "Error: obj_load_dude: Can't destroy temp object!" );
     InvSelectMain();
     if( dbgetBei( fh, &pint ) == -1 ){ 
 	dbClose( fh ); return -1; 

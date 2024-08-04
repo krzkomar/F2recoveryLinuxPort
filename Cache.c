@@ -268,7 +268,7 @@ int CacheCreateBlock( Cache_t *Cache, int FileId, int *Idx )
 //DD
 //printf("0CACHE SIZE>>%i\n", AllocSize);
     if( Cache->Load( FileId, &AllocSize, p->Data ) ){
-	eprintf("Error: Cache->Load()\n");
+	eprintf("Error: Cache->Load()");
 	goto Err2; // set size
     }
 //printf("1CACHE SIZE>>%i\n", AllocSize);

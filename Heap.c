@@ -137,11 +137,9 @@ int HeapDeallocate( Heap_t *BlockPool, int *BlkNum )
         Blk = BlockPool->Hdr[ Idx ].Blk;
         if( Blk->Guard != HEAP_FOREHEAD_GUARD ){
     	    eprintf( "Heap Error: Bad guard begin detected during deallocate." );
-DBG_CRASH;
         }
         if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ){
     	    eprintf( "Heap Error: Bad guard end detected during deallocate." );
-DBG_CRASH;
         }
         if( State != Blk->State ) eprintf( "Heap Error: Mismatched block states detected during deallocate." );
         if( !(State & HEAP_LOCKED) ){
@@ -181,12 +179,10 @@ int HeapLockBlock( Heap_t *heap, int Idx, void **data )
         stat = heap->Hdr[ Idx ].State;
         Blk = heap->Hdr[ Idx ].Blk;
         if( Blk->Guard != HEAP_FOREHEAD_GUARD ){
-         eprintf("Heap Error: Bad guard begin detected during lock.");
-DBG_CRASH;
+    	    eprintf("Heap Error: Bad guard begin detected during lock.");
         }
         if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ){
     	    eprintf("Heap Error: Bad guard end detected during lock.");
-DBG_CRASH;
         }
         if( stat != Blk->State ) eprintf("Heap Error: Mismatched block states detected during lock.");
         if( !( stat & HEAP_LOCKED ) ){
@@ -224,11 +220,9 @@ int HeapUnlockBlock( Heap_t *heap, int idx )
 	dat = heap->Hdr[ idx ].Blk;
 	if( dat->Guard != HEAP_FOREHEAD_GUARD ){
 	    eprintf( "Heap Error: Bad guard begin detected during unlock." );
-DBG_CRASH;
 	}
 	if( HEAP_GET_MEM_GUARD( dat->Data, dat->Size ) != HEAP_BACKEND_GUARD ){
 	    eprintf( "Heap Error: Bad guard end detected during unlock." );	
-DBG_CRASH;
 	}
 	if( stat != dat->State ) eprintf( "Heap Error: Mismatched block states detected during unlock." );
 	if( stat & HEAP_LOCKED ){
@@ -514,7 +508,7 @@ int HeapBuildMovableList( Heap_t *heap, int *MovableCnt, unsigned int *MaxMerged
 
     mb = gHeapMovableList;
     mvb = heap->TotMoveableBlk + heap->TotFreeBlk;
-    if( mvb <= 2 ){ eprintf( "<[couldn't build moveable list]>\n" ); return 0; }
+    if( mvb <= 2 ){ eprintf( "<[couldn't build moveable list]>" ); return 0; }
     if( mvb > gHeapMovableEntries ){
         p = Realloc(gHeapMovableList, 16 * mvb);
         if( !p ) return 0;
@@ -675,17 +669,17 @@ static int HeapValidate( Heap_t *heap )
     int MovBlks, LockBlks, allocated, stat, Handles, Total;
     int SysBlks, LockSize, MovSize, FreeBlks, FreeSize, SysSize;
 
-    eprintf( "Validating heap...\n" );
+    eprintf( "Validating heap..." );
     FreeSize = FreeBlks = MovSize = LockSize = SysSize = SysBlks = MovBlks = LockBlks = 0;
     Total = heap->TotMoveableBlk + heap->TotFreeBlk + heap->TotLockedBlk;
     Blk = heap->Blk;    
     for( allocated = 0; allocated < Total; allocated++ ){
         if( Blk->Guard != HEAP_FOREHEAD_GUARD ){
-            eprintf("Bad guard begin detected during validate.\n");
+            eprintf("Bad guard begin detected during validate.");
             break;
         }
         if( HEAP_GET_MEM_GUARD( Blk->Data, Blk->Size ) != HEAP_BACKEND_GUARD ){
-            eprintf("Bad guard end detected during validate.\n");
+            eprintf("Bad guard end detected during validate.");
             break;            
         }
         stat = Blk->State;
@@ -703,18 +697,18 @@ static int HeapValidate( Heap_t *heap )
         }
         Blk = (HeapBlk_t *)((char *)Blk + Blk->Size + HEAP_PAYLOAD);
         if( allocated != Total - 1 && Blk > (HeapBlk_t *)((char *)heap->Blk + heap->TotAllocated) ){
-    	    eprintf("Ran off end of heap during validate!\n");
+    	    eprintf("Ran off end of heap during validate!");
     	    break;    	    
         }            
     }
     if( allocated != Total ) return 0;
-    if( FreeBlks != heap->TotFreeBlk      ){ eprintf( "Invalid number of free blocks.\n" ); return 0; }
-    if( FreeSize != heap->TotFreeSize     ){ eprintf( "Invalid size of free blocks.\n" ); return 0; }
-    if( MovBlks  != heap->TotMoveableBlk  ){ eprintf( "Invalid number of moveable blocks.\n" ); return 0; }
-    if( MovSize  != heap->TotMoveableSize ){ eprintf( "Invalid size of moveable blocks.\n" ); return 0; }
-    if( LockBlks != heap->TotLockedBlk    ){ eprintf( "Invalid number of locked blocks.\n" ); return 0; }
-    if( LockSize != heap->TotLockedSize   ){ eprintf( "Invalid size of locked blocks.\n" ); return 0; }
-    eprintf( "Heap is O.K.\n" );
+    if( FreeBlks != heap->TotFreeBlk      ){ eprintf( "Invalid number of free blocks." ); return 0; }
+    if( FreeSize != heap->TotFreeSize     ){ eprintf( "Invalid size of free blocks." ); return 0; }
+    if( MovBlks  != heap->TotMoveableBlk  ){ eprintf( "Invalid number of moveable blocks." ); return 0; }
+    if( MovSize  != heap->TotMoveableSize ){ eprintf( "Invalid size of moveable blocks." ); return 0; }
+    if( LockBlks != heap->TotLockedBlk    ){ eprintf( "Invalid number of locked blocks." ); return 0; }
+    if( LockSize != heap->TotLockedSize   ){ eprintf( "Invalid size of locked blocks." ); return 0; }
+    eprintf( "Heap is O.K." );
     handler = heap->Hdr;
     for( Handles = 0; Handles < heap->TotHandles; Handles++, handler++ ){
         if( (handler->State != HEAP_ERROR) && (handler->State & HEAP_FREE) == 0 ) continue;
@@ -722,17 +716,17 @@ static int HeapValidate( Heap_t *heap )
 	if( handler->Blk == NULL ) break;
         SysSize += handler->Blk->Size;
         if( handler->Blk->Guard != HEAP_FOREHEAD_GUARD ){
-            eprintf( "Bad guard begin detected in system block during validate.\n" );
+            eprintf( "Bad guard begin detected in system block during validate." );
             break;
         }
         if( HEAP_GET_MEM_GUARD( handler->Blk->Data, handler->Blk->Size ) != HEAP_BACKEND_GUARD ){
-	    eprintf( "Bad guard end detected in system block during validate.\n" );
+	    eprintf( "Bad guard end detected in system block during validate." );
 	    break;
         }
     }
     if( Handles != heap->TotHandles ) return 0;
-    if( SysBlks != heap->TotSystemBlk  ){ eprintf( "Invalid number of system blocks.\n" ); return 0; }
-    if( SysSize != heap->TotSystemSize ){ eprintf( "Invalid size of system blocks.\n" ); return 0; }
+    if( SysBlks != heap->TotSystemBlk  ){ eprintf( "Invalid number of system blocks." ); return 0; }
+    if( SysSize != heap->TotSystemSize ){ eprintf( "Invalid size of system blocks." ); return 0; }
     return 1;                                                                                            
 }
 

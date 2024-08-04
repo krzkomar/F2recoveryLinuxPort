@@ -93,7 +93,7 @@ int NevsAddCEvent( char *name, void *Event, int Flag )
 {
     Nevs_t *p;
 
-    eprintf( "nevs_addCevent( '%s', %p);\n", name, Event );
+    eprintf( "nevs_addCevent( '%s', %p);", name, Event );
     p = NevsFind( name );
     if( !p ) p = NevsAlloc();
     if( !p ) return 1;
@@ -110,7 +110,7 @@ int NevsClearEvents( char *name )
 {
     Nevs_t *nep;
 
-    eprintf( "nevs_clearevent( '%s');\n", name );
+    eprintf( "nevs_clearevent( '%s');", name );
     if( !(nep = NevsFind( name ) ) ) return 1;
     nep->Used = 0;
     memset( nep, 0, sizeof( Nevs_t ) );
@@ -138,9 +138,9 @@ int NevsSignal( char *name )
     Nevs_t *nep;
 
     nep = NevsFind( name );
-    eprintf( "nevs_signal( '%s');\n", name );
+    eprintf( "nevs_signal( '%s');", name );
     if( !nep ) return 1;
-    eprintf("nep: %p,  used = %u, prog = %p, proc = %d\n", nep, nep->Used, nep->Prog, nep->Proc);
+    eprintf("nep: %p,  used = %u, prog = %p, proc = %d", nep, nep->Used, nep->Prog, nep->Proc);
     if( !nep->Used ) return 1;
     if( (!nep->Prog || !nep->Proc) && !nep->Event ) return 1;
     if( nep->i14 ) return 1;
@@ -155,7 +155,7 @@ void NevsUpdate()
     Nevs_t *p;
 
     if( gNevsAnyHits == 0 ) return;
-    eprintf( "nevs_update(): we have anyhits = %u\n", gNevsAnyHits );
+    eprintf( "nevs_update(): we have anyhits = %u", gNevsAnyHits );
     gNevsAnyHits = 0;
     p = gNevs;
     for( i = 0; i < NEVS_ALLOCATED; i++, p++ ){
