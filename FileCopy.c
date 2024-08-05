@@ -77,21 +77,25 @@ int FileInflateB( char *SrcFileName, char *NewFileName )
 int FileDeflate( char *SrcFileName, char *NewFileName ) // deflate
 {
     FILE *fh;
-    zFile_t *zh;
+    gzFile zh;
     int a, b;
 
     if( !(fh = fopen( SrcFileName, "rb" )) ) return -1;
     a = fgetc( fh );
     b = fgetc( fh );
     rewind( fh );
-    if( a == 31 && b == 139 ){
+    if( a == 31 && b == 139 ){ // already compressed
         fclose( fh );
         FileCopy( SrcFileName, NewFileName );
     } else {
-        if( !(zh = zOpenByFileName( NewFileName, "wb" ) ) ){ fclose( fh ); return -1; }
-        while( (a = fgetc( fh )) != -1 ) zputc( zh, a );
+	zh = gzopen( NewFileName, "wb" );
+	while( !feof( fh ) ){
+	    a = fgetc( fh );
+	    if( a == -1 ) break;
+	    if( gzputc( zh, a  ) == -1 ) break;
+	}	
+	gzclose( zh );
         fclose( fh );
-        zclose( zh );
     }
     return 0;
 }

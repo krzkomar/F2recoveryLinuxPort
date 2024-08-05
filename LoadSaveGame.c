@@ -645,6 +645,7 @@ void LsgClose( int Mode )
 int LsgSaveGame()
 {
     int i, PrevPos;
+    char *tmp;
 
     eprintf( "********** [ SAVE ] **********" );
     gLsgError = 0;
@@ -655,12 +656,18 @@ int LsgSaveGame()
     xDirCreate( gLsgFileName );
     sprintf( gLsgFileName, "%s/%s/%s%.2d", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     xDirCreate( gLsgFileName );
+
     strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "/proto" );
     xDirCreate( gLsgFileName );
-    strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "/critters" );
+
+    tmp = gLsgFileName + strlen( gLsgFileName );
+
+    strcpy( tmp, "/critters" );
     xDirCreate( gLsgFileName );
-    strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "/items" );
+    
+    strcpy( tmp, "/items" );
     xDirCreate( gLsgFileName );
+
     if( LsgBackup() == -1 ) eprintf( "LOADSAVE: Warning, can't backup save file!" );
     sprintf( gLsgFileName, "%s/%s%.2d/", "savegame", "slot", gLsgSelectedSlotIdx + 1 );
     strcpy( &gLsgFileName[ strlen( gLsgFileName ) ], "save.dat" );
@@ -1146,17 +1153,22 @@ int LsgFSaveMaps( xFile_t *fh1 )
     int i, n, t;
     char **FileList, stmp[30], *s;
     xFile_t *fh2;
-
+DD
     if( PartyLeaveAll() == -1 ) return -1;
     if( MapSavingRandomEncounter( 0 ) == -1 ) return -1;
     if( gPartyCount > 1 ){
+DD
 	for( i = 1; i < gPartyCount; i++ ){
     	    if( (t = gPartyPids[ i ]) == -2 ) continue;
     	    if( ProtoGetFName( gPartyPids[ i ], stmp ) ) continue;
     	    s = (t >> 24) == 1 ? "proto/critters" : "proto/items";
     	    sprintf( gLsgBakFileName, "%s/%s/%s", gLsgMasterPatches, s, stmp );
     	    sprintf( gLsgCurFileName, "%s/%s/%s%.2d/%s/%s", gLsgMasterPatches, "savegame", "slot", gLsgSelectedSlotIdx + 1, s, stmp );
-    	    if( FileDeflate( gLsgBakFileName, gLsgCurFileName ) == -1 ) return -1;
+    	    if( FileDeflate( gLsgBakFileName, gLsgCurFileName ) == -1 ){
+exit( -1 );
+    	     return -1;
+
+    	    }
 	}
     }
     sprintf( gLsgBakFileName, "%s/*.%s", "maps", "sav" );

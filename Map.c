@@ -479,6 +479,7 @@ int MapLoadMAP( char *fname )
     if( (s = strstr( fname, ".map" ) ) ){ 
 	// check if the file *.sav exist
         strcpy( s, ".sav" ); // *.map -> *.sav
+
         fh = dbOpen( MapGetFilePath( fname ), "rb" );
         strcpy( s, ".map" ); // restore *.map
          if( fh ){
@@ -489,6 +490,7 @@ int MapLoadMAP( char *fname )
         }
     }
     if( err == -1 ){
+printf("--->'%s'\n", MapGetFilePath( fname ) );
         if( (fh = dbOpen( MapGetFilePath( fname ), "rb") ) ){
             err = MapLoadMapFile( fh );
             dbClose( fh );
@@ -1146,9 +1148,14 @@ int MapSaveHdr( Map_t *map, xFile_t *fh )
 
 int MapLoadHdr( Map_t *map, xFile_t *fh )
 {
+DD
     if( dbgetBei( fh, &map->Version ) == -1 ) return -1;
+DD
+printf("-->%x\n", map->Version);
     if( dbreadByteBlk( fh, map->Name, 16 ) == -1 ) return -1;
+DD
     if( dbgetBei( fh, &map->StartHexGrid ) == -1 ) return -1;
+DD
     if( dbgetBei( fh, &map->MapLvl ) == -1 ) return -1; // map lvl***
     if( dbgetBei( fh, &map->PlayerOrientation ) == -1 ) return -1; // player orientation
     if( dbgetBei( fh, &map->LocVarsCnt ) == -1 ) return -1;

@@ -323,7 +323,6 @@ int AutomapSave()
     if( AutomapReadHdr( fh2 ) == -1 )
 	{ eprintf( "AUTOMAP: Error reading automap database file header!" ); Free( gAutomapData ); Free( gAutomapRawData ); dbClose( fh2 ); return -1; }
     AutomapMakeMinimap( gMapCurrentLvl );    
-
     if( ( v7 = GrLZDeflate( (unsigned char *)gAutomapData, gAutomapRawData, 10000 ) ) == -1 ) {
         gAutomapUnk102 = 0;
         gAutomapRawSize = 10000;
