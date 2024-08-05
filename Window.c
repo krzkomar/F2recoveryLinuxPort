@@ -1029,7 +1029,7 @@ Image_t *WinLoadImage( const char *fname )
 void WinSetTitle( const char *Title )
 {
     if( !Title ) return;    
-    printf( "<dummy> Set title: \"%s\"\n", Title );
+    printf( "Run title: \"%s\"\n", Title );
     gWinTitle = 1;
 }
 

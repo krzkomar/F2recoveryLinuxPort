@@ -182,7 +182,7 @@ int  ObjLoadFile( xFile_t *fh );
 void ObjLookForAgressor();
 void ObjLoad( Obj_t *dude );
 int  ObjSave( Obj_t *Obj, xFile_t *fh );
-int  ObjSaveUnk07( xFile_t *fh );
+int  ObjSaveObjects( xFile_t *fh );
 void ObjRenderObjects( VidRect_t *Area, int MapLvl );
 void ObjRenderCursor( VidRect_t *Area );
 void ObjUnk10( int result, int a2, int a3, unsigned int a4, int a7, int *a6, int a9 );

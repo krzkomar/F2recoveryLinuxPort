@@ -336,52 +336,52 @@ int ObjSave( Obj_t *Obj, xFile_t *fh )
     return 0;
 }
 
-int ObjSaveUnk07( xFile_t *fh )
+int ObjSaveObjects( xFile_t *fh )
 {
-    ObjList_t *v6;
+    ObjList_t *ObjStack;
     Obj_t *WhoHitMe;
-    int v11,v15,v20,v21,v25,v26,v27,v28;
+    int i,tmp,TotPos, LvlPos,TotObjCnt,TileIdx,lvl,LvlObjCnt;
 
     if( !fh ) return -1;
     ObjUnk79();
-    v21 = dbtell( fh );
-    v25 = 0;
-    if( dbputBei(fh, 0) ) return -1;    
-    for( v27 = 0; v27 < 3; v25 += v28, v27++ ){
-	dbtell( fh );
-	v28 = 0;
-	if( dbputBei( fh, 0 ) ) return -1;    
-	for( v26 = 0; v26 < 40000; v26++ ){
-    	    if( (v6 = gObjGridObjects[v26]) ){
-		for( ; v6; v6 = v6->Next ){
-    		    if( v27 != v6->object->Elevation || (v6->object->Flags & 0x04) ) continue;
-    		    if( OBJTYPE( v6->object->Pid ) == 1 ){
-        		WhoHitMe = v6->object->Critter.State.WhoHitMeObj;
-        		if( v6->object->Critter.State.WhoHitMe ){
-            		    if( v6->object->Critter.State.WhoHitMe != -1 ) v6->object->Critter.State.WhoHitMe = v6->object->Critter.State.WhoHitMeObj->CritterIdx;
-        		} else {
-            		    v6->object->Critter.State.WhoHitMe = -1;
-        		}
-    		    }
-    		    if( ObjSave( v6->object, fh ) ) return -1;
-    		    if( OBJTYPE( v6->object->Pid ) == 1 ) v6->object->Critter.State.WhoHitMeObj = WhoHitMe;
-		    for( v11 = 0; v11 < v6->object->Critter.Box.Cnt; v11++ ){
-			if( dbputBei( fh, v6->object->Critter.Box.Box[ v11 ].Quantity ) ) return -1;
-    			if( ObjSaveDude( fh, v6->object->Critter.Box.Box[ v11 ].obj ) == -1 ) return -1;
-		    }
-    	    	    v28++;
-		}    
-    	    }        
+    TotPos = dbtell( fh );
+    TotObjCnt = 0;
+    if( dbputBei( fh, 0 ) ) return -1;     // total number of objects
+    for( lvl = 0; lvl < 3; lvl++ ){
+	LvlPos = dbtell( fh );
+	LvlObjCnt = 0;
+	if( dbputBei( fh, 0 ) ) return -1; // number of objects on this level
+	for( TileIdx = 0; TileIdx < 40000; TileIdx++ ){
+    	    if( !( ObjStack = gObjGridObjects[ TileIdx ] ) ) continue; // no object on tile -> get next tile
+	    for( ; ObjStack; ObjStack = ObjStack->Next ){
+    		if( ObjStack->object->Elevation != lvl || (ObjStack->object->Flags & 0x04) ) continue;
+    		if( OBJTYPE( ObjStack->object->Pid ) == TYPE_CRIT ){
+        	    WhoHitMe = ObjStack->object->Critter.State.WhoHitMeObj;
+        	    if( ObjStack->object->Critter.State.WhoHitMe ){
+            		if( ObjStack->object->Critter.State.WhoHitMe != -1 ) ObjStack->object->Critter.State.WhoHitMe = ObjStack->object->Critter.State.WhoHitMeObj->CritterIdx;
+        	    } else {
+            		ObjStack->object->Critter.State.WhoHitMe = -1;
+        	    }
+    		}
+    		if( ObjSave( ObjStack->object, fh ) ) return -1;
+    		if( OBJTYPE( ObjStack->object->Pid ) == TYPE_CRIT ) ObjStack->object->Critter.State.WhoHitMeObj = WhoHitMe;
+		for( i = 0; i < ObjStack->object->Critter.Box.Cnt; i++ ){ // container
+		    if( dbputBei( fh, ObjStack->object->Critter.Box.Box[ i ].Quantity ) ) return -1;
+    		    if( ObjSaveDude( fh, ObjStack->object->Critter.Box.Box[ i ].obj ) == -1 ) return -1;
+		}
+    	    	LvlObjCnt++;
+	    }    
 	}
-	v15 = dbtell( fh );
-	dbseek( fh, v21, 0 );
-	dbputBei( fh, v28 );
-	dbseek( fh, v15, 0 );	
+	tmp = dbtell( fh );
+	dbseek( fh, LvlPos, 0 );
+	dbputBei( fh, LvlObjCnt );
+	dbseek( fh, tmp, 0 );	
+	TotObjCnt += LvlObjCnt;
     }
-    v20 = dbtell( fh );
-    dbseek( fh, v21, 0 );
-    dbputBei( fh, v25 );
-    dbseek( fh, v20, 0 );
+    tmp = dbtell( fh );
+    dbseek( fh, TotPos, 0 );
+    dbputBei( fh, TotObjCnt ); // replace
+    dbseek( fh, tmp, 0 );
     return 0;    
 }
 

@@ -573,7 +573,6 @@ int MapLoadMapFile( xFile_t *fh )
     }
 
     if( dbreadBeiBlk( fh, gMapLocalVars, gMapLocalVarsCnt ) != 0 ) goto Error;
-
 // load tiles into grid
     if( MapLoadGrid( fh, gMap.MapFlags ) ){ errmsg = "Load tile error."; goto Error; }
 // load script for map
@@ -902,7 +901,7 @@ int MapSaving( xFile_t *fh )
         sprintf( stmp2, "Error saving scripts in %s", gMap.Name );
         TextBoxUnk12( stmp2, 80, 80, gPalColorCubeRGB[31][0][0] );
     }
-    if( ObjSaveUnk07( fh ) == -1 ){
+    if( ObjSaveObjects( fh ) == -1 ){
         sprintf( stmp1, "Error saving objects in %s", gMap.Name );
         TextBoxUnk12( stmp1, 80, 80, gPalColorCubeRGB[31][0][0] );
     }
@@ -1148,14 +1147,9 @@ int MapSaveHdr( Map_t *map, xFile_t *fh )
 
 int MapLoadHdr( Map_t *map, xFile_t *fh )
 {
-DD
     if( dbgetBei( fh, &map->Version ) == -1 ) return -1;
-DD
-printf("-->%x\n", map->Version);
     if( dbreadByteBlk( fh, map->Name, 16 ) == -1 ) return -1;
-DD
     if( dbgetBei( fh, &map->StartHexGrid ) == -1 ) return -1;
-DD
     if( dbgetBei( fh, &map->MapLvl ) == -1 ) return -1; // map lvl***
     if( dbgetBei( fh, &map->PlayerOrientation ) == -1 ) return -1; // player orientation
     if( dbgetBei( fh, &map->LocVarsCnt ) == -1 ) return -1;
@@ -1168,4 +1162,3 @@ DD
     if( dbreadBeiBlk( fh, map->Filler, 44 ) == -1 ) return -1; // ??
     return 0;
 }
-
