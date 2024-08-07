@@ -117,7 +117,7 @@ int SdfUnk07( const char *fname, Sdf_t *sdf )
     xDirCreate( stmp );
     if( !(fh = dbOpen( fname, "wb" )) ) return -1;
     err = -1;
-    if( !dbputbBlk( fh, sdf->vcrname, 13 ) && !dbputbBlk( fh, sdf->sdfname, 13 ) && !dbputBei( fh, sdf->i28 ) ) err = 0;
+    if( !dbputbBlk( fh, (unsigned char *)sdf->vcrname, 13 ) && !dbputbBlk( fh, (unsigned char *)sdf->sdfname, 13 ) && !dbputBei( fh, sdf->i28 ) ) err = 0;
     dbClose( fh );
     return err;
 }

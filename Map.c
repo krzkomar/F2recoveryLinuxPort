@@ -892,10 +892,10 @@ int MapSaving( xFile_t *fh )
     gMap.GlobVarsCnt = gMapGlobVarsCnt;
     gMap.Darkness = 1;
     MapSaveHdr( &gMap, fh );
-    if( gMap.GlobVarsCnt ) dbputBeiBlk( fh, gMapGlobVars, gMap.GlobVarsCnt );
-    if( gMap.LocVarsCnt ) dbputBeiBlk( fh, gMapLocalVars, gMap.LocVarsCnt );
+    if( gMap.GlobVarsCnt ) dbputBeiBlk( fh, (unsigned int *)gMapGlobVars, gMap.GlobVarsCnt );
+    if( gMap.LocVarsCnt ) dbputBeiBlk( fh, (unsigned int *)gMapLocalVars, gMap.LocVarsCnt );
     for( lvl = 0; lvl < 3; lvl++ ){
-        if( (gMap.MapFlags & gMapGridFlags[ lvl ] ) == 0 ) dbputLeiBlk( fh, gMapIsoGrid[ lvl ], 10000 );
+        if( (gMap.MapFlags & gMapGridFlags[ lvl ] ) == 0 ) dbputLeiBlk( fh, (unsigned int *)gMapIsoGrid[ lvl ], 10000 );
     }
     if( ScptSaveScript( fh ) == -1 ){
         sprintf( stmp2, "Error saving scripts in %s", gMap.Name );
@@ -1130,7 +1130,7 @@ exit(0);
 int MapSaveHdr( Map_t *map, xFile_t *fh )
 {
     if( dbputBei( fh, map->Version ) == -1 ) return -1;
-    if( dbputbBlk( fh, map->Name, 16 ) == -1 ) return -1;
+    if( dbputbBlk( fh, (unsigned char *)map->Name, 16 ) == -1 ) return -1;
     if( dbputBei( fh, map->StartHexGrid ) == -1 ) return -1;
     if( dbputBei( fh, map->MapLvl ) == -1 ) return -1; 
     if( dbputBei( fh, map->PlayerOrientation ) == -1 ) return -1; 
@@ -1141,7 +1141,7 @@ int MapSaveHdr( Map_t *map, xFile_t *fh )
     if( dbputBei( fh, map->GlobVarsCnt ) == -1 ) return -1; 
     if( dbputBei( fh, map->MapId ) == -1 ) return -1; 
     if( dbputBei( fh, map->Time ) == -1 ) return -1; 
-    if( dbputBeiBlk( fh, map->Filler, 44 ) == -1 ) return -1;
+    if( dbputBeiBlk( fh, (unsigned int *)map->Filler, 44 ) == -1 ) return -1;
     return 0;
 }
 

@@ -1909,8 +1909,8 @@ int ItemLoadEffects( xFile_t *fh, ItemEv01_t **a2 )
 
 int ItemSaveEffects( xFile_t *fh, ItemEv01_t *a2 )
 {
-    if( dbputBeiBlk( fh, a2->i02, 3 ) == -1 ) return -1;
-    if( dbputBeiBlk( fh, a2->i03, 3 ) == -1 ) return -1;
+    if( dbputBeiBlk( fh, (unsigned int *)a2->i02, 3 ) == -1 ) return -1;
+    if( dbputBeiBlk( fh, (unsigned int *)a2->i03, 3 ) == -1 ) return -1;
     return 0;
 }
 

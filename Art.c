@@ -742,8 +742,8 @@ int ArtSaveFrame( ArtFrm_t *Data, xFile_t *fh, int Frames )
 
 int ArtSaveHdr( ArtFrmHdr_t *Data, xFile_t *fh )
 {
-    int i, tmp2[6];
-    short tmp1[6];
+    unsigned int i, tmp2[6];
+    unsigned short tmp1[6];
     
     if( dbputBei( fh, Data->Version ) == -1 ) return -1;
     if( dbputBew( fh, Data->Fps ) == -1 ) return -1;

@@ -1214,8 +1214,8 @@ int ProtoSaveItems( ProtoItemsData_t *it, int Type, xFile_t *fh )
     switch( Type ){
         case 0:
             if( dbputBei(fh, it->Type0.i01) != -1 && 
-        	dbputBeiBlk(fh, it->Type0.i02, 7) != -1 && 
-        	dbputBeiBlk(fh, it->Type0.i03, 7) != -1 && 
+        	dbputBeiBlk(fh, (unsigned int *)it->Type0.i02, 7) != -1 && 
+        	dbputBeiBlk(fh, (unsigned int *)it->Type0.i03, 7) != -1 && 
         	dbputBei(fh, it->Type0.i04) != -1 && 
         	dbputBei(fh, it->Type0.i05) != -1 && 
         	dbputBei(fh, it->Type0.i06) != -1 
@@ -1225,12 +1225,12 @@ int ProtoSaveItems( ProtoItemsData_t *it, int Type, xFile_t *fh )
             if( dbputBei(fh, it->Type1.i01) != -1 && dbputBei(fh, it->Type1.i02) != -1 ) return 0;
             return -1;
         case 2:
-            if( dbputBeiBlk(fh, (int *)it, 3) != -1 && 
-        	dbputBeiBlk(fh, it->Type2.i04, 3) != -1 && 
+            if( dbputBeiBlk(fh, (unsigned int *)it, 3) != -1 && 
+        	dbputBeiBlk(fh, (unsigned int *)it->Type2.i04, 3) != -1 && 
         	dbputBei(fh, it->Type2.i05) != -1 && 
-        	dbputBeiBlk(fh, it->Type2.i06, 3) != -1 && 
+        	dbputBeiBlk(fh, (unsigned int *)it->Type2.i06, 3) != -1 && 
         	dbputBei(fh, it->Type2.i07) != -1 && 
-        	dbputBeiBlk(fh, it->Type2.i08, 3) != -1 && 
+        	dbputBeiBlk(fh, (unsigned int *)it->Type2.i08, 3) != -1 && 
         	dbputBei(fh, it->Type2.i09) != -1 && 
         	dbputBei(fh, it->Type2.i10) != -1 && 
         	dbputBei(fh, it->Type2.i11) != -1 

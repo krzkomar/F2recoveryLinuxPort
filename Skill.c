@@ -90,7 +90,7 @@ int SkillLoadSpecials( xFile_t *fname )
 
 int SkillSaveSpecials( xFile_t *fh )
 {
-    return ( dbputBeiBlk( fh, gSkillSpecials, 4 ) != -1) - 1;
+    return ( dbputBeiBlk( fh, (unsigned int *)gSkillSpecials, 4 ) != -1) - 1;
 }
 
 void SkillReset( Critter_t *cr )
@@ -745,7 +745,7 @@ int SkillUsingClear()
 
 int SkillUsingSave( xFile_t *fh )
 {
-    return ( dbputBeiBlk( fh, (int *)gSkillUsage, sizeof( gSkillUsage ) / sizeof(int) ) != -1 ) - 1;
+    return ( dbputBeiBlk( fh, (unsigned int *)gSkillUsage, sizeof( gSkillUsage ) / sizeof(int) ) != -1 ) - 1;
 }
 
 int SkillUsingLoad( xFile_t *fh )

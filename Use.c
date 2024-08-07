@@ -147,7 +147,6 @@ int UseExamine( Obj_t *critter, Obj_t *obj, void (*OutCb)(char *) )
     MsgLine_t msg2;
     Scpt_t *script;
 
-DD
     i18 = 0;
     if( CritterIsDead( critter ) ) return -1;
     if( OBJTYPE( obj->ImgId ) == TYPE_TILE ) return -1;

@@ -421,10 +421,10 @@ static int AutomapRename( char *dir, char *NewFileName )
 int AutomapSaveEntryData( xFile_t *fh )
 {
     int err;
-    char *p;
+    unsigned char *p;
 
     err = 1;
-    p = ( gAutomapUnk102 == 1 ) ? gAutomapRawData : gAutomapData;
+    p = (unsigned char *)(( gAutomapUnk102 == 1 ) ? gAutomapRawData : gAutomapData);
     if( dbputLei( fh, gAutomapRawSize ) == -1 || dbputb( fh, gAutomapUnk102 ) == -1 || dbputbBlk( fh, p, gAutomapRawSize ) == -1 ) err = 0;
     if( !err ){
 	eprintf( "AUTOMAP: Error writing automap database entry data!" );
@@ -475,7 +475,7 @@ int AutomapWriteHdr( xFile_t *fh )
     dbrewind( fh );
     if( dbputb( fh, gAutomap_05.c01 ) == -1 ){ eprintf( "AUTOMAP: Error writing automap database header! 1" ); dbClose( fh ); return -1; }
     if( dbputLei( fh, gAutomap_05.i01 ) == -1 ){ eprintf( "AUTOMAP: Error writing automap database header! 2" ); dbClose( fh ); return -1; }
-    if( dbputLeiBlk( fh, gAutomap_05.tab, 480 ) == -1 ){ eprintf( "AUTOMAP: Error writing automap database header! 3" ); dbClose( fh ); return -1; }
+    if( dbputLeiBlk( fh, (unsigned int *)gAutomap_05.tab, 480 ) == -1 ){ eprintf( "AUTOMAP: Error writing automap database header! 3" ); dbClose( fh ); return -1; }
     return 0;
 }
 

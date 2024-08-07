@@ -794,7 +794,7 @@ int LsgSaveHdr( int SlotNo )
     struct tm tim;
     char stmp[128];
     int n, Gday, Gyear;
-    short tmp[3];
+    unsigned short tmp[3];
 
     gLsgError = 4;
     strncpy( gLsgSlots[ SlotNo ].Magic, "FALLOUT SAVE FILE", 24 );

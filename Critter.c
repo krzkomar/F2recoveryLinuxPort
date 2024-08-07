@@ -351,7 +351,7 @@ int CritterLoadKillStats( xFile_t *fh )
 
 int CritterSaveKillStats( xFile_t *fh )
 {
-    if( dbputBeiBlk( fh, gCrKillStats, 19 ) != -1 ) return 0;
+    if( dbputBeiBlk( fh, (unsigned int *)gCrKillStats, 19 ) != -1 ) return 0;
     dbClose( fh );
     return -1;
 }
@@ -595,9 +595,9 @@ int CritterSaveAllStats( char *fname )
 int CritterSaveFile( xFile_t *fh, Critter_t *cr )
 {
     if( dbputBei( fh, cr->Type ) == -1 ) return -1;
-    if( dbputBeiBlk( fh, cr->BaseStat, 35 ) == -1 ) return -1;
-    if( dbputBeiBlk( fh, cr->BoostStat, 35 ) == -1 ) return -1;
-    if( dbputBeiBlk( fh, cr->Skills, 18 ) == -1 ) return -1;
+    if( dbputBeiBlk( fh, (unsigned int *)cr->BaseStat, 35 ) == -1 ) return -1;
+    if( dbputBeiBlk( fh, (unsigned int *)cr->BoostStat, 35 ) == -1 ) return -1;
+    if( dbputBeiBlk( fh, (unsigned int *)cr->Skills, 18 ) == -1 ) return -1;
     if( dbputBei( fh, cr->ProtoID) == -1 ) return -1;
     if( dbputBei( fh, cr->i91) == -1 ) return -1;
     if( dbputBei( fh, cr->Gender) == -1 ) return -1;

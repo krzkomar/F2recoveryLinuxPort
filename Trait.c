@@ -60,7 +60,7 @@ int TraitLoad( xFile_t *fh )
 
 int TraitSave( xFile_t *fh )
 {
-    return ( dbputBeiBlk( fh, gTraitSpec, 2 ) != -1 ) - 1;
+    return ( dbputBeiBlk( fh, (unsigned int *)gTraitSpec, 2 ) != -1 ) - 1;
 }
 
 void TraitSetSpec( int s1, int s2 )
