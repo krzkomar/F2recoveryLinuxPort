@@ -2769,7 +2769,6 @@ int CharEditSaveLvl( xFile_t *fh )
 
 int CharEditLoadLvl( xFile_t *fh )
 {
-
     if( dbgetBei( fh, &gChrEditCurLvl ) != -1 ){
         if( dbgetb( fh, &gChrEditNewPerkFlag ) != -1 ) return 0;
     }

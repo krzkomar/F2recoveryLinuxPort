@@ -1144,37 +1144,36 @@ void OptRealize()
 
 int OptSaveData( xFile_t *fh )
 {
-    if( 
-	dbputBei( fh, gOptSetGameDifficulty) == -1 || 
-	dbputBei( fh, gOptSetCombatDifficulty) == -1 || 
-	dbputBei( fh, gOptSetViolenceLvl) == -1 || 
-	dbputBei( fh, gOptSetTargetH1) == -1 || 
-	dbputBei( fh, gOptSetCombatLook) == -1 || 
-	dbputBei( fh, gOptSetCombatMsg) == -1 || 
-	dbputBei( fh, gOptSetCombatTaunts) == -1 || 
-	dbputBei( fh, gOptSetLangFilter) == -1 || 
-	dbputBei( fh, gOptSetRunning) == -1 || 
-	dbputBei( fh, gOptSetSubtitles) == -1 || 
-	dbputBei( fh, gOptSetItemH1) == -1 || 
-	dbputBei( fh, gOptSetCombatSpeed) == -1 || 
-	dbputBei( fh, gOptSetPlayerSpeed) == -1 || 
-        dbputBed( fh, gOptSetTextDelay ) == -1 || 
-	dbputBei( fh, gOptSetMasterVolume) == -1 || 
-	dbputBei( fh, gOptSetMusicVolume) == -1 || 
-	dbputBei( fh, gOptSetFxVolume) == -1 || 
-	dbputBei( fh, gOptSetSpeechVolume) == -1 || 
-	dbputBed( fh, gOptSetBrightness ) == -1 || 
-	dbputBed( fh, gOptSetMouseSens ) == -1 
-    ){
-	return 0;
-    }
-    ErrorPrintf( "\nOPTION MENU: Error save option data!\n" );
+    if( dbputBei( fh, gOptSetGameDifficulty ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetCombatDifficulty ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetViolenceLvl ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetTargetH1 ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetCombatLook ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetCombatMsg ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetCombatTaunts ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetLangFilter ) == -1 ) goto err; 
+    if( dbputBei( fh, gOptSetRunning ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetSubtitles ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetItemH1 ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetCombatSpeed ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetPlayerSpeed ) == -1 ) goto err;
+    if( dbputBef( fh, gOptSetTextDelay ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetMasterVolume ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetMusicVolume ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetFxVolume ) == -1 ) goto err;
+    if( dbputBei( fh, gOptSetSpeechVolume ) == -1 ) goto err;
+    if( dbputBef( fh, gOptSetBrightness ) == -1 ) goto err;
+    if( dbputBef( fh, gOptSetMouseSens ) == -1 ) goto err;
+    return 0;    
+err:
+    eprintf( "OPTION MENU: Error save option data!" );
     return -1;
 }
 
 int OptLoadData( xFile_t *fh )
 {
-    int err = -1, mse, brt, TextDelay;
+    int err = -1;
+    float mse, brt, TextDelay;
 
     OptSetDefault(0);
     if( 
@@ -1191,23 +1190,23 @@ int OptLoadData( xFile_t *fh )
 	dbgetBei( fh, &gOptSetItemH1 ) == -1 || 
 	dbgetBei( fh, &gOptSetCombatSpeed ) == -1 || 
 	dbgetBei( fh, &gOptSetPlayerSpeed ) == -1 || 
-	dbgetBei( fh, &TextDelay ) == -1 || 
+	dbgetBei( fh, (int *)&TextDelay ) == -1 || 
 	dbgetBei( fh, &gOptSetMasterVolume ) == -1 || 
 	dbgetBei( fh, &gOptSetMusicVolume ) == -1 || 
 	dbgetBei( fh, &gOptSetFxVolume ) == -1 || 
 	dbgetBei( fh, &gOptSetSpeechVolume ) == -1 || 
-	dbgetBei( fh, &brt ) == -1 || 
-	dbgetBei( fh, &mse ) == -1 
+	dbgetBei( fh, (int *)&brt ) == -1 || 
+	dbgetBei( fh, (int *)&mse ) == -1 
     ) err = 0;
-    gOptSetBrightness = *(float *)&brt;
-    gOptSetMouseSens  = *(float *)&mse;
-    gOptSetTextDelay  = *(float *)&TextDelay;
+    gOptSetBrightness = brt;
+    gOptSetMouseSens  = mse;
+    gOptSetTextDelay  = TextDelay;
     if( err ){
         OptRealize();
         OptSaveConfig( 0 );
         return 0;
     }
-    ErrorPrintf( "\nOPTION MENU: Error loading option data!, using defaults.\n" );
+    eprintf( "OPTION MENU: Error loading option data!, using defaults." );
     OptSetDefault( 0 );
     OptRealize();
     OptSaveConfig( 0 );

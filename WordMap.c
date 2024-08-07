@@ -81,7 +81,7 @@ int gWmUnk105[ 2 ];
 int gWmUnk103[ 2 ];
 int gWmUnk101[ 10 ];
 int gWmGoToLocation;
-int    gWmUnk23;
+int    gWmRandomMap;
 WmTileDsc_t    *gWmTile;
 int    gWmUnk22;
 int    gWmTravel;
@@ -202,7 +202,7 @@ int WmInitVars1()
 {
     int i;
 
-    gWmUnk23 = 0;
+    gWmRandomMap = 0;
     gWmAreaId = -1;
     gWmWorldPosX = 173;
     gWmWorldPosY = 122;
@@ -304,7 +304,7 @@ int WmInitVars2()
 {
     int i;
 
-    gWmUnk23 = 0;
+    gWmRandomMap = 0;
     gWmTile = NULL;
     gWmUnk22 = 0;
     gWmTravel = 0;
@@ -415,7 +415,7 @@ int WmSaveWmapDatFile( xFile_t *fh )
 {
     int i, j, k, n;
 
-    if( dbputBei( fh, gWmUnk23 ) == -1 ) return -1;
+    if( dbputBei( fh, gWmRandomMap ) == -1 ) return -1;
     if( dbputBei( fh, gWmAreaId ) == -1 ) return -1;
     if( dbputBei( fh, gWmWorldPosX ) == -1 ) return -1;
     if( dbputBei( fh, gWmWorldPosY ) == -1 ) return -1;    
@@ -471,7 +471,7 @@ int WmLoadWmapDatFile( xFile_t *fh )
 {
     int i, j, k, a, b, c, pint;
     
-    if( dbgetBei( fh, &gWmUnk23  ) == -1 ) return -1; 	 // Unk
+    if( dbgetBei( fh, &gWmRandomMap  ) == -1 ) return -1; 	 // Unk
     if( dbgetBei( fh, &gWmAreaId ) == -1 ) return -1;    // Unk
     if( dbgetBei( fh, &gWmWorldPosX ) == -1 ) return -1; // pos X
     if( dbgetBei( fh, &gWmWorldPosY ) == -1 ) return -1; // pos Y
@@ -1669,10 +1669,10 @@ int WmRandomEncounter()
     if( abs32( gWmUnk36 - gWmWorldPosX ) < 3 || abs32( gWmUnk37 - gWmWorldPosY ) < 3 ) return 0;
     WmGetArea( gWmWorldPosX, gWmWorldPosY, &pAreaId );
     if( pAreaId != -1 ) return 0;
-    if( !gWmUnk23 ){
+    if( !gWmRandomMap ){
         if( (ScptGetGameDekaSeconds() / 864000) > 35 ){
             gWmRandMapId = -1;
-            gWmUnk23 = 1;
+            gWmRandomMap = 1;
             if( gWmTravelByCar == 1 ) WmFindAreaByEntranceId( 149, &gWmCurrentArea );
             MapOpenById( 149 );
             return 1;

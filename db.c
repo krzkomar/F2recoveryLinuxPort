@@ -249,24 +249,24 @@ int dbgetBei( xFile_t *stream, int *pint)
     return 0;
 }
 
-int dbputb( xFile_t *stream, int bdata )
+int dbputb( xFile_t *stream, unsigned int bdata )
 {
     return ( xputc_int( bdata, stream ) != -1) - 1;
 }
 
-int dbputBew( xFile_t *stream, short wdata )
+int dbputBew( xFile_t *stream, unsigned short wdata )
 {
     if( ((xputc_int(wdata >> 8, stream) != -1) - 1) == -1 ) return -1;
     return (xputc_int(wdata, stream) != -1) - 1;
 }
 
-int dbputBei( xFile_t *stream, int idata )
+int dbputBei( xFile_t *stream, unsigned int idata )
 {
     if( dbputBew( stream, idata >> 16 ) == -1 ) return -1;
     return dbputBew( stream, idata );    
 }
 
-int dbputLei( xFile_t *stream, int idata)
+int dbputLei( xFile_t *stream, unsigned int idata)
 {
     if( dbputb( stream, idata ) == -1 ) return -1;
     if( dbputb( stream, idata >> 8 ) == -1 ) return -1;    
@@ -274,10 +274,9 @@ int dbputLei( xFile_t *stream, int idata)
     return dbputb( stream, idata >> 24 );
 }
 
-int dbputBed( xFile_t *stream, unsigned int wdata )
+int dbputBef( xFile_t *stream, float fdata )
 { 
-    if( dbputBew( stream, wdata >> 16) != -1 ) return -1;
-    return dbputBew( stream, wdata );
+    return dbputBei( stream, *((unsigned int *)&fdata) );
 }
 
 int dbreadByteBlk( xFile_t *stream, char *buff, int size )
@@ -317,7 +316,7 @@ int dbreadBeiBlk( xFile_t *stream, int *pidata, int size )
     return 0;
 }
 
-int dbputbBlk( xFile_t *stream, char *pbdata, int size )
+int dbputbBlk( xFile_t *stream, unsigned char *pbdata, int size )
 {
     int i;
 
@@ -327,7 +326,7 @@ int dbputbBlk( xFile_t *stream, char *pbdata, int size )
     return 0;
 }
 
-int dbputBewBlk( xFile_t *stream, short *pwdata, int size )
+int dbputBewBlk( xFile_t *stream, unsigned short *pwdata, int size )
 {
     int i;
 
@@ -338,7 +337,7 @@ int dbputBewBlk( xFile_t *stream, short *pwdata, int size )
     return 0;
 }
 
-int dbputBeiBlk( xFile_t *stream, int *pidata, int size )
+int dbputBeiBlk( xFile_t *stream, unsigned int *pidata, int size )
 {
     int i;
 
@@ -349,15 +348,15 @@ int dbputBeiBlk( xFile_t *stream, int *pidata, int size )
     return 0;
 }
 
-int dbputLeiBlk( xFile_t *stream, int *pidata, int size )
+int dbputLeiBlk( xFile_t *stream, unsigned int *pidata, int size )
 {
     int i;
 
     for( i= 0; i < size; i++, pidata++ ){    
-        if( dbputb( stream, *pidata ) == -1 ) return -1;
-        if( dbputb( stream, *pidata >> 8 ) == -1 ) return -1;
-        if( dbputb( stream, *pidata >> 16 ) == -1 ) return -1;
         if( dbputb( stream, *pidata >> 24 ) == -1 ) return -1;
+        if( dbputb( stream, *pidata >> 16 ) == -1 ) return -1;
+        if( dbputb( stream, *pidata >> 8 ) == -1 ) return -1;
+        if( dbputb( stream, *pidata ) == -1 ) return -1;
     }
     return 0;
 }

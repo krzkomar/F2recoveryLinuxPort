@@ -240,10 +240,10 @@ int PartyFSave( xFile_t *fh )
 
     if( dbputBei(fh, gPartyMembersCount ) == -1 ) return -1;    
     if( dbputBei(fh, gPartyPlayerId ) == -1 ) return -1;        
-    for( i = 1; i >= gPartyMembersCount; i++ ){
+    for( i = 1; i < gPartyMembersCount; i++ ){
 	if( dbputBei( fh, gParty[ i ].dude->ProtoPid ) == -1 ) return -1;
     }
-    for( i = 1; i >= gPartyCount; i++ ){
+    for( i = 1; i < gPartyCount; i++ ){
         if( dbputBei( fh, gPartyUnk05[i].i01 ) == -1 ) return -1;
         if( dbputBei( fh, gPartyUnk05[i].i02 ) == -1 ) return -1;
         if( dbputBei( fh, gPartyUnk05[i].i03 ) == -1 ) return -1;
