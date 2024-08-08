@@ -97,7 +97,7 @@ int CombatLookForAgressor( int CritIdx, int WhoHitMe, Obj_t **CrittList, int Cri
 
     Crit = &CrittList[ CritIdx ];
     for(;CritIdx < CrittCnt; CritIdx++, Crit++ ){
-        if( WhoHitMe == (*Crit)->CritterIdx ) break;            
+        if( WhoHitMe == (*Crit)->Pin ) break;            
     }
     return CritIdx;
 }
@@ -126,13 +126,13 @@ int CombatLoad( xFile_t *fh )
         ObjCritterListDestroy( gCombatCritters );
 	return -1;
     }
-    if( dbgetBei( fh, &gObjDude->CritterIdx ) == -1 ) return -1;  // Player sequence number
+    if( dbgetBei( fh, &gObjDude->Pin ) == -1 ) return -1;  // Player sequence number
     for( i = 0; i < gCombatCritCnt; i++ ){
         if( gCombatCritters[ i ]->Critter.State.WhoHitMeObj == ART_NULL ){
             gCombatCritters[ i ]->Critter.State.WhoHitMeObj = NULL;
         } else {
             for( j = 0; j < gCombatCritCnt; j++ ){
-                if( gCombatCritters[ i ]->Critter.State.WhoHitMe == gCombatCritters[ j ]->CritterIdx ) break;
+                if( gCombatCritters[ i ]->Critter.State.WhoHitMe == gCombatCritters[ j ]->Pin ) break;
             }
             gCombatCritters[ i ]->Critter.State.WhoHitMeObj = ( j == gCombatCritCnt ) ? NULL : gCombatCritters[ j ];
         }
@@ -141,7 +141,7 @@ int CombatLoad( xFile_t *fh )
     for( i = 0; i < gCombatCritCnt; i++ ){
         if( dbgetBei( fh, &tmp ) == -1 ) return -1;
         for( j = i ;j < gCombatCritCnt; j++ ){
-            if( tmp == gCombatCritters[ i ]->CritterIdx ) break;                    
+            if( tmp == gCombatCritters[ i ]->Pin ) break;                    
         }            
         if( j == gCombatCritCnt ) return -1;
         obj = gCombatCritters[ i ];
@@ -150,7 +150,7 @@ int CombatLoad( xFile_t *fh )
     }
     
     for( i = 0; i < gCombatCritCnt; i++ ){
-        gCombatCritters[ i ]->CritterIdx = i;
+        gCombatCritters[ i ]->Pin = i;
     }
     if( gCombat03 ) Free( gCombat03 );
     
@@ -192,9 +192,9 @@ int CombatFSave( xFile_t *fh )
     if( dbputBei( fh, gCombatTurns ) == -1 ) return -1;
     if( dbputBei( fh, gCombat05 ) == -1 ) return -1;
     if( dbputBei( fh, gCombatCritCnt ) == -1 ) return -1;
-    if( dbputBei( fh, gObjDude->CritterIdx ) == -1 ) return -1;    
+    if( dbputBei( fh, gObjDude->Pin ) == -1 ) return -1;    
     for( i = 0; i < gCombatCritCnt; i++ ){
-    	if( dbputBei( fh, gCombatCritters[ i ]->CritterIdx ) == -1 ) return -1;
+    	if( dbputBei( fh, gCombatCritters[ i ]->Pin ) == -1 ) return -1;
     }
     if( !gCombat03 ) return -1;
     for( i = 0; i < gCombatCritCnt; i++ ){
@@ -305,34 +305,34 @@ void CombatUnk08( int a1, int a2 )
 Obj_t *CombatUnk09( Obj_t *obj )
 {
     if( !IN_COMBAT || !obj ) return 0;
-    if( obj->CritterIdx == -1 ) return 0;
-    return gCombat03[ obj->CritterIdx ].i01;    
+    if( obj->Pin == -1 ) return 0;
+    return gCombat03[ obj->Pin ].i01;    
 }
 
 int CombatUnk10( Obj_t *obj1, Obj_t *obj2 )
 {
     if( !IN_COMBAT ) return 0;
     if( !obj1 ) return -1;
-    if( obj1->CritterIdx == -1 || obj1 == obj2 ) return -1;
-    gCombat03[ obj1->CritterIdx ].i01 = obj2;
+    if( obj1->Pin == -1 || obj1 == obj2 ) return -1;
+    gCombat03[ obj1->Pin ].i01 = obj2;
     return 0;
 }
 
 Obj_t *CombatUnk11( Obj_t *obj )
 {
     if( !IN_COMBAT || !obj ) return NULL;
-    if( obj->CritterIdx == -1 ) return NULL;
-    return gCombat03[ obj->CritterIdx ].i02;
+    if( obj->Pin == -1 ) return NULL;
+    return gCombat03[ obj->Pin ].i02;
 }
 
 int CombatStopAttack( Obj_t *obj1, Obj_t *obj2 )
 {
     if( !IN_COMBAT ) return 0;    
     if( !obj1 ) return -1;
-    if( obj1->CritterIdx == -1 ) return -1;
+    if( obj1->Pin == -1 ) return -1;
     if( obj1 == obj2 ) return -1;
     if( CritterIsDead( obj2 ) ) obj2 = NULL;
-    gCombat03[ obj1->CritterIdx ].i02 = obj2;
+    gCombat03[ obj1->Pin ].i02 = obj2;
     return 0;
 }
 
@@ -340,16 +340,16 @@ Obj_t *CombatUnk13( Obj_t *obj )
 {
     if( !IN_COMBAT )  return NULL;
     if( !obj ) return NULL;    
-    if( obj->CritterIdx == -1 ) return NULL;
-    return gCombat03[ obj->CritterIdx ].i03;
+    if( obj->Pin == -1 ) return NULL;
+    return gCombat03[ obj->Pin ].i03;
 }
 
 int CombatUnk14( Obj_t *obj )
 {
     if( !IN_COMBAT ) return 0;
     if( !obj ) return -1;
-    if( obj->CritterIdx == -1 ) return -1;
-    gCombat03[ obj->CritterIdx ].i03 = NULL;    
+    if( obj->Pin == -1 ) return -1;
+    gCombat03[ obj->Pin ].i03 = NULL;    
     return 0;
 }
 
@@ -357,16 +357,16 @@ int CombatUnk15( Obj_t *obj )
 {
     if( !IN_COMBAT ) return 0;
     if( !obj ) return -1;
-    if( obj->CritterIdx == -1 ) return -1;
-    return gCombat03[ obj->CritterIdx ].i04;
+    if( obj->Pin == -1 ) return -1;
+    return gCombat03[ obj->Pin ].i04;
 }
 
 int CombatUnk16( Obj_t *obj, int arg )
 {
     if( !IN_COMBAT ) return 0;    
     if( !obj ) return -1;
-    if( obj->CritterIdx == -1 ) return -1;
-    gCombat03[ obj->CritterIdx ].i04 = arg;
+    if( obj->Pin == -1 ) return -1;
+    gCombat03[ obj->Pin ].i04 = arg;
     return 0;
 }
 
@@ -401,7 +401,7 @@ void CombatUnk17( Obj_t *a1 )
         obj->Critter.State.WhoHitMe = 0;
         obj->Critter.State.Reaction &= 0x01;
         obj->Critter.State.CurrentAP = 0;
-        obj->CritterIdx = i;
+        obj->Pin = i;
         if( (gCombatStatus & 0x100) != 0 && obj && i != -1 ) gCombat03[ i ].i04 = 0;
         ScptSetup( obj->ScrId, 0, 0 );
         ScptSetArg( obj->ScrId, 0 );
@@ -808,7 +808,7 @@ void CombatResetAP()
         if( gCombat07 ) ap += gCombat07->Bonus.Ap;
         gCombatCritters[ i ]->Critter.State.CurrentAP = ap;
         if( IN_COMBAT && gCombatCritters[ i ] ){
-            if( gCombatCritters[ i ]->CritterIdx != -1 ) gCombat03[ gCombatCritters[ i ]->CritterIdx ].i04 = 0;
+            if( gCombatCritters[ i ]->Pin != -1 ) gCombat03[ gCombatCritters[ i ]->Pin ].i04 = 0;
         }
     }
 }

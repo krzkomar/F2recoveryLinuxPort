@@ -82,8 +82,6 @@ Obj_t *gObjUnk42 = NULL;
 int gObjUnk43 = 0;
 int gObjUnk37[4] = { 1, 0, 3, 5 };
 
-int gObjUnk21;
-
 
 int ObjInit( char *a1, int Width, int Height, int Pitch )
 {
@@ -107,7 +105,7 @@ int ObjInit( char *a1, int Width, int Height, int Pitch )
     }
     ObjLightInit();
     ObjColorInit();
-    gObjUnk12 = TileGetPointed( gObjViewPortArea.lt, gObjViewPortArea.tp ) - gObjUnk21;
+    gObjUnk12 = TileGetPointed( gObjViewPortArea.lt, gObjViewPortArea.tp ) - gTileCentIdx;
     gObjUnk13 = Width;
     gObjUnk14 = Height;
     gObjIsoSurface = a1;
@@ -169,7 +167,7 @@ int ObjLoadObj( Obj_t *obj, xFile_t *fh )
     if( dbgetBei( fh, &obj->Flags ) == -1 ) return -1; 		// 24 flags PRFLG_*
     if( dbgetBei( fh, &obj->Elevation ) == -1 ) return -1; 	// 28 Map Lvl
     if( dbgetBei( fh, &obj->Pid ) == -1 ) return -1; 		// 2C object Pid
-    if( dbgetBei( fh, &obj->CritterIdx ) == -1 ) return -1; 	// 30 Critter index number
+    if( dbgetBei( fh, &obj->Pin ) == -1 ) return -1; 	// 30 Critter index number
     if( dbgetBei( fh, &obj->LightRadius ) == -1 ) return -1; 	// 34 Light radius
     if( dbgetBei( fh, &obj->LightIntensity ) == -1 ) return -1; // 38 Light intensity
     if( dbgetBei( fh, &obj->OutlineColor ) == -1 ) return -1; 	// 3C Outline color PR_OL_*
@@ -326,7 +324,7 @@ int ObjSave( Obj_t *Obj, xFile_t *fh )
     if( dbputBei( fh, Obj->Flags ) == -1 ) return -1;
     if( dbputBei( fh, Obj->Elevation ) == -1 ) return -1;
     if( dbputBei( fh, Obj->Pid) == -1 ) return -1;
-    if( dbputBei( fh, Obj->CritterIdx ) == -1 ) return -1;
+    if( dbputBei( fh, Obj->Pin ) == -1 ) return -1;
     if( dbputBei( fh, Obj->LightRadius ) == -1 ) return -1;
     if( dbputBei( fh, Obj->LightIntensity ) == -1 ) return -1;
     if( dbputBei( fh, Obj->OutlineColor ) == -1 ) return -1;
@@ -358,7 +356,7 @@ int ObjSaveObjects( xFile_t *fh )
     		if( OBJTYPE( ObjStack->object->Pid ) == TYPE_CRIT ){
         	    WhoHitMe = ObjStack->object->Critter.State.WhoHitMeObj;
         	    if( ObjStack->object->Critter.State.WhoHitMe ){
-            		if( ObjStack->object->Critter.State.WhoHitMe != -1 ) ObjStack->object->Critter.State.WhoHitMe = ObjStack->object->Critter.State.WhoHitMeObj->CritterIdx;
+            		if( ObjStack->object->Critter.State.WhoHitMe != -1 ) ObjStack->object->Critter.State.WhoHitMe = ObjStack->object->Critter.State.WhoHitMeObj->Pin;
         	    } else {
             		ObjStack->object->Critter.State.WhoHitMe = -1;
         	    }
@@ -2171,7 +2169,7 @@ int ObjSaveDude( xFile_t *fh, Obj_t *dude )
     if( OBJTYPE( dude->Pid ) == 1 ){
         WhoHitMe = dude->Critter.State.WhoHitMeObj;
         if( dude->Critter.State.WhoHitMeObj ){
-            if( dude->Critter.State.WhoHitMe != -1 ) dude->Critter.State.WhoHitMe = WhoHitMe->CritterIdx;
+            if( dude->Critter.State.WhoHitMe != -1 ) dude->Critter.State.WhoHitMe = WhoHitMe->Pin;
         } else {
             dude->Critter.State.WhoHitMe = -1;
         }
@@ -2238,18 +2236,18 @@ int ObjFSave( xFile_t *fh )
     ObjSaveDude( fh, gObjDude );
     gObjDude->ScrId = Id;
     gObjDude->Flags |= 0x04;
-    if( dbputBei( fh, gObjUnk21 ) != -1 ) return 0;
+    if( dbputBei( fh, gTileCentIdx ) != -1 ) return 0;
     dbClose( fh );
     return -1;
 }
 
 int ObjLoadDude( xFile_t *fh )
 {
-    int i, ObjId, pint, Orientation, Elevation, GridId, Items;
+    int i, ObjId, ViePortPosition, Orientation, Elevation, GridId, Items;
     Obj_t *tmp;
     int NewPos, NewLvl, NewOri;
 
-    pint = -1;
+    ViePortPosition = -1;
     GridId = gObjDude->GridId;
     Elevation = gObjDude->Elevation;
     Orientation = gObjDude->Orientation;
@@ -2284,10 +2282,10 @@ int ObjLoadDude( xFile_t *fh )
     tmp->Flags &= ~OBJ_FLG_NOTREMOVE;
     if( ObjDestroy( tmp, 0 ) == -1 ) eprintf( "Error: obj_load_dude: Can't destroy temp object!" );
     InvSelectMain();
-    if( dbgetBei( fh, &pint ) == -1 ){ 
+    if( dbgetBei( fh, &ViePortPosition ) == -1 ){ // viewport position
 	dbClose( fh ); return -1; 
     } else {
-        TileSetCenter( pint, 3 );
+        TileSetCenter( ViePortPosition, 3 ); // set viewport
     }
     return Items;
 }
@@ -2299,7 +2297,7 @@ int ObjNewObj( Obj_t **stack )
     memset( *stack, 0, sizeof( Obj_t ) );
     (*stack)->TimeEv = -1;
     (*stack)->GridId = -1;
-    (*stack)->CritterIdx = -1;
+    (*stack)->Pin = -1;
     (*stack)->OutlineColor = 0;
     (*stack)->Pid = -1;
     (*stack)->ScrId = -1;

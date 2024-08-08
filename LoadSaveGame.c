@@ -18,7 +18,7 @@ char 	*gLsgMasterPatches = NULL;
 
 int (*gLsgSaveAction[ 27 ])( xFile_t * ) = {
     LsgFSaveNull,		// 0
-    LsgFSaveUnkA,		// 1
+    LsgSavePlayerPIN,		// 1
     ScptSaveVariables,		// 2
     LsgFSaveMaps,		// 3
     ScptSaveVariables,		// 4
@@ -50,7 +50,7 @@ int (*gLsgSaveAction[ 27 ])( xFile_t * ) = {
 
 int (*gLsgLoadAction[ 27 ])( xFile_t *) = {
     LsgFLoadInit,		// 0 +
-    LsgFLoadUnkA,		// 1 +
+    LsgLoadPlayerPIN,		// 1 +
     ScptLoadVariables,		// 2 + GVARS
     LsgSlotMap2Game,		// 3 + Maps
     ScptLoadVarTest,		// 4 + GVARS (test)
@@ -1393,20 +1393,18 @@ int LsgBackupRestore()
     return 0;            
 }
 
-int LsgFLoadUnkA( xFile_t *fh )
+int LsgLoadPlayerPIN( xFile_t *fh )
 {
     int tmp;
 
-    if( dbgetBei(fh, &tmp) != -1 ){
-        gObjDude->CritterIdx = tmp;
-        return 0;
-    }
-    return -1;
+    if( dbgetBei(fh, &tmp) == -1 ) return -1;
+    gObjDude->Pin = tmp;
+    return 0;    
 }
 
-int LsgFSaveUnkA( xFile_t *fh )
+int LsgSavePlayerPIN( xFile_t *fh )
 {
-    return ( dbputBei( fh, gObjDude->CritterIdx ) != -1 ) - 1;
+    return ( dbputBei( fh, gObjDude->Pin ) != -1 ) - 1;
 }
 
 int LsgEraseBadSlot()

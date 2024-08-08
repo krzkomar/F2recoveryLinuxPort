@@ -117,8 +117,8 @@ typedef struct _Obj_t // 132
     ObjScenery_t  Scenery;
     ObjGrid_t  Grid;
   };
-  int Pid;
-  int CritterIdx;
+  int Pid; // prototype ID
+  int Pin; // personal identity number
   int LightRadius;
   int LightIntensity;
   int OutlineColor;

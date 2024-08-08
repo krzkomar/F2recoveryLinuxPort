@@ -580,7 +580,7 @@ int MapLoadMapFile( xFile_t *fh )
     if( ObjLoadMapObjs( fh ) ) goto Error;
     if( !(gMap.MapFlags & MAPFLG_SAV) ) MapUnk07(); // not savegame map
     if( MapSetLvl( gMapIsoPlayerElevation) ) goto Error;
-    if( TileSetCenter(gMapIsoPlayerPosition, 2) ) goto Error;
+    if( TileSetCenter(gMapIsoPlayerPosition, 2) ) goto Error; // set view port
     LightMapSetLt( 0x10000, 0 );
     ObjMoveToTile( gObjDude, gTileCentIdx, gMapCurrentLvl, NULL );
     ObjSetRotation(gObjDude, gMapIsoPlayerOrientation, 0);

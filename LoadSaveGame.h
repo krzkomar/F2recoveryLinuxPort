@@ -58,7 +58,7 @@ int LsgDeleteFiles( char *path, char *Ext );
 int LsgDeleteFile( char *a1, char *a2 );
 int LsgBackup();
 int LsgBackupRestore();
-int LsgFLoadUnkA( xFile_t *fh );
-int LsgFSaveUnkA( xFile_t *fh );
+int LsgSavePlayerPIN( xFile_t *fh );
+int LsgLoadPlayerPIN( xFile_t *fh );
 int LsgEraseBadSlot();
 
