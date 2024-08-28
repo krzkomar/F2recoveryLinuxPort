@@ -1,58 +1,22 @@
 #include "FrameWork.h"
 #include <SDL.h>
 
-SDL_Rect      gUpdateRect;
-
-//SDL_Surface *gSDLSurfaceSrc;	// temporary surface for scalling
-//SDL_Surface *gSDLSurfaceDst;	// temporary surface for scalling
-
-int gVidScaleX = 4;
-int gVidScaleY = 4;
-int gVidUpdateForbid = 0;
-
-SDL_Surface *gSDLSurfaceCur = NULL;
-SDL_Surface *gSDLSurfaceMain = NULL;
-SDL_Surface *gSDLSurfaceBckp = NULL;
-//SDL_Palette *gSDLPalette = NULL;
-int gSDLWindow = 0;
-SDL_Window *gWindow = NULL;
+SDL_Surface  *gSDLSurfaceCur = NULL;
+SDL_Surface  *gSDLSurfaceMain = NULL;
+SDL_Surface  *gSDLSurfaceBckp = NULL;
+SDL_Window   *gWindow = NULL;
 SDL_Renderer *gSDLRenderer = NULL;
 SDL_Rect      gSDLRect;
 SDL_Texture  *gSDLTexture = NULL;
+SDL_Palette  *gSDLPalette = NULL;
 
-SDL_Palette *gSDLPalette = NULL;
-
-void (*gVidColorCb)() = NULL;
-int gUseMMX = 0;
-
-// ** 2 zmienne pomiedzy **
-//short *gpVidPalx;		// pointer to 16bit palette
-Pal8_t gVidPalx[ 256 ];		// 16 bit palette
+int gVidScaleX = 4;
+int gVidScaleY = 4;
+int gSDLWindow = 0;
+int gVidUpdateForbid = 0;
+Pal8_t gVidPalx[ 256 ];
 VidRect_t gVidMainGeo;
-// color mask in 16 bit word
-int gVidMaskGx;
-int gVidMaskRx;
-int gVidMaskBx;
-// shift bit of 16 bit colors +/- -> position in 16bit word
-int gVidColShiftBx;
-int gVidColShiftRx;
-int gVidColShiftGx;
-void(*gVidCopyA)( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Width, short Height, int posX, int posY );
-void(*gVidCls)();
-int gMMXon;
-
-void VidPaletteUpdate( );
-
-void VidSetMMX( int AllowMMX )
-{
-    static int MMXinit = 0;
-    
-    if( !MMXinit ){
-        gMMXon = 0;//CpuHaveMMX();
-        MMXinit = 1;
-    }
-    if( gMMXon ) gUseMMX = AllowMMX;
-}
+int gVidUpdate = 1;
 
 int VidInit320x200x8bpp()
 {
@@ -76,7 +40,6 @@ int VidInitDummy()
 
 int VidInit640x480x8bpp()
 {
-
     return VidInit8bpp( 640, 480 );
 }
 
@@ -112,17 +75,7 @@ void VidUnkSub1( int a1, int a2 )
 
 void VidCls()
 {
-    if( gVidCls ) gVidCls();
-}
-
-void VidSetColorCb( void (*Cb)(void) )
-{
-    gVidColorCb = Cb;
-}
-
-void (*VidGetColorCb())(void)
-{
-    return gVidColorCb;
+    VidClearScreen();
 }
 
 int VidInit( int Width, int Height, int Bpp )
@@ -135,22 +88,6 @@ int VidInit( int Width, int Height, int Bpp )
     gVidMainGeo.tp = 0;
     gVidMainGeo.rt = Width - 1;
     gVidMainGeo.bm = Height - 1;
-    VidSetMMX( 1 );
-//    if( Bpp == 8 ){
-//        gVidCls = VidClearScreen;
-//        gMseBlit = VidCopy8;
-//        gMseBlitAlpha = NULL;
-//        gVidCopyA = VidCopy8;
-//    } else {
-	gVidCls = NULL;
-        gMseBlit = (void *)VidCopy16;
-        gMseBlitAlpha = (void *)VidCopyAlpha16;
-        gVidCopyA = VidCopy16A;
-//    }
-    gUpdateRect.w = Width;
-    gUpdateRect.h = Height;
-    gUpdateRect.x = 0;
-    gUpdateRect.y = 0;    
     return 0;
 }
 
@@ -168,9 +105,8 @@ int VidCreateMainWindow()
 
 int VidInitMode( int Width, int Height, int Bpp )
 {
-    int inited;
+    int inited, i;
     Pal8_t *Pal;
-    int i;
     SDL_Color PaletteGray[ 256 ];
     SDL_DisplayMode mode;
 
@@ -216,17 +152,6 @@ int VidInitMode( int Width, int Height, int Bpp )
 	return -1;
     }
 
-//    if( !(gSDLSurfaceSrc = SDL_CreateRGBSurface( 0, 640, 480, 8, 0, 0, 0, 0 )) ){
-//	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'", SDL_GetError() );
-//	return -1;
-//    }
-
-//    if( !(gSDLSurfaceDst = SDL_CreateRGBSurface( 0, 640, 480, 8, 0, 0, 0, 0 )) ){
-//	eprintf( "<ERROR> Creating SDL in game surface error !! '%s'", SDL_GetError() );
-//	return -1;
-//    }
-    
-
     // create greyscale 8bit default palette
     for( i = 0; i < 256; i++ ){
         PaletteGray[ i ].g = i;
@@ -235,23 +160,7 @@ int VidInitMode( int Width, int Height, int Bpp )
         PaletteGray[ i ].a = 0;
     }
     SDL_SetPaletteColors( gSDLPalette, PaletteGray, 0, 256 );
-    
-//    if( Bpp == 8 ){
-//	if( !(gSDLPalette = SDL_AllocPalette( 256 )) ) return -1;
-//	if( !SDL_SetPaletteColors( gSDLPalette, PaletteGray, 0, 256 ) ) return 0;
-//    } else {
-//        gSDLPalette = NULL;
-//        if( !gSDLSurfaceCur->format ){
-    	    gVidMaskRx = gSDLSurfaceCur->format->Rmask;
-    	    gVidMaskGx = gSDLSurfaceCur->format->Gmask;
-            gVidMaskBx = gSDLSurfaceCur->format->Bmask;
-            gVidColShiftRx = gSDLSurfaceCur->format->Rshift;
-            gVidColShiftGx = gSDLSurfaceCur->format->Gshift;
-            gVidColShiftBx = gSDLSurfaceCur->format->Bshift;
-            return 0;
-//        }
-//    }
-    return -1;
+    return 0;
 }
 
 void VidClose()
@@ -266,15 +175,14 @@ void VidClose()
         SDL_FreePalette( gSDLPalette );
         gSDLPalette = NULL;
     }
-//    if( gSDLSurfaceDst ){
-//        SDL_FreeSurface( gSDLSurfaceDst );
-//        gSDLSurfaceDst = NULL;    
-//    }
-//    if( gSDLSurfaceSrc ){
-//        SDL_FreeSurface( gSDLSurfaceSrc );
-//        gSDLSurfaceSrc = NULL;    
-//    }
     gSDLWindow = 0;
+}
+
+void VidPaletteUpdate( )
+{
+    SDL_SetPaletteColors( gSDLPalette, (void *)gVidPalx, 0, 256 );
+    gVidUpdate = 1;
+//    VidUpdate();
 }
 
 void VidSetPaletteIndex( int ColorIndex, char Rr, char Gg, char Bb )
@@ -287,48 +195,23 @@ void VidSetPaletteIndex( int ColorIndex, char Rr, char Gg, char Bb )
     gVidPalx[ ColorIndex ].b = Bb;
     VidPaletteUpdate( );
     WinUpdateArea( &gVidMainGeo );
-
-    if( gVidColorCb ) gVidColorCb();
 }
 
 void VidSetPaletteRange( Pal8_t *Pal, unsigned int FirstColor, unsigned int nColors )
 {
-    int i;
+    unsigned int i, *d;
 
-    for( i = FirstColor; i < (FirstColor + nColors); i++ ){
-        gVidPalx[ i ].r = COLOR_SCALE * Pal[ i ].r;
-        gVidPalx[ i ].g = COLOR_SCALE * Pal[ i ].g;
-        gVidPalx[ i ].b = COLOR_SCALE * Pal[ i ].b;
+    d = (void *	)&gVidPalx[ FirstColor ];
+    for( i = 0; i < nColors; i++, Pal++ ){
+	*d++ = (*(unsigned int *)Pal << 2) & 0xfcfcfcfc; 
     }
-
     VidPaletteUpdate( );
     WinUpdateArea( &gVidMainGeo );
-    if( gVidColorCb ) gVidColorCb();
-}
-
-int VidGetPaletteColor( int ColorIndex, char *pR, char *pG, char *pB )
-{
-    if( ColorIndex < 0 || ColorIndex >= gSDLPalette->ncolors ) return -1;
-    *pR = gVidPalx[ ColorIndex ].r >> 2;
-    *pG = gVidPalx[ ColorIndex ].r >> 2;
-    *pB = gVidPalx[ ColorIndex ].r >> 2;
-    return 0;
 }
 
 void VidSetPaletteAll( Pal8_t *Pal )
 {
-    int i;
-
-    for( i = 0; i < 256; i++, Pal++ ){
-        gVidPalx[ i ].r = COLOR_SCALE * Pal->r;
-        gVidPalx[ i ].g = COLOR_SCALE * Pal->g;
-        gVidPalx[ i ].b = COLOR_SCALE * Pal->b;
-//        gVidPalx[ i ].a = COLOR_SCALE;
-    }
-    VidPaletteUpdate( );
-//    WinUpdateArea( &gVidMainGeo );
-    VidUpdate( 0, 0, 640, 480 );
-    if( gVidColorCb ) gVidColorCb();
+    VidSetPaletteRange( Pal, 0, 256 );
 }
 
 Pal8_t *VidCreateDimmedPalette()
@@ -337,202 +220,65 @@ Pal8_t *VidCreateDimmedPalette()
     static Pal8_t DimPal8[ 256 ];
 
     for( i = 0; i < 256; i++ ){
-        DimPal8[ i ].g = gSDLPalette->colors[ i ].r / COLOR_SCALE;
-        DimPal8[ i ].b = gSDLPalette->colors[ i ].g / COLOR_SCALE;
-        DimPal8[ i ].r = gSDLPalette->colors[ i ].b / COLOR_SCALE;
+        DimPal8[ i ].g = gSDLPalette->colors[ i ].r >> 2;
+        DimPal8[ i ].b = gSDLPalette->colors[ i ].g >> 2;
+        DimPal8[ i ].r = gSDLPalette->colors[ i ].b >> 2;
     }
     return DimPal8;
 }
 
-void VidUpdate( int x, int y, int Width, int Height )
-{        
-    if( Width == 0 || Height == 0 ) return;
-    if( gVidUpdateForbid ){
-	if( Width > gUpdateRect.w ) gUpdateRect.w = Width;
-	if( Height > gUpdateRect.h ) gUpdateRect.h = Height;
-	if( x > gUpdateRect.x ) gUpdateRect.x = x;
-	if( y > gUpdateRect.y ) gUpdateRect.y = y;
-	return;
-    }
-    SDL_BlitSurface( gSDLSurfaceCur, NULL, gSDLSurfaceMain, NULL );
-    SDL_UpdateTexture( gSDLTexture, NULL, gSDLSurfaceMain->pixels, gSDLSurfaceMain->pitch );
-    SDL_RenderCopy( gSDLRenderer, gSDLTexture, NULL, NULL );
-    SDL_RenderPresent( gSDLRenderer );
+void VidCopyInt( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Width, short Height, int posX, int posY, int Alpha, int AlphaMode )
+{
+    SDL_Surface tmp;
+    SDL_Rect sr, dr;
+
+    if( Width == 0 || Height == 0 || !gSDLReady ) return;
+    memcpy( &tmp, gSDLSurfaceCur, sizeof( tmp ) );
+    tmp.pixels = pSrc;
+    tmp.pitch = SrcPitch;
+    tmp.w = Width;
+    tmp.h = Height;
+    sr.w = SrcPitch;
+    sr.h = Height;
+    sr.x = SrcX;
+    sr.y = SrcY;
+    dr.w = Width;
+    dr.h = Height;
+    dr.x = posX;
+    dr.y = posY;
+    SDL_SetColorKey( &tmp, AlphaMode ? SDL_TRUE : SDL_FALSE, Alpha );
+    SDL_BlitSurface( &tmp, &sr, gSDLSurfaceCur, &dr );
+    gVidUpdate = 1;
+//    VidUpdate();
 }
 
-/*
-void VidCopy( void *buff, Pal8_t *pal, int pitch, int x, int y, int w, int h, int bpp )
+void VidCopyAlpha( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Width, short Height, int posX, int posY, int Alpha )
 {
-    int i, j;
-    char *pp, *tmp;
-    Pal8_t *p;
-    unsigned char rr;
-
-//SDL_BlitScaled()
-    SDL_LockSurface( gSDLSurfaceMain );
-    if( bpp == 8 ){
-	pp = tmp = gSDLSurfaceMain->pixels;
-	for( j = 0; j < h; j++ ){
-	    tmp = pp;
-	    for( i = 0; i < w; i++, tmp += 4, buff++ ){
-		p = &pal[ *(unsigned char*)buff ];
-		if( p == 0 ) continue;
-		tmp[ 0 ] = p->b;
-		tmp[ 1 ] = p->g;
-		tmp[ 2 ] = p->r;
-		tmp[ 3 ] = 0xff;
-	    }
-	    pp += pitch * 4;
-	}
-    }
-
-    if( bpp == 16 ){
-	pp = tmp = gSDLSurfaceMain->pixels;
-	for( j = 0; j < h; j++ ){
-	    tmp = pp;
-	    for( i = 0; i < w; i++, tmp +=4, buff += 2 ){
-		rr = *((unsigned short *)buff);
-		tmp[ 0 ] = ((rr) & 0x1f) << 3;
-		tmp[ 1 ] = ((rr >> 5) & 0x1f) << 3;
-		tmp[ 2 ] = ((rr >> 10) & 0x1f) << 3;
-		tmp[ 3 ] = 0xff;
-	    }
-	    pp += pitch * 4;
-	}
-    }        
-    
-    SDL_UnlockSurface( gSDLSurfaceMain );
-
-    SDL_UpdateTexture( gSDLTexture, NULL, gSDLSurfaceMain->pixels, gSDLSurfaceMain->pitch );
-    SDL_RenderCopy( gSDLRenderer, gSDLTexture, NULL, NULL );
-    SDL_RenderPresent( gSDLRenderer );    
-}
-*/
-int VidUpdateAll()
-{
-    VidUpdate( 0, 0, gSDLSurfaceCur->w, gSDLSurfaceCur->h );
-    return 0;
+    VidCopyInt( pSrc, SrcPitch, Height, SrcX, SrcY, Width, Height, posX, posY, Alpha, 1 );
 }
 
-void VidCopy8( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Width, short Height, int DstX, int DstY )
+void VidCopy( char *pSrc, int SrcW, int SrcH, int SrcX, int SrcY, int Width, short Height, int posX, int posY )
 {
-    if( !gSDLReady ) return;
-    VidCopy16( pSrc, SrcPitch, Height, SrcX, SrcY, Width, Height, DstX, DstY );
-}
-
-
-#define SW_COPY
-
-void VidCopy16( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Width, short Height, int posX, int posY )
-{
-#ifdef SW_COPY
-#define VTYPE	uint64_t
-    char *Screen;
-    char *psrc;
-    int h, k, l, i, ds, dd;
-    register VTYPE *s64, *d64;
-    register uint8_t *s8, *d8;
-
-    if( Width == 0 || Height == 0 ) return;
-    if( !gSDLReady ) return;
-    Screen = gSDLSurfaceCur->pixels + gSDLSurfaceCur->pitch * posY + posX;
-    psrc = pSrc + SrcPitch * SrcY + SrcX;
-    k = Width / sizeof( VTYPE );
-    l = Width % sizeof( VTYPE );
-    s64 = (uint64_t *)psrc;
-    d64 = (uint64_t *)Screen;
-    ds = SrcPitch - Width;
-    dd = gSDLSurfaceCur->pitch - Width;
-    for( h = 0; h < Height; h++ ){
-	for( i = 0; i < k; i++ ) *d64++ = *s64++;
-	d8 = (uint8_t *)d64; 
-	s8 = (uint8_t *)s64;
-	for( i = 0; i < l; i++ ) *d8++ = *s8++;
-	s64 = (uint64_t *)( s8 + ds );
-	d64 = (uint64_t *)( d8 + dd );
-    }
-#else
-    SDL_Surface ss;
-    SDL_Rect r1, r2;
-    
-    memcpy( &ss, gSDLSurfaceCur, sizeof( SDL_Surface ) );
-    ss.w = SrcPitch;
-    ss.h = Height;
-    ss.pitch = SrcPitch;    
-    ss.pixels = pSrc;
-
-    r1.x = SrcX;
-    r1.y = SrcY;
-    r1.w = SrcPitch - SrcX;
-    r1.h = Height - SrcY;
-
-    r2.x = posX;
-    r2.y = posY;
-    r2.w = Width - posX;
-    r2.h = Height - posY;
-    SDL_BlitSurface( &ss, &r1, gSDLSurfaceCur, &r2 );
-#endif    
-    if( gVidUpdateForbid ) return;
-    SDL_BlitSurface( gSDLSurfaceCur, NULL, gSDLSurfaceMain, NULL );
-    SDL_UpdateTexture( gSDLTexture, NULL, gSDLSurfaceMain->pixels, gSDLSurfaceMain->pitch );
-    SDL_RenderCopy( gSDLRenderer, gSDLTexture, NULL, NULL );
-    SDL_RenderPresent( gSDLRenderer );
-}
-
-void VidCopy16A( char *pSrc, int SrcW, int SrcH, int SrcX, int SrcY, int Width, short Height, int posX, int posY )
-{
-    VidCopy16( pSrc, SrcW, SrcH, SrcX, SrcY, Width, Height, posX, posY );
-}
-
-void VidCopyAlpha16( char *pSrc, int SrcPitch, int Unused, int SrcX, int SrcY, int Width, short Height, int posX, int posY, short Alpha )
-{
-    char *Screen;
-    char *psrc, pixel;
-    int h, i;
-
-    if( Width == 0 || Height == 0 ) return;
-    if( !gSDLReady ) return;
-    Screen = gSDLSurfaceCur->pixels + gSDLSurfaceCur->pitch * posY + posX;
-    psrc = pSrc + SrcPitch * SrcY + SrcX;
-    h = Height;
-    for( ;h; psrc += SrcPitch, h--, Screen += gSDLSurfaceCur->pitch ){
-	for( i = 0; i < Width; i++ ){
-	    pixel = psrc[ i ];
-	    if( pixel ) Screen[ i ] = pixel;
-	}
-    }
-    VidUpdate( posX, posY, Width, Height );
+    VidCopyInt( pSrc, SrcW, SrcH, SrcX, SrcY, Width, Height, posX, posY, 0, 0 );
 }
 
 void VidClearScreen()
 {
-    SDL_RenderClear( gSDLRenderer );
+    SDL_FillRect( gSDLSurfaceCur, NULL, 0 );
+    gVidUpdate = 1;
+//    VidUpdate();
 }
 
-void VidPaletteUpdate( )
-{
-    static SDL_Color tmp[ 256 ];
-    int i;
-
-    for( i = 0; i < 256; i++){
-	tmp[i].r = gVidPalx[ i ].r;
-	tmp[i].g = gVidPalx[ i ].g;
-	tmp[i].b = gVidPalx[ i ].b; 
-	tmp[i].a = 0;
-    }
-    SDL_SetPaletteColors( gSDLPalette, tmp, 0, 256 );
+// no optimalization!, refreshes whole screen
+void VidUpdate()
+{        
+    if( !gVidUpdate ) return;
+    SDL_BlitSurface( gSDLSurfaceCur, NULL, gSDLSurfaceMain, NULL ); // transform paletized surface to RGB
+    SDL_UpdateTexture( gSDLTexture, NULL, gSDLSurfaceMain->pixels, gSDLSurfaceMain->pitch );
+    SDL_RenderCopy( gSDLRenderer, gSDLTexture, NULL, NULL );
+    SDL_RenderPresent( gSDLRenderer );
+    gVidUpdate = 0;
 }
 
-void VidUpdateClr()
-{
-    gUpdateRect.w = 0;
-    gUpdateRect.h = 0;
-    gUpdateRect.x = 0;
-    gUpdateRect.y = 0;        
-}
 
-void VidUpdateOpt()
-{
-    VidUpdate( gUpdateRect.x, gUpdateRect.y, gUpdateRect.w, gUpdateRect.h );
-}
 

@@ -67,6 +67,7 @@ int InpUpdate()
 {
     int n;
 
+    VidUpdate();
     InputPoll();
     KbdUpdate();
     if( !gSDLReady ) KbdThreadSync();
@@ -85,7 +86,6 @@ void InpGetMouse( int *Xpos, int *Ypos )
 {
     *Xpos = gInpMouseX;
     *Ypos = gInpMouseY;
-printf( "%i,%i\n", gInpMouseX, gInpMouseY);
 }
 
 void InpWinUpdate()
@@ -173,7 +173,6 @@ void InpTaskProceed()
 
 InpTask_t *InpTaskStart( void (*CallBack)() )
 {
-//printf("\n*************** %p **************************\n");
     InpTask_t *NewCall, *p;
     // test if already in queue
     for( NewCall = gInpTaskList; NewCall; NewCall = NewCall->Next ){
@@ -267,7 +266,7 @@ void InpScrShotTake()
     gInpScrShotPixBuf = Malloc((gVidMainGeo.bm - gVidMainGeo.tp + 1) * Width);
     if( !gInpScrShotPixBuf ) return;    
     SaveA = gVidCopyA;
-    SaveB = gMseBlit;
+    SaveB = VidCopy;
     SaveC = gMseBlitAlpha;        
     
     gVidCopyA     = InpScrShotBlit;

@@ -37,7 +37,7 @@ void MovDecodeFrame10( short *pSkip, short *pMap, char *pData, short Xpos, short
     short *pm,*skip;
     unsigned char y, x, *Surface, *pScrn, *NextPage;
 
-    if( gMov16BppMode ) return MovProtUnk04(pSkip, pMap, pData, Xpos, Ypos, Width, Height);
+    if( gMov16BppMode ) return;//MovProtUnk04(pSkip, pMap, pData, Xpos, Ypos, Width, Height);
     gMovMovieXpos = 8 * Xpos;
     gMovUnk02 = 8 * Width;
     gMovMovieYpos = (unsigned char)gMovScrSize * 8 * Ypos;

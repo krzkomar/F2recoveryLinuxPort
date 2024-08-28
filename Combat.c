@@ -36,7 +36,7 @@ Obj_t *gCombat19;
 int gTargetHighlightLvl;
 Obj_t **gCombatCritters;
 int gCombatTurns;
-int gCombat21;
+int gCombatGainedExp;
 int gCombatMovePts;
 Combat_t gCombatUnk09;
 Combat_t gCombatExplosion;
@@ -115,10 +115,9 @@ int CombatLoad( xFile_t *fh )
         }
         return 0;
     }
-
-    if( dbgetBei( fh, &gCombat00 ) == -1 ) return -1; // ?
+    if( dbgetBei( fh, &gCombat00 ) == -1 ) return -1; // ? AP ?
     if( dbgetBei( fh, &gCombatMovePts ) == -1 ) return -1; // ?
-    if( dbgetBei( fh, &gCombat21 ) == -1 ) return -1; // ?
+    if( dbgetBei( fh, &gCombatGainedExp ) == -1 ) return -1; // ?
     if( dbgetBei( fh, &gCombatTurns ) == -1 ) return -1; // ?
     if( dbgetBei( fh, &gCombat05 ) == -1 ) return -1; // ?
     if( dbgetBei( fh, &gCombatCritCnt ) == -1 ) return -1; // number of NPC at the current map level + player + party at the beginning of the battle ( and corpses ?)
@@ -141,19 +140,17 @@ int CombatLoad( xFile_t *fh )
     for( i = 0; i < gCombatCritCnt; i++ ){
         if( dbgetBei( fh, &tmp ) == -1 ) return -1;
         for( j = i ;j < gCombatCritCnt; j++ ){
-            if( tmp == gCombatCritters[ i ]->Pin ) break;                    
+            if( tmp == gCombatCritters[ j ]->Pin ) break;                    
         }            
         if( j == gCombatCritCnt ) return -1;
         obj = gCombatCritters[ i ];
         gCombatCritters[ i ] = gCombatCritters[ j ];
         gCombatCritters[ j ] = obj;
     }
-    
     for( i = 0; i < gCombatCritCnt; i++ ){
         gCombatCritters[ i ]->Pin = i;
     }
     if( gCombat03 ) Free( gCombat03 );
-    
     if( !(gCombat03 = Malloc( gCombatCritCnt * sizeof( Combat01_t ) )) ) return -1;    
     for( i = 0; i < gCombatCritCnt; i++ ){
         if( dbgetBei( fh, &tmp ) == -1 ) return -1;
@@ -188,7 +185,7 @@ int CombatFSave( xFile_t *fh )
     if( !IN_COMBAT ) return 0;
     if( dbputBei( fh, gCombat00 ) == -1 ) return -1;
     if( dbputBei( fh, gCombatMovePts ) == -1 ) return -1;
-    if( dbputBei( fh, gCombat21 ) == -1 ) return -1;
+    if( dbputBei( fh, gCombatGainedExp ) == -1 ) return -1;
     if( dbputBei( fh, gCombatTurns ) == -1 ) return -1;
     if( dbputBei( fh, gCombat05 ) == -1 ) return -1;
     if( dbputBei( fh, gCombatCritCnt ) == -1 ) return -1;
@@ -382,7 +379,7 @@ void CombatUnk17( Obj_t *a1 )
     gCombatMapLvl = gMapCurrentLvl;
     if( IN_COMBAT ) return;
     gCombatRoundCnt = 0;
-    gCombat21 = 0;
+    gCombatGainedExp = 0;
     gCombatCritters = NULL;
     gCombatCritCnt = ObjGetObjList( -1, gCombatMapLvl, 1, &gCombatCritters );
     gCombat05 = gCombatCritCnt;
@@ -535,8 +532,8 @@ int CombatTaskCb()
     IfaceHandSlotUpdate( 1, v15, v14 );
     gObjDude->Critter.State.CurrentAP = FeatGetVal( gObjDude, FEAT_AP );
     IfaceRenderAP( 0, 0 );
-    if( !gMenuEscape ) CombatEarnExpPts( gCombat21 );
-    gCombat21 = 0;
+    if( !gMenuEscape ) CombatEarnExpPts( gCombatGainedExp );
+    gCombatGainedExp = 0;
     gCombatStatus = (gCombatStatus & ~0x03) | CBT_IN_TURN;
     if( gCombatCritCnt ){
         ObjCritterListDestroy( gCombatCritters );
@@ -1827,7 +1824,7 @@ void CombatDealDamage( Obj_t *obj, int damage, int UpdateHpFlag, int a4, Obj_t *
                 flg = 0;
                 if( ScptPtr( obj->ScrId, &scr ) != -1 ) flg = scr->OverrideFlag;
                 if( !flg ){
-                    gCombat21 += CritterUnk27( obj );
+                    gCombatGainedExp += CritterKillExp( obj );
                     CritterKillStatInc( CritterGetGender( obj ) );
                 }
             }

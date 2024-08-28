@@ -598,13 +598,13 @@ void WinRedraw( Window_t *win, VidRect_t *Geometry, char *pSurface )
         height = Geometry->bm - Geometry->tp + 1;
         if( MseCursorHidden() || !MseCursorInArea( Geometry->lt, Geometry->tp, Geometry->bm, Geometry->rt ) ){
             WinDrawCursor( win, Geometry );
-            gVidCopyA( gWinSurface, width, height, 0, 0, width, height, Geometry->lt, Geometry->tp );
+            VidCopy( gWinSurface, width, height, 0, 0, width, height, Geometry->lt, Geometry->tp );
         } else {
             MseCursorShow();
             MseGetCursorSizeRect( &MouseArea );
             for( region = RegionsUnk01( Geometry, &MouseArea ); region; region = region->Prev ){
                 WinDrawCursor( win, &region->Area );
-                gVidCopyA( 
+                VidCopy( 
             	    WIN_XY( region->Area.lt - Geometry->lt, region->Area.tp - Geometry->tp, width, gWinSurface ), width, region->Area.bm - region->Area.tp + 1, 0, 0, 
             	    region->Area.rt - region->Area.lt + 1, region->Area.bm - region->Area.tp + 1, region->Area.lt, region->Area.tp 
             	);
@@ -651,7 +651,7 @@ void WinRedraw( Window_t *win, VidRect_t *Geometry, char *pSurface )
                     	    );
 			}
                     } else { // screen draw
-                        gVidCopyA(
+                        VidCopy(
                     	    WIN_XY( p->Area.lt - win->Geometry.lt, p->Area.tp - win->Geometry.tp, win->Width, win->Surface ), win->Width, p->Area.bm - p->Area.tp + 1, 
                     	    0, 0, p->Area.rt - p->Area.lt + 1, p->Area.bm - p->Area.tp + 1, p->Area.lt, p->Area.tp
                     	);
@@ -674,7 +674,7 @@ void WinRedraw( Window_t *win, VidRect_t *Geometry, char *pSurface )
                         	WIN_XY( p->Area.lt, gVidMainGeo.rt - gVidMainGeo.lt + 1, p->Area.tp, gWinSurface ), gVidMainGeo.rt - gVidMainGeo.lt + 1
                     	    );
                         } else {
-                            gVidCopyA( pSrc, w, h, 0, 0, w, h, p->Area.lt, p->Area.tp );
+                            VidCopy( pSrc, w, h, 0, 0, w, h, p->Area.lt, p->Area.tp );
                         }
                         Free( pSrc );
                     }
@@ -682,7 +682,7 @@ void WinRedraw( Window_t *win, VidRect_t *Geometry, char *pSurface )
     	    }            
             for( p = region; p; ){
         	t = p->Prev;
-                if( gWinUnk01 && !pSurface ) gVidCopyA(&gWinSurface[p->Area.lt + (gVidMainGeo.rt - gVidMainGeo.lt + 1) * p->Area.tp], gVidMainGeo.rt - gVidMainGeo.lt + 1, p->Area.bm - p->Area.tp + 1, 0, 0, p->Area.rt - p->Area.lt + 1, p->Area.bm - p->Area.tp + 1, p->Area.lt, p->Area.tp);
+                if( gWinUnk01 && !pSurface ) VidCopy(&gWinSurface[p->Area.lt + (gVidMainGeo.rt - gVidMainGeo.lt + 1) * p->Area.tp], gVidMainGeo.rt - gVidMainGeo.lt + 1, p->Area.bm - p->Area.tp + 1, 0, 0, p->Area.rt - p->Area.lt + 1, p->Area.bm - p->Area.tp + 1, p->Area.lt, p->Area.tp);
                 RegionsPush( p );
                 p = t;
             }
@@ -854,7 +854,7 @@ int WinCursorProcess()
 {
     int i, HotKey = -1;
 
-    VidUpdateClr();
+//    VidUpdateClr();
 //    tmp = gVidUpdateForbid;
 //    gVidUpdateForbid = 1;
     if( gWinSys.Init && gWinWindowsCount - 1 < 1 ) return -1;
@@ -864,7 +864,7 @@ int WinCursorProcess()
         if( gWinWindows[ i ]->Flags & 0x10 ) break;
     }
 //    gVidUpdateForbid = tmp;
-    VidUpdateOpt();
+//    VidUpdate();
     return HotKey;
 }
 

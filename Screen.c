@@ -4,138 +4,85 @@
 // substitute: original used MMX instructions, diffrent src file
 void ScrCopyFast( char *Dst, int DstPitch, char *Src, int SrcPitch, short Width, short Height )
 {
-    int i,j;
-//    ABGR_t *pd;
-    char *pd;
-//    int col;
-//DD
-//printf("srcpi:%i, dstpi:%i, w:%i, h:%i\n", SrcPitch, DstPitch, Width, Height);
+    int i;
+
     for( i = 0; i < Height; i++ ){
-//	pd = (ABGR_t *)Dst;
-	pd = Dst;
-	for( j = 0; j < Width; j++, pd++ ){
-//	    col = 15;//Src[ j ];
-//	    pd->a = 0x0; // alpha
-//	    pd->b = 0xff;//gSDLPalette->colors[ col ].b;
-//	    pd->g = 0xff;//gSDLPalette->colors[ col ].g;
-//	    pd->r = 0xff;//gSDLPalette->colors[ col ].r;
-	    *pd = Src[ j ];
-	}
+	memcpy( Dst, Src, Width );
         Src += SrcPitch;
         Dst += DstPitch;
     }
-//DD
 }
+
+/*
+void *mmx_memcpy( void *to, const void *from, size_t len )
+{
+    __asm__ __volatile__ (
+        "  movq (%0), %%mm0\n"
+        "  movq 8(%0), %%mm1\n"
+        "  movq 16(%0), %%mm2\n"
+        "  movq 24(%0), %%mm3\n"
+        "  movq %%mm0, (%1)\n"
+        "  movq %%mm1, 8(%1)\n"
+        "  movq %%mm2, 16(%1)\n"
+        "  movq %%mm3, 24(%1)\n"
+        "  movq 32(%0), %%mm0\n"
+        "  movq 40(%0), %%mm1\n"
+        "  movq 48(%0), %%mm2\n"
+        "  movq 56(%0), %%mm3\n"
+        "  movq %%mm0, 32(%1)\n"
+        "  movq %%mm1, 40(%1)\n"
+        "  movq %%mm2, 48(%1)\n"
+        "  movq %%mm3, 56(%1)\n"
+    : : "r" (from), "r" (to) : "memory");
+}
+*/
 
 // substitute: original used MMX instructions, diffrent src file
 void ScrCopyAlphaFast( unsigned char *pDst, int DstPitch, unsigned char *pSrc, int SrcPitch, int Width, int Height )
 {
-    int i,j;
-    unsigned char *pd;
+    int i,j,k,l;
+    unsigned char *pd, *ps;
     unsigned char col;
 
+    k = Width / 8;
+    l = Width % 8;    
     for( i = 0; i < Height; i++ ){
 	pd = pDst;
-	for( j = 0; j < Width; j++, pd++ ){
-	    col = pSrc[ j ];
+	ps = pSrc;
+	for( j = 0; j < k*8; j++, pd++, ps++ ){
+	    col = *ps;
+	    if( col == 0 ) continue;
+	    *pd = col;	    
+//	    __asm__ __volatile__ (
+//	    " movq	(%%rsi), %%mm0\n"
+//	    );
+	}
+	for( j = 0; j < l; j++, pd++, ps++ ){
+	    col = *ps;
 	    if( col == 0 ) continue;
 	    *pd = col;
 	}
         pSrc += SrcPitch;
         pDst += DstPitch;
     }
-}
-
-/*
-void ScrCopyAlphaFast( unsigned char *pDst, int DstPitch, unsigned char *pSrc, int SrcPitch, int Width, int Height )
-{
-    int v6; // edx
-    unsigned char *dst; // edi
-    int v9; // eax MAPDST
-    int line; // edx
-    int i; // ecx
-    unsigned char v12; // al
-    int j; // ecx
-    int k; // ecx
-    char v18; // al
-    unsigned int v19; // ecx
-    unsigned char v20; // al
-    unsigned char v21; // al
-    unsigned char v22; // al
-    unsigned char v23; // al
-    int v24; // ecx
-    unsigned char v25; // al
-    int v26; // [esp+0h] [ebp-Ch]
-    unsigned int v27; // [esp+4h] [ebp-8h]
-    int DstPitcha; // [esp+18h] [ebp+Ch]
-    int SrcPitcha; // [esp+20h] [ebp+14h]
-
-    if( !Width ) return;
-    v6 = Height;
-    dst = pDst;
-    DstPitcha = DstPitch - Width;
-    SrcPitcha = SrcPitch - Width;
-        while( 1 ) {
-            v19 = Width >> 2;
-            if( Width >> 2 ) break;
-LABEL_30:
-            if( (Width & 3) != 0 ){
-                v24 = (Width & 3) + 1;
-                while( --v24 ){
-                    v25 = *pSrc;
-                    pSrc = pSrc + 1;
-                    dst = (dst + 1);
-                    if( v25 ) dst[ 7 - 1 ] = v25;
-                }
-            }
-            pSrc = pSrc + SrcPitcha;
-            dst = (dst + DstPitcha);
-            if ( !--v6 ) return;
-        }
-        while ( 1 )
-        {
-            v20 = *pSrc;
-            if ( *pSrc ) break;
-            while( 1 ){
-                v21 = *(pSrc + 1);
-                if( v21 ){
-LABEL_27:
-                    dst[1] = v21;
-                    v22 = *(pSrc + 2);
-                    if( v22 ) goto LABEL_28;
-                    goto LABEL_22;
-                }
-LABEL_21:
-                v22 = *(pSrc + 2);
-                if( v22 ){
-LABEL_28:
-                    dst[2] = v22;
-                    v23 = *(pSrc + 3);
-                    if( !v23 ) break;
-                    goto LABEL_29;
-                }
-LABEL_22:
-                v23 = *(pSrc + 3);
-                if( !v23 ) break;
-LABEL_29:
-                dst[ 3 ] = v23;
-                dst = (dst + 4);
-                pSrc = pSrc + 4;
-                if( !--v19 ) goto LABEL_30;
-                v20 = *pSrc;
-                if( *pSrc ) goto LABEL_26;
-            }
-            dst = (dst + 4);
-            pSrc = pSrc + 4;
-            if( !--v19 ) goto LABEL_30;
-        }
-LABEL_26:
-        dst[0] = v20;
-        v21 = *(pSrc + 1);
-        if( v21 ) goto LABEL_27;
-        goto LABEL_21;
-}
+/*					// mm3 = Alpha
+cpy:					// do{
+    movq    mm0, qword ptr [esi]	// 	mm0 = *esi.q // src
+    movq    mm1, qword ptr [edi]	// 	mm1 = *edi.q // dst
+    movq    mm2, mm0			// 	mm2 = mm0
+    pcmpeqb mm2, mm3			// 	mm2 = pcmeqb( mm0, mm3 ) // jesli wystapilo gdzies Alpha to mm2[ 0..7 ] == 0xff
+    lea     esi, [esi+8]		// 	esi += 8;
+    movq    mm4, mm2			// 	mm4 = mm2
+    pandn   mm2, mm0			// 	mm2 = ~mm2 & mm0
+    pand    mm4, mm1			// 	mm4 = mm4 & mm1
+    lea     edi, [edi+8]		// 	edi += 8
+    por     mm2, mm4			//	mm2 = mm2 | mm4
+    dec     ecx				// 	ecx--
+    movq    qword ptr [edi-8], mm2	// 	[edi - 8 ] = mm2
+    jns     short cpy			// }while( NS )
 */
+}
+
 
 void ScrLine( char *Surface, int Pitch, int x0, int y0, int x1, int y1, int Color )
 {

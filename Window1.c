@@ -1267,7 +1267,6 @@ void WinSetup( int VideoModeSel, int Flags )
     gWinResortHeight = gWinResolutionTable[ VideoModeSel ].Height;
     gWinResortWidth  = gWinResolutionTable[ VideoModeSel ].Width;
     for( i = 0; i < 16; i++ ) gWinList[ i ].Height = -1;
-    VidSetMMX( 1 );
     err = WinInit( gWinInitVidModeSel[ VideoModeSel ], VidClose, Flags );
     switch( err ){
         case 0: break;

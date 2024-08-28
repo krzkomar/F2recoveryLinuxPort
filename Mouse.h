@@ -13,9 +13,6 @@
 
 #define MSE_BUTT_HTIME   250	// time in ms to detect press & hold button
 
-extern void (*gMseBlitAlpha)( void *SrcData, int pitch, int unk, int SrcX, int SrcY, int Width, int Height, int Xpos, int Ypos, char TransColor );
-extern void (*gMseBlit)( void *src, int pitch, int unk, int SrcX, int SrcY, int Width, int Height, int Xpos, int Ypos );
-
 int 	MseInit();
 void 	MseClose();
 void 	MseCursorInit();

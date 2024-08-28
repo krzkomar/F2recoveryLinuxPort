@@ -1,8 +1,5 @@
 #include "FrameWork.h"
 
-void (*gMseBlitAlpha)( void *SrcData, int pitch, int unk, int SrcX, int SrcY, int Width, int Height, int Xpos, int Ypos, char TransColor );
-void (*gMseBlit)( void *src, int pitch, int unk, int SrcX, int SrcY, int Width, int Height, int Xpos, int Ypos );
-
 static char gMseCursorArrow[ 8*8 ] = {
     0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, // "AAAAAAA "
     0x01, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x01, 0x00, // "A+++++A "
@@ -189,7 +186,7 @@ void MseCursorShow()
 
     MouseBmp = gMseCursorPic;
     if( gMseAcq ){
-        if( !gMseBlitAlpha || !gMseCursorHide ){
+        if( !gMseCursorHide ){
             WinWhipeCursor( gMseCursorPic ); // whipes current cursor
             MouseBmp = gMseCursorPic;
             // update transparency to cursor frame
@@ -227,10 +224,10 @@ void MseCursorShow()
         }
         gMseCursorPic = MouseBmp;
         
-        if( gMseBlitAlpha && gMseCursorHide ){ // draw animated cursor
-            gMseBlitAlpha( gMseAnimCursorFrame, gMsePitch, gMseHeight, SrcX, SrcY, Width, Height, SrcX + gMseX, SrcY + gMseY, gMseAlpha );
+        if( gMseCursorHide ){ // draw animated cursor
+            VidCopyAlpha( gMseAnimCursorFrame, gMsePitch, gMseHeight, SrcX, SrcY, Width, Height, SrcX + gMseX, SrcY + gMseY, gMseAlpha );
         } else
-            gMseBlit( gMseCursorPic, gMseWidth, gMseHeight, SrcX, SrcY, Width, Height, SrcX + gMseX, SrcY + gMseY );
+            VidCopy( gMseCursorPic, gMseWidth, gMseHeight, SrcX, SrcY, Width, Height, SrcX + gMseX, SrcY + gMseY );
         MouseBmp = gMseCursorPic;
         gMseCursorHide = 0;
     }

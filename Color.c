@@ -157,7 +157,7 @@ void PalSetColors( Pal8_t *Palette )
         TmpPal[ i ].g = gPalBright[ (int)Palette[ i ].g ];
         TmpPal[ i ].b = gPalBright[ (int)Palette[ i ].b ];
     }
-    memcpy( gPalCurrent, Palette, 3*256 );
+    memcpy( gPalCurrent, Palette, sizeof( Pal8_t ) * 256 );
     VidSetPaletteAll( TmpPal );
 }
 
@@ -183,7 +183,7 @@ void PalModulate( Pal8_t *Palette, unsigned int FirstColor, int LastColor )
         gPalCurrent[ col ].g = g;
         gPalCurrent[ col ].b = b;
     }
-    VidSetPaletteRange( NewPal, FirstColor, colors );
+    VidSetPaletteRange( &NewPal[FirstColor], FirstColor, colors );
 }
 
 void PalSetCurrentColorRGB( int PalIdx, unsigned char r, unsigned char g, unsigned char b )

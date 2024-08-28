@@ -26,6 +26,7 @@ typedef struct // size of 3
   unsigned char r;
   unsigned char g;
   unsigned char b;
+  unsigned char a; // allign, added for fast copying
 } __attribute__((packed)) Pal8_t;
 
 extern unsigned char	gPalSemiTransparent[256][256];

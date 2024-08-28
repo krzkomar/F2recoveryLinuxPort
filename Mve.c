@@ -25,7 +25,7 @@ int gMveOpened;
 int gMveNotFullScreen; // scaled
 int gMveHeight;
 int gMvePosOffset;
-int (*gMveUnk42)();
+//int (*gMveUnk42)();
 //void *gMveSurface;
 int gMveWidth;
 int (*gMveUnk45)();
@@ -134,13 +134,14 @@ int MveBlitDirect( char *Surf, int Width, int Height, int PosX, int PosY, int w,
     gMveUnk35 = RectDst.rt - RectDst.lt;
     gMveUnk29 = Width;
     gMveUnk34 = RectDst.bm - RectDst.tp;
-    if( gMveUnk42 ) gMveUnk42( Surf + Width * PosY + PosX, Width, Height, Width, RectDst.lt, RectDst.tp, RectDst.rt - RectDst.lt, RectDst.bm - RectDst.tp );
-    VidCopy16( Surf, Width, 0, RectSrc.lt, RectSrc.tp, Width, Height, RectDst.lt, RectDst.tp );
+//    if( gMveUnk42 ) gMveUnk42( Surf + Width * PosY + PosX, Width, Height, Width, RectDst.lt, RectDst.tp, RectDst.rt - RectDst.lt, RectDst.bm - RectDst.tp );
+    VidCopy( Surf, Width, 0, RectSrc.lt, RectSrc.tp, Width, Height, RectDst.lt, RectDst.tp );
     return 0;
 }
 
 void MveBlitBuffered( char *Surf, int Width, int Height, int PosX, int PosY, int w, int h, int aa, int ab )
 {
+DD
     if( gMveWin == -1 ) return;
     gMveUnk29 = Width;
     gMveUnk28 = Width;
@@ -165,10 +166,10 @@ void MveUnk05( int (*Cb)() )
     gMveUnk45 = Cb;
 }
 
-void MveUnk06( int (*Cb)())
-{
-    gMveUnk42 = Cb;
-}
+//void MveUnk06( int (*Cb)())
+//{
+//    gMveUnk42 = Cb;
+//}
 
 void MveUnk07( void **pA, int *pB, int *pC, int *pD, int *pE, int *pG, int *pH )
 {

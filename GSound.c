@@ -1203,7 +1203,8 @@ int GSoundMapAmbient( Obj_t *nu, int *arg )
 {
     int k, *p, time;
     char *SfxFileName = NULL;
-
+DD
+return 0;
     k = -1;
     EvQeRun( 13, 0 );
     if( arg ){

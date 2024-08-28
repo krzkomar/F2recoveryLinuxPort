@@ -18,14 +18,14 @@ void FadeInit()
     PalFadeIn( gFadePaletteA, gFadePaletteA, 60 );
     PalSetFadeSndCb( NULL );
     time = TimerCurrDiff( t0 );
-    gFadeSteps = lround( FADE_TIME_MS * time / 60.0 ); // lround( 60.0 / (time * 0.0014) );
+    gFadeSteps = lround( FADE_TIME_MS * time / 60.0 ); // /*lround( 60.0 / (time * 0.0014) )*/;
     eprintf( "Fade time is %ums,\tFade steps are %d.", time, gFadeSteps );
 }
 
 void FadeStep( Pal8_t *pal )
 {
     int en;
-
+return;
     en = CycleColorIsEnabled();
     CycleColorStop();
     if( GSoundIsMusicEnabled() || GSoundIsSpkOn() ) PalSetFadeSndCb( SoundUpdateAll );

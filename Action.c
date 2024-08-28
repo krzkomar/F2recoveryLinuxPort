@@ -1143,7 +1143,7 @@ void ActionUnk11( Combat_t *cmbt, Obj_t *obj )
                 CritterUnk45( cmbt->Target, obj );
 		p = cmbt->Target;
             } else if( obj == gObjDude && !dead ){
-                Exp = CritterUnk27( cmbt->Target );
+                Exp = CritterKillExp( cmbt->Target );
             }
         }        
         for( i = 0; i < cmbt->Count; i++ ){
@@ -1152,7 +1152,7 @@ void ActionUnk11( Combat_t *cmbt, Obj_t *obj )
                 CritterUnk45( cmbt->obj[ i ], obj );
                 if( !p ) p = cmbt->obj[ i ];
             } else if( obj == gObjDude && !DeadPool[ i ] ){
-                Exp += CritterUnk27( cmbt->obj[ i ] );
+                Exp += CritterKillExp( cmbt->obj[ i ] );
             }
         }
         if( p && !IN_COMBAT ){

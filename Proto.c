@@ -32,7 +32,7 @@ Proto_t gProtoDude =
     .Critt.BoostStat = {0},
     .Critt.Skills = {0},
     .Critt.ProtoID = 0,
-    .Critt.i91 = 0,
+    .Critt.KillExp = 0,
     .Critt.Gender = 0,
     .Critt.TypeNameID = 0,
     .i09 = -1,
@@ -343,7 +343,7 @@ int ProtoInitCritter( Proto_t *proto, int ImgPid )
     proto->i11 = 1;
     proto->ImgId = ArtMakeId( 1, ImgPid - 1, 0, 0, 0 );
     if( !ArtFileExist( proto->ImgId ) ) proto->ImgId = ArtMakeId( 1, 0, 0, 0, 0 );
-    proto->Critt.i91 = 60;
+    proto->Critt.KillExp = 60;
     proto->Critt.Gender = 0;
     proto->Critt.TypeNameID = 0;
     FeatReset( &proto->Critt );
@@ -666,7 +666,7 @@ int ProtoDudeInit( char *fname )
     if( CritterLoadAllStats( fname ) == -1 ) gProtoError = -1;
     proto->Critt.BaseStat[29] = 100;
     proto->Critt.ProtoID = 0;
-    proto->Critt.i91 = 0;
+    proto->Critt.KillExp = 0;
     proto->Critt.Gender = 0;
     proto->Critt.TypeNameID = 0;
     ProtoDudeImgInit();

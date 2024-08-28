@@ -459,12 +459,12 @@ LABEL_15:
     return result;
 }
 
-int CritterUnk27( Obj_t *dude )
+int CritterKillExp( Obj_t *dude )
 {
     Proto_t *proto;
 
     ProtoGetObj( dude->Pid, &proto );
-    return proto->Critt.i91;
+    return proto->Critt.KillExp;
 }
 
 int CritterCanTalk( Obj_t *dude )
@@ -543,7 +543,7 @@ int CritterLoadAllStats( char *fname )
     if( SkillLoadSpecials( fh ) == -1 || TraitLoad( fh ) == -1 || dbgetBei( fh, &gChrEditUnspentChrPts ) == -1 ){ dbClose( fh ); return -1; }
     cr->BaseStat[29] = 100;
     cr->ProtoID = 0;
-    cr->i91 = 0;
+    cr->KillExp = 0;
     cr->Gender = 0;
     dbClose( fh );
     return 0;    
@@ -556,7 +556,7 @@ int CritterLoadFile( xFile_t *fh, Critter_t *Data )
     if( dbreadBeiBlk( fh, Data->BoostStat, 35 ) == -1 ) return -1;
     if( dbreadBeiBlk( fh, Data->Skills, 18 ) == -1 ) return -1;
     if( dbgetBei( fh, &Data->ProtoID ) == -1 ) return -1; // proto ID ( -0x400 )
-    if( dbgetBei( fh, &Data->i91 ) == -1 ) return -1; // Unk 1
+    if( dbgetBei( fh, &Data->KillExp ) == -1 ) return -1; // Unk 1
     if( dbgetBei( fh, &Data->Gender ) == -1 ) return -1; // Unk 2
     if( dbgetBei( fh, &Data->TypeNameID ) == -1 ) Data->TypeNameID = 0; // msg 1450 + ID in Proto.msg
     return 0;
@@ -599,7 +599,7 @@ int CritterSaveFile( xFile_t *fh, Critter_t *cr )
     if( dbputBeiBlk( fh, (unsigned int *)cr->BoostStat, 35 ) == -1 ) return -1;
     if( dbputBeiBlk( fh, (unsigned int *)cr->Skills, 18 ) == -1 ) return -1;
     if( dbputBei( fh, cr->ProtoID) == -1 ) return -1;
-    if( dbputBei( fh, cr->i91) == -1 ) return -1;
+    if( dbputBei( fh, cr->KillExp) == -1 ) return -1;
     if( dbputBei( fh, cr->Gender) == -1 ) return -1;
     if( dbputBei( fh, cr->TypeNameID ) == -1 ) return -1;
     return 0;

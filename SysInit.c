@@ -182,7 +182,7 @@ void SysSplash()
             dbread( pal, 1, 768, fh );
             dbread( art, 1, 307200, fh );
             dbClose( fh );
-            gVidCopyA( art, 640, 480, 0, 0, 640, 480, 0, 0 );
+            VidCopy( art, 640, 480, 0, 0, 640, 480, 0, 0 );
             FadeStep( pal );
             Free( art );
         }

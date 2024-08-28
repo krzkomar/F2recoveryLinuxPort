@@ -114,7 +114,9 @@ int EvQeSchedule( int GameTime, Obj_t *object, void *Ptr, int Method )
 {    
     int InGameTime;
     Ev_t **p_Next, *q, *ev;
-
+DD
+printf(">>>>%i %p %p %i\n", GameTime, object, Ptr, Method );
+if( object == NULL || Ptr == NULL ) DBG_CRASH;
     ev = Malloc( sizeof( Ev_t ) );
     if( !ev ) return -1;
     InGameTime = ScptGetGameDekaSeconds();

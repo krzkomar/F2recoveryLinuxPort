@@ -1946,7 +1946,8 @@ int Item110( Obj_t *obj, EvEntry_t *Effect )
 int ItemWithdrawalEv( Obj_t *obj, EvEntry_t *effect )
 {
     int GVarId;
-
+DD
+printf("++++>%p\n", obj);
     if( effect->i01 ){
         ItemWithdrawalStart( obj, effect->i03, effect->i02 );
     } else {

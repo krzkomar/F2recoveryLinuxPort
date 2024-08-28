@@ -68,7 +68,7 @@ typedef struct
   int BoostStat[35];
   int Skills[18];
   int ProtoID;
-  int i91;
+  int KillExp; // Experience gained for kill critter
   int Gender;
   int TypeNameID;
 } Critter_t;
@@ -116,7 +116,7 @@ char *CritterGetKillTypeDsc( int TxtId );
 int  CritterHit1( Obj_t *dude, int a2 );
 int  CritterUnk26( Obj_t *n );
 int  CritterKill( Obj_t *dude, int DeathFrame, int a2 );
-int  CritterUnk27( Obj_t *dude );
+int  CritterKillExp( Obj_t *dude );
 int  CritterCanTalk( Obj_t *dude );
 int  CritterIsDead( Obj_t *dude);
 int  CritterUnk30( Obj_t *dude );

@@ -95,8 +95,6 @@ int GameSysInit( char *ProgName, int flag1, int Font, int Flags, int argc, char 
     return 0;        
 }
 
-
-
 void GameReset()
 {
     TileUpdateDisable();
